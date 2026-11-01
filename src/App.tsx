@@ -505,9 +505,11 @@ export default function App() {
         toast(e instanceof ApiError ? `${C.bootListFailed} – ${e.detail}` : C.bootListFailed, { icon: 'warn', tone: 'warn' })
         return { list: [] as IncidentMeta[], offline: false }
       })
+      // re-list only when the migration created an Einsatz: an empty list is the normal peacetime
+      // boot, and asking again cost every such launch a second round trip (01.11.2026)
       if (list.length === 0 && !offline) {
-        await migrateLegacyWorkspace([appConfig.storage.key, ...appConfig.storage.legacyKeys]).catch(() => null)
-        list = (await listIncidentsResilient().catch(() => ({ list: [] as IncidentMeta[] }))).list
+        const migrated = await migrateLegacyWorkspace([appConfig.storage.key, ...appConfig.storage.legacyKeys]).catch(() => null)
+        if (migrated) list = (await listIncidentsResilient().catch(() => ({ list: [] as IncidentMeta[] }))).list
       }
       if (offline) toast(appConfig.copy.incidentSwitcher.bootOffline, { icon: 'warn' })
       setIncidents(list)
