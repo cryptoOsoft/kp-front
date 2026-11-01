@@ -16,7 +16,7 @@
     "@typescript-eslint/no-require-imports": 2,
     "no-console": 4,
     "no-misleading-character-class": 2,
-    "react-hooks/exhaustive-deps": 121,
+    "react-hooks/exhaustive-deps": 119,
     "react-hooks/refs": 1,
     "react-hooks/rules-of-hooks": 8,
     "react-hooks/set-state-in-effect": 1,

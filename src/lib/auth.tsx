@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { apiGet, apiPost, ApiError, isDenial, isUnverifiable, SESSION_EXPIRED_EVENT } from './api'
 import { idbGet, idbSet, idbDel } from './idb'
 import { getDeploymentConfig, isDemoMode, loadDeploymentConfig } from './deploymentConfig'
@@ -97,12 +97,9 @@ function writeCachedUser(u: AuthUser | null) {
 }
 
 /** The /me bound when a cached user is waiting behind it. The default 20 s is right for a
- *  request nothing else can answer — but here the offline fallback IS the answer, and the boot
- *  Splash admits «hängt» with a «Neu starten» button at 9 s (Splash · STUCK_MS). With the full
- *  bound, obeying that button restarted the probe from zero and the cached session was only
- *  ever reached by ignoring it. Well under 9 s, so a half-open link lands on the cached user
- *  before the splash gives up; a slow-but-alive server then simply gets the designed offline
- *  boot, which the next poll corrects. */
+ *  request nothing else can answer — but here the cached user IS the answer until the server
+ *  speaks (the boot opens on it at once, see the probe below), so a half-open link need not hold
+ *  a request open for long; the next poll corrects a slow-but-alive server. */
 const CACHED_PROBE_TIMEOUT_MS = 7_000
 
 /** how long the boot probe waits for the session-bearing config re-read before mounting the app */
@@ -117,10 +114,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   /** Set the session AND tell the offline caches whose it is, in ONE step. Deliberately not an
    *  effect: App mounts INSIDE this provider, so its own effects (opening the boot Einsatz off
    *  the cache) run before ours would, and would read against a stale owner. */
-  const adoptUser = (u: AuthUser | null) => {
+  const adoptUser = useCallback((u: AuthUser | null) => {
     setWorkspaceCacheOwner(u?.id ?? null)
     setUser(u)
-  }
+  }, [])
 
   // Cross-tab denial. The session cookie is shared by every tab, so a refusal in one tab must lock
   // the others too — otherwise a second tab keeps serving cached reads, and can even re-grant the
@@ -139,22 +136,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   /** The local half of a denial: lock the workspace cache, drop the view to the kiosk login, and
    *  forbid an offline restore. Shared by a locally-detected refusal and one another tab broadcast.
    *  Owner-stamped unsynced work stays on disk, gated to the same account's next sign-in. */
-  const denyLocally = () => {
+  const denyLocally = useCallback(() => {
     denialEpoch.current++ // invalidate any boot restore whose probe is still awaiting
     denyWorkspaceCache()
     adoptUser(null)       // …and the effect below tells the worker (authMediaCache · «logged-out»)
     writeCachedUser(null) // no offline restore may resurrect a session the server has ended
-  }
+  }, [adoptUser])
 
   /** A reachable server refused this session. The device loses its cached VIEW at once — a null
    *  user IS the lock, since the kiosk login is what the gate renders then (main · Gate) — while
    *  everything unsynced stays on disk, gated to the same account's next sign-in
    *  (api/workspaceSync · denyWorkspaceCache). Deleting the operator's unflushed work because
    *  their 8 h token ran out would be the worse failure of the two. Also tells the other tabs. */
-  const denySession = () => {
+  const denySession = useCallback(() => {
     denyLocally()
     denialChannel.current?.postMessage('denied')
-  }
+  }, [denyLocally])
 
   useEffect(() => {
     if (typeof BroadcastChannel === 'undefined') return // e.g. an old WebView: falls back to next-401 convergence
@@ -164,9 +161,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // already told everyone, and echoing would loop.
     channel.onmessage = (e) => { if (e.data === 'denied') denyLocally() }
     return () => { channel.close(); denialChannel.current = null }
-    // denyLocally only calls setState + module-level cache gates; no closure can go stale.
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- one channel for the page's life
-  }, [])
+  }, [denyLocally]) // stable: one channel for the page's life
 
   // Demo instances skip the login screen: on a fresh visit (no session) auto-sign-in as the
   // demo editor so a visitor lands straight in the action. Fetch the roster, pick the editor,
@@ -193,8 +188,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // On mount, ask the backend who we are. A 401 just means "not logged in" (normal
   // cold-start) — on the demo we then auto-sign-in. A server that could not be asked (offline,
-  // timeout, restarting — api · isUnverifiable) falls back to the cached user so an installed
-  // PWA opens straight into the app with no signal.
+  // timeout, restarting — api · isUnverifiable) keeps the cached user so an installed PWA opens
+  // straight into the app with no signal.
+  //
+  // ⚠️ A device with a cached user opens on it AT ONCE and asks behind the app (cold-start sweep
+  // 01.11.2026): waiting for /me put one to three round trips (a lapsed 8 h access cookie means
+  // 401 → refresh → /me) in front of every launch, each one a second or more on a phone waking its
+  // radio. It shows nothing the offline boot does not already show for as long as there is no
+  // signal; a refusal, when it arrives, locks the device exactly as a mid-use one does
+  // (denySession).
   //
   // This probe used to answer a 403 by POSTing `/api/auth/logout` and asking once more: a dead
   // Einsatz-Link cookie made every credential-gated route refuse, and the kiosk login was
@@ -210,6 +212,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // to it — see the isUnverifiable branch.
       const denialEpochAtStart = denialEpoch.current
       const cached = await readCachedUser()
+      if (cached && alive && denialEpoch.current === denialEpochAtStart) {
+        adoptUser(cached)
+        setLoading(false)
+      }
       const probe = () => apiGet<AuthUser>('/api/auth/me', cached ? { timeoutMs: CACHED_PROBE_TIMEOUT_MS } : undefined)
       try {
         const u: AuthUser = await probe()
@@ -221,8 +227,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // used to print «API key required» for the whole session (field report 02.09.). Only
         // when the booted config shows the withholding, and bounded: a slow link must not hold
         // the splash twice — a late answer still lands in the singleton and the offline cache.
+        // Not awaited when the app is already open on the cached user: there is no splash to hold.
         if (!getDeploymentConfig().integrations?.cartoBasemapKey) {
-          await Promise.race([loadDeploymentConfig().catch(() => {}), new Promise((r) => setTimeout(r, SESSION_CONFIG_BUDGET_MS))])
+          const reread = loadDeploymentConfig().catch(() => {})
+          if (!cached) await Promise.race([reread, new Promise((r) => setTimeout(r, SESSION_CONFIG_BUDGET_MS))])
         }
         if (alive) { adoptUser(u); writeCachedUser(u) }
       } catch (e) {
@@ -233,13 +241,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // silently reversing the logout. Only a live 200 above may lift a denial; the offline
           // fallback may not. Stay locked and require a fresh login.
           if (denialEpoch.current !== denialEpochAtStart) return
-          if (cached) adoptUser(cached) // unverifiable, not refused — keep the session usable
-          else setProbeUnreachable(true)
+          // unverifiable, not refused — the cached session (adopted above) stays usable
+          if (!cached) setProbeUnreachable(true)
         } else if (isDenial(e)) {
           // A reachable refusal, 401 OR 403, clears the cached identity — or a later OFFLINE boot
           // would restore a login the server has already rejected (SEC-10). Only a 401 means
           // «not logged in», so only it lets the demo auto-sign-in; a 403 just lands on the login.
-          writeCachedUser(null)
+          // The app already open on the cached user is locked like a session refused mid-use.
+          if (cached) denySession()
+          else writeCachedUser(null)
           if (e instanceof ApiError && e.status === 401) {
             const demoUser = await tryDemoAutoLogin() // demo → straight in; real stations → login screen
             if (alive && demoUser) {
@@ -257,7 +267,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     })()
     return () => { alive = false }
-  }, [])
+  }, [adoptUser, denySession]) // stable: the boot probe runs once per mount
 
   // The one listener for a session that died mid-use — and the one place that decides what that
   // MEANS. `kp:session-expired` fires when a 401 could not be repaired, but the refresh POST
@@ -296,9 +306,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     window.addEventListener(SESSION_EXPIRED_EVENT, onExpired)
     return () => { alive = false; window.removeEventListener(SESSION_EXPIRED_EVENT, onExpired) }
-    // denySession only calls setState and module-level cache gates — no closure can go stale.
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- one listener for the page's life
-  }, [])
+  }, [adoptUser, denySession]) // stable: one listener for the page's life
 
   // Protected media is cached only for a known real-user client. Do not signal during the
   // initial probe: `user === null` still means "unknown" then, not "logged out". Once the
