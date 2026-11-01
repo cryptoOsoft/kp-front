@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { alarmProviderName, atemschutzDoctrine, incidentCategories, atemschutzEquipment, carrySessionOnly, demoNote, getDeploymentConfig, loadDeploymentConfig, loadDeploymentConfigBounded, mapReferenceLayers, moduleAlignment, moduleViewer, personnelProviderName, reportLinks, stripLocality } from './deploymentConfig'
+import { alarmProviderName, atemschutzDoctrine, incidentCategories, atemschutzEquipment, carrySessionOnly, demoNote, getDeploymentConfig, loadDeploymentConfig, bootDeploymentConfig, mapReferenceLayers, moduleAlignment, moduleViewer, personnelProviderName, reportLinks, stripLocality } from './deploymentConfig'
 import { idbSet, __resetIdbForTests } from './idb'
 
 describe('mapReferenceLayers', () => {
@@ -83,11 +83,10 @@ describe('stripLocality — home town off compact addresses', () => {
   })
 })
 
-// loadDeploymentConfigBounded guards the ONE await that sits before createRoot. While it is
-// pending the operator sees an empty #root — no splash, no error boundary, nothing to tap —
-// and killing the app just re-runs the same stall. So it must ALWAYS settle within its budget,
-// serving the offline cache rather than holding first paint.
-describe('loadDeploymentConfigBounded — first paint is never held hostage', () => {
+// bootDeploymentConfig is the ONE await on the config before createRoot. A device that has booted
+// before must not wait for the network at all (a round trip per launch, cold-start sweep
+// 01.11.2026); a first boot must settle within its budget.
+describe('bootDeploymentConfig — the launch never waits for /api/config it already has', () => {
   const CACHE_KEY = 'kp-front-deployment-config'
   const fetchMock = vi.fn()
 
@@ -102,25 +101,32 @@ describe('loadDeploymentConfigBounded — first paint is never held hostage', ()
   const json = (body: unknown) =>
     new Response(JSON.stringify(body), { status: 200, headers: { 'Content-Type': 'application/json' } })
 
-  it('returns the fresh config when the network answers inside the budget', async () => {
+  it('serves the cached config at once and hands the fresh one to onFresh', async () => {
+    await idbSet(CACHE_KEY, { identity: { appName: 'Cached' } })
+    let answer!: (r: Response) => void
+    fetchMock.mockReturnValueOnce(new Promise<Response>((res) => { answer = res }))
+    const onFresh = vi.fn()
+    const cfg = await bootDeploymentConfig(2_000, onFresh)
+    expect(cfg.identity?.appName).toBe('Cached')
+    // the synchronous accessor is seeded too, so read sites get the STATION's config from the
+    // very first render
+    expect(getDeploymentConfig().identity?.appName).toBe('Cached')
+
+    answer(json({ identity: { appName: 'Fresh' } }))
+    await vi.waitFor(() => expect(onFresh).toHaveBeenCalledWith({ identity: { appName: 'Fresh' } }))
+    expect(getDeploymentConfig().identity?.appName).toBe('Fresh')
+  })
+
+  it('waits for the network on a first boot', async () => {
     fetchMock.mockResolvedValueOnce(json({ identity: { appName: 'Fresh' } }))
-    const cfg = await loadDeploymentConfigBounded(2_000)
+    const cfg = await bootDeploymentConfig(2_000, () => {})
     expect(cfg.identity?.appName).toBe('Fresh')
   })
 
-  it('falls back to the cached config when the request never settles', async () => {
-    await idbSet(CACHE_KEY, { identity: { appName: 'Cached' } })
-    fetchMock.mockReturnValueOnce(new Promise(() => { /* a half-open connection: never settles */ }))
-    const cfg = await loadDeploymentConfigBounded(30)
-    expect(cfg.identity?.appName).toBe('Cached')
-    // ...and the synchronous accessor is seeded too, so read sites get the STATION's config
-    // from the very first render instead of national defaults.
-    expect(getDeploymentConfig().identity?.appName).toBe('Cached')
-  })
-
-  it('resolves to {} on a stalled request with no cache (first-ever boot) — never hangs', async () => {
+  it('settles with what it has on a stalled first boot — never hangs', async () => {
     fetchMock.mockReturnValueOnce(new Promise(() => {}))
-    await expect(loadDeploymentConfigBounded(30)).resolves.toEqual({})
+    // what it has: `{}` on a real first boot; the module singleton outlives single tests here
+    await expect(bootDeploymentConfig(30, () => {})).resolves.toBe(getDeploymentConfig())
   })
 
   it('never lets a late anonymous response replace the authenticated demo config', async () => {
