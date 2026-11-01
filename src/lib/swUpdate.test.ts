@@ -60,7 +60,8 @@ beforeEach(() => {
     location: { reload: vi.fn() },
   })
   vi.stubGlobal('window', win)
-  doc = Object.assign(new EventTarget(), { visibilityState: 'visible' })
+  // querySelector: lib/buildInfo reads the build stamp's <meta> at import (none here → 'dev')
+  doc = Object.assign(new EventTarget(), { visibilityState: 'visible', querySelector: () => null })
   vi.stubGlobal('document', doc)
   sw = new EventTarget()
   vi.stubGlobal('navigator', { serviceWorker: sw })

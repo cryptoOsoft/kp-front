@@ -1,7 +1,6 @@
 /// <reference types="vite/client" />
 /// <reference types="vite-plugin-pwa/client" />
 
-// Build stamp injected via vite `define` (see vite.config.ts).
+// Package version injected via vite `define`; the per-build sha and time come from index.html
+// (vite.config.ts · buildStampMeta, read by lib/buildInfo).
 declare const __APP_VERSION__: string
-declare const __GIT_SHA__: string
-declare const __BUILD_TIME__: string

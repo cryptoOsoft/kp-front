@@ -40,11 +40,23 @@ const referenceSessionPlugin: RuntimePlugin = {
 // no .git (dockerignored) — there the sha arrives via the GIT_SHA env (Dockerfile ARG,
 // fed by Railway's RAILWAY_GIT_COMMIT_SHA); 'dev' only when neither source exists.
 // NOTE: update-landed detection does NOT rely on the sha (swUpdate.ts uses sha+BUILD_TIME).
+// ⚠️ The sha and the time ride in index.html (buildStampMeta), never in the bundle: a string that
+// changes with every build, compiled into the entry chunk, changed the entry's hash, and with it
+// every lazy chunk that imports from the entry — 35 of 91 files, 2.7 MB that every device
+// downloaded again for a deploy that changed nothing (cold-start sweep 01.11.2026).
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf-8'))
 let gitSha = 'dev'
 try { gitSha = execSync('git rev-parse --short HEAD').toString().trim() } catch { /* no git */ }
 if (gitSha === 'dev' && process.env.GIT_SHA) gitSha = process.env.GIT_SHA.slice(0, 7)
 const buildTime = new Date().toISOString()
+
+/** `<meta name="kp-build" content="<sha>@<time>">`, read by lib/buildInfo (see the note above). */
+function buildStampMeta(): Plugin {
+  return {
+    name: 'kp-build-stamp-meta',
+    transformIndexHtml: () => [{ tag: 'meta', attrs: { name: 'kp-build', content: `${gitSha}@${buildTime}` }, injectTo: 'head' }],
+  }
+}
 
 // The boot screen must paint before ANY asset arrives. Use the React loader's source
 // directly instead of maintaining a second copy of its paths and animation in index.html.
@@ -223,8 +235,6 @@ export default defineConfig(({ mode }) => {
   return {
     define: {
       __APP_VERSION__: JSON.stringify(pkg.version),
-      __GIT_SHA__: JSON.stringify(gitSha),
-      __BUILD_TIME__: JSON.stringify(buildTime),
     },
     // ⚠️ The pdf.js WORKER must stay out of the dep optimizer. lib/pdfWorkerEntry imports it
     // bare, and in dev the optimizer answered that import with 504 «Outdated Optimize Dep» —
@@ -235,6 +245,7 @@ export default defineConfig(({ mode }) => {
     css: { postcss: { plugins: [customMedia()] } },
     plugins: [
       inlineSnailLoader(),
+      buildStampMeta(),
       customMediaResolved(),
       react(),
       VitePWA({

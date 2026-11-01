@@ -235,6 +235,35 @@ describe('authMediaCache — a denied session is never re-granted on controllerc
   })
 })
 
+// Cold-start sweep 01.11.2026: a device with a cached session opens on it without waiting for
+// /me — the probe runs behind the app, and its refusal locks the device as a mid-use one does.
+describe('AuthProvider — a cached session opens at once', () => {
+  it('is signed in before /me answers', async () => {
+    vi.spyOn(deploymentConfig, 'isDemoMode').mockReturnValue(false)
+    idbGet.mockResolvedValue(EDITOR_USER)
+    apiGet.mockReturnValueOnce(new Promise(() => { /* /me still on its way */ }))
+    const { result } = renderHook(() => useAuth(), { wrapper })
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(result.current.user).toEqual(EDITOR_USER)
+    expect(setWorkspaceCacheOwner).toHaveBeenLastCalledWith('ed-1')
+  })
+
+  it('locks the opened app when /me then refuses', async () => {
+    vi.spyOn(deploymentConfig, 'isDemoMode').mockReturnValue(false)
+    idbGet.mockResolvedValue(EDITOR_USER)
+    let rejectProbe!: (e: unknown) => void
+    apiGet.mockReturnValueOnce(new Promise((_res, rej) => { rejectProbe = rej }))
+    const { result } = renderHook(() => useAuth(), { wrapper })
+    await waitFor(() => expect(result.current.user).toEqual(EDITOR_USER))
+
+    await act(async () => { rejectProbe(new ApiError(401, 'Nicht angemeldet')); await Promise.resolve() })
+    await waitFor(() => expect(result.current.user).toBeNull())
+    expect(denyWorkspaceCache).toHaveBeenCalled()
+    expect(idbDel).toHaveBeenCalledWith('kp-front-user')
+    await waitFor(() => expect(syncMediaCacheAuth).toHaveBeenLastCalledWith(null))
+  })
+})
+
 describe('AuthProvider — the boot probe is refused', () => {
   it.each([401, 403])('an explicit %i clears the cached identity, so no offline boot restores a dead session', async (status) => {
     vi.spyOn(deploymentConfig, 'isDemoMode').mockReturnValue(false)
@@ -281,10 +310,11 @@ describe('AuthProvider — a logout during the boot probe is not undone', () => 
     await act(async () => { rejectProbe(new ApiError(0, 'Netzwerkfehler')); await Promise.resolve() })
     await waitFor(() => expect(result.current.loading).toBe(false))
 
-    // the logout WON: no offline restore, denial intact, the worker never re-granted
+    // the logout WON: the boot opened on the cached user, but the network failure does not
+    // restore it — denial intact, the worker left on «logged-out»
     expect(result.current.user).toBeNull()
-    expect(setWorkspaceCacheOwner).not.toHaveBeenCalledWith('ed-1')
-    expect(syncMediaCacheAuth).not.toHaveBeenCalledWith(EDITOR_USER)
+    expect(setWorkspaceCacheOwner).toHaveBeenLastCalledWith(null)
+    expect(syncMediaCacheAuth).toHaveBeenLastCalledWith(null)
     otherTab.close()
   })
 
