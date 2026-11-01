@@ -1,8 +1,14 @@
-// Build stamp, injected at build time via vite `define` (see vite.config.ts).
-// Surfaced in the app menu so a tablet in the field can be matched to a known deploy.
+// Build stamp, surfaced in the app menu so a tablet in the field can be matched to a known deploy.
+// The version is compiled in (vite `define`, it changes only with a release); the commit and the
+// build time are read from index.html's `<meta name="kp-build">` (vite.config.ts · buildStampMeta),
+// so they never change a chunk's hash. No document (unit tests) reads as 'dev'.
+const stamp = typeof document === 'undefined'
+  ? ''
+  : document.querySelector<HTMLMetaElement>('meta[name="kp-build"]')?.content ?? ''
+const [sha = '', time = ''] = stamp.split('@')
 export const APP_VERSION = __APP_VERSION__
-export const GIT_SHA = __GIT_SHA__
-export const BUILD_TIME = __BUILD_TIME__
+export const GIT_SHA = sha || 'dev'
+export const BUILD_TIME = time
 
 /** Compact, human-readable build label, e.g. "v0.1.0 · 922dba9 · 22.06.2026". */
 export function buildLabel(): string {

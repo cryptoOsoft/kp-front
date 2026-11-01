@@ -69,10 +69,11 @@ async function loadMap(file) {
   } else if (existsSync(join(source, `${file}.map`))) {
     json = JSON.parse(readFileSync(join(source, `${file}.map`), 'utf-8'))
   } else {
-    // A REBUILD of the same commit names its chunks differently — the build time is baked into
-    // the bundle (vite.config.ts · __BUILD_TIME__), and the hash follows the bytes — but that
-    // string has a fixed length, so every position is the same. Match the chunk by its name
-    // without the hash: `index-CsmMbkFb.js` ↔ `index-DcTipmoD.js`.
+    // A build from before 01.11.2026 baked its build time into the bundle, so a REBUILD of the
+    // same commit names its chunks differently (the build stamp lives in index.html since,
+    // vite.config.ts · buildStampMeta) — but that string had a fixed length, so every position
+    // is the same. Match the chunk by its name without the hash: `index-CsmMbkFb.js` ↔
+    // `index-DcTipmoD.js`.
     const stem = file.replace(/-[\w-]{8}\.m?js$/, '-')
     const twins = readdirSync(source).filter((f) => f.startsWith(stem) && /^[\w-]{8}\.m?js\.map$/.test(f.slice(stem.length)))
     if (twins.length === 1) {
