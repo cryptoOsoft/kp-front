@@ -361,7 +361,9 @@
    «In den Einsatz» on a Trupp that is out, «Im Einsatz» on one still waiting – the owner's pick,
    kept through the hill climb (04.11.2026). In the tile family the one primary action is the
    filled tile («+ Trupp» in the head, `.newBtn`; «Anmelden» in the form), never a green band — in
-   the app's one primary fill (`--btn-primary`, dimmed at night), at the primary's 800. */
+   the app's one primary fill (`--btn-primary`, dimmed at night), at the primary's 800. Not a quieter
+   mid slate (hill climb r7 tried it): at night it read as a DISABLED button – on the one action
+   the card exists to offer. */
 .actEnter, .actReenter { color: var(--on-btn-primary); background: var(--btn-primary); box-shadow: none; font-weight: var(--fw-heavy); }
 @media (hover: hover) {
   .actEnter:hover, .actReenter:hover { background: var(--btn-primary-hover); }
@@ -1605,8 +1607,10 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 /* the last reported bar on the pressure tile (TruppPair, 26.09.2026) — the band's pressure readout
    moved here, so the row and the opened card show it in one place. Mono like every bar on this
    board; red at or under this Trupp's line, the colour the band's «Alarmdruck» wore. 700, the
-   tiles' weight: 800 is Kontakt's alone (hill climb r1, 04.11.2026). */
-.pairBar { font: var(--fw-bold) var(--fs-2) var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+   tiles' weight: 800 is Kontakt's alone (hill climb r1, 04.11.2026). 16px, one step over the tile's
+   14px words (r7): the card's measured Druck is its loudest number after the clock, above the
+   foot's 12.5px values (the Schätzung there keeps its 700 – owner, 29.09.2026 T2). */
+.pairBar { font: var(--fw-bold) var(--fs-3) var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .pairBarLow { color: var(--red-strong); }
 /* (…the second row of the grid, the lifecycle tiles, is `.actions` / `.actBtn` above — the base
    rules since 29.09.2026, when the tablet card took the phone's tiles.) */
