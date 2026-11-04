@@ -206,13 +206,11 @@
   color: var(--ink-faint); opacity: .7; }
 .metaLine i { font-style: normal; }
 .metaLine b { font: var(--fw-bold) var(--fs-1) var(--mono); color: var(--ink); font-variant-numeric: tabular-nums; }
-/* The Schätzung's number: full ink, 500 (hill climb r7, 04.11.2026). Bold like the measured Druck
-   beside it, «≈ 263 bar» took the same weight as «270 bar» on the tile; now the MEASURED values are
-   the 700s (the tile's at 16px, `.pairBar`) and the estimate reads as the quieter number. It stays
-   in `--ink`, never dimmed: the dimmed `.metaEst` went on 29.09.2026 (T2, owner: the Schätzung must
-   stay CLEARLY visible), and its WORD — «Schätzung ≈ 0 bar» — is what keeps it from being read as a
-   logged Druck (TruppCard · sockelLine `labelled`). One rule on every card's foot. */
-.metaLine b.metaEst { font-weight: var(--fw-medium); }
+/* (`.metaEst`, the Schätzung's dimmed + lighter value, went on 29.09.2026, T2: the owner wants the
+   Schätzung CLEARLY visible, so it keeps full ink, its 700 and its WORD — «Schätzung ≈ 0 bar» — and
+   the word is what keeps it from being read as a logged Druck. TruppCard · sockelLine `labelled`.
+   Hill climb r7 tried 500 and was reverted for that reason; the measured Druck stands out by size
+   instead – 16px on the tile, `.pairBar`.) */
 /* (`.metaEstimate` / `.metaEstLabel` / `.metaEstSource` retired 09.09. with the stacked Sockel
    row they dressed. The Schätzung's number lives on `.metaLine`, its provenance is the value of
    a `.zonePanelRow` in the opened Verlauf — `.zoneNote` — where it sits against the label it
@@ -1618,7 +1616,7 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
    board; red at or under this Trupp's line, the colour the band's «Alarmdruck» wore. 700, the
    tiles' weight: 800 is Kontakt's alone (hill climb r1, 04.11.2026). 16px, one step over the tile's
    14px words (r7): the card's measured Druck is its loudest number after the clock, above the
-   foot's 12.5/500 Schätzung (`.metaEst`). */
+   foot's 12.5px values. */
 .pairBar { font: var(--fw-bold) var(--fs-3) var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .pairBarLow { color: var(--red-strong); }
 /* (…the second row of the grid, the lifecycle tiles, is `.actions` / `.actBtn` above — the base

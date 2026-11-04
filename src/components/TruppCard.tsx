@@ -909,8 +909,7 @@ export function TruppCard({
             ⚠️ The Schätzung KEEPS its word and full ink (owner, 29.09.2026: «we still need the
             schätzung clearly visible»): it is the one number on the card that is not a reading,
             and «≈ 0 bar» dimmed at the card's foot was easy to read past. The word is what keeps
-            it from being taken for a logged Druck — the dimming that used to do that is gone. Its
-            number is 500, not 700 (`.metaEst`, hill climb r7): the measured Druck is the bold one. */}
+            it from being taken for a logged Druck — the dimming that used to do that is gone. */}
         {/* ⚠️ The ⋯ ends THIS line (29.09.2026, owner pick B): as the facts' last chip it wrapped
             onto a row of its own on most cards, 44px of height for one glyph. Beside the Verlauf's
             ⌄ it costs nothing, stands at the same place on every card and every board, and the
@@ -924,7 +923,7 @@ export function TruppCard({
               <span key={it.key} title={it.title}>
                 {it.labelled && <i>{it.label}</i>}
                 {/* the Einsatzzeit / «Draussen seit» past a day in the head's compact «3d 10h» — one card, one spelling */}
-                <b className={cx(it.alarm && s.metaAlarm, it.key === 'est' && s.metaEst)}><ClockVal val={it.value} /></b>
+                <b className={cx(it.alarm && s.metaAlarm)}><ClockVal val={it.value} /></b>
               </span>
             )) : <span><i>{az.verlauf}</i></span>}
           </span>
