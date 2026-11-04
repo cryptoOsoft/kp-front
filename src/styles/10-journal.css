@@ -821,13 +821,11 @@
 }
 
 /* …and in the Verlauf, where there is real text: every mention — vehicle, partner, Trupp, person,
-   material, group — is INK, one look for «one of the Einsatz's own words» (29.09.2026).
-   ⚠️ THREE weights in a row, no more (hill climb r3, 04.11.2026): the prose regular (.jr-text),
-   a mention medium — and bold for the Trupp alone, the crew a row is about. With every mention
-   bold, «Unter AS: Meier (AS-GF), Müller (AS)» wrapped into a block as dark as its neighbours
-   and the crew that changed had nothing to set it apart. */
-.jr-link { font-weight: var(--fw-medium); color: var(--ink); }
-.jr-link-trupp { font-weight: var(--fw-bold); }
+   material, group — is bold INK, one look for «one of the Einsatz's own words» (29.09.2026, owner
+   pick A – no kind gets a look of its own). The prose around them is regular since the hill climb
+   (r3, 04.11.2026), so the marked words stand off the sentence instead of the whole wrapped row
+   reading as one dark block. */
+.jr-link { font-weight: var(--fw-bold); color: var(--ink); }
 /* the address in the Verlauf: a real <a>, so it carries the underline that says «this opens»
    rather than a colour that only says «this is a thing» */
 a.jr-link-url { color: var(--blue); text-decoration: underline; text-underline-offset: 2px;
