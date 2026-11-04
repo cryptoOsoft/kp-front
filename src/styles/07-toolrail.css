@@ -210,6 +210,9 @@
   /* digits must not change width as they change value, or the ± buttons twitch under the finger */
   font-variant-numeric: tabular-nums; }
 /* tap the value to type a number directly */
+/* no value yet: the placeholder dash in the faint ink, regular – in full ink between «−» and «+» it
+   read as a third minus («− - +», hill climb r11, 04.11.2026) */
+.step-val.step-empty { color: var(--ink-faint); font-weight: var(--fw-regular); }
 .step-val-btn { position: relative; display: inline-grid; place-items: center; min-height: 44px; border: none; background: transparent; cursor: pointer; padding: 4px; border-radius: var(--r-sm); }
 /* a short value («1») leaves the button ~30px wide: a pad brings it to --tap under a finger. The ±
    buttons stand 8px away, so 7px a side never reaches them. */
