@@ -1622,8 +1622,25 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
    line without the toggle and its chevron track (TruppCard · `head`) */
 .trowHeadStatic { grid-template-columns: minmax(0, 1fr) auto; cursor: auto; }
 /* the crew line and the clock's caption stand on the wide ROW's tracks only (hidden ≤ 1023px): on
-   a card the crew is the first chip and the tiles say what the clock is about */
+   a card the crew is the first chip. The phone's opened card keeps the caption hidden — its section
+   heads say Drin / Draussen — but the wide grid's card names its clock (below). */
 .trowHead :is(.trowTeam, .trowSub) { display: none; }
+/* ── The grid's card names its clock (hill climb r2, 04.11.2026) ──────────────────────────────────
+   On the tablet / desktop grid an out card's break clock and an inside card's contact clock stood
+   in the same place with nothing saying which is which. The caption the link board's page already
+   wears goes under the clock — «SEIT LETZTEM KONTAKT», «DRAUSSEN SEIT», «EINSATZZEIT», «ANGEMELDET
+   UM» — and with it the state: no extra state word by the name (owner 29.09.2026: «the draussen
+   subtitle is probably not even required»). Under a «Draussen» head (the grouped orders) the out
+   card drops its caption (RowLine · `headed`). The clock cell dissolves into the head's grid
+   (`display: contents`) so the caption takes a row of its own across the whole head: its nowrap
+   width never squeezes the name, and a name that wraps grows row 1 only. Row 1 is at least the
+   inside clock's 25px, so the names of a quiet out card and a running one line up across a grid row. */
+.grid .trowHeadStatic { grid-template-rows: minmax(25px, auto); }
+.grid .trowHeadStatic .trowClock { display: contents; }
+.grid .trowHeadStatic .trowClockLine { grid-column: 2; grid-row: 1; }
+.grid .trowHeadStatic .trowSub { display: block; grid-column: 1 / -1; grid-row: 2; justify-self: end; line-height: 1;
+  margin-top: 2px; }
+.grid .trowHeadStatic .trowSub:empty { display: none; }
 /* ONE type on every board (29.09.2026): the phone's 25px clock and a name that wraps once rather
    than ellipsising — a 4-column desktop grid cut «Brunner Thomas» to «Brunner Tho…» beside the
    row's wide-screen 28px. (The Tafel's focus card keeps its 34px — `.focusCard` above.) */
@@ -1637,25 +1654,31 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
    field, not as one more button (hill climb r1, 04.11.2026: framed 700 capsules under the framed
    800 tiles made the card a wall of controls): no edge, a faint ink fill, the one corner, 500/12.5
    ink, no colour. The tiles above stay the framed buttons.
-   Rows sit 8px apart, so a chip plus its invisible 4px pad above and below is the 44px tap floor
-   without two pads ever overlapping (the pad is a pseudo-element: it grows the hit area, not the
-   drawn chip). The one colour is the gap's: a dashed amber «+ Auftrag». */
-.facts { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-3); }
-.fact { position: relative; display: inline-flex; align-items: center; gap: var(--sp-1); min-height: 36px; max-width: 100%;
-  min-width: 0; padding: 0 var(--sp-3); border: none; border-radius: var(--r-sm); background: var(--ink-5);
-  font: var(--fw-medium) var(--fs-1) var(--body); color: var(--ink);
+   A COMPACT field since hill climb r2 (04.11.2026: the 36px chips were the card's tallest rows):
+   28px drawn — a 20px line, 4px above and below — 8px to the tiles over it and to the foot under
+   it. On touch the 44px tap floor is an invisible 8px pad above and below each chip (a
+   pseudo-element: it grows the hit area, not the drawn chip), so there the rows sit 16px apart
+   and two pads never overlap (8 + 28 + 8 = 44 per row, as before); with a mouse the rows keep 8px.
+   The one colour is the gap's: a dashed amber «+ Auftrag». */
+.facts { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-2); }
+.fact { position: relative; display: inline-flex; align-items: center; gap: var(--sp-1); min-height: 28px; max-width: 100%;
+  min-width: 0; padding: var(--sp-1) var(--sp-2); border: none; border-radius: var(--r-sm); background: var(--ink-5);
+  font: var(--fw-medium) var(--fs-1)/20px var(--body); color: var(--ink);
   white-space: nowrap; text-align: left; }
 button.fact { cursor: pointer; }
 button.fact:active { background-image: linear-gradient(var(--press), var(--press)); }
 @media (hover: hover) { button.fact:hover { background: var(--ink-8); } }
-@media (pointer: coarse) { button.fact::before { content: ''; position: absolute; inset: -4px -3px; } }
+@media (pointer: coarse) {
+  .facts { row-gap: var(--sp-4); }
+  button.fact::before { content: ''; position: absolute; inset: calc(-1 * var(--sp-2)) -3px; }
+}
 .factTxt { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 /* the crew chip never ellipsises (31.10.2026, owner: «crew names must not be cut off»): every name
    is a nowrap span and the « · » between them is the only break opportunity, so the chip wraps
-   BETWEEN people and grows by a line each time. The chip keeps its 36px floor (`.fact`); a
-   wrapped chip needs vertical room above and below the text, and the edge is its own box. */
+   BETWEEN people and grows by a line each time. The chip keeps its 28px floor and 4px above and
+   below the text (`.fact`), so a wrapped crew is one 20px line more. */
 .factCrew { white-space: normal; }
-.crewTxt { min-width: 0; padding: var(--sp-2) 0; line-height: 1.3; }
+.crewTxt { min-width: 0; }
 .crewName { white-space: nowrap; }
 .fact :global(.i) { width: 13px; height: 13px; flex: none; color: var(--ink-faint); }
 /* the missing Auftrag: dashed and amber, the one gap that stays visible on the card */
@@ -1668,11 +1691,27 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
 /* the ⋯, the last chip: square, the glyph in the dim ink */
 .kennQuiet { color: var(--ink-dim); }
 .kennCrit { color: var(--red-strong); }
-/* the Verlauf keeps its full-bleed foot (hairline + wash), flush with the frame's bottom edge */
-.trowCard .vfoot { margin: var(--sp-3) calc(-1 * var(--sp-3)) calc(-1 * var(--sp-3)); }
+/* the Verlauf keeps its full-bleed foot (hairline + wash), flush with the frame's bottom edge; 8px
+   above it, the facts' touch pad (`.fact`) reaches it and no further */
+.trowCard .vfoot { margin: var(--sp-2) calc(-1 * var(--sp-3)) calc(-1 * var(--sp-3)); }
 .trowCard .vfoot:empty { margin: 0; }
 .trowCard .metaLine, .trowCard .zonePanel, .trowCard .logList { padding-left: var(--sp-3); padding-right: var(--sp-3); }
 .trowCard .vrow { padding-left: var(--sp-3); }
+/* ── The grid's card, denser (hill climb r2, 04.11.2026) ─────────────────────────────────────────
+   On the tablet / desktop grid an inside crew's lower half (facts, foot) fell under the fold and
+   a short out card left a hole under it while the next grid row was clipped. Order and slots are
+   untouched («Wie gesetzt» keeps every card where it is); only the heights give.
+   Touch: the secondary lifecycle tiles — Rückzug | Raus (Fortsetzen), Notfall (beendet) — at the
+   44px floor; the pair «Druck | Kontakt» (Kontakt is the board's primary) and the one filled tile
+   («Wieder in den Einsatz», «Im Einsatz») keep their 48px (3am tenet: primary 48–56). The phone's
+   card is not on a grid and keeps its 48px keypad. */
+.grid .trowCard :is(.actRueckzug, .actContinue, .actExit, .actNotfall, .actNotfallEnd) { min-height: var(--tap); }
+/* A mouse (24px floor): every tile at 40px and the foot line (Verlauf ⌄ and ⋯) at 36px. */
+@media (hover: hover) and (pointer: fine) {
+  .grid .trowCard :is(.trowPressBtn, .trowKontakt, .actBtn) { min-height: 40px; }
+  .grid .trowCard .vrow { min-height: 36px; }
+  .grid .trowCard .footMore { width: 36px; height: 36px; }
+}
 
 /* the Sicherungstrupp — one place, between the crews inside and everybody else */
 /* (its air above is the phone board's one section rule, `.phoneBoard`; the head after it brings its own) */
