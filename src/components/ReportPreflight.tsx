@@ -76,10 +76,11 @@ const NO_IDS = new Set<string>()
 const NO_SIGNATURES: ReportSignature[] = []
 /** The Rapport head's ladder (lib/pageHeadFit): «Ausdrucken» gives its word first, then
  *  «Einsatz abschliessen» shortens to the word «Abschliessen» (never a bare glyph, 04.11.2026), then
- *  the Kontrolle chip keeps its ⚠ and its count («⚠ 4», the words stay its title), then the
- *  primary «Einsatzrapport (PDF)» shortens to «PDF ▾» (mockup 2), and last the title says what the
- *  nav calls this page, «Rapport». */
-const RP_FOLD = { print: 1, complete: 2, chip: 3, pdf: 4, title: 5 } as const
+ *  the primary «Einsatzrapport (PDF)» shortens to «PDF ▾» (mockup 2), and last the title says what
+ *  the nav calls this page, «Rapport». The Kontrolle chip never folds: a bare «⚠ 4» beside the
+ *  close action had to be decoded (council round 3), so where «4 offen» does not fit the head takes
+ *  its second row instead — title + chip above, «Abschliessen» + «PDF» under it (13-incident.css). */
+const RP_FOLD = { print: 1, complete: 2, pdf: 3, title: 4 } as const
 
 // «Zeig mir diese offene Angabe» from outside the sheet — lives with the tabs (useReportPlace)
 export { requestReportStep } from './useReportPlace'
@@ -1173,9 +1174,9 @@ export function ReportPreflight({
   const guideNext = canEditIn && guideAt ? nextOpenStep(missing, guideAt) : null
 
   // ONE ROW (lib/pageHeadFit): the head folds its tiles' words — «Ausdrucken», «Abschliessen»,
-  // then «Einsatzrapport (PDF)» → «PDF» — until it fits; the Kontrolle chip's count is never cut
-  // (`data-fit-check`). It was a breakpoint (words above 1080px, icons below) and, on a phone, a
-  // second row under the title.
+  // then «Einsatzrapport (PDF)» → «PDF» — until it fits; the Kontrolle chip's words are never cut
+  // (`data-fit-check`). It was a breakpoint (words above 1080px, icons below). Where even that does
+  // not fit (a phone with something open) the head takes two rows: title + chip, then the actions.
   const headRef = useRef<HTMLElement>(null)
   usePageHeadFit(headRef, [
     missing.length, warnCount, checking, controlOk, !!onComplete, printStatus?.available, printStatus?.online,
@@ -1285,12 +1286,11 @@ export function ReportPreflight({
                 popupClassName="rp-control"
                 ariaLabel={P.controlHead}
                 trigger={(
-                  <button type="button" className={cx('rp-state', 'head-tile', 'amber')} data-fold={RP_FOLD.chip}
+                  <button type="button" className={cx('rp-state', 'head-tile', 'amber')}
                     title={`${P.controlHead}: ${controlChipLabel(missing.length, checking ? 0 : warnCount)}`}>
                     <Icon id="warn" />
-                    <span className="rp-state-label fold-long" data-fit-check>{controlChipLabel(missing.length, checking ? 0 : warnCount)}</span>
-                    {/* folded: the ⚠ and ONE count — what is open plus the Hinweise, as the nav badge */}
-                    <span className="rp-state-label fold-short" aria-hidden="true">{missing.length + (checking ? 0 : warnCount)}</span>
+                    {/* always in words («4 offen · 1 Hinweis») — no folded bare count (RP_FOLD) */}
+                    <span className="rp-state-label" data-fit-check>{controlChipLabel(missing.length, checking ? 0 : warnCount)}</span>
                   </button>
                 )}
               >
