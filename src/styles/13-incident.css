@@ -1081,7 +1081,7 @@ button.list-row:disabled { opacity: var(--disabled); cursor: default; }
    the hanging indent and the gap under each entry keep a second line reading as the same entry. */
 .rp-people { columns: 2 200px; column-gap: var(--sp-4); width: 100%; }
 .rp-person { display: flex; align-items: baseline; gap: var(--sp-2); min-width: 0;
-  break-inside: avoid; padding-bottom: var(--sp-1);
+  break-inside: avoid; padding-bottom: var(--sp-2);   /* 8 between entries vs 0 inside one: a wrapped entry stays one block */
   font: var(--fw-medium) var(--fs-2)/var(--lh-2) var(--body); color: var(--ink); }
 .rp-person-txt { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere;
   padding-left: var(--sp-3); text-indent: calc(-1 * var(--sp-3)); }

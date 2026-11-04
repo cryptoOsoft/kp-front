@@ -304,14 +304,18 @@
    via the canvas grid: now that the board's box grows past the viewport when
    zoomed, grid `place-items: center` mis-centers the oversized item, which broke
    zoom-to-cursor. The pan offset rides on top of the centering translate. */
-.wb-board { position: absolute; left: 50%; top: 50%; transform-origin: center center; will-change: transform; box-shadow: var(--e3); background: var(--board-bg); }
+.wb-board { position: absolute; left: 50%; top: 50%; transform-origin: center center; will-change: transform; background: var(--board-bg);
+  /* an ink hairline INSIDE the edge: the e3 ring is black, and at night a black ring on the dark
+     stage left the sheet with no edge at all (04.11.2026) */
+  box-shadow: inset 0 0 0 1px var(--ink-16), var(--e3); }
 /* (.wb-pdf-base / .wb-pdf-refine migrated → PdfViewport.module.css) */
 
 /* floor-stack ("Gebäude" doc) — a vertical stack of footprint sheets. Each tile
    sized inline (top/height/width in board px); the footprint is contained at its
    true aspect, with a corner storey label. */
-/* the dashed line between two storeys is INK-derived, not a frozen slate: frozen, it vanished
-   into the night board (--board-bg #1c2330) and the stack read as one tall sheet */
+/* the line between two storeys is INK-derived, not a frozen slate: frozen, it vanished into the
+   night board (--board-bg #1c2330) and the stack read as one tall sheet. SOLID since 04.11.2026:
+   the faint dash still let neighbouring storeys run together at night. */
 /* ⚠️ ONE left inset for the whole stack (18.09.2026). The header label and the folded strip used
    to carry their own paddings (10+9px vs 12px), so a folded storey's chip sat visibly out of the
    column its neighbours above and below formed. Both read this one value now, and the header's
@@ -323,7 +327,7 @@
    rendered width — nothing is counter-scaled and no viewport media query could see it. */
 .wb-floor { position: absolute; left: 0; display: flex; align-items: center; justify-content: center;
   container-type: inline-size;
-  border-bottom: 1px dashed var(--ink-28); }
+  border-bottom: 1px solid var(--ink-22); }
 /* the storey a dragged selection would land on (useWbBodyDrag / useWbSelectionBar · setDropFloor) */
 .wb-floor-drop { background: var(--sel-wash); box-shadow: inset 0 0 0 2px var(--sel); }
 .wb-floor-fp { flex: none; } /* width/height set inline (px), fit to the tile preserving aspect */
@@ -347,7 +351,7 @@
 .wb-floor-page-wait { fill: var(--ink-5); }
 .wb-floor-label { position: absolute; top: 8px; left: calc(var(--wb-floor-inset) - var(--wb-floor-plate-pad)); display: flex; align-items: center; gap: var(--sp-2); z-index: 1;
   flex-wrap: nowrap; white-space: nowrap;
-  font-family: var(--body); font-weight: var(--fw-bold); font-size: var(--fs-2); line-height: 1; color: var(--ink-dim);
+  font-family: var(--body); font-weight: var(--fw-bold); font-size: var(--fs-2); line-height: 1; color: var(--ink);
   background: var(--label-soft); border-radius: var(--r-xs); padding: var(--wb-floor-plate-pad); user-select: none; -webkit-user-select: none; }
 /* The label IS the storey's door (29.09.2026, sweep K5): a tap opens «Ausblenden · Geschoss
    entfernen» (Whiteboard · the storey Menu). The per-storey eye and the red bin in the tile's
@@ -692,7 +696,7 @@ span.wb-ghost-label { cursor: default; }
 /* ⚠️ held to lib/mapView · CRUMB_LABEL_STYLE (the label pass books this box before it is drawn,
    and drops the time when it would cover another label – mapView.labelCss.test.ts) */
 .map-trail-dot i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-family: var(--mono); font-style: normal;
-  font-size: var(--fs-micro); font-weight: var(--fw-bold); line-height: 1.25; color: var(--ink); background: var(--label-bg); border-radius: var(--r-xs); padding: 1px var(--sp-1);
+  font-size: var(--fs-1); font-weight: var(--fw-bold); line-height: 1.25; color: var(--ink); background: var(--label-bg); border-radius: var(--r-xs); padding: 2px var(--sp-1);
   white-space: nowrap; box-shadow: var(--e1); }
 /* a selected team marker on the map rings its pill like the plan board's selection */
 .marker.sel .wb-resource-pill { box-shadow: 0 0 0 2px var(--team), var(--e2); }
@@ -700,8 +704,8 @@ span.wb-ghost-label { cursor: default; }
 .team-dot { display: inline-flex; align-items: center; gap: var(--sp-2); }
 .team-dot i { width: 13px; height: 13px; border-radius: 50%; background: var(--team);
   border: 2px solid #fff; box-shadow: var(--e1); flex: none; }
-.team-dot b { font-size: var(--fs-micro); font-weight: var(--fw-bold); color: var(--ink); background: var(--label-bg);
-  border-radius: var(--r-xs); padding: 1px var(--sp-1); white-space: nowrap; box-shadow: var(--e1); }
+.team-dot b { font-size: var(--fs-1); font-weight: var(--fw-bold); line-height: 1.25; color: var(--ink); background: var(--label-bg);
+  border-radius: var(--r-xs); padding: 2px var(--sp-1); white-space: nowrap; box-shadow: var(--e1); }
 .team-dot.raus { opacity: var(--done-opacity); }
 .team-dot.raus b { text-decoration: line-through; }
 .wb-resource-input { border: none; outline: none; background: var(--blue-8); border-radius: var(--r-xs); font-family: var(--body);

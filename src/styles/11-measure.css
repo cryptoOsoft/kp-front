@@ -4,7 +4,7 @@
 .wb-dock-tog:disabled { opacity: var(--disabled); cursor: default; }
 
 /* cumulative distance / area labels pinned to the live measure path */
-.measure-label { padding: 2px 8px; border-radius: var(--r-xs); font-size: var(--fs-micro); font-weight: var(--fw-bold);
+.measure-label { padding: 2px 8px; border-radius: var(--r-xs); font-size: var(--fs-1); font-weight: var(--fw-bold);
   font-family: var(--mono); white-space: nowrap; background: var(--label-bg); color: var(--ink);
   box-shadow: var(--e1); pointer-events: none; }
 .measure-label.strong { background: var(--blue); color: var(--on-fill); }

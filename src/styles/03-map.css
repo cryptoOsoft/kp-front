@@ -147,8 +147,8 @@
    the last resort for a single word longer than the box, nothing more. */
 .sym-caption { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 4px; z-index: 6;
   display: flex; flex-direction: column; align-items: center; gap: 1px; max-width: 132px;
-  padding: 1px 4px; border-radius: var(--r-xs); background: var(--surface); color: var(--ink);
-  font-size: var(--fs-micro); font-weight: var(--fw-bold); line-height: 1.25; text-align: center;
+  padding: 2px var(--sp-1); border-radius: var(--r-xs); background: var(--surface); color: var(--ink);
+  font-size: var(--fs-1); font-weight: var(--fw-bold); line-height: 1.25; text-align: center;
   hyphens: manual; -webkit-hyphens: manual; overflow-wrap: break-word;
   box-shadow: var(--e1); pointer-events: none; }
 .sym-caption > span { max-width: 120px; }
