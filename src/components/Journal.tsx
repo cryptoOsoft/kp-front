@@ -12,7 +12,7 @@ import { openPhoto } from '../lib/ui'
 import { appConfig } from '../config/appConfig'
 import { dueClock, fillTemplate, fmtDuration, formatTime } from '../lib/format'
 import { thumbUrl } from '../lib/mediaUrl'
-import { ART_DISC, groupByDay, isHandWritten, isNachtrag, pendenzenCut, repeatRuns, rowPhotos, rowTarget, rowText, stripScale, type ArtTone, type LiveTargets } from '../lib/verlauf'
+import { ART_DISC, groupByDay, isHandWritten, isNachtrag, pendenzenBelow, pendenzenCut, repeatRuns, rowPhotos, rowTarget, rowText, stripScale, type ArtTone, type LiveTargets } from '../lib/verlauf'
 import { journalDisc, withoutAreaPrefix } from '../lib/report'
 import { journalQuery, matchesJournalQuery } from '../lib/journalSearch'
 import { journalCategories, journalFacets, matchesJournalCategories, showsPinnedPendenzen, type JournalCategoryKind } from '../lib/journalFilter'
@@ -534,9 +534,9 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
   // …and HIDDEN while a filter is on that does not tick «Pendenz» (lib/journalFilter ·
   // showsPinnedPendenzen): the box is part of what the ticks narrow.
   const pinnedReminders = showsPinnedPendenzen(filterSel) ? openReminders ?? [] : []
-  // Whether the Pendenzen box holds more than it shows below its fold — its foot cue
-  // (`.jr-pinned[data-more]`). iOS hides an idle scrollbar, so without it a box cut between two
-  // rows reads as complete. A callback ref, because the box mounts inside the Overlay's portal
+  // How many Pendenzen lie wholly or partly below the box's fold — its foot cue «3 weitere ⌄»
+  // (`.jr-pinned[data-more]`, lib/verlauf · pendenzenBelow; 0 = at the end, no strip). iOS hides
+  // an idle scrollbar, so without it a box cut between two rows reads as complete. A callback ref, because the box mounts inside the Overlay's portal
   // after this component's own effects have run; re-read on scroll, when the drawer, the box or
   // any row resizes (capped at its max-height the box keeps its size while late fonts re-wrap the
   // rows under it) and when rows come and go.
@@ -544,10 +544,17 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
   // inline max-height under the CSS one, so at rest the foot band stands where the next row's
   // rule would and no row is sliced through its sentence (hill climb r4, 04.11.2026). The inline
   // cap is dropped first, so the CSS one is what is measured against.
-  const [pinnedMore, setPinnedMore] = useState(false)
+  const [pinnedBelow, setPinnedBelow] = useState(0)
   const watchPinned = useCallback((el: HTMLDivElement | null) => {
-    if (!el) { setPinnedMore(false); return }
-    const read = () => setPinnedMore(el.scrollHeight - el.scrollTop - el.clientHeight > 1)
+    if (!el) { setPinnedBelow(0); return }
+    // the scroll-end guard first: there the strip's natural spot overlaps the last row, which
+    // would otherwise count itself as hidden
+    const read = () => {
+      const foot = el.querySelector<HTMLElement>('.jr-pinned-foot')
+      const below = !foot || el.scrollHeight - el.scrollTop - el.clientHeight <= 1 ? 0
+        : pendenzenBelow([...el.querySelectorAll('.jr-pinned-row')].map((r) => r.getBoundingClientRect().bottom), foot.getBoundingClientRect().top)
+      setPinnedBelow(below)
+    }
     const fit = () => {
       el.style.maxHeight = ''
       const foot = el.querySelector<HTMLElement>('.jr-pinned-foot')
@@ -791,7 +798,7 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
             ⚠️ No box at all when nothing is open — the log then has the whole drawer, which is
             the state most of an Einsatz is in. See `.jr-pinned` in 06-contextpanel.css. */}
         {pinnedReminders.length > 0 && (
-          <div className="jr-pinned" ref={watchPinned} data-more={pinnedMore || undefined}>
+          <div className="jr-pinned" ref={watchPinned} data-more={pinnedBelow > 0 || undefined}>
             <div className="jr-pinned-head">
               <Icon id="checklist" /><span>{C.openRemindersHead}</span>
               <b>{C.openCount.replace('{n}', String(pinnedReminders.length))}</b>
@@ -862,9 +869,12 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
                 </div>
               )
             })}
-            {/* the foot: a band at the box's bottom edge with a ⌄, shown while rows are below the
-                fold (`data-more`). Always in the DOM so it never moves the rows it covers. */}
-            <span className="jr-pinned-foot" aria-hidden><Icon id="chevron-down" /></span>
+            {/* the foot: a band at the box's bottom edge, «3 weitere ⌄», shown while rows are
+                below the fold (`data-more`). Always in the DOM so it never moves the rows it covers. */}
+            <span className="jr-pinned-foot" aria-hidden>
+              {pinnedBelow > 0 && C.pinnedMoreBelow.replace('{n}', String(pinnedBelow))}
+              <Icon id="chevron-down" />
+            </span>
           </div>
         )}
         <div className="history-list" ref={listRef}>

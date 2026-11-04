@@ -362,3 +362,13 @@ export function pendenzenCut(rowTops: readonly number[], capPx: number, footPx: 
   for (const top of rowTops.slice(1)) if (top + footPx <= capPx) cut = top + footPx
   return cut
 }
+
+/**
+ * How many Pendenzen the box's foot strip announces («3 weitere»): the rows wholly or partly
+ * below the fold at the current scroll. `rowBottoms` are the rows' bottom edges and `foldPx` the
+ * foot strip's top edge, both in one coordinate space (Journal reads them as viewport rects); a
+ * row ending within half a pixel of the fold is whole – subpixel layout, not a hidden row.
+ */
+export function pendenzenBelow(rowBottoms: readonly number[], foldPx: number): number {
+  return rowBottoms.filter((bottom) => bottom > foldPx + 0.5).length
+}

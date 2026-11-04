@@ -696,17 +696,23 @@ span.jr-rem { cursor: default; }
      where a scrollbar does show (a mouse), it is the box's, not the log's */
   scrollbar-color: var(--amber-45) transparent; }
 /* «there is more below» (`.jr-pinned-foot`, Journal.tsx): while rows lie below the fold
-   (`data-more`, measured on scroll) the box's foot is a 20px band of its own opaque fill with a ⌄
-   and a rule on top, not a fade over the text (hill climb r2, 04.11.2026: that read as faded
-   content). At rest it covers no row: the box is cut so the band's rule stands where the next
+   (`data-more`, measured on scroll) the box's foot is a 28px band of its own opaque fill with a rule
+   on top, not a fade over the text (hill climb r2, 04.11.2026: that read as faded content). It says
+   how many rows are down there – «3 weitere ⌄», the count from Journal · watchPinned (lib/verlauf ·
+   pendenzenBelow) – so «6 offen» in the head next to three rows in view explains itself (hill
+   climb r5). Its height feeds the cut (pendenzenCut's `footPx`), so a taller band moves the cut,
+   never slices a row. It takes the taps that land on it (no `pointer-events: none`): opaque, it
+   hides the next row's time button, which a tap on «3 weitere» toggled unseen; hidden
+   (`visibility`) it takes none, and a drag on it still scrolls the box. At rest it covers no row: the box is cut so the band's rule stands where the next
    row's own rule would (Journal · watchPinned), the row above keeping its padding + the gap as
    clearance; only mid-scroll does a row pass under it. Sticky to the box's own scrollport, so it
    rides the bottom edge, and always laid out (the negative margin cancels its height and the
-   flex gap), so showing it moves nothing. At the end of the list it is gone. iOS hides an idle scrollbar; this cue does not. */
+   flex gap: 28 + 4), so showing it moves nothing. At the end of the list it is gone. iOS hides an idle scrollbar; this cue does not. */
 .jr-pinned-foot { flex: none; position: sticky; bottom: -8px; z-index: 3;
-  height: 20px; margin-top: -24px; display: grid; place-items: center; pointer-events: none;
+  height: 28px; margin-top: -32px; display: flex; align-items: center; justify-content: center;
+  gap: var(--sp-1);
   background: var(--jr-pinned-bg); box-shadow: inset 0 1px 0 var(--amber-45);
-  color: var(--amber-strong); visibility: hidden; }
+  font: var(--fw-bold) var(--fs-1)/1 var(--body); color: var(--amber-strong); visibility: hidden; }
 .jr-pinned-foot .i { width: 16px; height: 16px; }
 .jr-pinned[data-more] .jr-pinned-foot { visibility: visible; }
 /* …and the heading stays put while the items scroll UNDER IT, inside this box: sticky is bounded
