@@ -1028,6 +1028,7 @@ export function AtemschutzView({
         onEnter={(id) => { freezeOrder(); setTruppStatus(id, 'aktiv') }}
         onOpen={() => setOpenRow(t.id)}
         lite={!!lite}
+        headed={phoneMode || gridGrouped}
       />
     ) : (
     // Every mutation that can move a card between slots freezes the arrangement first (FREEZE_MS).
