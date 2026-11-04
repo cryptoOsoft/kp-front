@@ -327,6 +327,9 @@
 .wb-floor { position: absolute; left: 0; display: flex; align-items: center; justify-content: center;
   container-type: inline-size;
   border-bottom: 1px solid var(--ink-22); }
+/* night: 2px and a step brighter – on the dark board the 1px rule was still the faintest line on the
+   sheet, fainter than the drawings inside a storey (hill climb r5, 04.11.2026) */
+:root[data-theme="night"] .wb-floor { border-bottom: 2px solid var(--ink-28); }
 /* the storey a dragged selection would land on (useWbBodyDrag / useWbSelectionBar · setDropFloor) */
 .wb-floor-drop { background: var(--sel-wash); box-shadow: inset 0 0 0 2px var(--sel); }
 .wb-floor-fp { flex: none; } /* width/height set inline (px), fit to the tile preserving aspect */

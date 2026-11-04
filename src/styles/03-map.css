@@ -141,14 +141,16 @@
    at all. ⚠️ Not at all means NOTHING drawn — a 6px stand-in dot was tried on 23.08. and dropped
    the same day: it added a mark to the map for the sake of saying «something is hidden here»,
    which zooming in answers by itself, since the pass decides by collision in screen pixels and
-   symbols spread apart as you go in. What is left here is the wrap, and it must break at the compound seams U+00AD from lib/symbolWrap —
+   symbols spread apart as you go in. A caption is the one plate that wraps, so it gets the roomier
+   4px/8px padding and 1.35 leading (hill climb r5, 04.11.2026 – bold lines sat tight on the edge).
+   What is left here is the wrap, and it must break at the compound seams U+00AD from lib/symbolWrap —
    hence `hyphens: manual`. NEVER `hyphens: auto`:
    the browser's German dictionary breaks by syllable («Kontrollpos-ten»). `overflow-wrap` is
    the last resort for a single word longer than the box, nothing more. */
 .sym-caption { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 4px; z-index: 6;
-  display: flex; flex-direction: column; align-items: center; gap: 1px; max-width: 132px;
-  padding: 2px var(--sp-1); border-radius: var(--r-xs); background: var(--surface); color: var(--ink);
-  font-size: var(--fs-1); font-weight: var(--fw-bold); line-height: 1.25; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 1px; max-width: 136px;
+  padding: var(--sp-1) var(--sp-2); border-radius: var(--r-xs); background: var(--surface); color: var(--ink);
+  font-size: var(--fs-1); font-weight: var(--fw-bold); line-height: 1.35; text-align: center;
   hyphens: manual; -webkit-hyphens: manual; overflow-wrap: break-word;
   box-shadow: var(--label-plate); pointer-events: none; }
 .sym-caption > span { max-width: 120px; }

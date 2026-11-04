@@ -66,8 +66,8 @@ export const TEAM_LABEL_STYLE = { font: '700 12.5px Sora, system-ui, sans-serif'
  *  for a gloved arm's length in sunlight) that is not copied here books boxes that are wider or
  *  taller than what is on screen.
  *  `.sym-caption` (03-map.css) — 700 --fs-1 Sora, wraps at compound seams inside its 120px
- *  span, 2px/4px padding, line-height 1.25, hung `margin-top` under the glyph. */
-export const SYM_CAPTION_STYLE = { font: '700 12.5px Sora, system-ui, sans-serif', maxTextW: 120, chromeW: 8, chromeH: 4, lineH: 15.625 }
+ *  span, 4px/8px padding, line-height 1.35, hung `margin-top` under the glyph. */
+export const SYM_CAPTION_STYLE = { font: '700 12.5px Sora, system-ui, sans-serif', maxTextW: 120, chromeW: 16, chromeH: 8, lineH: 16.875 }
 /** `.sym-pill` (03-map.css) — 700 --fs-micro mono, never wraps, 20px tall; the chrome is the
  *  0/8px padding plus the 13px Messgerät and its 4px gap. Centred on the glyph's anchor. */
 export const SYM_PILL_STYLE = { font: '700 11px "Spline Sans Mono", ui-monospace, monospace', maxTextW: Infinity, chromeW: 2 * 8 + 13 + 4, chromeH: 0, lineH: 20 }
