@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { PlanDocument, TimelineEvent } from '../types'
 import { linkParts, type JournalLink } from '../lib/journalLinks'
 import { Icon } from '../lib/icons'
@@ -12,7 +12,7 @@ import { openPhoto } from '../lib/ui'
 import { appConfig } from '../config/appConfig'
 import { dueClock, fillTemplate, fmtDuration, formatTime } from '../lib/format'
 import { thumbUrl } from '../lib/mediaUrl'
-import { ART_DISC, groupByDay, isHandWritten, isNachtrag, repeatRuns, rowPhotos, rowTarget, rowText, type ArtTone, type LiveTargets } from '../lib/verlauf'
+import { ART_DISC, groupByDay, isHandWritten, isNachtrag, pendenzenBelow, pendenzenCut, repeatRuns, rowPhotos, rowTarget, rowText, stripDensity, stripScale, type ArtTone, type LiveTargets } from '../lib/verlauf'
 import { journalDisc, withoutAreaPrefix } from '../lib/report'
 import { journalQuery, matchesJournalQuery } from '../lib/journalSearch'
 import { journalCategories, journalFacets, matchesJournalCategories, showsPinnedPendenzen, type JournalCategoryKind } from '../lib/journalFilter'
@@ -55,6 +55,8 @@ function useAudioPlayer() {
  *  track is inset by this and the tap→time maths subtracts it, so the two cannot drift apart
  *  and leave a tap landing a few minutes off what the ticks show. */
 const STRIP_INSET = 10
+/** A strip column holding this many rows or more draws a step darker (`.jr-strip i[data-busy]`). */
+const STRIP_BUSY = 3
 
 /** Rows the log mounts at first, and how many more each scroll to the tail reveals. */
 const PAGE_ROWS = 150
@@ -333,6 +335,18 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
     const to = stripTicks[stripTicks.length - 1]
     return to > from ? { from, to } : null
   }, [stripTicks])
+  // …and its time scale: the end clocks and round times between them, labelled where they fit —
+  // which needs the track's width, so the strip is measured (lib/verlauf · stripScale).
+  const [stripTrackPx, setStripTrackPx] = useState(0)
+  const measureStrip = useCallback((el: HTMLDivElement | null) => {
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(() => setStripTrackPx(Math.max(0, el.clientWidth - STRIP_INSET * 2)))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+  const scale = useMemo(() => (stripSpan ? stripScale(stripSpan.from, stripSpan.to, stripTrackPx) : null), [stripSpan, stripTrackPx])
+  // …and the rows' marks merged per 3px column, so a busy stretch reads as density, not barcode
+  const density = useMemo(() => (stripSpan ? stripDensity(stripTicks, stripSpan.from, stripSpan.to, stripTrackPx) : []), [stripTicks, stripSpan, stripTrackPx])
   /** Scroll the list to the row nearest a moment on the strip. */
   const jumpTo = (ms: number) => {
     let best: string | null = null
@@ -524,6 +538,55 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
   // …and HIDDEN while a filter is on that does not tick «Pendenz» (lib/journalFilter ·
   // showsPinnedPendenzen): the box is part of what the ticks narrow.
   const pinnedReminders = showsPinnedPendenzen(filterSel) ? openReminders ?? [] : []
+  // How many Pendenzen lie wholly or partly below the box's fold — its foot cue «3 weitere ⌄»
+  // (`.jr-pinned[data-more]`, lib/verlauf · pendenzenBelow; 0 = at the end, no strip). iOS hides
+  // an idle scrollbar, so without it a box cut between two rows reads as complete. A callback ref, because the box mounts inside the Overlay's portal
+  // after this component's own effects have run; re-read on scroll, when the drawer, the box or
+  // any row resizes (capped at its max-height the box keeps its size while late fonts re-wrap the
+  // rows under it) and when rows come and go.
+  // …and on every resize the box is cut at the last WHOLE row (lib/verlauf · pendenzenCut): an
+  // inline max-height under the CSS one, so at rest the foot band stands where the next row's
+  // rule would and no row is sliced through its sentence (hill climb r4, 04.11.2026). The inline
+  // cap is dropped first, so the CSS one is what is measured against.
+  const [pinnedBelow, setPinnedBelow] = useState(0)
+  const watchPinned = useCallback((el: HTMLDivElement | null) => {
+    if (!el) { setPinnedBelow(0); return }
+    // the scroll-end guard first: there the strip's natural spot overlaps the last row, which
+    // would otherwise count itself as hidden
+    const read = () => {
+      const foot = el.querySelector<HTMLElement>('.jr-pinned-foot')
+      const below = !foot || el.scrollHeight - el.scrollTop - el.clientHeight <= 1 ? 0
+        : pendenzenBelow([...el.querySelectorAll('.jr-pinned-row')].map((r) => r.getBoundingClientRect().bottom), foot.getBoundingClientRect().top)
+      setPinnedBelow(below)
+    }
+    const fit = () => {
+      el.style.maxHeight = ''
+      const foot = el.querySelector<HTMLElement>('.jr-pinned-foot')
+      if (foot && el.scrollHeight - el.clientHeight > 1) {
+        const box = el.getBoundingClientRect()
+        const tops = [...el.querySelectorAll('.jr-pinned-row')].map((r) => r.getBoundingClientRect().top - box.top + el.scrollTop)
+        // the band plus the bottom border (offset − client = both borders, clientTop = the top one)
+        const cut = pendenzenCut(tops, el.offsetHeight, foot.offsetHeight + el.offsetHeight - el.clientHeight - el.clientTop)
+        if (cut !== null) el.style.maxHeight = `${cut}px`
+      }
+      read()
+    }
+    // a frame later, not inside the callback: the cut resizes an observed box, and a resize the
+    // observer has to deliver again in the same frame is its «loop completed» error
+    let frame = 0
+    const ro = typeof ResizeObserver === 'undefined' ? null
+      : new ResizeObserver(() => { cancelAnimationFrame(frame); frame = requestAnimationFrame(fit) })
+    const watch = () => {
+      ro?.disconnect()
+      for (const node of [el.parentElement, el, ...el.children]) if (node) ro?.observe(node)
+      fit()
+    }
+    const mo = typeof MutationObserver === 'undefined' ? null : new MutationObserver(watch)
+    mo?.observe(el, { childList: true })
+    el.addEventListener('scroll', read, { passive: true })
+    watch()
+    return () => { el.removeEventListener('scroll', read); cancelAnimationFrame(frame); ro?.disconnect(); mo?.disconnect() }
+  }, [])
 
   /** The funnel's menu: «Art des Eintrags», then «Bereich», each row a checkbox with the row's
    *  own disc and its count, and «Alle zeigen» last. Checkboxes keep the menu open (lib/overlays ·
@@ -592,7 +655,9 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
             timeline strip vacates (the strip is hidden while searching anyway), with its own ✕.
             The lens in the head is lit while the field is open and closes it on a second tap. */}
         <div className="journal-head">
-          <span className="journal-title"><Icon id="history" />{C.title} · {events.length}</span>
+          {/* the title and its count as two pieces (hill climb r6): the count is a caption beside
+              the name, not part of it — so «Verlauf» leads and «· 322» steps back (10-journal.css) */}
+          <span className="journal-title"><Icon id="history" /><span className="journal-title-txt">{C.title}</span>{' '}<span className="journal-count">· {events.length}</span></span>
           {/* ⚠️ ON A TAP, never by itself. The disc carries the Bereich now, and a glyph has to be
               learned — but a panel that opens on its own, or one the app remembers having opened,
               is a thing to dismiss on the way to the record. This one is a question somebody asks
@@ -629,10 +694,12 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
           {/* ⚠️ `aria-label`, because the word inside it is hidden on a phone (10-journal.css) —
               the head is one item wider since the legend button joined it, and this is the label
               that can most afford to go. */}
+          {/* THE button's framed secondary (hill climb, 04.11.2026): it was the filled primary, and
+              playing back history out-shouted the title and the open Pendenzen below it. */}
           {onReplay && (
-            <button className="journal-replay" onClick={onReplay} title={C.replayHint} aria-label={C.replay}>
-              <Icon id="play" /><span>{C.replay}</span>
-            </button>
+            <Button className="journal-replay" onClick={onReplay} title={C.replayHint} aria-label={C.replay} icon={<Icon id="play" />}>
+              <span>{C.replay}</span>
+            </Button>
           )}
           <button className="journal-x" title={appConfig.copy.closeDialog} aria-label={appConfig.copy.closeDialog} onClick={onClose}><Icon id="close" /></button>
         </div>
@@ -683,7 +750,7 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
             list, and above a narrowed one they would point at rows that are not there. */}
         {stripSpan && !searching && !filtering && (
           <div
-            className="jr-strip" role="slider" tabIndex={0}
+            className="jr-strip" role="slider" tabIndex={0} ref={measureStrip}
             aria-label={C.stripLabel}
             aria-valuemin={0} aria-valuemax={100} aria-valuenow={0}
             onPointerDown={(ev) => {
@@ -705,10 +772,22 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
                 and last tick sat on its rounded ends — half-swallowed by the corner radius and
                 the inset hairline, so the two moments that bracket the whole Einsatz were the
                 two you could not see. */}
-            <div className="jr-strip-track" style={{ insetInline: STRIP_INSET }}>
-              {stripTicks.map((t, i) => (
-                <i key={i} style={{ left: `${((t - stripSpan.from) / (stripSpan.to - stripSpan.from)) * 100}%` }} />
+            {/* …and on it, under the ticks, the scale: the first and last moment at the ends, round
+                times between them as taller marks, labelled where a label fits (stripScale). */}
+            <div className="jr-strip-track" style={{ insetInline: STRIP_INSET }} aria-hidden>
+              {density.map((d, i) => (
+                <i key={i} data-busy={d.n >= STRIP_BUSY || undefined} style={{ left: `${d.frac * 100}%` }} />
               ))}
+              {scale?.marks.map((m) => (
+                <Fragment key={m.frac}>
+                  <b className="jr-strip-major" style={{ left: `${m.frac * 100}%` }} />
+                  {m.label && <span className="jr-strip-lbl" style={{ left: `${m.frac * 100}%` }}>{m.label}</span>}
+                </Fragment>
+              ))}
+              {scale && <>
+                <span className="jr-strip-lbl jr-strip-end" style={{ left: 0 }}>{scale.start}</span>
+                <span className="jr-strip-lbl jr-strip-end" style={{ right: 0 }}>{scale.end}</span>
+              </>}
             </div>
           </div>
         )}
@@ -725,7 +804,7 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
             ⚠️ No box at all when nothing is open — the log then has the whole drawer, which is
             the state most of an Einsatz is in. See `.jr-pinned` in 06-contextpanel.css. */}
         {pinnedReminders.length > 0 && (
-          <div className="jr-pinned">
+          <div className="jr-pinned" ref={watchPinned} data-more={pinnedBelow > 0 || undefined}>
             <div className="jr-pinned-head">
               <Icon id="checklist" /><span>{C.openRemindersHead}</span>
               <b>{C.openCount.replace('{n}', String(pinnedReminders.length))}</b>
@@ -796,6 +875,12 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
                 </div>
               )
             })}
+            {/* the foot: a band at the box's bottom edge, «3 weitere ⌄», shown while rows are
+                below the fold (`data-more`). Always in the DOM so it never moves the rows it covers. */}
+            <span className="jr-pinned-foot" aria-hidden>
+              {pinnedBelow > 0 && C.pinnedMoreBelow.replace('{n}', String(pinnedBelow))}
+              <Icon id="chevron-down" />
+            </span>
           </div>
         )}
         <div className="history-list" ref={listRef}>

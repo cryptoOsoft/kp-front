@@ -716,7 +716,7 @@ export function MapMarkers({ entities, byName, isVisible, selectedId, groupSelec
           <Marker key={`${e.id}-trail-${i}`} longitude={p.coord[0]} latitude={p.coord[1]} anchor="center" draggable={false} style={{ pointerEvents: 'none' }}>
             <div className="map-trail-dot">
               <span className="wb-trail-mark" style={{ background: e.color || appConfig.drawing.teamColors[0] }} />
-              <i>{p.t}</i>
+              {!suppressedLabels?.has(`crumb:${e.id}:${i}`) && <i>{p.t}</i>}
             </div>
           </Marker>
         )),

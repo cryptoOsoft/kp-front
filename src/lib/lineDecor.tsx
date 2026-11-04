@@ -84,7 +84,9 @@ export function EndTag({ lineNo, content, floorTag, trupp, tone = 'idle', color,
   // carries the dim + strike its map marker already wears (.team-dot.raus), instead of the whole
   // tag going quiet and taking the Leitung number with it.
   return (
-    <span className={`line-end-tag tone-${tone}${oneLine ? ' one-line' : ''}`} style={{ color: ink, borderColor: ink }}>
+    // the letters are the line's colour taken 30 % toward black: on the near-white plate the
+    // plain hue was under AA for blue (4.4:1) and far under for amber; the ring keeps the hue
+    <span className={`line-end-tag tone-${tone}${oneLine ? ' one-line' : ''}`} style={{ color: `color-mix(in srgb, ${ink} 70%, #000)`, borderColor: ink }}>
       {facts}
       {trupp && <>{facts ? ' · ' : ''}<span className="line-end-trupp">{trupp}</span></>}
     </span>

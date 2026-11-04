@@ -120,7 +120,7 @@ export const incidentCopy: Localizable<Pick<Copy, Keys>> = {
     archiveConfirmBtn: 'Close',
   },
   abschluss: {
-    leftEarly: ' · until {t}',
+    leftEarly: 'until {t}',
     steps: {
       zeiten: 'Incident end',
       anwesenheit: 'Attendance',
@@ -139,6 +139,7 @@ export const incidentCopy: Localizable<Pick<Copy, Keys>> = {
     mittelCount: (n: number) => (n === 1 ? '1 item' : `${n} items`),
     mittelNone: 'Nothing used',
     complete: 'Close incident',
+    completeShort: 'Close',
     backToRapport: 'Back to report',
     confirmTitle: 'Close incident',
     confirmMsg: 'The report is marked complete and the incident closed. Later corrections stay possible and appear as addenda.',

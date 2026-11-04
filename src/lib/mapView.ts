@@ -56,23 +56,34 @@ export const TEAM_DOT_GAP = 8
  *  4px cap — so selecting a Trupp swaps the chrome without moving the point it states. */
 export const TEAM_PILL_CAP_PX = 11
 /** `.team-link` + its gap — the «angedockt» glyph at the right end of the same strip. */
-/** the resting strip's name chip, as the label pass measures it (`.team-dot b` – 700 11px
- *  Sora, 4px padding each side, 15px line). ONE definition: MapView books the box with it and
+/** the resting strip's name chip, as the label pass measures it (`.team-dot b` – 700 12.5px
+ *  Sora, 2px/8px padding – the measure label's, every one-line plate's since hill climb r6 –,
+ *  line-height 1.25). ONE definition: MapView books the box with it and
  *  MapMarkers centres a docked strip with it, so the two can never disagree. */
-export const TEAM_LABEL_STYLE = { font: '700 11px Sora, system-ui, sans-serif', maxTextW: Infinity, chromeW: 8, chromeH: 2, lineH: 15 }
+export const TEAM_LABEL_STYLE = { font: '700 12.5px Sora, system-ui, sans-serif', maxTextW: Infinity, chromeW: 16, chromeH: 4, lineH: 15.625 }
 /** The label-pass boxes of the other on-map labels, as their CSS draws them. ONE place, held to the
- *  CSS by mapView.labelCss.test.ts: a type step there (stage 2 took them 11.5 → 11px, the 4px grid)
- *  that is not copied here books boxes that are wider or taller than what is on screen.
- *  `.sym-caption` (03-map.css) — 700 --fs-micro Sora, wraps at compound seams inside its 120px
- *  span, 1px/4px padding, line-height 1.25, hung `margin-top` under the glyph. */
-export const SYM_CAPTION_STYLE = { font: '700 11px Sora, system-ui, sans-serif', maxTextW: 120, chromeW: 8, chromeH: 2, lineH: 13.75 }
+ *  CSS by mapView.labelCss.test.ts: a type step there (stage 2 took them 11.5 → 11px, the 4px grid;
+ *  the hill climb took the names, captions, readouts and trail times up to --fs-1 12.5px, 04.11.2026,
+ *  for a gloved arm's length in sunlight) that is not copied here books boxes that are wider or
+ *  taller than what is on screen.
+ *  `.sym-caption` (03-map.css) — 700 --fs-1 Sora, wraps at compound seams inside its 120px
+ *  span, 4px/8px padding, line-height 1.35, hung `margin-top` under the glyph. */
+export const SYM_CAPTION_STYLE = { font: '700 12.5px Sora, system-ui, sans-serif', maxTextW: 120, chromeW: 16, chromeH: 8, lineH: 16.875 }
 /** `.sym-pill` (03-map.css) — 700 --fs-micro mono, never wraps, 20px tall; the chrome is the
  *  0/8px padding plus the 13px Messgerät and its 4px gap. Centred on the glyph's anchor. */
 export const SYM_PILL_STYLE = { font: '700 11px "Spline Sans Mono", ui-monospace, monospace', maxTextW: Infinity, chromeW: 2 * 8 + 13 + 4, chromeH: 0, lineH: 20 }
 /** `.sym-caption { margin-top }` (03-map.css) */
 export const SYM_CAPTION_GAP = 4
-/** `.measure-label.draw-label` (11-measure.css) — 700 --fs-micro mono, never wraps, 2px/8px padding, line-height 1.25 */
-export const READOUT_LABEL_STYLE = { font: '700 11px "Spline Sans Mono", ui-monospace, monospace', maxTextW: Infinity, chromeW: 16, chromeH: 4, lineH: 13.75 }
+/** `.measure-label.draw-label` (11-measure.css) — 700 --fs-1 mono, never wraps, 2px/8px padding, line-height 1.25 */
+export const READOUT_LABEL_STYLE = { font: '700 12.5px "Spline Sans Mono", ui-monospace, monospace', maxTextW: Infinity, chromeW: 16, chromeH: 4, lineH: 15.625 }
+/** `.measure-label.draw-label .dl-words` (11-measure.css) — a line's FREE TEXT on the same plate:
+ *  the names' 700 --fs-1 Sora (the measured values above stay mono), same chrome. */
+export const READOUT_WORDS_STYLE = { ...READOUT_LABEL_STYLE, font: '700 12.5px Sora, system-ui, sans-serif' }
+/** `.map-trail-dot i` (09-whiteboard.css) — a breadcrumb's time: 700 --fs-1 mono, 2px/8px
+ *  padding, line-height 1.25, hung CRUMB_LABEL_DX right of the coordinate (12px off the 9px dot's
+ *  left edge, the dot centred on the point). */
+export const CRUMB_LABEL_STYLE = { font: '700 12.5px "Spline Sans Mono", ui-monospace, monospace', maxTextW: Infinity, chromeW: 16, chromeH: 4, lineH: 15.625 }
+export const CRUMB_LABEL_DX = 12 - 9 / 2
 /** `.line-end-tag` (09-whiteboard.css) — 800 --fs-micro/1, 2px/4px padding plus a 1.5px border; `inline-grid` stacks the Trupp row */
 export const END_TAG_LABEL_STYLE = { font: '800 11px Sora, system-ui, sans-serif', maxTextW: Infinity, chromeW: 11, chromeH: 7, lineH: 11 }
 /** the whole resting strip's width: [dot][gap][name]. ⚠️ No Leitung field any more (11.10.2026,

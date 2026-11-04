@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { groupByDay, isHandWritten, rowGlyph, isNachtrag, rowText, rowTime, rowPhotos, rowTarget, liveTargets, swapUrl, repeatRuns } from './verlauf'
+import { groupByDay, isHandWritten, rowGlyph, isNachtrag, rowText, rowTime, rowPhotos, rowTarget, liveTargets, swapUrl, repeatRuns, stripScale, stripDensity, pendenzenCut, pendenzenBelow } from './verlauf'
 import type { BoardAnno, TimelineEvent } from '../types'
 
 const row = (id: string, at?: string): TimelineEvent =>
@@ -382,5 +382,75 @@ describe('rowTarget', () => {
     expect(rowTarget({ ...base, surface: 'plan', planId: 'p1', annoId: 'gone', px: 0.4, py: 0.6 }, live)).toBeNull()
     // a plan no longer in the catalog (a Gebäude whose stack was removed)
     expect(rowTarget({ ...base, surface: 'plan', planId: 'geb', kind: 'symbol' }, live)).toBeNull()
+  })
+})
+
+describe('stripScale', () => {
+  const from = new Date('2026-07-02T14:33:00').getTime()
+  const to = new Date('2026-07-02T19:05:00').getTime()
+
+  it('marks full hours and labels only the ones clear of the end labels', () => {
+    const s = stripScale(from, to, 330)
+    expect(s.marks).toHaveLength(5) // 15, 16, 17, 18, 19 h
+    // 15:00 sits 33px in, under the start label; 19:00 6px before the end label
+    expect(s.marks.map((m) => m.label !== undefined)).toEqual([false, true, true, true, false])
+    expect(s.marks[1].label).toMatch(/16.00/)
+    expect(s.start).toMatch(/14.33/)
+    expect(s.end).toMatch(/19.05/)
+  })
+
+  it('never prints two labels closer than one label width', () => {
+    const s = stripScale(from, to, 120)
+    expect(s.marks.filter((m) => m.label)).toHaveLength(0)
+    expect(s.marks.length).toBeLessThanOrEqual(3)
+  })
+
+  it('unmeasured, it draws a few unlabelled marks', () => {
+    const s = stripScale(from, to, 0)
+    expect(s.marks.length).toBeLessThanOrEqual(6)
+    expect(s.marks.every((m) => m.label === undefined)).toBe(true)
+  })
+})
+
+describe('pendenzenCut', () => {
+  // rows at 40, 90, 150, 230 in a 210px box; the foot band + border is 21px, so a cut must sit
+  // at or above 189 — the last row top there is 150, and the box ends 21px below it
+  it('ends the box at the top of the first row that does not fit whole', () => {
+    expect(pendenzenCut([40, 90, 150, 230], 210, 21)).toBe(171)
+  })
+
+  it('cuts exactly at a row top that leaves just the foot', () => {
+    expect(pendenzenCut([40, 90, 189], 210, 21)).toBe(210)
+  })
+
+  it('keeps the CSS cap when the first row alone is taller than the box', () => {
+    expect(pendenzenCut([40, 300], 210, 21)).toBeNull()
+  })
+})
+
+describe('pendenzenBelow', () => {
+  it('counts the rows that end below the fold, the one it slices included', () => {
+    expect(pendenzenBelow([86, 146, 226, 300, 380], 230)).toBe(2)
+    expect(pendenzenBelow([86, 146, 226, 300, 380], 200)).toBe(3)
+  })
+
+  it('treats a subpixel overshoot as a whole row', () => {
+    expect(pendenzenBelow([86, 146, 230.4], 230)).toBe(0)
+  })
+})
+
+describe('stripDensity', () => {
+  it('merges rows that fall in one 3px column into one mark with their count', () => {
+    // a 300px track over 300 s: 1px per second, columns of 3 s
+    const ticks = [0, 1000, 2000, 150_000, 300_000]
+    expect(stripDensity(ticks, 0, 300_000, 300)).toEqual([
+      { frac: 1 / 300, n: 3 },
+      { frac: 0.5, n: 1 },
+      { frac: 1, n: 1 }, // the last moment stays in the last column, not one past it
+    ])
+  })
+
+  it('unmeasured, every row is its own mark', () => {
+    expect(stripDensity([0, 5, 10], 0, 10, 0)).toEqual([{ frac: 0, n: 1 }, { frac: 0.5, n: 1 }, { frac: 1, n: 1 }])
   })
 })

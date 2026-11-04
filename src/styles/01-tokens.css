@@ -25,11 +25,14 @@
   --glass-line: rgba(255, 255, 255, .7);
   --glass-edge: rgba(30, 45, 70, .1);
   --ink: #1b2330;
-  --ink-dim: #4d586a;
+  --ink-dim: #424d5e;
   /* The three ink tiers all clear WCAG AA (4.5:1) on --surface, the canvas and the glass, in both
      themes — tokenContrast.test.ts holds them there. --ink-faint was #6c7686 / #76829a until
-     23.10.2026: 4.05:1 on the canvas by day and 3.64:1 on every night sheet, on 312 text rules. */
-  --ink-faint: #606a7a;
+     23.10.2026: 4.05:1 on the canvas by day and 3.64:1 on every night sheet, on 312 text rules.
+     Darkened again 04.11.2026 (#4d586a / #606a7a): --ink-faint was 3.9:1 on the dark end of
+     --app-bg, where the Trupps and Rapport section titles sit, and 4.1:1 at night on the
+     amber-washed Pendenzen card; --ink-dim moved with it to keep the step. */
+  --ink-faint: #556071;
   --red: #e8392b;
   /* Brand-identity accent. Defaults to the brigade red (and inherits its day/night
      flip via var(--red)), so the look is unchanged with no deployment config. A
@@ -151,13 +154,15 @@
      (a selected chip, the ÜBUNG badge, the overdue «Kontakt»). Darkened just enough to clear 4.5
      there (tokenContrast.test.ts). */
   --green-strong: #12743d;
-  --amber-strong: #9e5c08;
+  --amber-strong: #8a5007;   /* #9e5c08 until 04.11.2026: 3.8:1 on --app-bg, 4.4:1 on the Verlauf button's wash */
   --red-strong: #bd2f21;
   --red-solid-hover: #cf2c1f; /* hover bg on a solid-red (warn) button */
   --green-solid-hover: #1f9d57; /* hover bg on a solid-green (enter) button */
   /* floating label badges drawn over the map / plan board (coords, trail times,
-     measure labels). Day = white veil + dark ink; night = dark veil + light ink. */
-  --label-bg: rgba(255, 255, 255, .92);
+     measure labels). Day = white plate + dark ink; night = dark plate + light ink. Opaque since
+     04.11.2026: two plates that overlap (hand-placed labels are never suppressed) showed the
+     lower one's letters through the upper one and read as one smear. */
+  --label-bg: #fff;
   --label-soft: rgba(255, 255, 255, .82); /* slightly more translucent variant */
   /* faint white veil tiles over glass/imagery (incident rows, hold-cue) */
   --surface-veil: rgba(255, 255, 255, .55);
@@ -385,12 +390,19 @@
   /* Elevation: five heights, each with its night value (below). e3/e4 ARE --shadow-sm/--shadow,
      which now point here; e1/e2/e5 are the most common literals of their height, which were
      day-tinted rgba(30, 45, 70, …) and stayed blue-grey on a black map at night.
-     e1 a marker or handle resting on the map/plan · e2 lifted (a dragged chip, a pinned note) ·
+     e1 a marker, handle or note resting on the map/plan · e2 lifted (a dragged chip, a selected note) ·
      e3 a small floating card · e4 a panel, a bar, a sheet · e5 a blocking card over a scrim. */
+  /* e0 a contact shadow only – a small label plate on the map/plan (hill climb r8, 04.11.2026: with
+     e1's 5px spread, touching plates ran their shadows into dark seams between them) */
+  --e0: 0 1px 2px rgba(15, 22, 34, .2);
   --e1: 0 1px 2px rgba(15, 22, 34, .3), 0 2px 5px rgba(30, 45, 70, .2);
   --e2: 0 4px 10px rgba(30, 45, 70, .2);
-  --e3: 0 0 0 1px rgba(30, 45, 70, .07), 0 1px 2px rgba(30, 45, 70, .1), 0 6px 16px rgba(30, 45, 70, .12);
-  --e4: 0 0 0 1px rgba(30, 45, 70, .08), 0 1px 2px rgba(30, 45, 70, .12), 0 14px 36px rgba(30, 45, 70, .16);
+  /* e3/e4 tightened 04.11.2026 (hill climb, «broad grey halos»): the chrome that floats on every
+     screen – top bar, rails, cards – wore a 36px blur that greyed a wide band of map around it.
+     The crisp ring and the contact shadow carry the edge; the soft part stays close. e5 (sheets,
+     dialogs) keeps its depth, so a modal still reads as the higher thing. */
+  --e3: 0 0 0 1px rgba(30, 45, 70, .07), 0 1px 2px rgba(30, 45, 70, .1), 0 3px 8px rgba(30, 45, 70, .08);
+  --e4: 0 0 0 1px rgba(30, 45, 70, .09), 0 1px 3px rgba(30, 45, 70, .12), 0 6px 16px rgba(30, 45, 70, .1);
   --e5: 0 0 0 1px rgba(30, 45, 70, .08), 0 2px 4px rgba(30, 45, 70, .12), 0 24px 60px rgba(30, 45, 70, .24);
 }
 
@@ -416,8 +428,8 @@
   --glass-line: rgba(255, 255, 255, .08);
   --glass-edge: rgba(255, 255, 255, .12);
   --ink: #e8edf4;
-  --ink-dim: #a4b0c2;
-  --ink-faint: #8a95ab;
+  --ink-dim: #b4bfd0;
+  --ink-faint: #97a2b8;   /* #a4b0c2 / #8a95ab until 04.11.2026 – see the day tier */
   /* brighter, slightly desaturated accents for contrast on dark surfaces */
   --red: #ff5a4d;
   --blue: #5aa0ff;
@@ -426,10 +438,13 @@
   --snap: #f472b6;
   /* elevation (--shadow/--shadow-sm are --e4/--e3): black, not the day's blue-grey, and stronger —
      a dark panel on a dark map needs more shadow to lift, not less */
+  --e0: 0 1px 2px rgba(0, 0, 0, .45);
   --e1: 0 1px 2px rgba(0, 0, 0, .5), 0 2px 5px rgba(0, 0, 0, .4);
   --e2: 0 4px 10px rgba(0, 0, 0, .45);
-  --e3: 0 0 0 1px rgba(0, 0, 0, .45), 0 1px 2px rgba(0, 0, 0, .4), 0 6px 16px rgba(0, 0, 0, .45);
-  --e4: 0 0 0 1px rgba(0, 0, 0, .5), 0 1px 2px rgba(0, 0, 0, .5), 0 14px 36px rgba(0, 0, 0, .55);
+  /* tightened with the day's e3/e4 (04.11.2026): the 36px black blur read as a soft heavy halo
+     around every bar and rail; the ring carries the edge */
+  --e3: 0 0 0 1px rgba(0, 0, 0, .45), 0 1px 2px rgba(0, 0, 0, .4), 0 3px 8px rgba(0, 0, 0, .35);
+  --e4: 0 0 0 1px rgba(0, 0, 0, .5), 0 1px 3px rgba(0, 0, 0, .5), 0 4px 12px rgba(0, 0, 0, .4);
   --e5: 0 0 0 1px rgba(0, 0, 0, .5), 0 2px 4px rgba(0, 0, 0, .5), 0 24px 60px rgba(0, 0, 0, .6);
 
   --app-bg: radial-gradient(120% 90% at 50% -10%, #1a2230 0%, #131922 45%, #0d1118 100%);
@@ -470,7 +485,7 @@
   --red-strong: #ff8a7d;
   --red-solid-hover: #ff7567;
   --green-solid-hover: #46d684;
-  --label-bg: rgba(20, 28, 40, .92);
+  --label-bg: rgb(20, 28, 40);
   --label-soft: rgba(20, 28, 40, .82);
   --surface-veil: rgba(255, 255, 255, .07);
   --ink-tint: rgba(255, 255, 255, .14);
@@ -554,4 +569,7 @@
   --ink-28: color-mix(in srgb, var(--ink) 28%, transparent);
   --ink-45: color-mix(in srgb, var(--ink) 45%, transparent);
   --ink-62: color-mix(in srgb, var(--ink) 62%, transparent);
+  /* the edge of a floating map/plan label plate (names, readouts, captions, trail times): a
+     hairline ring + the e0 contact shadow, so two plates that touch keep their own outlines. */
+  --label-plate: inset 0 0 0 1px var(--ink-16), var(--e0);
 }

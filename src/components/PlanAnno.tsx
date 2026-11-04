@@ -22,7 +22,7 @@ import { softHyphenateText } from '../lib/symbolWrap'
 import { TwinTeamPill } from './TwinTeamPill'
 import { ShapeGlyph, SHAPE_AXIS_GRIPS, SHAPE_DEFS, SHAPE_TWO_POINT, rotationGripOffPx, shapeAspect } from '../lib/shapes'
 import { TEAM_DOT_PX, TEAM_PILL_CAP_PX } from '../lib/mapView'
-import { noteScale, autoNoteWN, noteWN } from '../lib/notes'
+import { noteScale, autoNoteWN, noteWN, stackNoteBoxPx, stackNoteShiftPx } from '../lib/notes'
 import { floorLabel } from '../lib/whiteboard'
 import type { useBoardDoc } from './useBoardDoc'
 import type { useWbChipDrag } from './useWbChipDrag'
@@ -138,6 +138,13 @@ export function PlanAnno({ a, selected, grouped, networked, editing, trailShown,
     teamNameTaken, onTeamTrupp, onTeamNewTrupp, onShowTrupp, markPosition, clearTrail, removeWithConnections, removeWithTrail,
     toggleTrail, rotDown, rotMove, rotUp,
   } = board
+  // a note's box: font size = plan-scaled base × the size-slider step; on the Gebäude stack the
+  // box is never narrower than its words need and never drawn into the storey-label gutter
+  // (lib/notes · stackNoteBoxPx, stackNoteShiftPx) – the stored x stays the anchor
+  const noteFontPx = txtBase * scale * noteScale(a.noteSize)
+  const noteStoredPx = noteWN(a.wN) * sW
+  const noteBoxPx = stack && a.kind === 'text' ? stackNoteBoxPx(noteStoredPx, a.text || appConfig.copy.whiteboard.text, noteFontPx) : noteStoredPx
+  const noteShiftPx = stack && a.kind === 'text' ? stackNoteShiftPx((a.x ?? 0) * sW, noteBoxPx) : 0
   return (
     <div
       ref={a.kind === 'resource' ? chipRef : undefined} data-chip-id={a.kind === 'resource' ? a.id : undefined}
@@ -157,7 +164,7 @@ export function PlanAnno({ a, selected, grouped, networked, editing, trailShown,
       // stays centred on its glyph.
       // a LOCKED shape is click-through, like a locked drawn Fläche: no tap, no drag,
       // no double-tap — the LockChip (own layer below) is the only door back in
-      style={{ left: 0, top: 0, transform: `translate(${(a.x ?? 0) * sW}px, ${mapY(a.floor, a.y ?? 0) * sH}px) translate(${a.kind === 'resource' ? `${selected ? -TEAM_PILL_CAP_PX : -TEAM_DOT_PX / 2}px` : '-50%'}, -50%)`, ['--gpx' as string]: `${a.kind === 'shape' ? (a.sizeN ?? 0.1) * sW * Math.max(1, shapeAspect(a.shape ?? 'square', a.aspect)) : symBase}px`, ...(a.kind === 'shape' && a.locked ? { pointerEvents: 'none' as const } : null) }}
+      style={{ left: 0, top: 0, transform: `translate(${(a.x ?? 0) * sW + noteShiftPx}px, ${mapY(a.floor, a.y ?? 0) * sH}px) translate(${a.kind === 'resource' ? `${selected ? -TEAM_PILL_CAP_PX : -TEAM_DOT_PX / 2}px` : '-50%'}, -50%)`, ['--gpx' as string]: `${a.kind === 'shape' ? (a.sizeN ?? 0.1) * sW * Math.max(1, shapeAspect(a.shape ?? 'square', a.aspect)) : symBase}px`, ...(a.kind === 'shape' && a.locked ? { pointerEvents: 'none' as const } : null) }}
       onPointerDown={(e) => chipDown(e, a.id, a.floor)}
       // double-tap still opens the on-surface textarea; the panel steps aside so the
       // two editors for one text never stream keystrokes side by side.
@@ -236,12 +243,13 @@ export function PlanAnno({ a, selected, grouped, networked, editing, trailShown,
       )}
       {a.kind === 'text' && (() => {
         // every note is a wrapping box; a stored note with no width falls back to the
-        // default. Font size = plan-scaled base × the size-slider step.
+        // default. Its font size and width are sized above (noteFontPx, noteBoxPx).
         // colour applies in both looks — see the twin in MapMarkers for why it did not
         const tinted = !a.notePlain && !!a.color
         const cls = (base: string) => `${base} box${a.notePlain ? ' plain' : ''}${tinted ? ' tinted' : ''}`
         const style = {
-          fontSize: txtBase * scale * noteScale(a.noteSize), width: noteWN(a.wN) * sW,
+          fontSize: noteFontPx,
+          width: noteBoxPx,
           ...(a.color ? (a.notePlain ? { color: a.color } : { '--note-tint': a.color }) : null),
         } as React.CSSProperties
         return editing
@@ -252,7 +260,7 @@ export function PlanAnno({ a, selected, grouped, networked, editing, trailShown,
               onChange={(e) => {
                 if (textEditId.current !== a.id) { textEditId.current = a.id; pushPast() }
                 const v = e.target.value
-                patch(a.id, { text: v, ...(a.noteAutoW ? { wN: autoNoteWN(v, txtBase * scale * noteScale(a.noteSize), sW) } : null) })
+                patch(a.id, { text: v, ...(a.noteAutoW ? { wN: autoNoteWN(v, noteFontPx, sW) } : null) })
                 autoGrow(e.currentTarget)
               }}
               // finalise on blur: keep the note even if empty (a placed note must persist,

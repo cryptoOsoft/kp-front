@@ -97,3 +97,34 @@ export const autoNoteWPx = (text: string, size?: NoteSize) =>
  *  `planWPx` are the CURRENT rendered values, so the zoom scale cancels out of the ratio. */
 export const autoNoteWN = (text: string, fontPx: number, planWPx: number) =>
   planWPx > 0 ? clampNoteWN(autoNoteBoxPx(text, fontPx) / planWPx) : NOTE_WN.def
+
+// --- the Gebäude stack's floor ---------------------------------------------------------------
+//
+// On a module sheet a note's text AND its width both follow the paper (Whiteboard · txtBase is a
+// fraction of the sheet width), so a stored `wN` is always the same number of words wide. The
+// Gebäude stack sets its text at a constant size, like the Lage map does, but `wN` still means
+// «a fraction of the board» — and the stack's board is one narrow storey column. A default note
+// (0.2) came out ~34 px wide at 10 px text: a word every one to three letters, a yellow strip
+// running down through three storeys (hill climb r1, 04.11.2026). So on the stack the rendered
+// box never wraps narrower than its own text needs, up to the Lage note's default measure
+// (`NOTE_W_PX.def` at the map's 12.5 px ≈ 17.6 em). Only the RENDERING widens: `wN` is stored
+// and printed as it is, because the paper lays the note out from it.
+
+/** The stack note's minimum measure, in em of its own text (≈ the Lage's default note). */
+export const STACK_NOTE_MIN_EM = 16
+
+/** Rendered px width of a note on the Gebäude stack: the stored width, widened to fit the
+ *  text on one line where that is shorter than STACK_NOTE_MIN_EM, else to that measure. */
+export const stackNoteBoxPx = (storedPx: number, text: string, fontPx: number) =>
+  Math.max(storedPx, Math.min(autoNoteBoxPx(text, fontPx), STACK_NOTE_MIN_EM * fontPx))
+
+// A stack note is anchored at its centre, and the widened box (above) reaches further out than
+// the stored one: centred near the stack's left edge it hung into the storey-label gutter
+// (lib/whiteboard · STACK_LABEL_LANE) and ran its second line under «EG» (hill climb r4,
+// 04.11.2026). So it is DRAWN moved right just far enough that its box starts at the stack's
+// edge – the plate stands 8 px (--sp-2) left of that edge, so no plate ever meets note text.
+// Only the drawing moves: `x` is stored, printed and dragged as it is.
+
+/** Rendered px shift to the right of a stack note whose box would start left of the stack:
+ *  `centrePx` is its anchor in board px from the stack's left edge, `boxPx` its rendered width. */
+export const stackNoteShiftPx = (centrePx: number, boxPx: number) => Math.max(0, boxPx / 2 - centrePx)

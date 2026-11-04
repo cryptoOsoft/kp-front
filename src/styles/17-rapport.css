@@ -205,6 +205,12 @@
    the box». `--glass-edge` rather than `--border` is the hairline every other surface uses;
    the rapport was the only place on `--border`. */
 .report-pre-section { border: 1px solid var(--glass-edge); border-radius: var(--r-ctl); padding: var(--sp-4); background: var(--surface-2); }
+/* Night: the cards (these and the side column's `.rp-check`) are their hairline only. The 6% white
+   wash lifted the card to the very tone of the fields inside it (#232c3a on ≈#232933, 1.05:1), so
+   at night an empty form read as one flat slab with no wells to type into (council 04.11.2026).
+   Without it the fields stand off the card as they do on every night sheet and on the phone,
+   whose cards never had the wash. Day keeps it: white fields on a tinted card are already apart. */
+[data-theme="night"] :is(.report-pre-section, .rp-check) { background-color: transparent; }
 /* section header = the SAME uppercase eyebrow as the details modal (.ctx-section-label) so every
    header across the app reads identically (was a one-off 14px sentence-case here) */
 .report-pre-section h3 {
@@ -486,7 +492,7 @@
 /* ⚠️ No wrap trigger and no basis/indent any more: `.hist-ev` is a 4-track GRID since the
    classification column landed, and these sit on the sentence track by `grid-column` (see
    06-contextpanel.css). A flex basis here fought the grid; the 74px margin was simply the
-   wrong axis — the sentence starts at 94px. */
+   wrong axis — the sentence starts at 96px (06-contextpanel · .hist-ev). */
 .jr-transcript { min-width: 0; margin: 2px 0; display: flex; flex-direction: column; gap: var(--sp-2); }
 .jr-transcript p { margin: 0; color: var(--ink-dim); font-size: var(--fs-1); line-height: 1.45; white-space: pre-wrap; }
 /* the words as SUBTITLE lines under an audio row — the korrektur sub-line's quiet register:

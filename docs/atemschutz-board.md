@@ -26,8 +26,8 @@ questions, and what the record keeps (`components/AtemschutzView`; the card and 
     pick B — as the facts' last chip it wrapped onto a 44px row of its own). What differs is only
     what the board has room for: on the grid every card stands open (the line is not a toggle, no
     chevron), the hand-set order keeps its ‹ › in the ⋯, and a card on a board without state heads
-    (grid, Tafel — `headed` false) says «Bereit» in its state line, which on the phone is the
-    section head. The state line never says what the card's colour already says (29.09.2026,
+    (the «Wie gesetzt» / «Name» grid, Tafel — `headed` false) says «Bereit» in its state line,
+    which on the phone and the grouped grid is the section head. The state line never says what the card's colour already says (29.09.2026,
     owner: «drop the überfällig – if the card is red it's pretty obvious»; «the draussen subtitle
     is probably not even required»): fällig / überfällig live on for a screen reader only
     (`.sr-only`), and an out Trupp's card carries no «Draussen» — it keeps the words colour cannot
@@ -76,6 +76,40 @@ questions, and what the record keeps (`components/AtemschutzView`; the card and 
     Sicherungstrupp zone included (`.phoneBoard > * + :is(.sect, .safetyZone)`, 30.09.2026:
     Sicherungstrupp and Draussen sat flush on the card above). A head keeps 12px to its first
     card. Never give a section its own top/bottom margins.
+  - *The wide grid wears the phone's state heads where its order already reads that way* (hill
+    climb r1, 04.11.2026): under «Dringlichkeit» and «Auftrag» the grid stands as Drin · Bereit ·
+    Draussen (then Weitere Trupps), each section in the order's own sequence and with the same
+    24px air (`.stateBoard`). «Wie gesetzt» stays one slot-keeping grid (a card never jumps when
+    its Trupp comes out — 17.08., 23.10.2026) and «Name» an alphabet. No Sicherungstrupp section
+    on the grid: a standing «Sichern» crew is a Bereit card with its Auftrag chip.
+  - *Quiet facts, one loud action per card* (04.11.2026): the fact chips are quiet fields (no edge,
+    `--ink-5` fill, 500) that still open their sheets; the tiles and the head's tiles are 700, 800 is
+    kept for Kontakt and the filled primaries. «Wieder in den Einsatz» stays the out card's one
+    filled tile (owner, 27.09.2026).
+  - *The grid's card names its clock and is denser* (hill climb r2, 04.11.2026): on the tablet /
+    desktop grid the caption the link board's page wears stands under the clock («SEIT LETZTEM
+    KONTAKT», «DRAUSSEN SEIT», «EINSATZZEIT», «ANGEMELDET UM») on a row of its own across the head,
+    so it never squeezes the name; under the grouped orders' «Draussen» head the break clock goes
+    unnamed (`RowLine · headed`). No separate state word by the name. The phone row and its opened
+    card keep the caption hidden (owner 24.09.2026: «drop the blabla, just the time» — its section
+    heads say it). Fact chips are compact fields everywhere (28px
+    drawn, 8px pad above/below on touch so a row is still 44px; 16px between rows on touch, 8px
+    with a mouse). On the grid, touch keeps «Druck | Kontakt» and the filled tile at 48px and sets
+    Rückzug | Raus and Notfall at 44px; a mouse gets 40px tiles and a 36px foot line.
+    Since r8 the caption is 12.5px with its tracking nearly closed, and «Kanal 11» (with the
+    Ausrüstung after it) always opens the facts' last row on the grid (`.factsEnd`), so it stands
+    in the same place on every card.
+  - *Inside reads louder than outside* (hill climb r3, 04.11.2026): on the grid a crew inside with
+    a calm clock (`rowTone` → `.trowIn`) wears a green head band behind its name and contact
+    clock, closed by a 3px green rule along its foot (r5); fällig / überfällig keep their own tones instead (amber wash, red edge — never the band).
+    An out card sinks: its surface is mixed toward the canvas (it was mixed toward the ink, which
+    lit it at night), its name is the dim ink and its clock the quiet 16px. Slots never move.
+  - *The tablet grid shows every foot* (hill climb r4, 04.11.2026): on the 1180×820 iPad the second
+    row's foot (duration, Schätzung) met the panel's bottom edge. The space came out of air, never a
+    target: the grid card's head starts 4px under the card's top and the caption hangs right under
+    the digits (every grid card, so names still line up across a row); on touch the board starts
+    8px under the page head and the cards sit 12px apart. Tiles, chips, their pads and the foot
+    line keep their heights.
 
 ## The Atemschutz-Link board (the handed-over phone board, `lite && compact`)
 
@@ -204,7 +238,9 @@ good but we don't need the triangle thing. red and notfall is already enough»):
   12px to the clock; the number stays in the TruppFinder and the Verlauf. The handed-over phone board opens on the most
   urgent crew inside; the Eintrag FAB floats over the phone Trupps page (27.10.2026) and the list
   ends above it with the shared `--fab-safe` foot (28.10.2026); an opened card's foot row keeps the
-  FAB's column free while it stands under the circle (`data-az-fab-foot`).
+  FAB's column free while it stands under the circle (`data-az-fab-foot`), and every phone row's
+  name/clock line ends with the same reserve, so the circle never sits on a clock or a chevron
+  (hill climb r5).
 
 - *The Eingangsdruck is guarded, once* (item 2, every width): locked in «Bearbeiten» once the
   Trupp is raus (pointing at the exit's Restdruck); below `doctrine.entryPressureMin` (default

@@ -195,7 +195,8 @@ describe('the state a tier cannot say', () => {
     mount({ trupps: [{ ...aktivTrupp(), status: 'raus', exitTime: iso(5 * 60_000) }] })
     // no «Draussen» line on the card (owner, 29.09.2026): the grey card with «Wieder in den Einsatz» says it
     expect(document.querySelector(`.${s.stateLine}`)).toBeNull()
-    // «Draussen seit» is the ROW's caption track only — on a card it stays hidden (`.trowHead .trowSub`)
+    // «Draussen seit» names the break clock under it on the grid's card (hill climb r2, 04.11.2026;
+    // the phone's opened card hides it under its «Draussen» head — `.trowHead .trowSub`)
     expect(screen.getByText(az.outFor).closest(`.${s.trowHead}`)).toBeTruthy()
     expect(screen.queryByText(az.clockOk)).toBeNull()
     const clock = document.querySelector(`.${s.trowClockVal}`)!

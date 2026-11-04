@@ -1017,7 +1017,7 @@
   /* the Gebäude's «+ UG» above the floating row (08-toasts · --stack-foot-lift): here the row's
      reserve already clears the chips, so the lift is only the pill's own band. On :root, like the
      other reserves, because THE message lane below is computed there. */
-  :root:has(.wb-floor-add-down) { --stack-foot-lift: 70px; }
+  :root:has(.wb-floor-add-down) { --stack-foot-lift: 64px; } /* = lib/whiteboard · STACK_VPAD */
   /* …and the docked tab strip (Rapport · Anwesenheit, PhoneTabBar) is one more fixed piece of
      bottom chrome, on whichever page shows one. `:has`, like every other lane state here, because
      the host is a root sibling of `.app`. Inside this media query a rendered strip is always
@@ -1195,10 +1195,13 @@
   /* Wind, floating top-right. It used to share this box with the compass; the compass lives in
      the tool bar (05.08.2026, and again since 19.09. after one day back up here) — the wind
      stayed: it is a READ-OUT, and the bar has no room for it. */
+  /* …in the floating family's material and at the height of the GPS caveat / Standort stop it
+     shares the 76px row with (hill climb r6, 04.11.2026): it used to be a bar-padded cluster with
+     an e4 shadow, 58px of card around one 44px read-out. Now the read-out IS the chip. */
   .phone-wx { position: absolute; top: calc(76px + env(safe-area-inset-top)); right: max(8px, env(safe-area-inset-right)); z-index: var(--z-map-util);
     display: flex; align-items: center;
-    background: var(--glass); backdrop-filter: blur(14px) saturate(1.4); border: 1px solid var(--glass-line);
-    border-radius: var(--r-cluster); padding: var(--bar-pad); box-shadow: var(--e4); }
+    background: var(--float-bg); backdrop-filter: var(--float-blur); box-shadow: var(--float-edge);
+    border-radius: var(--r-cluster); }
   /* the bar's own weather readout is phone-hidden — it lives in this cluster instead */
   .topbar .tb-weather-wrap { display: none; }
   /* …and the GPS caveat leaves the bar for the same reason the weather did: there is no room
@@ -1229,7 +1232,7 @@
   .tb-gps .i { color: var(--amber-strong); }
   /* --tap, not 40 (UX sweep S9, 20.10.2026): at (0,2,0) this beat 20-touch-floors' coarse
      `.tb-weather` floor, so the Karte's one wind target on a phone stayed 4px short */
-  .phone-wx .tb-weather { min-height: var(--tap); }
+  .phone-wx .tb-weather { min-height: var(--tap); padding: 0 var(--float-pad-x); border-radius: inherit; }
 
   /* Einstellungen rows: the 3-segment controls (Farbschema, Beschriftungen) are wider than
      a phone row leaves next to the label — let the control wrap onto its own right-aligned

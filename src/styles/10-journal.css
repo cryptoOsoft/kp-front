@@ -355,8 +355,19 @@
   .journal-drawer.is-kb { top: calc(88px + var(--vv-pan, 0px)); }
 }
 .journal-head { display: flex; align-items: center; gap: 8px; padding: 4px 4px var(--sp-2); }
-.journal-title { display: flex; align-items: center; gap: 8px; font-size: var(--fs-2); font-weight: var(--fw-bold); color: var(--ink); }
-.journal-title .i { width: 17px; height: 17px; }
+/* the drawer's title is its strongest anchor — `--fs-4`, the head-title size (hill climb r2,
+   04.11.2026: at 14px «Verlauf · 322» stood below its own filled ▶ button in weight). On a
+   phone it steps down and drops its glyph (below): the head has no width to spare there.
+   ⚠️ The count is its own piece (`.journal-count`, r6): a caption in the secondary ink at the
+   floor size, on the title's baseline — at the title's 700 «Verlauf · 322» read as one word
+   jammed against the first button. The group may shrink (the word ellipsises, the count never)
+   but never into the buttons. */
+.journal-title { display: flex; align-items: baseline; gap: var(--sp-1); min-width: 0; white-space: nowrap;
+  font: var(--fw-bold) var(--fs-4)/var(--lh-4) var(--body); color: var(--ink); }
+.journal-title .i { width: 19px; height: 19px; flex: none; align-self: center; margin-right: var(--sp-1); }
+.journal-title-txt { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.journal-count { flex: none; font: var(--fw-medium) var(--fs-1)/var(--lh-1) var(--body);
+  font-variant-numeric: tabular-nums; color: var(--ink-dim); }
 .jr-delivery { padding: var(--sp-3); margin-block: 4px 12px; border-radius: var(--r-ctl); background: color-mix(in srgb, var(--amber) 16%, var(--glass)); color: var(--ink); }
 .jr-delivery-danger { background: color-mix(in srgb, var(--red) 14%, var(--glass)); }
 .jr-delivery strong { font-size: var(--fs-2); }
@@ -365,17 +376,11 @@
 /* ⚠️ ONE size for every button of this head, and it is the app's --tap (30.10.2026, owner: «increase
    the size of the touch targets/buttons to match the size we have otherwise»). It was 36 to the eye
    over a 44 pad – the ✕'s house size (13-incident.css · «ONE size for the ✕») – so the Verlauf read
-   smaller than every surface of 44px buttons around it. ⓘ, lens, funnel, ▶ and ✕ are all 44 now. */
-.journal-replay { position: relative; margin-left: auto; display: inline-flex; align-items: center; gap: var(--sp-2);
-  height: var(--tap); min-width: var(--tap); justify-content: center; padding: 0 var(--sp-3); border: none; border-radius: var(--r-sm); cursor: pointer;
-  background: var(--btn-primary); color: var(--on-btn-primary); font-family: var(--body); font-weight: var(--fw-bold); font-size: var(--fs-1); }
-/* the normal primary, not amber (sweep B7, 07.10.2026): amber means «needs attention» everywhere
-   else («4 offen», Kontakt fällig), and a play button is not asking for any */
-@media (hover: hover) {
-  .journal-replay:hover { background: var(--btn-primary-hover); }
-}
-.journal-replay:active:not(:disabled) { background-image: linear-gradient(var(--press), var(--press)); }
-.journal-replay .i { width: 15px; height: 15px; }
+   smaller than every surface of 44px buttons around it. ⓘ, lens, funnel, ▶ and ✕ are all 44 now.
+   ▶ is THE button's framed secondary (<Button>, `.ip-btn`, 44px) — placement only here. It was the
+   filled primary until the hill climb (r2, 04.11.2026): playing back the past became the
+   strongest thing in a view whose job is what is still open. */
+.journal-replay { margin-left: auto; flex: none; }
 /* with the replay button taking the auto margin, the × just trails it */
 .journal-replay + .journal-x { margin-left: 0; }
 .journal-x { margin-left: auto; width: 28px; height: 28px; border-radius: var(--r-sm); border: none; cursor: pointer;
@@ -389,6 +394,17 @@
 /* …and the head's ✕ and ⓘ are --tap like the rest of the head (see .journal-replay): beside 44px
    neighbours a 36px ✕ is the «stray badge» the search row's ✕ was (below). Glyphs stay 18px. */
 .journal-head .journal-x, .journal-head .ui-info { width: var(--tap); height: var(--tap); }
+/* ⓘ · lens · funnel are UTILITIES, and rest as the quiet icon button does (components/Button ·
+   IconButton `quiet`: no fill, `--ink-8` under a hover or a keyboard focus) — hill climb r9: three
+   filled squares in a row out-weighed the title and ▶ beside them, worst across the phone's full
+   head. Their ON looks stay as they were (legend/search open = the blue wash, a filter set = the
+   `--sel` fill, below), so «on» now reads against nothing instead of against a grey chip. The ✕
+   keeps the house close pill and ▶ its frame. */
+.journal-head .ui-info:not(.on) { background: none; }   /* the lens and funnel rest bare in their own rule */
+.journal-head .ui-info:not(.on):focus-visible, .journal-legend-btn:not(.on, .jr-filter-on):focus-visible { background: var(--ink-8); }
+@media (hover: hover) {
+  .journal-head .ui-info:not(.on):hover, .journal-legend-btn:not(.on, .jr-filter-on):hover { background: var(--ink-8); color: var(--ink); }
+}
 
 /* ── the icon legend ──
    The disc carries the Bereich, and a glyph has to be learned. This is the answer to that, and
@@ -398,13 +414,9 @@
    read, not to the drawer's controls. */
 .journal-legend-btn { flex: none; position: relative; width: var(--tap); height: var(--tap); border-radius: var(--r-sm);
   border: none; cursor: pointer; display: grid; place-items: center;
-  /* the ✕'s own fill and ink (see .journal-x): on `--surface-2` — white at .6 over a white glass
-     drawer — the chip vanished and only its 18px glyph stayed, so ⓘ and the lens read smaller
-     than the ✕ they are the size of (22.09.2026) */
-  background: var(--ink-8); color: var(--ink-dim); }
-@media (hover: hover) {
-  .journal-legend-btn:hover { background: var(--ink-12); color: var(--ink); }
-}
+  /* the ✕'s ink (see .journal-x); at rest no fill since hill climb r9 (the head's utilities,
+     above) — it wore the ✕'s `--ink-8` chip from 22.09.2026 */
+  background: none; color: var(--ink-dim); }
 .journal-legend-btn:active:not(:disabled) { background-image: linear-gradient(var(--press), var(--press)); }
 /* OPEN (the lens's search) is the one «open» look, the InfoToggle's blue wash (29.09.2026 — it
    was the ink «where you are» pill); the ⓘ beside it IS the InfoToggle (`.ui-info`) */
@@ -412,7 +424,7 @@
 .journal-legend-btn .i { width: 18px; height: 18px; }
 
 /* ── the search ──
-   The lens is a second .journal-legend-btn beside the ⓘ (same 44px chip). Tapped, the
+   The lens is a second .journal-legend-btn beside the ⓘ (same 44px button). Tapped, the
    field REPLACES the head row (mock verlauf-02, 14.09.): the title, ⓘ and Replay go, the field
    takes their width, and the ✕ that closes the search stands where the drawer's ✕ stood — one
    place for «back out of this», whichever «this» is. No space is lost while nothing is searched. */
@@ -447,7 +459,7 @@
 :is(.jr-legend, .jr-filter-menu) .ic.jr-ic-ring { background: none; border-color: transparent; }
 
 /* ── the filter (feat 37 · option B, 23.09.2026) ──
-   A third .journal-legend-btn beside the lens (same 44px chip). While any category is
+   A third .journal-legend-btn beside the lens (same 44px button). While any category is
    ticked it wears the CHOICE fill (`--sel`, 29.09.2026 — the Anwesenheit's filter buttons do
    the same): it was the ink «where you are» pill plus a blue dot, two channels for one bit and
    the wrong role. Nothing is printed on it, so it measures the same filtered or not. */
@@ -487,7 +499,12 @@
    above. The button keeps its `aria-label` (Journal.tsx), so nothing is lost but the letters. */
 @media (--phone) {
   .journal-replay span { display: none; }
-  .journal-replay { padding: 0 8px; }
+  .journal-head .journal-replay { width: var(--tap); padding: 0; }
+  /* the title a step down and without its glyph: at 19px with it the head ran past a 390px screen */
+  .journal-title { font-size: var(--fs-3); line-height: var(--lh-3); }
+  .journal-title .i { display: none; }
+  /* …and the head's 4px gap plus this = the 8px that keeps the title group off the ⓘ (r6) */
+  .journal-head .journal-title { margin-right: var(--sp-1); }
   /* …and since the funnel joined it the head is SIX items: at 360px a real Einsatz's
      «Verlauf · 312» ran 1px past the edge and the ✕ was squeezed to 34px (measured 24.09.2026).
      The gaps close up to 6px — the room a four-digit count needs — and no chip may shrink: the
@@ -562,8 +579,9 @@
 /* ⚠️ The button STAYS 26 × 26. The disc is the anchor for the timeline connector drawn above and
    below it (`.hist-ev .ic::before/::after` in 06-contextpanel.css), so growing the element for a
    gloved finger would tear a gap in the line. The TARGET grows instead, on a pseudo-element that
-   is out of the ring's grid flow: 44 × 44 (23.09.2026, was 30 × 42), i.e. 9px into each 10px
-   column gutter and the row's height, and a miss lands on the row itself. The same trade the
+   is out of the ring's grid flow: 44 × 44 (23.09.2026, was 30 × 42), i.e. 9px out to each side –
+   the 8px column gutter and 1px past it, over the plain time span and the sentence's first
+   glyph – and the row's height, and a miss lands on the row itself. The same trade the
    pinned block's ring makes, and for the same reason. */
 .jr-ic-tick .jr-ring::before { content: ""; position: absolute; inset: -12px; border-radius: var(--r-sm); }
 /* ⚠️ No fill on hover — `--hover` is a neutral wash and the row already takes it. The RING
@@ -640,7 +658,10 @@
    stays: an unbroken 40-letter street name has to break somewhere, and that is what it is for —
    an ordinary word never needs it, now that the trail beside it holds controls only (#12). */
 .jr-main { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
-.jr-text { min-width: 0; max-width: 100%; line-height: 1.3; overflow-wrap: anywhere; }
+/* ⚠️ Regular weight and --lh-2 (≈20px) (hill climb r3, 04.11.2026): the row's prose is the quiet
+   layer under its marks (.jr-link below) — at the row's medium, with every name bold on top, a
+   wrapped crew line on a phone was one dark block with nothing in it to find. */
+.jr-text { min-width: 0; max-width: 100%; font-weight: var(--fw-regular); line-height: var(--lh-2); overflow-wrap: anywhere; }
 /* the facts ABOUT the row, under its sentence (27.10.2026, sweep #12): the footnotes, then the
    missing-transcript / upload chips, then a done Pendenz's «wieder in» pills. Left-aligned on the
    sentence's axis, wrapping as a group. */
@@ -817,7 +838,10 @@
 }
 
 /* …and in the Verlauf, where there is real text: every mention — vehicle, partner, Trupp, person,
-   material, group — is bold INK, one look for «one of the Einsatz's own words» (29.09.2026) */
+   material, group — is bold INK, one look for «one of the Einsatz's own words» (29.09.2026, owner
+   pick A – no kind gets a look of its own). The prose around them is regular since the hill climb
+   (r3, 04.11.2026), so the marked words stand off the sentence instead of the whole wrapped row
+   reading as one dark block. */
 .jr-link { font-weight: var(--fw-bold); color: var(--ink); }
 /* the address in the Verlauf: a real <a>, so it carries the underline that says «this opens»
    rather than a colour that only says «this is a thing» */

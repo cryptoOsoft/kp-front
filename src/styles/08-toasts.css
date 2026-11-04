@@ -569,9 +569,11 @@
 /* `overflow-wrap` is not optional here: the pill is capped at 180px, so a long unbroken token
    (a hydrant code, a chemical name, a pasted id) ran straight out of the paper and sat on the
    map as bare letters. White-space stays `normal` — «Einzeilig» is ONE line that simply runs
-   out of room at 180px, not a place to compose paragraphs; that is what «Textfeld» is for. */
+   out of room at 180px, not a place to compose paragraphs; that is what «Textfeld» is for.
+   A resting note sits on e1 like every other mark on the map (e2 until hill climb r8: its 10px
+   shadow merged with the plates around it); the selected one still lifts to e2. */
 .note-pill { background: var(--note-bg); border: 1px solid var(--note-border); color: var(--note-ink); font-size: var(--fs-1); font-weight: var(--fw-medium);
-  padding: 0.38em 0.7em; border-radius: 0.6em; box-shadow: var(--e2); max-width: 180px;
+  padding: 0.38em 0.7em; border-radius: 0.6em; box-shadow: var(--e1); max-width: 180px;
   overflow-wrap: break-word; }
 /* A coloured note in the PILL look tints its paper, not its ink: the picked colour has to be
    legible from across a KP, and coloured text on a yellow pill is neither. Mixed against the

@@ -134,7 +134,7 @@
    tools above — so "press to do X" is never confused with "select a mode" */
 /* the grip hangs off the LEFT edge — this rail is anchored right and opens leftward (mirror of
    the nav-grip). The rest of it is the shared base. */
-.vrail-grip { left: -7px; }
+.vrail-grip { left: -13px; justify-content: flex-end; padding-right: 2px; }   /* off the tiles – see .nav-grip */
 
 /* (.toputil / .tu-btn / .tu-divider / .compass migrated → MapUtility.module.css) */
 

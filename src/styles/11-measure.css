@@ -4,11 +4,14 @@
 .wb-dock-tog:disabled { opacity: var(--disabled); cursor: default; }
 
 /* cumulative distance / area labels pinned to the live measure path */
-.measure-label { padding: 2px 8px; border-radius: var(--r-xs); font-size: var(--fs-micro); font-weight: var(--fw-bold);
+.measure-label { padding: 2px 8px; border-radius: var(--r-xs); font-size: var(--fs-1); font-weight: var(--fw-bold);
   font-family: var(--mono); white-space: nowrap; background: var(--label-bg); color: var(--ink);
-  box-shadow: var(--e1); pointer-events: none; }
+  box-shadow: var(--label-plate); pointer-events: none; }
 .measure-label.strong { background: var(--blue); color: var(--on-fill); }
 .measure-label.draw-label { text-align: center; line-height: 1.25; }
+/* a line's free text («Trupp Polizei evakuiert», an Abschnitt's Auftrag) in the names' sans; the
+   measured values on the same plate stay mono (lib/mapView · READOUT_WORDS_STYLE) */
+.measure-label.draw-label .dl-words { font-family: var(--body); }
 /* a line's distance/text label is draggable (nudge it off overlapping ink), so it must
    accept pointer events again and hint the move cursor */
 .measure-label.draw-label.draggable { pointer-events: auto; touch-action: none; }

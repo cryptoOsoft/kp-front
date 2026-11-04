@@ -136,6 +136,7 @@ export const journalCopy: Localizable<Pick<Copy, 'journal' | 'errors'>> = {
     dueSnooze: '+10 min',
     dueOpen: 'Ouvrir dans le journal',
     openCount: '{n} ouvert(s)',
+    pinnedMoreBelow: '{n} de plus',
     doneLog: 'Rappel fait : {text}',
     reopenLog: 'Rappel rouvert : {text}',
     snoozeLog: 'Rappel +{mins} min : {text}',
