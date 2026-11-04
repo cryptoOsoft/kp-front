@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { NOTE_SIZE_SCALE, NOTE_WN, NOTE_W_PX, autoNoteWN, autoNoteWPx, clampNoteWN, clampNoteWPx, noteScale, noteWN, noteWPx } from './notes'
+import { NOTE_SIZE_SCALE, NOTE_WN, NOTE_W_PX, STACK_NOTE_MIN_EM, autoNoteBoxPx, autoNoteWN, autoNoteWPx, clampNoteWN, clampNoteWPx, noteScale, noteWN, noteWPx, stackNoteBoxPx } from './notes'
 
 describe('note sizing', () => {
   it('treats an absent size as normal', () => {
@@ -83,5 +83,14 @@ describe('width clamps', () => {
   it('seeds a default that survives its own clamp', () => {
     expect(clampNoteWN(NOTE_WN.def)).toBe(NOTE_WN.def)
     expect(clampNoteWPx(NOTE_W_PX.def)).toBe(NOTE_W_PX.def)
+  })
+
+  // the Gebäude stack (hill climb r1, 04.11.2026): a narrow storey column made a default note a
+  // 34 px strip that broke every few letters
+  it('never renders a stack note narrower than its words need, up to the Lage measure', () => {
+    const long = 'Trupp Angriff Trupp Werkhof Personen Druck Keller Polizei'
+    expect(stackNoteBoxPx(34, long, 12.5)).toBe(STACK_NOTE_MIN_EM * 12.5)
+    expect(stackNoteBoxPx(34, 'Druck', 12.5)).toBe(autoNoteBoxPx('Druck', 12.5))
+    expect(stackNoteBoxPx(400, long, 12.5)).toBe(400) // a stored wider box stands
   })
 })

@@ -22,7 +22,7 @@ import { softHyphenateText } from '../lib/symbolWrap'
 import { TwinTeamPill } from './TwinTeamPill'
 import { ShapeGlyph, SHAPE_AXIS_GRIPS, SHAPE_DEFS, SHAPE_TWO_POINT, rotationGripOffPx, shapeAspect } from '../lib/shapes'
 import { TEAM_DOT_PX, TEAM_PILL_CAP_PX } from '../lib/mapView'
-import { noteScale, autoNoteWN, noteWN } from '../lib/notes'
+import { noteScale, autoNoteWN, noteWN, stackNoteBoxPx } from '../lib/notes'
 import { floorLabel } from '../lib/whiteboard'
 import type { useBoardDoc } from './useBoardDoc'
 import type { useWbChipDrag } from './useWbChipDrag'
@@ -236,12 +236,16 @@ export function PlanAnno({ a, selected, grouped, networked, editing, trailShown,
       )}
       {a.kind === 'text' && (() => {
         // every note is a wrapping box; a stored note with no width falls back to the
-        // default. Font size = plan-scaled base × the size-slider step.
+        // default. Font size = plan-scaled base × the size-slider step. On the Gebäude stack
+        // the box is never narrower than its words need (lib/notes · stackNoteBoxPx).
         // colour applies in both looks — see the twin in MapMarkers for why it did not
         const tinted = !a.notePlain && !!a.color
         const cls = (base: string) => `${base} box${a.notePlain ? ' plain' : ''}${tinted ? ' tinted' : ''}`
+        const fontPx = txtBase * scale * noteScale(a.noteSize)
+        const storedPx = noteWN(a.wN) * sW
         const style = {
-          fontSize: txtBase * scale * noteScale(a.noteSize), width: noteWN(a.wN) * sW,
+          fontSize: fontPx,
+          width: stack ? stackNoteBoxPx(storedPx, a.text || appConfig.copy.whiteboard.text, fontPx) : storedPx,
           ...(a.color ? (a.notePlain ? { color: a.color } : { '--note-tint': a.color }) : null),
         } as React.CSSProperties
         return editing
@@ -252,7 +256,7 @@ export function PlanAnno({ a, selected, grouped, networked, editing, trailShown,
               onChange={(e) => {
                 if (textEditId.current !== a.id) { textEditId.current = a.id; pushPast() }
                 const v = e.target.value
-                patch(a.id, { text: v, ...(a.noteAutoW ? { wN: autoNoteWN(v, txtBase * scale * noteScale(a.noteSize), sW) } : null) })
+                patch(a.id, { text: v, ...(a.noteAutoW ? { wN: autoNoteWN(v, fontPx, sW) } : null) })
                 autoGrow(e.currentTarget)
               }}
               // finalise on blur: keep the note even if empty (a placed note must persist,

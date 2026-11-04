@@ -59,10 +59,11 @@ export const SIDE_INSET_R = 92
  */
 export const sideInsets = (viewportW: number, phone = viewportW <= 600) =>
   phone ? { l: 0, r: 0 } : { l: SIDE_INSET_L, r: SIDE_INSET_R }
-// in the floor-stack (Gebäude) view the +OG / −UG pills straddle the top and bottom
-// edges of the stack (CSS top/bottom: half their --tap height, 22px). The default "fit" reserves this much
-// extra room above AND below so both pills stay fully on-screen instead of clipping.
-export const STACK_VPAD = 36
+// in the floor-stack (Gebäude) view the +OG / −UG pills stand just outside the top and bottom
+// edges of the stack (09-whiteboard · .wb-floor-add: --sp-3 off the edge, a --tap tall = 56px).
+// The default "fit" reserves this much room above AND below so both stay on-screen with 8px to
+// spare — which is also how far «+ UG» ends above the chip row (15-mobile · --stack-foot-lift).
+export const STACK_VPAD = 64
 // …and, below that, the bottom-left chip row (09-whiteboard · .wb-botleft: 12px off the edge, a
 // --tap tall). The stack's «+ UG» straddles its bottom edge, so a fit that ran down to the
 // canvas edge put that pill ON the chips (3am test r2, 25.09.2026 — at 820 and at 360). The

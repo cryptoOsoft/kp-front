@@ -67,7 +67,7 @@ import { LockChip } from './LockChip'
 import { Chip } from './Chip'
 import { ShapeGlyph, SHAPE_DEFS, SHAPE_MAX_N, SHAPE_MIN_N, SHAPE_TWO_POINT, rotationBoundsN, rotationBox, rotationRun } from '../lib/shapes'
 import { TEAM_DOT_PX, TEAM_PILL_CAP_PX } from '../lib/mapView'
-import { noteScale, autoNoteWN, noteWN } from '../lib/notes'
+import { noteScale, autoNoteWN, noteWN, stackNoteBoxPx } from '../lib/notes'
 import { isAtemschutzTrupp } from '../lib/atemschutz'
 import { dismissNearbyBanner, nearbyBannerDismissed, nearbyBannerKey } from '../lib/nearbyBanner'
 import { ghostTrailLabel, type TruppTrail } from '../lib/truppTrails'
@@ -995,7 +995,9 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
   // a symbol ~the same fraction of a page whether the plan is 1 page or 6. The Gebäude floor-stack
   // keeps its own tuned sizes. (~0.085·fit.w ≈ 42 on a typical single A4 portrait.)
   const symBase = (stack ? 28 : Math.max(16, Math.min(52, fit.w * 0.085))) * symMul
-  const txtBase = stack ? 10 : Math.max(7, Math.min(16, fit.w * 0.026))
+  // …but a stack NOTE's text is the Lage note's --fs-1 (12.5), and its box never wraps narrower
+  // than the Lage's either (lib/notes · stackNoteBoxPx): at 10 px it sat under the app's floor
+  const txtBase = stack ? 12.5 : Math.max(7, Math.min(16, fit.w * 0.026))
 
   // Resolve every magnetic Plan line once in stacked-board screen space. The optional floor on
   // each point lets one polyline cross storeys while legacy two-tuples inherit anno.floor.
@@ -1420,7 +1422,8 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
       // a note text box is anchored at its CENTRE but occupies a real width — nudging on the
       // anchor alone would leave the long half of a wide note sitting under the panel
       if (a.kind === 'text') {
-        const half = (noteWN(a.wN) * rect.width) / 2
+        const storedPx = noteWN(a.wN) * rect.width
+        const half = (stack ? stackNoteBoxPx(storedPx, a.text ?? '', txtBase * scaleRef.current * noteScale(a.noteSize)) : storedPx) / 2
         box.minX -= half; box.maxX += half
       }
       const tap = annoTap?.id === selId ? { x: annoTap.x, y: annoTap.y } : null
@@ -2187,7 +2190,7 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
                 )
               })}
               {floorsTTB.map((f, idx) => (
-                <div key={f} className={`wb-floor${idx === 0 && !readOnly && !building.pack ? ' wb-floor-under-add' : ''}${dropFloor === f ? ' wb-floor-drop' : ''}`} style={{ top: (idx / N) * sH, height: sH / N, width: sW }}>
+                <div key={f} className={`wb-floor${dropFloor === f ? ' wb-floor-drop' : ''}`} style={{ top: (idx / N) * sH, height: sH / N, width: sW }}>
                   {(() => {
                     // Sweep K5 (29.09.2026): the storey's acts live in its LABEL. A tap on «4. OG»
                     // opens «Ausblenden · Geschoss entfernen»; the eye and the red bin that stood on
@@ -2670,16 +2673,19 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
                 onMove={readOnly || tool !== 'pan' ? undefined : moveLiveMark}
               />
             )}
-            {/* add a storey above (OG) / below (UG) — attached to the stack itself, just above
-                the top floor and below the bottom floor, like a real building section */}
             {stackReadings.length > 0 && (
               <StackReadings points={stackReadings} floorsTTB={floorsTTB} storeyName={storeyName} boardH={sH}
                 onPick={(id) => { setSelId(id); setSelIds([]) }} />
             )}
+            {/* add a storey above (OG) / below (UG) — just OUTSIDE the stack, above the top floor
+                and below the bottom floor, like a real building section; past the folded strips
+                of that end (`--folded-h`), which stand there too */}
             {stack && !readOnly && !building?.pack && (
               <>
-                <button className="wb-floor-add wb-floor-add-up" onPointerDown={(e) => e.stopPropagation()} onClick={() => onAddFloor(1)} title={appConfig.copy.whiteboard.addFloorUp}><Icon id="plus" />OG</button>
-                <button className="wb-floor-add wb-floor-add-down" onPointerDown={(e) => e.stopPropagation()} onClick={() => onAddFloor(-1)} title={appConfig.copy.whiteboard.addFloorDown}><Icon id="plus" />UG</button>
+                <button className="wb-floor-add wb-floor-add-up" style={{ '--folded-h': `${folded.filter((r) => r.seam === 0).length * FOLDED_H}px` } as React.CSSProperties}
+                  onPointerDown={(e) => e.stopPropagation()} onClick={() => onAddFloor(1)} title={appConfig.copy.whiteboard.addFloorUp}><Icon id="plus" />OG</button>
+                <button className="wb-floor-add wb-floor-add-down" style={{ '--folded-h': `${folded.filter((r) => r.seam >= N).length * FOLDED_H}px` } as React.CSSProperties}
+                  onPointerDown={(e) => e.stopPropagation()} onClick={() => onAddFloor(-1)} title={appConfig.copy.whiteboard.addFloorDown}><Icon id="plus" />UG</button>
               </>
             )}
           </div>
