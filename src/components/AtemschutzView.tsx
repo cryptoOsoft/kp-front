@@ -79,7 +79,7 @@ const FROZEN_ALARM: TruppAlarm = { sev: 0, reason: null, line: null }
  *  word before the bell's honest state — the ⚠ and its count stay), then «Trupp anmelden» → «Trupp»,
  *  then «✓ Gespeichert» keeps its ✓ (the sentence stays its `title`; a LOUD state never folds), and
  *  last the handover's short «Abgeben» goes — at its first rank it trades «Überwachung abgeben» for
- *  that word under the glyph, the one word an icon tile keeps (hill climb r8, 04.11.2026). */
+ *  that word beside the glyph, the one word an icon tile keeps (hill climb r8 / r11, 04.11.2026). */
 const HEAD_FOLD = { saved: 1, order: 2, share: 3, restore: 4, overdue: 5, bell: 6, newTrupp: 7, savedMark: 8, shareWord: 9 } as const
 
 /** The room the sticky Notfall stack takes at the top of the board's port (+ the air under it). */
@@ -1554,10 +1554,10 @@ export function AtemschutzView({
         )}
         {/* «Überwachung abgeben»: the QR, beside the bell, because the realistic handover in an
             Einsatz is «Handy scannen lassen» and the FU is standing on THIS page when they
-            decide to. Green while a link is live. Folded it keeps a WORD under the glyph
+            decide to. Green while a link is live. Folded it keeps a WORD beside the glyph
             («Abgeben», hill climb r8, 04.11.2026: the bare QR glyph did not say «hand over» on
-            the phone head) — 44px tall like the controls beside it; only the second rank, the
-            ladder's last word, leaves the glyph alone. */}
+            the phone head; inline since r11) — 44px tall like the controls beside it; only the
+            second rank, the ladder's last word, leaves the glyph alone. */}
         {onShareLink && (
           <button
             type="button"
