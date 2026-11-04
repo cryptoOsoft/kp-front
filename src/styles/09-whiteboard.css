@@ -320,7 +320,10 @@
    `--wb-floor-plate-pad`: the storey label plate's padding.
    `--wb-label-lane`: the storey-label gutter left of the stack (= lib/whiteboard · STACK_LABEL_LANE,
    which the fit keeps free). */
-.wb-board { --wb-floor-inset: 12px; --wb-floor-plate-pad: 4px; --wb-label-lane: 64px; }
+/* plate pad 8px over 4px (hill climb r7, 04.11.2026): at 4px all round the plate was 22px tall and
+   read as an annotation beside the 44px «+ OG» buttons; 30px now says «control». The sides stay 4px:
+   the gutter is 64px and «3. OG ⌄» fills it. */
+.wb-board { --wb-floor-inset: 12px; --wb-floor-plate-pad: var(--sp-2) var(--sp-1); --wb-label-lane: 64px; }
 /* `container-type: inline-size` makes the tile the query container for its own header: the board
    is zoomed by LAYOUT (the tile's width is set in rendered px), so the tile's inline size IS the
    rendered width — nothing is counter-scaled and no viewport media query could see it. */
@@ -369,7 +372,7 @@
    entfernen» (Whiteboard · the storey Menu). The per-storey eye and the red bin in the tile's
    corner left the canvas — delete is the rarest act on this surface and was its loudest shape,
    four bins at once on a tablet, half of each phone tile. The plate stays the plate; a small ⌄
-   says it opens something, and its hit area grows to --tap past the 21px plate (the eye's pad). */
+   says it opens something, and its hit area grows to --tap past the 30px plate (the eye's pad). */
 /* ⚠️ z 6 – but only while a create tool's capture layer (.wb-ink, z 5) is mounted: with the Wand
    armed – and it stays armed – a click on the label went to the ink, so «Kopieren nach …» was out
    of reach with a mouse (round 2, 27.10.2026). Still under a selected anno (also z 6, later in the

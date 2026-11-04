@@ -3,7 +3,7 @@ import type { Map as MlMap } from 'maplibre-gl'
 import type { CaptionMode, Drawing, Entity, LayerId, LngLat } from '../types'
 import { dockSlots } from '../lib/docking'
 import { cachedLabelSize, LABEL_RANK, placeLabels, type LabelBox, type LabelCandidate, type LabelStyle } from '../lib/labelPass'
-import { CRUMB_LABEL_DX, CRUMB_LABEL_STYLE, effectiveLayer, END_TAG_LABEL_STYLE, READOUT_LABEL_STYLE, shapePx, symPx, SYM_CAPTION_GAP, SYM_CAPTION_STYLE, SYM_PILL_STYLE, teamDockAnchor, teamStripPx, TEAM_DOT_GAP, TEAM_DOT_PX, TEAM_LABEL_STYLE } from '../lib/mapView'
+import { CRUMB_LABEL_DX, CRUMB_LABEL_STYLE, effectiveLayer, END_TAG_LABEL_STYLE, READOUT_LABEL_STYLE, READOUT_WORDS_STYLE, shapePx, symPx, SYM_CAPTION_GAP, SYM_CAPTION_STYLE, SYM_PILL_STYLE, teamDockAnchor, teamStripPx, TEAM_DOT_GAP, TEAM_DOT_PX, TEAM_LABEL_STYLE } from '../lib/mapView'
 import { noteWPx } from '../lib/notes'
 import { SHAPE_MAX_PX, shapeAspect } from '../lib/shapes'
 import { floorBadge } from '../lib/symbolRender'
@@ -30,9 +30,25 @@ const LABEL_STYLE = {
   team: TEAM_LABEL_STYLE,
   /** `.measure-label.draw-label` (lib/mapView · READOUT_LABEL_STYLE) */
   readout: READOUT_LABEL_STYLE,
+  /** `.draw-label .dl-words` — a line's free text, in the names' sans */
+  readoutWords: READOUT_WORDS_STYLE,
   /** `.line-end-tag` (lib/mapView · END_TAG_LABEL_STYLE) */
   endTag: END_TAG_LABEL_STYLE,
 } satisfies Record<string, LabelStyle>
+
+/** A line readout plate's box: one row per line, each measured in its own face (a value in mono,
+ *  free text in sans) – the widest row plus the chrome once, the rows' heights stacked. */
+function readoutPlateSize(lines: readonly { text: string; words: boolean }[]): { w: number; h: number } {
+  const { chromeW, chromeH } = LABEL_STYLE.readout
+  let w = 0
+  let h = 0
+  for (const l of lines) {
+    const s = cachedLabelSize(l.text, l.words ? LABEL_STYLE.readoutWords : LABEL_STYLE.readout)
+    w = Math.max(w, s.w - chromeW)
+    h += s.h - chromeH
+  }
+  return { w: w + chromeW, h: h + chromeH }
+}
 
 /** the end tag's text as the label pass measures it – the Leitung's own facts only. The Trupp on
  *  it is never printed here (15.09.): its marker stands at this very end, and that IS the name. */
@@ -59,7 +75,8 @@ export interface LabelPassScene {
   drawingsVisible: boolean
   /** the FKS-decorated lines, with their end tag's default anchor and alarm tone */
   lineDecor: readonly { d: Drawing; anchor: LngLat; tone: LineTone }[]
-  drawLabels: readonly { id: string; coord: LngLat; lines: string[] }[]
+  /** a line's readout plate: measured values (mono) and free text (`words`, sans), one row each */
+  drawLabels: readonly { id: string; coord: LngLat; lines: readonly { text: string; words: boolean }[] }[]
   circleLabels: readonly { id: string; coord: LngLat; text: string }[]
   selectedDrawingId: string | null
   /** as stored — a hand-placed readout (`labelAt`) is pinned */
@@ -174,7 +191,7 @@ export function mapLabelDecisions(px: (c: LngLat) => { x: number; y: number }, s
     }
     for (const l of drawLabels) {
       const p = px(l.coord)
-      const s = cachedLabelSize(l.lines.join('\n'), LABEL_STYLE.readout)
+      const s = readoutPlateSize(l.lines)
       cands.push({ key: `dl:${l.id}`, rank: l.id === selectedDrawingId ? LABEL_RANK.selected : LABEL_RANK.readout,
         pinned: storedDrawings.some((d) => d.id === l.id && !!d.labelAt), dist: near(p),
         box: { x: p.x - s.w / 2, y: p.y - READOUT_LIFT - s.h, w: s.w, h: s.h } })

@@ -76,6 +76,9 @@ export const SYM_PILL_STYLE = { font: '700 11px "Spline Sans Mono", ui-monospace
 export const SYM_CAPTION_GAP = 4
 /** `.measure-label.draw-label` (11-measure.css) — 700 --fs-1 mono, never wraps, 2px/8px padding, line-height 1.25 */
 export const READOUT_LABEL_STYLE = { font: '700 12.5px "Spline Sans Mono", ui-monospace, monospace', maxTextW: Infinity, chromeW: 16, chromeH: 4, lineH: 15.625 }
+/** `.measure-label.draw-label .dl-words` (11-measure.css) — a line's FREE TEXT on the same plate:
+ *  the names' 700 --fs-1 Sora (the measured values above stay mono), same chrome. */
+export const READOUT_WORDS_STYLE = { ...READOUT_LABEL_STYLE, font: '700 12.5px Sora, system-ui, sans-serif' }
 /** `.map-trail-dot i` (09-whiteboard.css) — a breadcrumb's time: 700 --fs-1 mono, 2px/8px
  *  padding, line-height 1.25, hung CRUMB_LABEL_DX right of the coordinate (12px off the 9px dot's
  *  left edge, the dot centred on the point). */

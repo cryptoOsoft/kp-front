@@ -704,18 +704,20 @@ export const MapView = forwardRef<MapRef, MapViewProps>(function MapView(props, 
       const base: LngLat = isArea
         ? [d.coords.reduce((s, p) => s + p[0], 0) / d.coords.length, d.coords.reduce((s, p) => s + p[1], 0) / d.coords.length]
         : d.coords[Math.floor((d.coords.length - 1) / 2)]
-      const lines: string[] = []
+      // `words`: free text set in the names' sans; a measured value stays mono (hill climb r7 –
+      // «Trupp Polizei evakuiert» in mono beside sans names read as a second type language)
+      const lines: { text: string; words: boolean }[] = []
       // A line states its length (plus the hose hint); a Fläche states what it covers. Same
       // toggle, same geodesic maths the Messen tool uses — the area used to be computed for
       // the editor panel only and could never reach the map.
-      if (d.showDistance && !isArea) { const len = pathLengthM(d.coords); lines.push(`${fmtDistance(len)} · ${hoseLengthHint(len)}`) }
-      if (d.showDistance && isArea) lines.push(fmtArea(polygonAreaM2(d.coords)))
+      if (d.showDistance && !isArea) { const len = pathLengthM(d.coords); lines.push({ text: `${fmtDistance(len)} · ${hoseLengthHint(len)}`, words: false }) }
+      if (d.showDistance && isArea) lines.push({ text: fmtArea(polygonAreaM2(d.coords)), words: false })
       // Abschnitt: the Leiter rides the name line («Abschnitt 1 · Oblt Steiner»), the Auftrag
       // gets its own — who leads where must be readable off the Lage, not only in the panel.
       // ⚠️ Same composition as the paper Kroki (backend/app/kroki.py): screen and print agree.
       const head = [d.label, d.abschnittLeiter].filter(Boolean).join(' · ')
-      if (head) lines.push(head)
-      if (d.abschnittAuftrag) lines.push(d.abschnittAuftrag)
+      if (head) lines.push({ text: head, words: true })
+      if (d.abschnittAuftrag) lines.push({ text: d.abschnittAuftrag, words: true })
       // a dragged label is pinned to its georeferenced anchor; otherwise the midpoint/centroid
       return { id: d.id, coord: d.labelAt ?? base, lines }
     })
@@ -1648,7 +1650,7 @@ export const MapView = forwardRef<MapRef, MapViewProps>(function MapView(props, 
               activateLineLabel(e, l.id, ld?.trupp?.id, ld?.tone)
             }}
           >
-            {l.lines.map((t, j) => <div key={j}>{t}</div>)}
+            {l.lines.map((t, j) => <div key={j} className={t.words ? 'dl-words' : undefined}>{t.text}</div>)}
           </div>
         </Marker>
       ))}

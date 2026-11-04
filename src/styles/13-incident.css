@@ -1102,10 +1102,10 @@ button.list-row:disabled { opacity: var(--disabled); cursor: default; }
 .rp-person-txt { min-width: 0; overflow-wrap: anywhere; }
 /* the departure time: its own item at the right edge, so every «bis 15:50» stands in one column,
    8px off the name — its own margin, not a column-gap, so an entry without a time keeps the full
-   width (the empty track is then 0, not 8). The TEXT amber (`--amber-strong`), not the bright
-   accent: as 14px type on the pale card the bright one read light by day (council round 3) — the
-   bright --amber stays for glyphs and fills */
-.rp-person em { grid-area: 1 / 2; margin-left: var(--sp-2); font-style: normal; color: var(--amber-strong); font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; }
+   width (the empty track is then 0, not 8). Secondary ink at 12.5/500, not amber (hill climb r7,
+   04.11.2026): a dozen bold amber «bis» times out-shouted the head's amber «4 offen» – amber is for
+   what is still open, and an early departure is a recorded fact, not work. «bis» says it. */
+.rp-person em { grid-area: 1 / 2; margin-left: var(--sp-2); font: var(--fw-medium) var(--fs-1)/var(--lh-1) var(--body); font-style: normal; color: var(--ink-dim); font-variant-numeric: tabular-nums; }
 .rp-person b { font-weight: var(--fw-bold); }
 /* Material: the amount is the value (bold), the material is the thing (regular) */
 .rp-person.rp-mittel { font-weight: var(--fw-regular); }
