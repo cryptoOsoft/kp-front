@@ -48,8 +48,17 @@
    this is the one bell state that needs a tap — see AtemschutzView · bellLabel. */
 .muteBlocked { color: var(--red-strong); box-shadow: inset 0 0 0 1px var(--red-45);
   background: color-mix(in srgb, var(--red) 10%, var(--surface)); }
-/* the board's arrangement, behind its own icon; the archive menu, the QR and the lite ↶ ↷ wear it too */
+/* the board's arrangement, behind its own icon; the archive menu and the lite ↶ ↷ wear it too (the QR: `.shareBtn`) */
 .orderBtn { composes: headTile; }
+/* «Überwachung abgeben»: a head tile that, folded (lib/pageHeadFit · its first rank), keeps a word
+   — «Abgeben» UNDER the glyph, 700/12.5 (`--fw-bold`, `--fs-1`) on a 15px line (hill climb r8,
+   04.11.2026: the bare QR glyph on the phone head did not say «hand over»; the tablet's worded
+   tile did). Still 44px tall like the bell and «+ Trupp» beside it; it grows only in width,
+   toward the title. At its second rank (the ladder's last word) the word goes and it is the plain
+   44px square again. */
+.shareBtn { composes: headTile; }
+.shareBtn[data-folded="1"] { flex-direction: column; gap: 2px; padding: 0 var(--sp-2);
+  font-size: var(--fs-1); line-height: 15px; }
 /* «Überwachung abgeben», while a link IS live. Green = a running, healthy state, the same
    reading the contact clock gives — not an alarm and not the primary action of the header.
    Tokens only, so it survives the day/night flip and a station's own accent. */
@@ -1680,8 +1689,12 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 .grid .trowHeadStatic { grid-template-rows: minmax(25px, auto); padding-top: var(--sp-1); }
 .grid .trowHeadStatic .trowClock { display: contents; }
 .grid .trowHeadStatic .trowClockLine { grid-column: 2; grid-row: 1; }
+/* The caption at 12.5 (`--fs-1`), tracking nearly closed (hill climb r8, 04.11.2026: at
+   11px/.05em it read as fine print beside the 32px clock). Its line box stays the font size: the
+   caps have no descenders, and a 15px line pushed the tablet's second row's foot to the panel's
+   edge (1px left). The phone keeps its name-and-time row (settled). */
 .grid .trowHeadStatic .trowSub { display: block; grid-column: 1 / -1; grid-row: 2; justify-self: end; line-height: 1;
-  margin-top: 0; }
+  font-size: var(--fs-1); letter-spacing: .01em; margin-top: 0; }
 .grid .trowHeadStatic .trowSub:empty { display: none; }
 /* ── Inside vs outside on the grid (hill climb r3, 04.11.2026) ───────────────────────────────────
    The out cards wore the strongest blocks (the filled «Wieder in den Einsatz», a surface lit at
@@ -1741,6 +1754,13 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
   .facts { row-gap: var(--sp-4); }
   button.fact::before { content: ''; position: absolute; inset: calc(-1 * var(--sp-2)) -3px; }
 }
+/* «Kanal 11» (+ the Ausrüstung after it) — the facts' LAST row on the grid (hill climb r8,
+   04.11.2026: it shared the Auftrag's row on one card and stood alone on the next, so the same
+   fact moved from card to card). Same chips, same data; the row gap above it is the strip's own
+   (8px, 16 on touch where the chips' tap pads need it). Off the grid (phone, Tafel) the wrapper
+   dissolves and the chips wrap as they always did. */
+.factsEnd { display: contents; }
+.grid .factsEnd { display: flex; flex-wrap: wrap; flex-basis: 100%; min-width: 0; gap: inherit; }
 .factTxt { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 /* the crew chip never ellipsises (31.10.2026, owner: «crew names must not be cut off»): every name
    is a nowrap span and the « · » between them is the only break opportunity, so the chip wraps

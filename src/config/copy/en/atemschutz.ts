@@ -22,6 +22,7 @@ export const atemschutzCopy: Localizable<Pick<Copy, 'atemschutz' | 'lineDecor'>>
     emptyHint: 'Create a team to start monitoring.',
     newTrupp: 'Register team',
     shareLink: 'Hand over monitoring',
+    shareLinkShort: 'Hand over',
     shareLinkOn: 'Hand over monitoring – a link is active',
     linkReentryHint: 'The link leads back to this board – if the page is closed by accident, simply open the QR code again.',
     /** the «+ Trupp» tab on the handed-over phone board (AtemschutzView · focusMode) */

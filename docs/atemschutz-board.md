@@ -96,6 +96,9 @@ questions, and what the record keeps (`components/AtemschutzView`; the card and 
     drawn, 8px pad above/below on touch so a row is still 44px; 16px between rows on touch, 8px
     with a mouse). On the grid, touch keeps «Druck | Kontakt» and the filled tile at 48px and sets
     Rückzug | Raus and Notfall at 44px; a mouse gets 40px tiles and a 36px foot line.
+    Since r8 the caption is 12.5px with its tracking nearly closed, and «Kanal 11» (with the
+    Ausrüstung after it) always opens the facts' last row on the grid (`.factsEnd`), so it stands
+    in the same place on every card.
   - *Inside reads louder than outside* (hill climb r3, 04.11.2026): on the grid a crew inside with
     a calm clock (`rowTone` → `.trowIn`) wears a green head band behind its name and contact
     clock, closed by a 3px green rule along its foot (r5); fällig / überfällig keep their own tones instead (amber wash, red edge — never the band).

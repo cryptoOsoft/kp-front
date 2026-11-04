@@ -22,6 +22,7 @@ export const atemschutzCopy: Localizable<Pick<Copy, 'atemschutz' | 'lineDecor'>>
     emptyHint: 'Créez un binôme pour démarrer la surveillance.',
     newTrupp: 'Annoncer le binôme',
     shareLink: 'Transmettre la surveillance',
+    shareLinkShort: 'Transmettre',
     shareLinkOn: 'Transmettre la surveillance – un lien est actif',
     linkReentryHint: 'Le lien ramène à ce tableau – si la page est fermée par mégarde, il suffit d’ouvrir à nouveau le code QR.',
     /** the «+ Trupp» tab on the handed-over phone board (AtemschutzView · focusMode) */

@@ -22,6 +22,7 @@ export const atemschutzCopy: Localizable<Pick<Copy, 'atemschutz' | 'lineDecor'>>
     emptyHint: 'Crea una squadra per avviare la sorveglianza.',
     newTrupp: 'Annuncia squadra',
     shareLink: 'Cedi la sorveglianza',
+    shareLinkShort: 'Cedi',
     shareLinkOn: 'Cedi la sorveglianza – un link è attivo',
     linkReentryHint: 'Il link riporta a questa tavola – se la pagina viene chiusa per errore, basta aprire di nuovo il codice QR.',
     /** the «+ Trupp» tab on the handed-over phone board (AtemschutzView · focusMode) */
