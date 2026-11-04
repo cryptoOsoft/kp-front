@@ -159,8 +159,10 @@
   --red-solid-hover: #cf2c1f; /* hover bg on a solid-red (warn) button */
   --green-solid-hover: #1f9d57; /* hover bg on a solid-green (enter) button */
   /* floating label badges drawn over the map / plan board (coords, trail times,
-     measure labels). Day = white veil + dark ink; night = dark veil + light ink. */
-  --label-bg: rgba(255, 255, 255, .92);
+     measure labels). Day = white plate + dark ink; night = dark plate + light ink. Opaque since
+     04.11.2026: two plates that overlap (hand-placed labels are never suppressed) showed the
+     lower one's letters through the upper one and read as one smear. */
+  --label-bg: #fff;
   --label-soft: rgba(255, 255, 255, .82); /* slightly more translucent variant */
   /* faint white veil tiles over glass/imagery (incident rows, hold-cue) */
   --surface-veil: rgba(255, 255, 255, .55);
@@ -479,7 +481,7 @@
   --red-strong: #ff8a7d;
   --red-solid-hover: #ff7567;
   --green-solid-hover: #46d684;
-  --label-bg: rgba(20, 28, 40, .92);
+  --label-bg: rgb(20, 28, 40);
   --label-soft: rgba(20, 28, 40, .82);
   --surface-veil: rgba(255, 255, 255, .07);
   --ink-tint: rgba(255, 255, 255, .14);
@@ -563,4 +565,7 @@
   --ink-28: color-mix(in srgb, var(--ink) 28%, transparent);
   --ink-45: color-mix(in srgb, var(--ink) 45%, transparent);
   --ink-62: color-mix(in srgb, var(--ink) 62%, transparent);
+  /* the edge of a floating map/plan label plate (names, readouts, captions, trail times): a
+     hairline ring + the e1 lift, so two plates that touch keep their own outlines. */
+  --label-plate: inset 0 0 0 1px var(--ink-16), var(--e1);
 }

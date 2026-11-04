@@ -150,7 +150,7 @@
   padding: 2px var(--sp-1); border-radius: var(--r-xs); background: var(--surface); color: var(--ink);
   font-size: var(--fs-1); font-weight: var(--fw-bold); line-height: 1.25; text-align: center;
   hyphens: manual; -webkit-hyphens: manual; overflow-wrap: break-word;
-  box-shadow: var(--e1); pointer-events: none; }
+  box-shadow: var(--label-plate); pointer-events: none; }
 .sym-caption > span { max-width: 120px; }
 /* a MEASURED symbol's mark IS its value (lib/symbols · symbolReading, the Messpunkt – owner pick S3,
    27.10.2026): one pill with a small Messgerät and the worst gas, centred where the glyph would sit.
