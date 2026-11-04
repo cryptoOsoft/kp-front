@@ -264,6 +264,9 @@ export const journalCopy = {
     dueSnooze: '+10 min',
     dueOpen: 'In Verlauf öffnen',
     openCount: '{n} offen',
+    // the Pendenzen box's foot strip while rows lie below its fold: how many («6 offen» above,
+    // three in view – «3 weitere» says where the other three are)
+    pinnedMoreBelow: '{n} weitere',
     // ⚠️ Offene Erinnerungen are held at the TOP of the Verlauf, out of chronological order.
     // Everything else in this list is where it happened, because the Verlauf is the record —
     // but a Wiedervorlage is the one row that is about the FUTURE, and on a busy Einsatz it

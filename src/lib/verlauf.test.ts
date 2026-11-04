@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { groupByDay, isHandWritten, rowGlyph, isNachtrag, rowText, rowTime, rowPhotos, rowTarget, liveTargets, swapUrl, repeatRuns, stripScale, pendenzenCut } from './verlauf'
+import { groupByDay, isHandWritten, rowGlyph, isNachtrag, rowText, rowTime, rowPhotos, rowTarget, liveTargets, swapUrl, repeatRuns, stripScale, pendenzenCut, pendenzenBelow } from './verlauf'
 import type { BoardAnno, TimelineEvent } from '../types'
 
 const row = (id: string, at?: string): TimelineEvent =>
@@ -425,5 +425,16 @@ describe('pendenzenCut', () => {
 
   it('keeps the CSS cap when the first row alone is taller than the box', () => {
     expect(pendenzenCut([40, 300], 210, 21)).toBeNull()
+  })
+})
+
+describe('pendenzenBelow', () => {
+  it('counts the rows that end below the fold, the one it slices included', () => {
+    expect(pendenzenBelow([86, 146, 226, 300, 380], 230)).toBe(2)
+    expect(pendenzenBelow([86, 146, 226, 300, 380], 200)).toBe(3)
+  })
+
+  it('treats a subpixel overshoot as a whole row', () => {
+    expect(pendenzenBelow([86, 146, 230.4], 230)).toBe(0)
   })
 })
