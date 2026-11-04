@@ -12,7 +12,7 @@ import { openPhoto } from '../lib/ui'
 import { appConfig } from '../config/appConfig'
 import { dueClock, fillTemplate, fmtDuration, formatTime } from '../lib/format'
 import { thumbUrl } from '../lib/mediaUrl'
-import { ART_DISC, groupByDay, isHandWritten, isNachtrag, repeatRuns, rowPhotos, rowTarget, rowText, stripScale, type ArtTone, type LiveTargets } from '../lib/verlauf'
+import { ART_DISC, groupByDay, isHandWritten, isNachtrag, pendenzenCut, repeatRuns, rowPhotos, rowTarget, rowText, stripScale, type ArtTone, type LiveTargets } from '../lib/verlauf'
 import { journalDisc, withoutAreaPrefix } from '../lib/report'
 import { journalQuery, matchesJournalQuery } from '../lib/journalSearch'
 import { journalCategories, journalFacets, matchesJournalCategories, showsPinnedPendenzen, type JournalCategoryKind } from '../lib/journalFilter'
@@ -537,20 +537,44 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
   // Whether the Pendenzen box holds more than it shows below its fold — its foot cue
   // (`.jr-pinned[data-more]`). iOS hides an idle scrollbar, so without it a box cut between two
   // rows reads as complete. A callback ref, because the box mounts inside the Overlay's portal
-  // after this component's own effects have run; re-read on scroll, when the box or any row
-  // resizes (capped at its max-height the box keeps its size while late fonts re-wrap the rows
-  // under it) and when rows come and go.
+  // after this component's own effects have run; re-read on scroll, when the drawer, the box or
+  // any row resizes (capped at its max-height the box keeps its size while late fonts re-wrap the
+  // rows under it) and when rows come and go.
+  // …and on every resize the box is cut at the last WHOLE row (lib/verlauf · pendenzenCut): an
+  // inline max-height under the CSS one, so at rest the foot band stands where the next row's
+  // rule would and no row is sliced through its sentence (hill climb r4, 04.11.2026). The inline
+  // cap is dropped first, so the CSS one is what is measured against.
   const [pinnedMore, setPinnedMore] = useState(false)
   const watchPinned = useCallback((el: HTMLDivElement | null) => {
     if (!el) { setPinnedMore(false); return }
     const read = () => setPinnedMore(el.scrollHeight - el.scrollTop - el.clientHeight > 1)
-    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(read)
-    const watch = () => { ro?.disconnect(); for (const node of [el, ...el.children]) ro?.observe(node); read() }
+    const fit = () => {
+      el.style.maxHeight = ''
+      const foot = el.querySelector<HTMLElement>('.jr-pinned-foot')
+      if (foot && el.scrollHeight - el.clientHeight > 1) {
+        const box = el.getBoundingClientRect()
+        const tops = [...el.querySelectorAll('.jr-pinned-row')].map((r) => r.getBoundingClientRect().top - box.top + el.scrollTop)
+        // the band plus the bottom border (offset − client = both borders, clientTop = the top one)
+        const cut = pendenzenCut(tops, el.offsetHeight, foot.offsetHeight + el.offsetHeight - el.clientHeight - el.clientTop)
+        if (cut !== null) el.style.maxHeight = `${cut}px`
+      }
+      read()
+    }
+    // a frame later, not inside the callback: the cut resizes an observed box, and a resize the
+    // observer has to deliver again in the same frame is its «loop completed» error
+    let frame = 0
+    const ro = typeof ResizeObserver === 'undefined' ? null
+      : new ResizeObserver(() => { cancelAnimationFrame(frame); frame = requestAnimationFrame(fit) })
+    const watch = () => {
+      ro?.disconnect()
+      for (const node of [el.parentElement, el, ...el.children]) if (node) ro?.observe(node)
+      fit()
+    }
     const mo = typeof MutationObserver === 'undefined' ? null : new MutationObserver(watch)
     mo?.observe(el, { childList: true })
     el.addEventListener('scroll', read, { passive: true })
     watch()
-    return () => { el.removeEventListener('scroll', read); ro?.disconnect(); mo?.disconnect() }
+    return () => { el.removeEventListener('scroll', read); cancelAnimationFrame(frame); ro?.disconnect(); mo?.disconnect() }
   }, [])
 
   /** The funnel's menu: «Art des Eintrags», then «Bereich», each row a checkbox with the row's

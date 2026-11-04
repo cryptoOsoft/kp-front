@@ -346,3 +346,19 @@ export function stripScale(from: number, to: number, trackPx: number): { start: 
   }
   return { start: formatTime(new Date(from)), end: formatTime(new Date(to)), marks }
 }
+
+/**
+ * Where the Pendenzen box (Journal · `.jr-pinned`) ends at rest so it never shows a partly
+ * visible row: the box's height when it is cut at the top of the first row that does not fit
+ * whole, so its «more below» foot band lands where that row's separator rule stands and the row
+ * above ends with its own padding (+ the flex gap) as clearance. Only asked while the box
+ * overflows its CSS max-height. `rowTops` are the rows' top edges in the box's border-box
+ * coordinates at scroll 0, ascending; `capPx` the box's height under that max-height; `footPx`
+ * what the box needs below the cut (the foot band + its bottom border). `null` = keep the CSS cap:
+ * not even the second row's top fits, so the first row is taller than the box and scrolls as it is.
+ */
+export function pendenzenCut(rowTops: readonly number[], capPx: number, footPx: number): number | null {
+  let cut: number | null = null
+  for (const top of rowTops.slice(1)) if (top + footPx <= capPx) cut = top + footPx
+  return cut
+}

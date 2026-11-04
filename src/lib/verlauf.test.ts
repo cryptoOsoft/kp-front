@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { groupByDay, isHandWritten, rowGlyph, isNachtrag, rowText, rowTime, rowPhotos, rowTarget, liveTargets, swapUrl, repeatRuns, stripScale } from './verlauf'
+import { groupByDay, isHandWritten, rowGlyph, isNachtrag, rowText, rowTime, rowPhotos, rowTarget, liveTargets, swapUrl, repeatRuns, stripScale, pendenzenCut } from './verlauf'
 import type { BoardAnno, TimelineEvent } from '../types'
 
 const row = (id: string, at?: string): TimelineEvent =>
@@ -409,5 +409,21 @@ describe('stripScale', () => {
     const s = stripScale(from, to, 0)
     expect(s.marks.length).toBeLessThanOrEqual(6)
     expect(s.marks.every((m) => m.label === undefined)).toBe(true)
+  })
+})
+
+describe('pendenzenCut', () => {
+  // rows at 40, 90, 150, 230 in a 210px box; the foot band + border is 21px, so a cut must sit
+  // at or above 189 — the last row top there is 150, and the box ends 21px below it
+  it('ends the box at the top of the first row that does not fit whole', () => {
+    expect(pendenzenCut([40, 90, 150, 230], 210, 21)).toBe(171)
+  })
+
+  it('cuts exactly at a row top that leaves just the foot', () => {
+    expect(pendenzenCut([40, 90, 189], 210, 21)).toBe(210)
+  })
+
+  it('keeps the CSS cap when the first row alone is taller than the box', () => {
+    expect(pendenzenCut([40, 300], 210, 21)).toBeNull()
   })
 })
