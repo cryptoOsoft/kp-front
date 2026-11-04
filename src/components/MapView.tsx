@@ -44,6 +44,8 @@ import { routeMapClick } from './mapClick'
 import { VIEWER_TACTICAL, type MapViewProps } from './mapViewProps'
 import { LineMarker } from './LineMarker'
 import { MapMarkers } from './MapMarkers'
+import { RelayPumpMarkers } from './RelayPumpMarkers'
+import { ChartCursorMarker } from './ChartCursorMarker'
 import { MapLayers } from './MapLayers'
 import { WeatherRadarSource } from './weatherLazy'
 // long-press to delete a path vertex (touch — desktop right-click kept); the placed-object
@@ -64,6 +66,7 @@ import { DRAG_DEADZONE_PX } from '../lib/useHoldToDrag'
 import { oneFingerZoom, setMapOneFingerZoom } from '../lib/tapDragZoom'
 import { useFreshPoint } from '../lib/useFreshPoint'
 import { setLiveBearing } from '../lib/liveBearing'
+import { dismissRelayBubble } from '../lib/useRelay'
 import { LABEL_ABOVE, measureLabelPlacement } from '../lib/measureLabelPlace'
 import { attachInsetPx, lineJoints, boundaryPoint, DETACH_SHOW_PROGRESS, dwellFor, forkPortPoint, gpsGuard, moveLineBody, relationshipNetwork, resolveLinePoints, type AttachableLine, type MagneticTarget } from '../lib/lineAttachments'
 
@@ -1134,6 +1137,9 @@ export const MapView = forwardRef<MapRef, MapViewProps>(function MapView(props, 
     // …and the one that trails a pan/pinch (see panGesture): moving the map is not a tap on it,
     // so it may neither deselect, nor place, nor pick.
     if (clickTrailsPan()) return
+    // …and the one that only closes a Wassertransport pump's bubble open on the map: in Messen it
+    // must not also add a point, anywhere else not also deselect (RelayPumpMarkers)
+    if (dismissRelayBubble()) return
     // everything else is the dispatcher's call (components/mapClick · routeMapClick)
     const m = mapInst.current
     const click = routeMapClick({
@@ -1597,6 +1603,11 @@ export const MapView = forwardRef<MapRef, MapViewProps>(function MapView(props, 
           >{vertexPress.armed?.key === `measure:${i}` && <NodeDeleteChip progress={vertexPress.armed.progress} />}</div>
         </Marker>
       ))}
+
+      {/* the Wassertransport's pumps — of Messen's Strecke or the selected Leitung, whichever has
+          its relay open (lib/useRelay · usePublishRelay); nothing while none is */}
+      {!georefOn && <RelayPumpMarkers />}
+      {!georefOn && <ChartCursorMarker />}
 
       {/* measurement readouts pinned to the path (cumulative distance / area), BESIDE the handles:
           each one steps off its segment's left so close-together nodes cannot cover it

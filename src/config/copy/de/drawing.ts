@@ -38,6 +38,8 @@ export const drawingCopy = {
     max: 'Höchster',
     profileLoading: 'Höhenprofil wird geladen …',
     profileNone: 'Kein Höhenprofil verfügbar',
+    // die Höhe an einer Stelle des Profils: der Ablese-Tag über dem Diagramm, die Pumpen-Blase
+    altitude: '{m} m ü.M.',
     hintLine: 'Mind. 2 Punkte für die Distanz',
     hintArea: 'Mind. 3 Punkte für den Flächeninhalt',
     // «Messen» und «Zeichnen» massen zweimal dasselbe: die Strecke war gemessen, und wer sie
@@ -47,6 +49,68 @@ export const drawingCopy = {
     // Das Gegenstück für die Fläche: der gemessene Umriss wird zur gezeichneten Fläche,
     // statt ihn ein zweites Mal von Hand nachzuziehen.
     adoptArea: 'Als Fläche übernehmen',
+  },
+  // Wassertransport (components/WaterRelay): Druck entlang einer Schlauchleitung und wo die
+  // Pumpen hinkommen – in Messen › Strecke und in der Leitung. ⚠️ Kurz halten (Besitzer,
+  // 03.11.2026: der Prototyp war zu wortreich): keine erklärenden Absätze, ein Satz pro Hinweis.
+  relay: {
+    title: 'Wassertransport',
+    // der Knopf unter dem Höhenprofil, der den Abschnitt dazunimmt (er ersetzt das Profil nicht mehr)
+    add: 'Wassertransport berechnen',
+    // ⇄ im Kopf: das Wasser läuft vom letzten Punkt zum ersten – die Zeichnung bleibt, wie sie ist
+    reverse: 'Richtung umkehren',
+    // die Quellen der Rechnung, hinter dem ⓘ im Kopf (ein Popover, der Abschnitt bleibt gleich gross)
+    sourcesLabel: 'Quellen der Rechnung',
+    sourcesNote: 'Reibung: AGV KB 06.06–06.08 · Höhe: 1 bar pro 10 m (FKS 06.29) · Pumpe ab {bar} bar Eingangsdruck (FKS 06.42)',
+    hoseDiameter: 'Schlauch-Ø',
+    hoseLabels: { '55': '55 mm', '75': '75 mm', '2x75': '2× 75', '110': '110 mm' },
+    // die Segmente der «Schlauch»-Zeile im Linien-Editor – dort steht «Schlauch» schon davor
+    hoseShort: { '55': '55', '75': '75', '2x75': '2× 75', '110': '110' },
+    flow: 'Wasser',
+    flowUnit: 'l/min',
+    // das Suchfeld der Wasser-Auswahl: dort wird jede andere Menge eingetippt
+    flowSearch: 'Menge in l/min',
+    start: 'Quelle',
+    // der Druck, mit dem die Leitung an der Quelle beginnt (Hydrant-Ruhedruck, Ausgang der Pumpe)
+    pressure: 'Eingangsdruck',
+    sources: { hydrant: 'Hydrant', weier: 'Löschweier', pumpe: 'Pumpe' },
+    // der Buchstabe am Anfang der Strecke auf der Karte – welches Ende die Quelle ist
+    sourceLetters: { hydrant: 'H', weier: 'W', pumpe: 'P' },
+    weierLine: 'Kein Vordruck – die erste Pumpe steht an der Quelle. Saughöhe nicht gerechnet.',
+    pumps: 'Pumpen',
+    pumpsNone: 'keine Pumpe',
+    pumpsOne: '1 Pumpe',
+    pumpsMany: '{n} Pumpen',
+    endBar: 'Druck am Ende',
+    // die Legende über dem Diagramm – immer sichtbar; «zu wenig» nur, wenn das rote Band da ist
+    legendLine: 'Druck',
+    legendGood: 'gut > {bar} bar',
+    legendTight: 'knapp {min}–{ok} bar',
+    legendLow: 'zu wenig < {bar} bar',
+    // die Einheit über der bar-Skala links im Diagramm
+    barUnit: 'bar',
+    legendTerrain: 'Gelände',
+    pumpN: 'Pumpe {n}',
+    pumpShort: 'P{n}',
+    // die angetippte Pumpe: wo sie steht, was hinein- und was herauskommt
+    pumpAt: '{dist} ab {source}',
+    inlet: 'Eingangsdruck',
+    outlet: 'Ausgangsdruck',
+    noPressure: 'kein Druck',
+    pinned: 'von Hand',
+    dragHint: 'Ziehen zum Verschieben',
+    autoAll: 'Alle Pumpen automatisch',
+    // das Ergebnis behalten: die Strecke als Leitung MIT der Rechnung (Ø, Wasser, Quelle, Pumpen),
+    // und alle Pumpen als gewöhnliche Motorspritzen-Symbole – danach unabhängig von der Rechnung.
+    // «Karte», nicht «Lage» (docs/copy-and-wording.md · Words)
+    adoptLine: 'Als Leitung auf die Karte',
+    placePumps: 'Pumpen als Symbole setzen',
+    noTerrain: 'Ohne Höhenprofil gerechnet – Steigung fehlt',
+    manyPumps: '{n} Pumpen – mehr als üblich',
+    outsideTable: '{flow} l/min ausserhalb der AGV-Tabelle – geschätzt',
+    lowInlet: 'Pumpe {n} unter {min} bar',
+    noInlet: 'Pumpe {n}: kein Druck',
+    stuck: 'Rechnung abgebrochen – eine Pumpe gibt zu wenig Druck',
   },
   shapes: {
     sectionTitle: 'Formen',
@@ -92,6 +156,9 @@ export const drawingCopy = {
   log: {
     audioNote: 'Audionotiz',
     symbolPlaced: 'Symbol «{name}» gesetzt',
+    // «Pumpen als Symbole setzen» im Wassertransport: EINE Zeile für alle Pumpen
+    pumpPlaced: '1 Pumpe als Symbol gesetzt',
+    pumpsPlaced: '{n} Pumpen als Symbol gesetzt',
     shapePlaced: '{name} platziert',
     notePlaced: 'Notiz gesetzt',
     teamPlaced: '{name} auf der Karte gesetzt',

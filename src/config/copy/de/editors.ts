@@ -277,6 +277,8 @@ export const editorsCopy = {
     reverse: 'Richtung umkehren',
     content: 'Typ',
     contentPlain: 'Wasser',
+    // Ø der Leitung (55 / 75 / 2× 75 / 110) – trägt die Wassertransport-Rechnung der Messung
+    hose: 'Schlauch',
     lineNo: 'Leitung Nr.',
     // Two Leitungen with the same number make the number ambiguous — and the number is what the
     // Atemschutzüberwachung recognises its Leitung by.

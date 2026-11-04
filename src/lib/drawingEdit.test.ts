@@ -63,6 +63,12 @@ describe('drawingEditChanges (the Verlauf line for editing a drawing)', () => {
     expect(drawingEditChanges(prev, next)).toEqual([])
   })
 
+  it('names a new Schlauch, and stays quiet on the Wassertransport planning', () => {
+    expect(drawingEditChanges(line({}), line({ hose: '110' }))).toEqual(['Schlauch: 110 mm'])
+    expect(drawingEditChanges(line({ hose: '75' }), line({ hose: '2x75' }))).toEqual(['Schlauch auf 2× 75 geändert'])
+    expect(drawingEditChanges(line({}), line({ relay: { flow: 1200, pumps: [{ atM: 300 }] } }))).toEqual([])
+  })
+
   it('an unchanged drawing produces no lines', () => {
     const d = line({ content: 'S', lineNo: 1, floorTag: 2, arrow: true })
     expect(drawingEditChanges(d, { ...d })).toEqual([])

@@ -127,3 +127,41 @@ describe('Stepper — snap', () => {
     expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('-47')
   })
 })
+
+// 04.11.2026, owner: «when I try to input 5.2 it doesn't allow it» – a pressure is typed with one
+// decimal, either separator; a counter keeps refusing anything but digits
+describe('Stepper – decimals', () => {
+  const bar = { min: 0, max: 16, step: 0.5, snap: true, ariaLabel: 'Eingangsdruck' }
+  const startTyping = () => {
+    fireEvent.click(screen.getByTitle('Tippen zum Eingeben'))
+    return screen.getByRole('textbox') as HTMLInputElement
+  }
+
+  it('takes «5,2» as 5.2 and offers the value with its decimal to type over', () => {
+    const onChange = vi.fn()
+    render(<Stepper {...bar} decimals={1} value={6} onChange={onChange} />)
+    const input = startTyping()
+    expect(input.value).toBe('6.0')
+    fireEvent.change(input, { target: { value: '5,2' } })
+    fireEvent.blur(input)
+    expect(onChange).toHaveBeenCalledWith(5.2)
+  })
+
+  it('rounds to its decimals and clamps', () => {
+    const onChange = vi.fn()
+    render(<Stepper {...bar} decimals={1} value={6} onChange={onChange} />)
+    const input = startTyping()
+    fireEvent.change(input, { target: { value: '5.26.1' } })
+    expect(input.value).toBe('5.261')
+    fireEvent.blur(input)
+    expect(onChange).toHaveBeenCalledWith(5.3)
+  })
+
+  it('an integer caller still drops the separator', () => {
+    const onChange = vi.fn()
+    render(<Stepper {...floorProps} value={null} onChange={onChange} />)
+    const input = startTyping()
+    fireEvent.change(input, { target: { value: '5.2' } })
+    expect(input.value).toBe('52')
+  })
+})

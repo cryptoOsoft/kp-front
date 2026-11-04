@@ -172,6 +172,12 @@ is split per surface into `src/config/copy/de/<surface>.ts` since 2026-10-09):
 - **Arranging does not write:** color, style, geometry, vertices are operator actions and
   land only in the audit stream (`draw.edit`) – that's the deliberate silence from the table
   above, and it applies to the Fläche just like to every other drawing.
+- **A Leitung's Schlauch writes, its Wassertransport does not** (04.11.2026): «Schlauch: 110 mm»
+  / «Schlauch auf 2× 75 geändert» (`lib/drawingEdit`) – what was laid. The relay assumptions
+  (`Drawing.relay`: Wasser, Start, a pump moved or set by hand) are planning, tweaked tap by
+  tap; they are undoable prop edits in `draw.edit` and write no row. Its «Pumpen als Symbole
+  setzen» does: ONE row for all of them («3 Pumpen als Symbol gesetzt», `useMapActions ·
+  placePumpSymbols`), one undo step, an `entity.add` per Motorspritze.
 
 **Two exceptions, and each is a row: a GPS-coupled Leitung loses a drive** (since 24.09.2026,
 `src/lib/gpsReturn.ts`, `useMapDrawing · revertGpsFollow` / `releaseGpsOnSite`). A Leitung end

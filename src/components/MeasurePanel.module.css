@@ -41,7 +41,8 @@
 .mp-prof-title { font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-faint); }
 .mp-prof-msg { font-size: var(--fs-1); color: var(--ink-faint); padding: 8px 0; text-align: center; }
 .mp-chart-wrap { width: 100%; }
-.mp-chart-plot { position: relative; }
+/* touch-action: a finger scrubs the read-out instead of scrolling the panel */
+.mp-chart-plot { position: relative; touch-action: none; cursor: crosshair; }
 .mp-chart { width: 100%; height: 84px; display: block; }
 /* the tapped nodes on their own profile (lib/profile · profileNodes): a faint guide through the
    plot, a node dot in the map's own vocabulary – white fill, --blue ring; the two ends solid –
@@ -56,6 +57,17 @@
 .mp-chart-tick.first { transform: none; left: 0 !important; }
 .mp-chart-tick.last { transform: none; left: auto !important; right: 0; }
 .mp-chart-fill { fill: var(--blue-16); stroke: none; }
+/* the read-out (ProfileChart, and the Wassertransport's chart – WaterRelay · RelayChart): where the
+   pointer reads the profile, a guide and a dot in the curve's ink, the numbers in a tag at the
+   plot's top edge – inside it, so it never covers the panel's readout row above. The dot is HTML
+   in per cent, like the node dots (the profile's SVG is stretched). */
+.mp-chart-cursor { stroke: var(--ink-45); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.mp-chart-dot { position: absolute; width: 9px; height: 9px; translate: -50% -50%; border-radius: 50%; box-sizing: border-box;
+  background: var(--ink); border: 1.5px solid var(--surface); pointer-events: none; }
+.mp-readout { position: absolute; top: 0; transform: translateX(-50%); z-index: 1; display: flex; gap: var(--sp-2);
+  padding: var(--sp-1) var(--sp-2); border-radius: var(--r-ctl); background: var(--surface); box-shadow: var(--e2); pointer-events: none;
+  white-space: nowrap; font: var(--fw-medium) var(--fs-micro) var(--mono); color: var(--ink-dim); }
+.mp-readout b { color: var(--ink); }
 .mp-chart-line { fill: none; stroke: var(--blue); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
 .mp-prof-stats .mp-v { font-size: var(--fs-2); }
 /* the descent arrow points down, the ascent arrow up (the base glyph points right) */
@@ -64,6 +76,14 @@
 /* «Als Linie übernehmen» — keep the measured Strecke as a drawn line: the row's middle column,
    over the toggle that spans it (z-index) */
 .mp-adopt-btn { grid-column: 2; grid-row: 1; position: relative; z-index: 1; }
+/* Wassertransport (components/WaterRelay) open: wide enough for its two columns, and scrolling
+   so the chart and the warnings never push the panel off the top of the screen (a tapped pump's
+   bubble is portalled – components/PumpBubble – and never adds to this height)
+   (both widths overridden by the phone rule below, where the panel spans the screen anyway) */
+.mp-wide { width: 360px; }
+.mp-wider { width: min(880px, calc(100vw - 32px)); }
+.mp-tall { max-height: min(78dvh, calc(100dvh - 160px)); overflow-y: auto; overscroll-behavior: contain; }
+.mp-v.pump { color: color-mix(in srgb, var(--red) 55%, var(--amber)); }
 /* Plan-only: start/redo scale calibration straight from the panel */
 .mp-cal-btn { align-self: stretch; }
 /* …and its counterpart on a sheet whose metres come from the Kartenverknüpfung: the same slot,
