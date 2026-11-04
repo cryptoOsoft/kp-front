@@ -1080,10 +1080,12 @@ button.list-row:disabled { opacity: var(--disabled); cursor: default; }
    and 240 sent its 42 names into ONE column twice as long. An entry WRAPS instead of ellipsizing.
    24px between the columns (council round 3): at 16 a long left name ran up against the right
    column on the tablet, and 2 × 200 + 24 still fits its 439.
-   ONE entry shape, two edges (council round 3): the name and the qualifier share the left edge —
-   a wrapped qualifier is small, regular and faint, so it reads as the entry's second line without
-   a hanging indent (that indent was a third left edge); the «bis» time is the right edge, the
-   same track in every row.
+   ONE entry shape, two edges (council rounds 3 + 5): the name and the qualifier share the left
+   edge, the «bis» time is the right edge, the same track in every row, 8px off the name. A
+   two-track grid: the name (`.rp-person-txt`, 14/500) is always line 1 with the time beside it;
+   the qualifier (`<i>`), if any, is always line 2 under both (12.5/400 faint, 18px leading) — it
+   may use the width under the time, which is empty there. Never a run after the name: that
+   wrapped back to the name's edge mid-phrase and left a «Trupp Dach ·» dangling by its time.
    Entry boundaries (council round 4): 8px above and below each entry, 0 inside one, and a faint
    hairline (`--border-soft`, the list-card rows' own) on top of each — 16px + a rule between two
    people against a bare line's leading inside one, so a wrapped Trupp entry reads as one unit.
@@ -1094,22 +1096,25 @@ button.list-row:disabled { opacity: var(--disabled); cursor: default; }
    also lets taps through to the step row it overlaps (its 44px hit area). */
 .rp-people { columns: 2 200px; column-gap: var(--sp-5); width: 100%;
   margin-top: calc(-1px - var(--sp-2)); clip-path: inset(calc(1px + var(--sp-2)) 0 0 0); }
-.rp-person { display: flex; align-items: baseline; gap: var(--sp-2); min-width: 0;
-  break-inside: avoid; padding-block: var(--sp-2); border-top: 1px solid var(--border-soft);
+.rp-person { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline;
+  min-width: 0; break-inside: avoid; padding-block: var(--sp-2); border-top: 1px solid var(--border-soft);
   font: var(--fw-medium) var(--fs-2)/var(--lh-2) var(--body); color: var(--ink); }
-.rp-person-txt { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
-/* the departure time: its own item at the right edge, so every «bis 15:50» stands in one column.
-   The TEXT amber (`--amber-strong`), not the bright accent: as 14px type on the pale card the
-   bright one read light by day (council round 3) — the bright --amber stays for glyphs and fills */
-.rp-person em { flex: none; font-style: normal; color: var(--amber-strong); font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; }
+.rp-person-txt { min-width: 0; overflow-wrap: anywhere; }
+/* the departure time: its own item at the right edge, so every «bis 15:50» stands in one column,
+   8px off the name — its own margin, not a column-gap, so an entry without a time keeps the full
+   width (the empty track is then 0, not 8). The TEXT amber (`--amber-strong`), not the bright
+   accent: as 14px type on the pale card the bright one read light by day (council round 3) — the
+   bright --amber stays for glyphs and fills */
+.rp-person em { grid-area: 1 / 2; margin-left: var(--sp-2); font-style: normal; color: var(--amber-strong); font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; }
 .rp-person b { font-weight: var(--fw-bold); }
 /* Material: the amount is the value (bold), the material is the thing (regular) */
 .rp-person.rp-mittel { font-weight: var(--fw-regular); }
-/* the dim qualifier on every list here: a person's Funktion («· Einsatzleiter»), a material's
-   Quelle («· TLF»), a partner's remark. Smaller, regular and quieter than the line (12.5/400,
-   council round 3) — it answers a second question, and at 3am the name and the amount are the
-   first one. */
-.rp-person i { font: var(--fw-regular) var(--fs-1)/var(--lh-1) var(--body); color: var(--ink-faint); }
+/* the dim qualifier on every list here: a person's Funktion («Einsatzleiter»), a material's
+   Quelle («TLF»), a partner's contact and remark — line 2 of the entry, a block under the name
+   (no «·» lead-in: the line break is the separator). Smaller, regular and quieter than the line
+   (12.5/400, 1.45 = 18px leading, council rounds 3 + 5) — it answers a second question, and at
+   3am the name and the amount are the first one. */
+.rp-person i { grid-column: 1 / -1; min-width: 0; overflow-wrap: anywhere; font: var(--fw-regular) var(--fs-1)/var(--lh-1) var(--body); color: var(--ink-faint); }
 /* Unterschriften (15.10.2026, ReportPreflight · lib/reportSignature): one row per line of the
    paper's Visum — who, the drawn signature, the time. No rules between the rows, like every other
    card in this column (owner, round 3). */
