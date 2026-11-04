@@ -1063,20 +1063,33 @@ button.list-row:disabled { opacity: var(--disabled); cursor: default; }
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
 .rp-check-go { flex: none; width: 15px; height: 15px; color: var(--ink-faint); }
 /* the body starts under the LABEL, not under the dot: 16 (card pad) + 24 (dot) + 8 (gap) */
-/* right inset 8, the chips' gap 8: two 14px columns hold «Widmer Céline · Einsatzleiter» whole at 1180 */
-.rp-check-extra { padding: 0 var(--sp-2) 16px 48px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+/* right inset 16, the title row's own: the right-aligned «bis 15:50» ends under the row's ›
+   (it was 8 while 190px columns needed every pixel; entries wrap now, council 04.11.2026) */
+.rp-check-extra { padding: 0 var(--sp-4) 16px 48px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
 /* quick double-check lists (Anwesenheit names + Mittel lines): read-only chips, early
    leavers / amounts inline — corrections go through the row's Go arrow */
 /* No inner scroller. A 34vh cap put a second scroll region inside a surface that already scrolls
    — a drag starting on a name scrolled the list, hit its end and died there (the body has
    `overscroll-behavior: contain`) — and it also swallowed the card's own tap area. The card grows
    and the page scrolls, which is the one behaviour there is nothing to learn about. */
-.rp-people { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: var(--sp-1) var(--sp-2); width: 100%; }
-.rp-person { font: var(--fw-medium) var(--fs-2) var(--body); color: var(--ink); min-width: 0;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.rp-person em { font-style: normal; color: var(--amber); font-weight: var(--fw-bold); }
+/* At most TWO columns, none under 200px (council 04.11.2026): 190px grid tracks put three on the
+   laptop and cut «Nachlöschen Dach · Wass…» on every width. Newspaper columns now (`columns: 2
+   200px` – two at most, one below 2 × 200 + gap: the phone), filled down the first and then the
+   second like the Kroki legend: the list is alphabetical, and a grid row levelled a short name
+   beside a wrapped one into a hole. 200, not the council's 240: the tablet's side column has 439px,
+   and 240 sent its 42 names into ONE column twice as long. An entry WRAPS instead of ellipsizing —
+   the hanging indent and the gap under each entry keep a second line reading as the same entry. */
+.rp-people { columns: 2 200px; column-gap: var(--sp-4); width: 100%; }
+.rp-person { display: flex; align-items: baseline; gap: var(--sp-2); min-width: 0;
+  break-inside: avoid; padding-bottom: var(--sp-1);
+  font: var(--fw-medium) var(--fs-2)/var(--lh-2) var(--body); color: var(--ink); }
+.rp-person-txt { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere;
+  padding-left: var(--sp-3); text-indent: calc(-1 * var(--sp-3)); }
+/* the departure time: its own item at the right edge, so every «bis 15:50» stands in one column */
+.rp-person em { flex: none; font-style: normal; color: var(--amber); font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; }
 .rp-person b { font-weight: var(--fw-bold); }
+/* Material: the amount is the value (bold), the material is the thing (regular) */
+.rp-person.rp-mittel { font-weight: var(--fw-regular); }
 /* the dim qualifier on both lists: a person's Funktion («· Einsatzleiter») and a material's
    Quelle («· TLF»). Same weight as the line, quieter colour — it answers a second question,
    and at 3am the name and the amount are the first one. */
@@ -2002,15 +2015,17 @@ select.cv-input { appearance: none; -webkit-appearance: none;
 /* A FOLDED tile is a square (lib/pageHeadFit): the word it gave up survives as aria-label/title,
    what is dropped is a word the surface's own title already says. Measured since 28.09.2026 — it
    was «icons below 1080px», which dropped every word on an 820 tablet that had room for two. The
-   PDF half is the one that keeps a WORD when folded («PDF», mockup 2 — a bare doc glyph beside a
-   ▾ was a control «whose meaning you have to know»), so it is as wide as that word. */
-.rp-head-actions .ip-btn[data-folded]:not(.rp-split-main) { width: var(--tap); padding: 0; justify-content: center; }
-/* folded, the chip («⚠ 4») and the PDF half («PDF») sit 8px in: on a 390 phone that is what lets
-   «Rapport» share the one row with all four tiles (it came to 2px short at 12; 10 until 08.10.2026) */
-.rp-head-actions .rp-split .rp-split-main[data-folded], .rp-head-actions .rp-state[data-folded] { padding: 0 8px; }
+   PDF half and «Abschliessen» keep a WORD when folded (`.fold-short`: «PDF», mockup 2 — a bare
+   doc glyph beside a ▾ was a control «whose meaning you have to know»; «Abschliessen» since the
+   council round of 04.11.2026, a bare archive box was the row's least legible tile for its most
+   consequential action), so they are as wide as that word. */
+.rp-head-actions .ip-btn[data-folded]:not(:has(.fold-short)) { width: var(--tap); padding: 0; justify-content: center; }
+/* folded, the chip («⚠ 4») and the worded tiles («PDF», «Abschliessen») sit 8px in: on a 390 phone
+   that is what lets them share the one row (it came to 2px short at 12; 10 until 08.10.2026) */
+.rp-head-actions .ip-btn[data-folded]:has(.fold-short), .rp-head-actions .rp-state[data-folded] { padding: 0 8px; }
 /* the ladder's «close up» step: 4px apart (6 until 08.10.2026), 8px inside */
 .rp-head[data-fit-tight] .rp-head-actions { gap: 4px; }
-.rp-head[data-fit-tight] .rp-head-actions :is(.rp-state, .rp-split-main)[data-folded] { padding: 0 8px; }
+.rp-head[data-fit-tight] .rp-head-actions :is(.rp-state, .ip-btn:has(.fold-short))[data-folded] { padding: 0 8px; }
 /* ⚠️ «Ausdrucken» is ONE line in every state (owner, staging 26.09.2026). It used to keep its
    offline reason as a second line and grow to fit it: «Stationsdrucker offline» took two thirds of
    a phone's row and stood twice as tall as the squares. The relay's dot says it (amber = offline) —
