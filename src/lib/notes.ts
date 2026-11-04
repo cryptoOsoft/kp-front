@@ -117,3 +117,14 @@ export const STACK_NOTE_MIN_EM = 16
  *  text on one line where that is shorter than STACK_NOTE_MIN_EM, else to that measure. */
 export const stackNoteBoxPx = (storedPx: number, text: string, fontPx: number) =>
   Math.max(storedPx, Math.min(autoNoteBoxPx(text, fontPx), STACK_NOTE_MIN_EM * fontPx))
+
+// A stack note is anchored at its centre, and the widened box (above) reaches further out than
+// the stored one: centred near the stack's left edge it hung into the storey-label gutter
+// (lib/whiteboard · STACK_LABEL_LANE) and ran its second line under «EG» (hill climb r4,
+// 04.11.2026). So it is DRAWN moved right just far enough that its box starts at the stack's
+// edge – the plate stands 8 px (--sp-2) left of that edge, so no plate ever meets note text.
+// Only the drawing moves: `x` is stored, printed and dragged as it is.
+
+/** Rendered px shift to the right of a stack note whose box would start left of the stack:
+ *  `centrePx` is its anchor in board px from the stack's left edge, `boxPx` its rendered width. */
+export const stackNoteShiftPx = (centrePx: number, boxPx: number) => Math.max(0, boxPx / 2 - centrePx)

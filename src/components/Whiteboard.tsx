@@ -67,7 +67,7 @@ import { LockChip } from './LockChip'
 import { Chip } from './Chip'
 import { ShapeGlyph, SHAPE_DEFS, SHAPE_MAX_N, SHAPE_MIN_N, SHAPE_TWO_POINT, rotationBoundsN, rotationBox, rotationRun } from '../lib/shapes'
 import { TEAM_DOT_PX, TEAM_PILL_CAP_PX } from '../lib/mapView'
-import { noteScale, autoNoteWN, noteWN, stackNoteBoxPx } from '../lib/notes'
+import { noteScale, autoNoteWN, noteWN, stackNoteBoxPx, stackNoteShiftPx } from '../lib/notes'
 import { isAtemschutzTrupp } from '../lib/atemschutz'
 import { dismissNearbyBanner, nearbyBannerDismissed, nearbyBannerKey } from '../lib/nearbyBanner'
 import { ghostTrailLabel, type TruppTrail } from '../lib/truppTrails'
@@ -1424,9 +1424,11 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
       // a note text box is anchored at its CENTRE but occupies a real width — nudging on the
       // anchor alone would leave the long half of a wide note sitting under the panel
       if (a.kind === 'text') {
+        // (…and on the stack it is drawn clear of the storey-label gutter – lib/notes · stackNoteShiftPx)
         const storedPx = noteWN(a.wN) * rect.width
-        const half = (stack ? stackNoteBoxPx(storedPx, a.text ?? '', txtBase * scaleRef.current * noteScale(a.noteSize)) : storedPx) / 2
-        box.minX -= half; box.maxX += half
+        const boxPx = stack ? stackNoteBoxPx(storedPx, a.text || appConfig.copy.whiteboard.text, txtBase * scaleRef.current * noteScale(a.noteSize)) : storedPx
+        const shift = stack ? stackNoteShiftPx((a.x ?? 0) * rect.width, boxPx) : 0
+        box.minX += shift - boxPx / 2; box.maxX += shift + boxPx / 2
       }
       const tap = annoTap?.id === selId ? { x: annoTap.x, y: annoTap.y } : null
       const nudge = nudgeSelectionIntoRect(box, tap, work)

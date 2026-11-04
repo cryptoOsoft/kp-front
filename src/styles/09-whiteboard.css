@@ -353,8 +353,10 @@
    «EG» completely and a symbol crowded «3. OG». The tile is still its parent, so it rides the
    storey's top and the zoom; a longer custom name simply grows further left. A compact surface
    plate, because it stands on the stage now.
-   z 4: above a resting anno (z 3) that still hangs out into the gutter – a wide stack note does, on
-   a phone – so the storey's name always wins; under a selected one (z 6), which is being moved. */
+   A note is never drawn into the gutter (lib/notes · stackNoteShiftPx, hill climb r4 – a phone's
+   wide note ran its text under «EG»). z 4: above a resting anno (z 3) that still hangs out into it –
+   a symbol's caption at the stack's edge – so the storey's name always wins; under a selected one
+   (z 6), which is being moved. */
 .wb-floor-label { position: absolute; top: var(--sp-2); right: calc(100% + var(--sp-2)); display: flex; align-items: center; gap: var(--sp-1); z-index: 4;
   flex-wrap: nowrap; white-space: nowrap;
   font-family: var(--body); font-weight: var(--fw-bold); font-size: var(--fs-2); line-height: 1; color: var(--ink);
