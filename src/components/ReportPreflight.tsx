@@ -2114,18 +2114,17 @@ export function ReportPreflight({
                   <div className="rp-people">
                     {rows.map((r) => (
                       <span key={r.personId} className="rp-person">
-                        {/* name + Funktion in one wrapping run; the departure time is its own
-                            item at the row's right edge, so the amber times stand in one column
-                            instead of trailing wherever a name ended (council 04.11.2026) */}
-                        <span className="rp-person-txt">
-                          {r.name}
-                          {/* the job they had — «Einsatzleiter», «Fahrer TLF» — read straight off
-                              their Bemerkung, the same string the printed Personal-/Anwesenheits-
-                              blatt puts under the name. At the end of an Einsatz this list IS the
-                              check «wer war da, und als was», so the function belongs on it. */}
-                          {(attendance[r.personId]?.note ?? '').trim()
-                            && <i>{` · ${(attendance[r.personId]!.note ?? '').trim()}`}</i>}
-                        </span>
+                        {/* the name is line 1 with the departure time at its right edge, so the
+                            amber times stand in one column instead of trailing wherever a name
+                            ended; the Funktion is line 2 (`<i>`), under both (council 04.11.2026,
+                            round 5 — 13-incident.css `.rp-person`) */}
+                        <span className="rp-person-txt">{r.name}</span>
+                        {/* the job they had — «Einsatzleiter», «Fahrer TLF» — read straight off
+                            their Bemerkung, the same string the printed Personal-/Anwesenheits-
+                            blatt puts under the name. At the end of an Einsatz this list IS the
+                            check «wer war da, und als was», so the function belongs on it. */}
+                        {(attendance[r.personId]?.note ?? '').trim()
+                          && <i>{(attendance[r.personId]!.note ?? '').trim()}</i>}
                         {/* only somebody who actually LEFT gets a time. hoursRows fills an open
                             block with the Einsatzende, which put «· bis 09:00» behind every name
                             on the list — the exception it exists to flag then read as the rule. */}
@@ -2140,18 +2139,18 @@ export function ReportPreflight({
               {mittelCount > 0 && (
                 <div className="rp-check-extra">
                   <div className="rp-people">
-                    {/* one line, three weights, same shape as the Anwesenheit list beside it:
-                        the amount is the value (bold), the unit and the material are the thing
-                        (regular, `.rp-mittel`),
-                        and where it came from is the dim qualifier — «3 Sack Bindemittel · TLF».
-                        It used to set amount AND unit bold and print the Quelle in full ink, so
-                        four items read as one wall of equally loud text. */}
+                    {/* three weights, same shape as the Anwesenheit list beside it: the amount
+                        is the value (bold), the unit and the material are the thing (regular,
+                        `.rp-mittel`), and where it came from is the dim qualifier on the line
+                        under it — «3 Sack Bindemittel» / «TLF». It used to set amount AND unit
+                        bold and print the Quelle in full ink, so four items read as one wall of
+                        equally loud text. */}
                     {visibleMittel(mittel).map((l) => (
                       <span key={l.key} className="rp-person rp-mittel">
                         <span className="rp-person-txt">
                           <b>{l.menge}</b> {unitLabel(l.unit)} {l.label}
-                          {l.sourceLabel && <i>{` · ${l.sourceLabel}`}</i>}
                         </span>
+                        {l.sourceLabel && <i>{l.sourceLabel}</i>}
                       </span>
                     ))}
                   </div>
@@ -2258,7 +2257,10 @@ export function ReportPreflight({
                       const more = [p.name, p.phone, p.note].map((v) => v?.trim()).filter(Boolean).join(' · ')
                       return (
                         <span key={i} className="rp-person">
-                          <span className="rp-person-txt">{p.org}{more && <i>{`${p.org ? ' · ' : ''}${more}`}</i>}</span>
+                          {/* the organisation is line 1, contact and remark the dim line under
+                              it; a partner without an org shows its contact as the line itself */}
+                          <span className="rp-person-txt">{p.org || more}</span>
+                          {p.org && more && <i>{more}</i>}
                         </span>
                       )
                     })}
