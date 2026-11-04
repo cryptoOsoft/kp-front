@@ -580,20 +580,12 @@ describe('the phone row says its tier in its spoken name, with no glyph at the c
 describe('a collapsed row tells the same time as the open card', () => {
   afterEach(() => { vi.mocked(useIsPhone).mockReturnValue(false) })
 
-  // the break clock ticks; its caption goes, as on the opened card — the «Draussen» head says it
-  // (hill climb r3: the phone row names its clock, RowLine · `headed`)
-  it('ticks the break clock on the closed row of an out Atemschutz-Trupp, unnamed under «Draussen»', () => {
+  it('ticks «Draussen seit» on the closed row of an out Atemschutz-Trupp', () => {
     vi.mocked(useIsPhone).mockReturnValue(true)
     mount({ trupps: [{ ...aktivTrupp(), status: 'raus', exitTime: iso(5 * 60_000) }] })
     const row = document.querySelector(`.${s.trow}`)!
-    expect(row.querySelector(`.${s.trowSub}`)!.textContent).toBe('')
+    expect(row.querySelector(`.${s.trowSub}`)!.textContent).toBe(az.outFor)
     expect(row.querySelector(`.${s.trowClockVal}`)!.textContent).toMatch(/^0?5:00$/)
-  })
-
-  it('names the contact clock on the closed row of a crew inside', () => {
-    vi.mocked(useIsPhone).mockReturnValue(true)
-    mount({ trupps: [aktivTrupp()] })
-    expect(document.querySelector(`.${s.trow} .${s.trowSub}`)!.textContent).toBe(az.sinceContact)
   })
 
   // 30.09.2026

@@ -54,7 +54,7 @@ export function ClockVal({ val }: { val: string }) {
 }
 
 export function TruppRow({
-  t, live, alarm, color, canEdit, onContact, onPressure, onEnter, onOpen, focusNonce, focusScroll = true, flashSeen, onFlashed, lite, conflict = false, headed = false,
+  t, live, alarm, color, canEdit, onContact, onPressure, onEnter, onOpen, focusNonce, focusScroll = true, flashSeen, onFlashed, lite, conflict = false,
 }: {
   t: Trupp; live: TruppLive; now: number; color?: string; canEdit: boolean
   /** «Im Einsatz» on a Trupp still at the door — stands where its empty clock would (RowLine) */
@@ -79,9 +79,6 @@ export function TruppRow({
   /** the handed-over «Tafel pur» (see TruppCard) — only gates plain-Trupp WORDING here
    *  (plainWords); the row itself carries no lite-only controls. */
   lite: boolean
-  /** the row stands under the phone board's state heads — as TruppCard · `headed`, so the row and
-   *  its opened card name their clock alike (RowLine) */
-  headed?: boolean
 }) {
   const az = appConfig.copy.atemschutz
   const status = live.status
@@ -93,10 +90,8 @@ export function TruppRow({
   const sev = isAtemschutzTrupp(t) ? alarm.sev : 0
   const monitored = isAtemschutzTrupp(t)
   /* ⚠️ The row says NAME and TIME, nothing else (24.09.2026, maintainer: «drop the blabla, just
-   * the time»). The Schätzung line and the state word went: the section heading carries
-   * in/ready/out, and the pressure is one tap away on the card. The clock's caption came back in
-   * hill climb r3 (04.11.2026) as one small line under the clock, on a row of its own so it never
-   * squeezes the name («SEIT LETZTEM KONTAKT» — a bare «2:00» did not say what it counts). What the row
+   * the time»). The Schätzung line, the state word and the clock caption went: the section
+   * heading carries in/ready/out, and the pressure is one tap away on the card. What the row
    * gained is the second action — «Druck» — and words on both buttons, which is why a Trupp inside
    * takes TWO lines on the phone (`.trowTwo`): at 360px a full name, a clock and two worded
    * buttons do not share one.
@@ -140,7 +135,7 @@ export function TruppRow({
       aria-label={[t.name, tier, words.status(status === 'raus' ? truppStatusLabel(t) : (az.status[status] ?? status)),
         t.status === 'rueckzug' ? az.status.rueckzug : '']
         .filter((w, i, all) => w && all.indexOf(w) === i).join(' — ')}>
-      <RowLine t={t} live={live} color={color} lite={lite} headed={headed}
+      <RowLine t={t} live={live} color={color} lite={lite}
         act={canEdit && onEnter ? <RowEnter onEnter={() => onEnter(t.id)} /> : null} />
       {/* ⚠️ always rendered, even when there is no button in it: these are fixed grid tracks, so a
           missing cell would pull every column after it out of line on that one row */}
@@ -186,10 +181,10 @@ function RowLine({ t, live, color, lite, act, headed = false }: { t: Trupp; live
   // doc comment), so this swap is a no-op today. It stays here so a future edit to that branch
   // cannot silently leak «Draussen seit» onto a work squad's row without also failing the app-only
   // wording test below.
-  // The caption — what the clock counts — shows under the clock on every board (hill climb r2,
-  // 04.11.2026: an out card's break clock and an inside card's contact clock stood in one place
-  // with nothing saying which is which; r3 the same day: the phone row's «2:00» too). Under a
-  // «Draussen» head (`headed`) the break clock goes unnamed — the head says it.
+  // The caption — what the clock counts — shows under the clock on the wide grid's card and the
+  // link board's page (hill climb r2, 04.11.2026: an out card's break clock and an inside card's
+  // contact clock stood in one place with nothing saying which is which); the phone row and its
+  // opened card hide it (CSS), their section heads say Drin / Draussen.
   const clockSub = clock.sub === az.outFor ? (headed ? '' : words.outFor) : clock.sub
   const inNotfall = truppInNotfall(t)
   /* ⚠️ A Trupp still at the door has no clock — «–:––» was an empty time where the next act
