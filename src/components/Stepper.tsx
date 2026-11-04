@@ -5,8 +5,14 @@ import { useHoldRepeat } from '../lib/useHoldRepeat'
 
 /** Keep a typed value numeric while it is being typed — digits plus ONE leading minus, so a
  *  Untergeschoss can be written straight in («-1»). A minus that is out of the field's range is
- *  no special case: `commit` clamps it like any other number. */
-const numericDraft = (s: string) => (s.startsWith('-') ? '-' : '') + s.replace(/\D/g, '')
+ *  no special case: `commit` clamps it like any other number. With `decimals` the FIRST '.' or
+ *  ',' stays too (Swiss keyboards type both: «5,2» and «5.2» are the same 5.2 bar). */
+const numericDraft = (s: string, decimals = 0) => {
+  const sign = s.startsWith('-') ? '-' : ''
+  const sep = decimals ? s.search(/[.,]/) : -1
+  if (sep < 0) return sign + s.replace(/\D/g, '')
+  return sign + s.slice(0, sep).replace(/\D/g, '') + s[sep] + s.slice(sep + 1).replace(/\D/g, '')
+}
 
 /**
  * The canonical compact ±stepper (global `.step` chrome). Three behaviours, consistent everywhere:
@@ -19,7 +25,7 @@ const numericDraft = (s: string) => (s.startsWith('-') ? '-' : '') + s.replace(/
  * first tap on + seeds `seed ?? min` — on − too when `seedOnDec` is set. `onChange` always
  * receives a concrete clamped number.
  */
-export function Stepper({ value, min, max, step = 1, seed, seedOnDec, snap, format, placeholder = '–', onChange, onClear, canClear, readOnly, over, ariaLabel }: {
+export function Stepper({ value, min, max, step = 1, seed, seedOnDec, snap, decimals, format, placeholder = '–', onChange, onClear, canClear, readOnly, over, ariaLabel }: {
   value: number | null
   min: number
   max: number
@@ -35,6 +41,9 @@ export function Stepper({ value, min, max, step = 1, seed, seedOnDec, snap, form
    *  value ± step (30.09.2026: a symbol turned by hand to −46.5° stepped to −31.5°, −16.5° …
    *  forever off the 15° marks). On the grid it is plain ± step. */
   snap?: boolean
+  /** the typed entry takes a decimal number, rounded to this many places (a pressure: 1 →
+   *  «5,2» is 5.2 bar). Absent ⇒ whole numbers only, as every counter and storey wants. */
+  decimals?: number
   /** format the numeric value for display (e.g. signed floor "+2", "47 m") */
   format?: (v: number) => string
   placeholder?: string
@@ -68,12 +77,23 @@ export function Stepper({ value, min, max, step = 1, seed, seedOnDec, snap, form
   const [draft, setDraft] = useState('')
 
   // a whole number to type over — the field takes whole numbers only (parseInt below), and a stored
-  // −46.50917745051447 is not a thing to edit character by character
-  const startEdit = () => { if (readOnly) return; setDraft(has ? String(Math.round(value)) : ''); setEditing(true) }
+  // −46.50917745051447 is not a thing to edit character by character; with `decimals`, the value
+  // to that many places
+  const startEdit = () => {
+    if (readOnly) return
+    setDraft(has ? (decimals ? value.toFixed(decimals) : String(Math.round(value))) : '')
+    setEditing(true)
+  }
   const commit = () => {
     setEditing(false)
-    const n = parseInt(draft, 10)
-    if (!Number.isNaN(n)) onChange(clamp(n))
+    if (!decimals) {
+      const n = parseInt(draft, 10)
+      if (!Number.isNaN(n)) onChange(clamp(n))
+      return
+    }
+    const n = parseFloat(draft.replace(',', '.'))
+    const f = 10 ** decimals
+    if (!Number.isNaN(n)) onChange(clamp(Math.round(n * f) / f))
   }
   const display = has ? (format ? format(value) : String(value)) : placeholder
   const st = appConfig.copy.stepper
@@ -83,9 +103,9 @@ export function Stepper({ value, min, max, step = 1, seed, seedOnDec, snap, form
       <button className="step-btn" disabled={readOnly || (has ? value <= min : !seedOnDec)} {...dec} aria-label={st.less}>−</button>
       {editing ? (
         <input
-          className="step-val step-input" autoFocus value={draft} inputMode="numeric" type="text" aria-label={ariaLabel}
+          className="step-val step-input" autoFocus value={draft} inputMode={decimals ? 'decimal' : 'numeric'} type="text" aria-label={ariaLabel}
           onFocus={(e) => e.currentTarget.select()}
-          onChange={(e) => setDraft(numericDraft(e.target.value))} onBlur={commit}
+          onChange={(e) => setDraft(numericDraft(e.target.value, decimals))} onBlur={commit}
           onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); else if (e.key === 'Escape') setEditing(false) }}
         />
       ) : (

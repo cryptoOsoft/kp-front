@@ -147,8 +147,8 @@ describe('the setDoc / setBoard seams', () => {
         { id: 'l1', sheet: { planId: 'modul2', anno: anno('l1', { kind: 'draw', x: undefined, y: undefined, pts: [[0, 0], [1, 0]] }) } },
         PLAN, 'taktisch',
       )
-      const styled = applyDocToObjects([line], { entities: [], drawings: [{ ...line.drawing!, color: '#0f0', lineNo: 2 }] })
-      expect(styled[0].sheet?.anno).toMatchObject({ color: '#0f0', lineNo: 2 })
+      const styled = applyDocToObjects([line], { entities: [], drawings: [{ ...line.drawing!, color: '#0f0', lineNo: 2, hose: '110', relay: { flow: 1200 } }] })
+      expect(styled[0].sheet?.anno).toMatchObject({ color: '#0f0', lineNo: 2, hose: '110', relay: { flow: 1200 } })
       const reshaped = applyDocToObjects([line], { entities: [], drawings: [{ ...line.drawing!, coords: [mEastCoord(0), mEastCoord(400)] }] })
       expect(reshaped[0].sheet).toBeUndefined()
     })

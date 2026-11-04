@@ -9,7 +9,14 @@ import { cx } from '../lib/cx'
 import { ProfileChart, ProfileStats } from './ProfileChart'
 import { Button, IconButton } from './Button'
 import { MapHelpCard } from './DockInfo'
+import { AddRelayButton, WaterRelay } from './WaterRelay'
+import { usePublishRelay, useRelay, type RelayValue } from '../lib/useRelay'
+import { HOSES } from '../lib/hydraulics'
+import type { MeasureRelay } from '../lib/useMeasure'
 import s from './MeasurePanel.module.css'
+
+/** a module constant, so a host without a relay hands the controller one stable empty value */
+const NO_RELAY: RelayValue = {}
 
 /** A placement mode's instruction («Auf die Karte tippen …»), in THE card a map tool explains
  *  itself in — the very one the Messen dock's ⓘ opens (DockInfo · MapHelpCard), at the foot of
@@ -22,7 +29,7 @@ export function MapHint({ children }: { children: ReactNode }) {
   return <MapHelpCard role="status">{children}</MapHelpCard>
 }
 
-export function MeasurePanel({ mode, coords, profile, profileLoading, metrics, showProfile = true, blocked = false, hint, onAdopt, onCalibrate, calibrateLabel, recalibrateLabel, scaleNote, className }: {
+export function MeasurePanel({ mode, coords, profile, profileLoading, metrics, showProfile = true, blocked = false, hint, onAdopt, onCalibrate, calibrateLabel, recalibrateLabel, scaleNote, relay, onPlacePumps, className }: {
   mode: 'line' | 'area'
   coords: LngLat[]
   profile: ProfileResult | null
@@ -49,6 +56,12 @@ export function MeasurePanel({ mode, coords, profile, profileLoading, metrics, s
    *  reading in place of the button, so a sheet that is already tied to the map does not offer
    *  «Neu kalibrieren» — which reads as «this is not calibrated» on a plan that is. */
   scaleNote?: string
+  /** the Strecke's Wassertransport (useMeasure · relay) — the Karte surfaces pass it, a Plan
+   *  sheet does not (no ground, no height profile), and its fold then has no such section */
+  relay?: MeasureRelay
+  /** the Wassertransport's «Pumpen als Symbole setzen», every pump's spot at once – the Lage,
+   *  where symbols may be placed */
+  onPlacePumps?: (coords: LngLat[]) => void
   /** the host's own placement (the Karte's phone stack has one bar fewer than an Einsatz's) —
    *  `.measure-panel` is a hashed module class, so a host cannot reach it by name */
   className?: string
@@ -84,13 +97,29 @@ export function MeasurePanel({ mode, coords, profile, profileLoading, metrics, s
   ) : scaleNote ? (
     <div className={s['mp-cal-note']} role="status"><Icon id="measure" />{scaleNote}</div>
   ) : null
-  const folds = readout && (hasProfile || !!calibration)
+  // Wassertransport (components/WaterRelay): ADDED from a button under the Höhenprofil, closed by
+  // its own × (owner 04.11.2026 – it no longer replaces the profile behind a second fold). Open,
+  // its chart is the profile with the pressure over it, so the plain Höhenprofil steps aside and
+  // the panel widens into two columns (round 3 mock F-A: chart and pump card left, inputs, result
+  // and «Als Leitung auf die Karte» right). Its pumps stand on the map and their count joins the
+  // folded readout — a plain distance measurement stays exactly as it was.
+  const hasRelay = !!relay && mode === 'line'
+  const relayOpen = hasRelay && relay.open
+  const ctrl = useRelay({ coords, profile, profileLoading, value: relay?.value ?? NO_RELAY, onChange: relay?.onChange })
+  usePublishRelay(ctrl, readout && relayOpen)
+  const folds = readout && (hasProfile || !!calibration || hasRelay)
   const open = folds && profileOpen
 
   const stats = mode === 'line' ? (
     <div className={s['mp-stat-row']}>
       <div className={s['mp-stat']}><span className={s['mp-k']}>{C.distance}</span><b className={s['mp-v']}>{fmtDistance(lengthM)}</b></div>
-      <div className={s['mp-stat']}><span className={s['mp-k']}>{C.hoses} à {appConfig.drawing.hoseLengthM} m</span><b className={s['mp-v']}>{hoseCount(lengthM)}</b></div>
+      {/* three numbers do not fit beside the adopt button with the long label: «Schläuche» alone
+          then (the panel is also a little wider with the Wassertransport open — .mp-wide) */}
+      <div className={s['mp-stat']}><span className={s['mp-k']}>{relayOpen && !open ? C.hoses : `${C.hoses} à ${appConfig.drawing.hoseLengthM} m`}</span><b className={s['mp-v']}>{hoseCount(lengthM, relayOpen ? HOSES[ctrl.input.hose].lines : 1)}</b></div>
+      {/* folded, the opened Wassertransport answers with its pump count – open, its chart shows them */}
+      {relayOpen && !open && (
+        <div className={s['mp-stat']}><span className={s['mp-k']}>{appConfig.copy.relay.pumps}</span><b className={cx(s['mp-v'], s.pump)}>{ctrl.plan ? ctrl.plan.pumps.length : '–'}</b></div>
+      )}
     </div>
   ) : (
     <div className={s['mp-stat-row']}>
@@ -114,7 +143,7 @@ export function MeasurePanel({ mode, coords, profile, profileLoading, metrics, s
 
   return (
     // data-float-stack: it stands in the phone's bottom stack (lib/floatRow measures it)
-    <div className={cx(s['measure-panel'], className)} data-float-stack="">
+    <div className={cx(s['measure-panel'], relayOpen && s['mp-wide'], open && relayOpen && s['mp-tall'], open && relayOpen && s['mp-wider'], className)} data-float-stack="">
       {!readout ? (
         <>
           {!emptyAutomatic && (
@@ -141,7 +170,8 @@ export function MeasurePanel({ mode, coords, profile, profileLoading, metrics, s
             ) : stats}
             {adopt}
           </div>
-          {open && hasProfile && (profileLoading ? (
+          {/* the Wassertransport chart carries the terrain itself, so it stands in for the Höhenprofil */}
+          {open && hasProfile && !relayOpen && (profileLoading ? (
             <div className={s['mp-prof-msg']}><LoadingStatus>{C.profileLoading}</LoadingStatus></div>
           ) : profile ? (
             <>
@@ -152,6 +182,13 @@ export function MeasurePanel({ mode, coords, profile, profileLoading, metrics, s
           ) : (
             <div className={s['mp-prof-msg']}>{C.profileNone}</div>
           ))}
+          {open && hasRelay && !relayOpen && (
+            <AddRelayButton onClick={() => relay.setOpen(true)} />
+          )}
+          {open && relayOpen && (
+            <WaterRelay ctrl={ctrl} showHose wide onClose={() => relay.setOpen(false)}
+              onAdoptLine={onAdopt} onPlacePumps={onPlacePumps} />
+          )}
           {open && calibration}
         </>
       )}

@@ -47,6 +47,7 @@ import type { OneShotRows, WorkspaceMode } from './types'
 import { useEffect, useMemo, useRef, type Dispatch, type RefObject, type SetStateAction } from 'react'
 import type { MapRef } from 'react-map-gl/maplibre'
 import { isMapTool } from '../lib/readOnlyTools'
+import { RELAY_PUMP_SYMBOL } from '../lib/hydraulics'
 
 
 export interface UseMapActionsInputs {
@@ -203,6 +204,37 @@ export function useMapActions({
     setSelectedDrawIds([]); setSelectedEntityIds([])
     setNotePanelId(null); setEditNoteId(null)
   }
+  /** A new symbol entity `s` at `c`, not yet committed – shared seeding (label / subtitle /
+   *  fields / vehicle rotation), identical to the Plan placement path so a symbol carries the same
+   *  structure on both surfaces. A driven vehicle is stored on the Fahrzeuge layer, so it toggles
+   *  with the live GPS glyphs rather than sitting among the tactical symbols. (Old incidents are
+   *  handled by effectiveLayer at read time – this just means new data needs no shim.) */
+  const symbolEntity = (s: string, c: LngLat): Entity => {
+    const layer = VEHICLE_SYMBOLS.has(s) ? appConfig.gps.layerId : appConfig.defaults.operationalLayerId
+    return { id: newId('p'), kind: 'symbol', layer, coord: c, ...seedSymbolProps(s, sym.symbols) }
+  }
+  /** Put symbol `s` down at `c` – ONE undo step, the «… platziert» Verlauf row and the
+   *  `entity.add` event; selection and tool are the caller's (the palette's tap). */
+  const addSymbol = (s: string, c: LngLat): Entity => {
+    const entity = symbolEntity(s, c)
+    commit((d) => ({ ...d, entities: [...d.entities, entity] }))
+    log('hex', fillTemplate(appConfig.copy.log.symbolPlaced, { name: entity.label || formatSymbolName(s) }), 'symbol', undefined, entity.id)
+    emit('entity.add', { id: entity.id, symbol: s, entity })
+    return entity
+  }
+  /** A Wassertransport's pumps made real («Pumpen als Symbole setzen»): an ordinary Motorspritze
+   *  at each spot (lib/hydraulics · RELAY_PUMP_SYMBOL) – ONE undo step and ONE Verlauf row for all
+   *  of them, an `entity.add` per symbol (sync carries entities one by one). Independent from then
+   *  on: the relay keeps planning, the symbols stay where they were put. Nothing is selected: the
+   *  panel the tap came from stays. */
+  const placePumpSymbols = (coords: LngLat[]) => {
+    if (tacticalLocked || !coords.length) return
+    const added = coords.map((c) => symbolEntity(RELAY_PUMP_SYMBOL, c))
+    commit((d) => ({ ...d, entities: [...d.entities, ...added] }))
+    const n = added.length
+    log('hex', n === 1 ? appConfig.copy.log.pumpPlaced : fillTemplate(appConfig.copy.log.pumpsPlaced, { n }), 'symbol', undefined, n === 1 ? added[0].id : undefined)
+    for (const entity of added) emit('entity.add', { id: entity.id, symbol: RELAY_PUMP_SYMBOL, entity })
+  }
   const onMapClick = (c: LngLat) => {
     // a map tap dismisses an open Ebenen panel first (parity with the phone backdrop) —
     // the panel is map chrome, so tapping the map behind it should just close it
@@ -248,21 +280,11 @@ export function useMapActions({
       log('area', fillTemplate(appConfig.copy.log.shapePlaced, { name }), 'symbol', undefined, id)
       emit('entity.add', { id, kind: 'shape', entity: { id, kind: 'shape', layer: appConfig.defaults.drawingLayerId, shape: pendingShape, color: def.defaultColor, label: name, ...geom } })
     } else if (tool === 'symbol' && pending) {
-      const id = newId('p'); const s = pending
-      // shared seeding (label / subtitle / fields / vehicle rotation) — identical to
-      // the Plan placement path so a symbol carries the same structure on both surfaces
-      // A driven vehicle is stored on the Fahrzeuge layer, so it toggles with the live GPS
-      // glyphs rather than sitting among the tactical symbols. (Old incidents are handled by
-      // effectiveLayer at read time — this just means new data needs no shim.)
-      const layer = VEHICLE_SYMBOLS.has(s) ? appConfig.gps.layerId : appConfig.defaults.operationalLayerId
-      const entity: Entity = { id, kind: 'symbol', layer, coord: c, ...seedSymbolProps(s, sym.symbols) }
-      commit((d) => ({ ...d, entities: [...d.entities, entity] }))
-      addRecent(s)
+      const { id } = addSymbol(pending, c)
+      addRecent(pending)
       setSelectedDrawIds([]); setSelectedEntityIds([])
       if (placeLock) { setSelectedId(null); setSelectedDrawingId(null) }
       else { setPending(null); setTool('select'); setSelectedId(id); setSelectedDrawingId(null) }
-      log('hex', fillTemplate(appConfig.copy.log.symbolPlaced, { name: entity.label || formatSymbolName(s) }), 'symbol', undefined, id)
-      emit('entity.add', { id, symbol: s, entity })
     } else if (tool === 'note') {
       const id = newId('n')
       commit((d) => ({ ...d, entities: [...d.entities, { id, kind: 'note', layer: appConfig.defaults.drawingLayerId, coord: c, label: '', subtitle: appConfig.copy.entities.noteSubtitle, noteW: autoNoteWPx('', noteDefaults.size === 'm' ? undefined : noteDefaults.size), noteAutoW: true, noteSize: noteDefaults.size === 'm' ? undefined : noteDefaults.size, notePlain: noteDefaults.plain || undefined, color: noteDefaults.color || undefined }] }))
@@ -960,5 +982,5 @@ export function useMapActions({
     for (const [op, payload] of act.events) emit(op, payload)
     log(on ? 'check' : 'undo', act.text, 'symbol', undefined, ent.id)
   }
-  return { deleteGroup, deleteEntity, placed, goToModule, finishSelection, onMapClick, startEntityMove, streamEntityMove, finishEntityMove, onMarquee, transformGroup, goToTrupp, viewsApi, toggleViews, selected, undockTeam, setEntityDone, focusDrawing, noteEntity, pick, pickShape, moveLiveOnSheet }
+  return { deleteGroup, deleteEntity, placed, goToModule, finishSelection, onMapClick, placePumpSymbols, startEntityMove, streamEntityMove, finishEntityMove, onMarquee, transformGroup, goToTrupp, viewsApi, toggleViews, selected, undockTeam, setEntityDone, focusDrawing, noteEntity, pick, pickShape, moveLiveOnSheet }
 }

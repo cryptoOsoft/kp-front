@@ -1,0 +1,27 @@
+/* The Wassertransport's pumps and source letter on the map (RelayPumpMarkers.tsx). The pump hue
+   is the one WaterRelay.module.css mixes for the chart — from tokens, so it follows the theme. */
+
+/* a 44px target around a 28px disc: the disc is what the eye finds, the rest is for the glove */
+.pump {
+  --wt-pump: color-mix(in srgb, var(--red) 55%, var(--amber));
+  position: relative; isolation: isolate;
+  display: grid; place-items: center; width: var(--tap); height: var(--tap); padding: 0;
+  border: 0; background: transparent; cursor: grab; touch-action: none; -webkit-tap-highlight-color: transparent;
+  font: var(--fw-heavy) var(--fs-micro) var(--body); color: var(--on-fill);
+}
+.pump::before {
+  content: ''; position: absolute; z-index: -1; width: 28px; height: 28px; border-radius: 50%; box-sizing: border-box;
+  background: var(--wt-pump); border: 2.5px solid var(--surface); box-shadow: var(--e2);
+}
+.pump:active { cursor: grabbing; }
+.pump:focus-visible { outline: 2px solid var(--blue); outline-offset: -6px; border-radius: 50%; }
+.sel::before { outline: 4px solid color-mix(in srgb, var(--wt-pump) 45%, transparent); }
+.pinned::before { border-color: var(--ink); }
+.low::before { background: var(--red-fill); }
+.static { cursor: pointer; }
+
+.source {
+  display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; box-sizing: border-box;
+  background: var(--red-fill); color: var(--on-fill); border: 2px solid var(--surface); box-shadow: var(--e2);
+  font: var(--fw-heavy) var(--fs-micro) var(--body); pointer-events: none;
+}

@@ -102,6 +102,8 @@ export interface MapDetailPanelsProps {
   isVisible: (id: LayerId) => boolean
   toggleLayer: (id: LayerId) => void
   deleteDrawing: (id: string) => Promise<void>
+  /** a Wassertransport's pumps put on the Karte as Motorspritzen (useMapActions · placePumpSymbols) */
+  placePumpSymbols: (coords: LngLat[]) => void
 }
 
 export function MapDetailPanels({
@@ -115,7 +117,7 @@ export function MapDetailPanels({
   selectedDrawingId, patchDrawingLabelLive, commitDrawingLabel,
   changeMapEnding, reverseDrawing, setDrawingWallRole, objects, syncLineNoToTrupp, pickablePersonnel, linkTruppLine,
   unlinkLine, setSelectedDrawingId, setMode, setPanel, setGpsRouting, revertAll, gpsEndOf, releaseHere,
-  releaseOnSite, setDrawingAttachment, focusEntity, isVisible, toggleLayer, deleteDrawing,
+  releaseOnSite, setDrawingAttachment, focusEntity, isVisible, toggleLayer, deleteDrawing, placePumpSymbols,
 }: MapDetailPanelsProps) {
   // a Rechteck's figures, for its panel — editable or read-only alike
   const shapeFigures = selected?.kind === 'shape' && selected.shape === 'square' ? (() => {
@@ -376,6 +378,8 @@ export function MapDetailPanels({
 
       {detailSlotFree && tool === 'select' && selectedDrawing && (
         <DrawEditor
+          // a fresh editor per line: its local state (the Wassertransport added or not) is the line's
+          key={selectedDrawing.id}
           drawing={selectedDrawing}
           pointCount={selectedDrawing.coords.length}
           // locked: the panel keeps the numbers (Länge, Höhenprofil, Fläche) and the
@@ -407,6 +411,17 @@ export function MapDetailPanels({
           onReverse={tacticalLocked ? undefined : () => reverseDrawing(selectedDrawing.id)}
           // a Wand is layout, not a hose: no Typ, no Leitung Nr., no Trupp (types · Drawing.role)
           onContent={selectedDrawing.role ? undefined : (content) => patchDrawing({ content })}
+          // the Leitung's Ø and its Wassertransport (components/WaterRelay) — a hose's, not a Wand's.
+          // Plain prop edits through the one patch path: one undo step each; the Verlauf names a
+          // new Schlauch and stays quiet on the planning tweaks (lib/drawingEdit).
+          onHose={selectedDrawing.role ? undefined : (hose) => patchDrawing({ hose })}
+          waterRelay={selectedDrawing.kind === 'line' && !selectedDrawing.role
+            ? {
+              // the hose comes along when the Ø changes, in the same edit (DrawEditor · Schlauch)
+              onChange: tacticalLocked ? undefined : (patch) => patchDrawing(patch),
+              onPlacePumps: tacticalLocked ? undefined : placePumpSymbols,
+            }
+            : undefined}
           // the anchored Trupp carries a COPY of the number (the AS chip prints it), so a
           // renumbered hose renumbers the Trupp too (useTruppActions · syncLineNoToTrupp)
           onLineNo={selectedDrawing.role ? undefined : (lineNo) => { patchDrawing({ lineNo }); syncLineNoToTrupp(selectedDrawing.id, lineNo) }}

@@ -15,6 +15,7 @@ import { boardPts, endTagText, placeEndTag, tagSize } from '../lib/endTagSpots'
 import { truppForLine, truppLineTone } from '../lib/truppLines'
 import { arrowTipLeadPx } from '../lib/lineAttachments'
 import { fmtDistance, hoseLengthHint } from '../lib/geo'
+import { hoseLines } from '../lib/hydraulics'
 
 const COLORS = appConfig.drawing.colors
 interface Props {
@@ -82,7 +83,7 @@ export function PlanLineDecor({ a, sW, sH, mapY, onSection, trupps, truppSeverit
   const lineTone = lineTrupp ? truppLineTone(lineTrupp, truppSeverities?.[lineTrupp.id] ?? 0) : 'idle'
   const distM = a.showDistance ? planMetres(a.pts!.map(([x, y]) => [x, y])) : null
   const labelLines: string[] = []
-  if (distM != null) labelLines.push(`${fmtDistance(distM)} · ${hoseLengthHint(distM)}`)
+  if (distM != null) labelLines.push(`${fmtDistance(distM)} · ${hoseLengthHint(distM, hoseLines(a.hose))}`)
   else if (a.showDistance) labelLines.push(appConfig.copy.whiteboard.scale.needsCalibration)
   if (a.label) labelLines.push(a.label)
   return (

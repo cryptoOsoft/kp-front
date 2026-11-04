@@ -189,6 +189,7 @@ export const editorsCopy: Localizable<Pick<Copy, Keys>> = {
     reverse: 'Reverse direction',
     content: 'Type',
     contentPlain: 'Water',
+    hose: 'Hose',
     lineNo: 'Line no.',
     lineNoDuplicate: 'Line {n} already exists here',
     trupp: 'Belongs to team',

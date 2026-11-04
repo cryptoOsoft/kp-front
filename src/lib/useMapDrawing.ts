@@ -1,6 +1,7 @@
 import { type SetStateAction, useRef, useState } from 'react'
 import { appConfig } from '../config/appConfig'
 import { detachDrawings, flipLine, wireFreed, withDetach } from './lineAttachments'
+import { flippedRelay } from './hydraulics'
 import { drawingEditChanges, drawingLogName } from './drawingEdit'
 import type { Doc } from './workspace'
 import type { Drawing, LineAttachment, LineEndpoint, LngLat, MapTool, TimelineEvent } from '../types'
@@ -118,12 +119,14 @@ export function useMapDrawing(deps: MapDrawingDeps) {
   // create a line from a finished path (freehand stroke OR node-tapped draft), seeded from the
   // sticky style above. EVERY finished line one-shots to Select with the new line active, so
   // its detail editor opens right away for post-draw tweaks — no extra click needed.
-  const createLine = (coords: LngLat[], attachments?: { startAttachment?: LineAttachment; endAttachment?: LineAttachment }, opts?: { select?: boolean }): Drawing | null => {
+  // `props`: a line adopted from Messen carries its Wassertransport (hose + relay) along
+  const createLine = (coords: LngLat[], attachments?: { startAttachment?: LineAttachment; endAttachment?: LineAttachment }, opts?: { select?: boolean; props?: Pick<Drawing, 'hose' | 'relay'> }): Drawing | null => {
     if (tacticalLocked) return null // the funnel every finished line goes through — same guard as the edit handlers
     const id = newId('d')
     const drawing: Drawing = {
       id, kind: 'line', coords, color: drawColor, width: drawWidth, dashed: drawDashed || undefined,
       ...(drawMarker ? { marker: drawMarker } : {}), ...(drawArrow ? { arrow: true } : {}), ...attachments,
+      ...(opts?.props?.hose ? { hose: opts.props.hose } : {}), ...(opts?.props?.relay ? { relay: opts.props.relay } : {}),
     }
     commit((d) => ({ ...d, drawings: [...d.drawings, drawing] }))
     // named by drawingLogName, so «Rettungsachse gezeichnet» opens what «Rettungsachse gelöscht»
@@ -364,7 +367,9 @@ export function useMapDrawing(deps: MapDrawingDeps) {
     const lines = drawings.filter((d) => d.kind === 'line' && d.coords.length >= 2)
       .map((d) => ({ id: d.id, points: d.coords, startAttachment: d.startAttachment, endAttachment: d.endAttachment }))
     const flip = flipLine({ id, points: dr.coords, startAttachment: dr.startAttachment, endAttachment: dr.endAttachment }, lines)
-    const patch: Partial<Drawing> = { coords: flip.points, startAttachment: flip.startAttachment, endAttachment: flip.endAttachment, endLabelAt: undefined }
+    // a Wassertransport keeps its water source at the same physical end (lib/hydraulics · flippedRelay)
+    const patch: Partial<Drawing> = { coords: flip.points, startAttachment: flip.startAttachment, endAttachment: flip.endAttachment, endLabelAt: undefined,
+      ...(dr.relay ? { relay: flippedRelay(dr.relay) } : null) }
     commit((d) => ({ ...d, drawings: d.drawings.map((x) => {
       if (x.id === id) return { ...x, ...patch }
       const mine = flip.incoming.filter((i) => i.lineId === x.id)

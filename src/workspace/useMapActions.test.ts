@@ -5,6 +5,9 @@ import { useMapActions, type UseMapActionsInputs } from './useMapActions'
 import { replayEmits } from '../lib/replay.test-utils'
 import type { Doc } from '../lib/workspace'
 import type { Drawing, Entity, LineAttachment } from '../types'
+import { RELAY_PUMP_SYMBOL } from '../lib/hydraulics'
+import { fillTemplate } from '../lib/format'
+import { appConfig } from '../config/appConfig'
 
 vi.mock('../lib/ui', () => ({ toast: vi.fn(), confirmDialog: vi.fn(async () => true), undoToast: vi.fn() }))
 
@@ -72,5 +75,31 @@ describe('delete — replay clears the freed ends\' attachments', () => {
     const [replayed] = (await replayEmits({ entities, drawings }, given.emit.mock.calls)).drawings
     expect(replayed).not.toHaveProperty('startAttachment')
     expect(replayed).not.toHaveProperty('endAttachment')
+  })
+})
+
+// «Pumpen als Symbole setzen» (components/WaterRelay): every pump of the relay as a Motorspritze in
+// ONE undo step and ONE Verlauf row – but an `entity.add` each, so sync and replay see them all.
+describe('placePumpSymbols', () => {
+  it('one commit, one Verlauf row, an entity.add per pump – and replay has them all', async () => {
+    const { deps, given, live } = makeDeps([], [])
+    Object.assign(given, { sym: { symbols: [] } })
+    const { result } = renderHook(() => useMapActions(deps))
+    act(() => result.current.placePumpSymbols([[1, 1], [2, 2]]))
+    expect(given.commit).toHaveBeenCalledTimes(1)
+    expect(live().entities.map((e) => [e.symbol, e.coord])).toEqual([[RELAY_PUMP_SYMBOL, [1, 1]], [RELAY_PUMP_SYMBOL, [2, 2]]])
+    expect(given.log).toHaveBeenCalledTimes(1)
+    expect(given.log.mock.calls[0][1]).toBe(fillTemplate(appConfig.copy.log.pumpsPlaced, { n: 2 }))
+    expect(given.emit.mock.calls.map(([op]) => op)).toEqual(['entity.add', 'entity.add'])
+    const replayed = await replayEmits({ entities: [] }, given.emit.mock.calls)
+    expect(replayed.entities).toHaveLength(2)
+  })
+
+  it('places nothing on a locked surface', () => {
+    const { deps, given } = makeDeps([], [])
+    Object.assign(given, { tacticalLocked: true, sym: { symbols: [] } })
+    const { result } = renderHook(() => useMapActions(deps))
+    act(() => result.current.placePumpSymbols([[1, 1]]))
+    expect(given.commit).not.toHaveBeenCalled()
   })
 })

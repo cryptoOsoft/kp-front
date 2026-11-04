@@ -92,6 +92,12 @@ describe('projection ⇄ bake are inverse', () => {
     expect(back).toMatchObject({ lineNo: 2, content: 'S', teilstueck: true })
   })
 
+  it('…and a Leitung keeps its hose and Wassertransport across (the sheet only carries them)', () => {
+    const relay = { flow: 1200, source: 'weier' as const, pumps: [null, { atM: 420, bar: 8 }] }
+    const o = drawn({ id: 'l2', kind: 'line', coords: [coordEast(10), coordEast(60)], hose: '2x75', relay })
+    expect(roundTrip(o).drawing).toMatchObject({ hose: '2x75', relay })
+  })
+
   it('…and a Wand drawn on the Karte stays a Wand on the sheet and back (sweep 28.10.2026)', () => {
     const o = drawn({ id: 'w1', kind: 'line', coords: [coordEast(10), coordEast(60)], role: 'wand' })
     expect(roundTrip(o).drawing?.role).toBe('wand')

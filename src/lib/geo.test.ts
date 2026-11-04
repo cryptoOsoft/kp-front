@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { bboxSizeM, fmtArea, fmtDistance, fmtLV95, haversineM, hoseCount, hoseLengthHint, lv95ToWgs84, polygonAreaM2, wgs84ToLV95 } from './geo'
+import { bboxSizeM, distanceAlongPath, fmtArea, fmtDistance, fmtLV95, haversineM, hoseCount, hoseLengthHint, lv95ToWgs84, pathLengthM, pointAlongPath, polygonAreaM2, wgs84ToLV95 } from './geo'
+import type { LngLat } from '../types'
 import { applyLocale } from '../config/copy'
 
 describe('wgs84ToLV95', () => {
@@ -86,12 +87,43 @@ describe('hoseCount', () => {
     expect(hoseCount(20)).toBe(2)   // 20·1.1 = 22 → 1.1 → 2
     expect(hoseCount(0)).toBe(0)
   })
+
+  it('counts both hoses of a double line («2× 75»)', () => {
+    expect(hoseCount(100, 2)).toBe(12)
+  })
+})
+
+// a pump at «420 m» on the map and back (lib/hydraulics · the relay pumps)
+describe('pointAlongPath / distanceAlongPath', () => {
+  const path: LngLat[] = [[7.55, 47.5], [7.56, 47.5], [7.56, 47.51]]
+  const legA = haversineM(path[0], path[1])
+
+  it('walks the polyline, into the second segment and clamped at both ends', () => {
+    const inSecond = pointAlongPath(path, legA + 100)
+    expect(inSecond[0]).toBeCloseTo(7.56, 9)
+    expect(haversineM(path[1], inSecond)).toBeCloseTo(100, 0)
+    expect(pointAlongPath(path, -50)).toEqual(path[0])
+    expect(pointAlongPath(path, 1e9)).toEqual(path[2])
+  })
+
+  it('finds the metres along the line of a point beside it — the inverse of the walk', () => {
+    for (const d of [0, 250, legA, legA + 300]) {
+      expect(distanceAlongPath(path, pointAlongPath(path, d))).toBeCloseTo(d, 0)
+    }
+    // dragged 20 m off the first leg, it still lands on that leg's metre
+    const beside: LngLat = [pointAlongPath(path, 300)[0], 47.5 + 20 / 110540]
+    expect(distanceAlongPath(path, beside)).toBeCloseTo(300, 0)
+    expect(distanceAlongPath(path, [7.6, 47.6])).toBeCloseTo(pathLengthM(path), 0)
+  })
 })
 
 describe('hoseLengthHint', () => {
   it('formats the hose count incl. the reserve', () => {
     expect(hoseLengthHint(100)).toBe('~6 Schläuche')
     expect(hoseLengthHint(0)).toBe('~0 Schläuche')
+  })
+  it('counts both lines of a «2× 75»', () => {
+    expect(hoseLengthHint(100, 2)).toBe('~12 Schläuche')
   })
 })
 
