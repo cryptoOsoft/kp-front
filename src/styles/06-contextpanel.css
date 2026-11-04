@@ -689,6 +689,13 @@ span.jr-rem { cursor: default; }
      so a flick that reaches this box's end stops there instead of carrying on into the log. */
   flex: none; max-height: 45%;
   overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-gutter: stable; }
+/* «there is more below»: the foot of the box fades the row it cuts, the twin of the heading's fade
+   above. Sticky to the box's own scrollport, so it rides the bottom edge; at the end of the list it
+   lies over the box's padding only. Without it the box ended on a row sliced through its letters
+   and read as complete (hill climb, 04.11.2026). */
+.jr-pinned::after { content: ""; flex: none; position: sticky; bottom: -8px; z-index: 2;
+  height: var(--sp-5); margin-top: calc(-1 * var(--sp-5)); pointer-events: none;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--jr-pinned-bg) 0%, transparent), var(--jr-pinned-bg)); }
 /* …and the heading stays put while the items scroll UNDER IT, inside this box: sticky is bounded
    by its own scrollport, so it rides the box and never reaches the log below. It carries the
    count, which is the one thing you need while looking for the row you want. `--jr-pinned-bg`
@@ -729,7 +736,10 @@ span.jr-rem { cursor: default; }
 /* a hairline between items — with several Meldungen hanging under one of them, «where does this
    item end» stopped being obvious from spacing alone. Not after the last one, and not on a row
    whose own tint already separates it. */
-.jr-pinned-row + .jr-pinned-row { box-shadow: 0 -1px 0 var(--amber-22); }
+/* A straight rule inset to the text, not a box-shadow: on the row's rounded corners the shadow
+   curled up at both ends and every row read as its own outlined card (hill climb, 04.11.2026). */
+.jr-pinned-row + .jr-pinned-row::before { content: ""; position: absolute; left: 9px; right: 9px; top: 0;
+  height: 1px; background: var(--amber-22); pointer-events: none; }
 /* dringend is RED, not a red hairline. A 3px edge on an amber block is a detail you find after
    you have already read the row — the point of the flag is that you read this row FIRST. So the
    whole row carries the tint and the time turns red with it. */

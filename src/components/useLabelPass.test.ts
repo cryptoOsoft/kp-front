@@ -10,7 +10,7 @@ const px = ([lng, lat]: LngLat) => ({ x: lng * 1000, y: lat * 1000 })
 const scene = (over: Partial<LabelPassScene>): LabelPassScene => ({
   initialCenter: [0, 0], entities: [], isVisible: () => true, zoom: 18, symMul: 1, captionMode: 'all',
   selectedId: null, selectedEntityIds: [], teamLines: new Map(), drawingsVisible: true,
-  lineDecor: [], drawLabels: [], circleLabels: [], selectedDrawingId: null, storedDrawings: [], ...over,
+  lineDecor: [], drawLabels: [], circleLabels: [], selectedDrawingId: null, storedDrawings: [], hiddenTrails: new Set(), ...over,
 })
 
 describe('mapLabelDecisions — a Trupp\'s name is never the one that yields', () => {
@@ -49,5 +49,19 @@ describe('mapLabelDecisions — Leitung end tags', () => {
 
   it('hidden drawings take no part in the pass', () => {
     expect(mapLabelDecisions(px, scene({ lineDecor, drawingsVisible: false })).size).toBe(0)
+  })
+})
+
+describe('mapLabelDecisions — a trail\'s times', () => {
+  // three crumbs 5 px apart: their times would stack into one pile
+  const trupp: Entity = { id: 'T', kind: 'team', layer: 'taktisch', coord: [0.5, 0.5], label: 'Trupp Meier',
+    trail: [{ coord: [0, 0], t: '15:02' }, { coord: [0, 0.005], t: '15:07' }, { coord: [0, 0.2], t: '15:15' }] }
+
+  it('a time that would cover a newer one is dropped; the newest of a pile stands', () => {
+    expect(mapLabelDecisions(px, scene({ entities: [trupp] }))).toEqual(new Set(['crumb:T:0']))
+  })
+
+  it('a hidden trail books nothing', () => {
+    expect(mapLabelDecisions(px, scene({ entities: [trupp], hiddenTrails: new Set(['T']) })).size).toBe(0)
   })
 })

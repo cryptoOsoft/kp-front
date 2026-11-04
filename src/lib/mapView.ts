@@ -73,6 +73,11 @@ export const SYM_PILL_STYLE = { font: '700 11px "Spline Sans Mono", ui-monospace
 export const SYM_CAPTION_GAP = 4
 /** `.measure-label.draw-label` (11-measure.css) — 700 --fs-micro mono, never wraps, 2px/8px padding, line-height 1.25 */
 export const READOUT_LABEL_STYLE = { font: '700 11px "Spline Sans Mono", ui-monospace, monospace', maxTextW: Infinity, chromeW: 16, chromeH: 4, lineH: 13.75 }
+/** `.map-trail-dot i` (09-whiteboard.css) — a breadcrumb's time: 700 --fs-micro mono, 1px/4px
+ *  padding, line-height 1.25, hung CRUMB_LABEL_DX right of the coordinate (12px off the 9px dot's
+ *  left edge, the dot centred on the point). */
+export const CRUMB_LABEL_STYLE = { font: '700 11px "Spline Sans Mono", ui-monospace, monospace', maxTextW: Infinity, chromeW: 8, chromeH: 2, lineH: 13.75 }
+export const CRUMB_LABEL_DX = 12 - 9 / 2
 /** `.line-end-tag` (09-whiteboard.css) — 800 --fs-micro/1, 2px/4px padding plus a 1.5px border; `inline-grid` stacks the Trupp row */
 export const END_TAG_LABEL_STYLE = { font: '800 11px Sora, system-ui, sans-serif', maxTextW: Infinity, chromeW: 11, chromeH: 7, lineH: 11 }
 /** the whole resting strip's width: [dot][gap][name]. ⚠️ No Leitung field any more (11.10.2026,

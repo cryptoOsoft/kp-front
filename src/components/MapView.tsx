@@ -822,7 +822,7 @@ export const MapView = forwardRef<MapRef, MapViewProps>(function MapView(props, 
   // ── ONE label pass for the whole map (components/useLabelPass) ──
   const { suppressedLabels, bumpLabelFrame } = useLabelPass(mapInst, {
     initialCenter, entities, isVisible, zoom, symMul, captionMode, selectedId, selectedEntityIds, teamLines,
-    drawingsVisible, lineDecor, drawLabels, circleLabels, selectedDrawingId, storedDrawings,
+    drawingsVisible, lineDecor, drawLabels, circleLabels, selectedDrawingId, storedDrawings, hiddenTrails,
   }, onCaptionSuppressionChange)
 
   // the draft outline/fill; its vertices render as draggable Markers (not circles) below
