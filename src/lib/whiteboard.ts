@@ -47,6 +47,11 @@ export const SIDE_INSET_L = 88
 /** the Gebäude's Messungen column (ReadingParts · StackReadings, 09-whiteboard `.wb-readings`): its
  *  252px + the 16px gap to the stack, kept free left of the stack while a Messpunkt is on it */
 export const STACK_READINGS_LANE = 268
+/** the Gebäude's storey-label gutter (09-whiteboard `.wb-floor-label`, `--wb-label-lane`): every
+ *  storey's «3. OG ⌄» stands in this lane LEFT of the stack, so nothing drawn on a storey can cover
+ *  it (hill climb r3, 04.11.2026 – a note hid «EG»). The fit keeps it free; the board's coordinate
+ *  space does not move, the lane is outside it. */
+export const STACK_LABEL_LANE = 64
 export const SIDE_INSET_R = 92
 /**
  * No side rails on a phone — they are the two stacked bottom bars there.

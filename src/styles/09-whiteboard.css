@@ -312,16 +312,15 @@
 
 /* floor-stack ("Gebäude" doc) — a vertical stack of footprint sheets. Each tile
    sized inline (top/height/width in board px); the footprint is contained at its
-   true aspect, with a corner storey label. */
+   true aspect, with its storey label in the gutter left of the stack. */
 /* the line between two storeys is INK-derived, not a frozen slate: frozen, it vanished into the
    night board (--board-bg #1c2330) and the stack read as one tall sheet. SOLID since 04.11.2026:
    the faint dash still let neighbouring storeys run together at night. */
-/* ⚠️ ONE left inset for the whole stack (18.09.2026). The header label and the folded strip used
-   to carry their own paddings (10+9px vs 12px), so a folded storey's chip sat visibly out of the
-   column its neighbours above and below formed. Both read this one value now, and the header's
-   soft plate bleeds by its own padding so that the CHIP — not the plate — stands on the inset.
-   The strip's right-hand action uses the same value on the other side. */
-.wb-board { --wb-floor-inset: 12px; --wb-floor-plate-pad: 4px; }
+/* `--wb-floor-inset`: the folded strip's left and right padding inside the stack.
+   `--wb-floor-plate-pad`: the storey label plate's padding.
+   `--wb-label-lane`: the storey-label gutter left of the stack (= lib/whiteboard · STACK_LABEL_LANE,
+   which the fit keeps free). */
+.wb-board { --wb-floor-inset: 12px; --wb-floor-plate-pad: 4px; --wb-label-lane: 64px; }
 /* `container-type: inline-size` makes the tile the query container for its own header: the board
    is zoomed by LAYOUT (the tile's width is set in rendered px), so the tile's inline size IS the
    rendered width — nothing is counter-scaled and no viewport media query could see it. */
@@ -349,10 +348,18 @@
 .wb-floor-noplan { font: var(--fw-medium) var(--fs-2) var(--body); fill: var(--ink-faint); }
 /* Preserve the drawing's footprint while Shell trail reports the pending raster. */
 .wb-floor-page-wait { fill: var(--ink-5); }
-.wb-floor-label { position: absolute; top: 8px; left: calc(var(--wb-floor-inset) - var(--wb-floor-plate-pad)); display: flex; align-items: center; gap: var(--sp-2); z-index: 1;
+/* The storey label stands OUTSIDE its tile, right-aligned in the gutter left of the stack, level
+   with the storey's top (hill climb r3, 04.11.2026). On the tile a note dropped in the middle hid
+   «EG» completely and a symbol crowded «3. OG». The tile is still its parent, so it rides the
+   storey's top and the zoom; a longer custom name simply grows further left. A compact surface
+   plate, because it stands on the stage now.
+   z 4: above a resting anno (z 3) that still hangs out into the gutter – a wide stack note does, on
+   a phone – so the storey's name always wins; under a selected one (z 6), which is being moved. */
+.wb-floor-label { position: absolute; top: var(--sp-2); right: calc(100% + var(--sp-2)); display: flex; align-items: center; gap: var(--sp-1); z-index: 4;
   flex-wrap: nowrap; white-space: nowrap;
   font-family: var(--body); font-weight: var(--fw-bold); font-size: var(--fs-2); line-height: 1; color: var(--ink);
-  background: var(--label-soft); border-radius: var(--r-xs); padding: var(--wb-floor-plate-pad); user-select: none; -webkit-user-select: none; }
+  background: var(--surface); box-shadow: inset 0 0 0 1px var(--border); border-radius: var(--r-xs);
+  padding: var(--wb-floor-plate-pad); user-select: none; -webkit-user-select: none; }
 /* The label IS the storey's door (29.09.2026, sweep K5): a tap opens «Ausblenden · Geschoss
    entfernen» (Whiteboard · the storey Menu). The per-storey eye and the red bin in the tile's
    corner left the canvas — delete is the rarest act on this surface and was its loudest shape,
@@ -360,9 +367,8 @@
    says it opens something, and its hit area grows to --tap past the 21px plate (the eye's pad). */
 /* ⚠️ z 6 – but only while a create tool's capture layer (.wb-ink, z 5) is mounted: with the Wand
    armed – and it stays armed – a click on the label went to the ink, so «Kopieren nach …» was out
-   of reach with a mouse (round 2, 27.10.2026). Otherwise the plate keeps its z 1, under the sheet's
-   symbols and their names: lifted always, its plate covered a neighbouring symbol's label («Druck»,
-   the plan-tablet baseline, 28.10.2026). Still under a selected anno (also z 6, later in the board). */
+   of reach with a mouse (round 2, 27.10.2026). Still under a selected anno (also z 6, later in the
+   board). */
 .wb-floor-menu { border: none; cursor: pointer; }
 .wb-stage:has(.wb-ink) .wb-floor-menu { z-index: 6; }
 .wb-floor-menu::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: var(--tap); transform: translateY(-50%); }
@@ -373,7 +379,7 @@
 .wb-floor-menu:active { background-image: linear-gradient(var(--press), var(--press)); }
 .wb-floor-menu[data-popup-open] { color: var(--ink); }
 /* (the top storey's label no longer steps down out from under «+ OG»: the pill stands outside
-   the stack now, so every storey's label keeps the same inset — hill climb r1, 04.11.2026) */
+   the stack, centred, so it never meets the gutter — hill climb r1, 04.11.2026) */
 /* …and what it leaves behind: a strip where the storey belongs, which says what it is and how to
    get it back. Sits at the seam between the two drawn tiles, so the stack still reads in order. */
 /* ⚠️ ONE line, whatever the strip is wide (18.09.2026). The row is as wide as the sheet, which on
@@ -431,8 +437,9 @@
 
 /* the Gebäude's Messungen (ReadingParts · StackReadings, owner pick W2 27.10.2026): a column left of
    the stack, each storey's card at its own storey's height, inside the board so it pans and zooms
-   with the paper. 252px + the 16px gap = STACK_READINGS_LANE, which the fit keeps free. */
-.wb-readings { position: absolute; top: 0; bottom: 0; right: calc(100% + var(--sp-4)); width: 252px; z-index: 8; pointer-events: none; }
+   with the paper. 252px + the 16px gap = STACK_READINGS_LANE, which the fit keeps free – beyond the
+   storey-label gutter (`--wb-label-lane`). */
+.wb-readings { position: absolute; top: 0; bottom: 0; right: calc(100% + var(--wb-label-lane) + var(--sp-4)); width: 252px; z-index: 8; pointer-events: none; }
 .wb-readings section { position: absolute; left: 0; right: 0; overflow-y: auto; padding: var(--sp-1) 0;
   border-radius: var(--r-sm); background: var(--glass); border: 1px solid var(--glass-line); box-shadow: var(--e3); pointer-events: auto; }
 .wb-readings h4 { margin: 0; padding: var(--sp-1) var(--sp-3); font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-faint); }
