@@ -708,7 +708,7 @@ span.wb-ghost-label { cursor: default; }
 /* ⚠️ held to lib/mapView · CRUMB_LABEL_STYLE (the label pass books this box before it is drawn,
    and drops the time when it would cover another label – mapView.labelCss.test.ts) */
 .map-trail-dot i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-family: var(--mono); font-style: normal;
-  font-size: var(--fs-1); font-weight: var(--fw-bold); line-height: 1.25; color: var(--ink); background: var(--label-bg); border-radius: var(--r-xs); padding: 2px var(--sp-1);
+  font-size: var(--fs-1); font-weight: var(--fw-bold); line-height: 1.25; color: var(--ink); background: var(--label-bg); border-radius: var(--r-xs); padding: 2px var(--sp-2);
   white-space: nowrap; box-shadow: var(--label-plate); }
 /* a selected team marker on the map rings its pill like the plan board's selection */
 .marker.sel .wb-resource-pill { box-shadow: 0 0 0 2px var(--team), var(--e2); }
@@ -717,7 +717,7 @@ span.wb-ghost-label { cursor: default; }
 .team-dot i { width: 13px; height: 13px; border-radius: 50%; background: var(--team);
   border: 2px solid #fff; box-shadow: var(--e1); flex: none; }
 .team-dot b { font-size: var(--fs-1); font-weight: var(--fw-bold); line-height: 1.25; color: var(--ink); background: var(--label-bg);
-  border-radius: var(--r-xs); padding: 2px var(--sp-1); white-space: nowrap; box-shadow: var(--label-plate); }
+  border-radius: var(--r-xs); padding: 2px var(--sp-2); white-space: nowrap; box-shadow: var(--label-plate); }
 .team-dot.raus { opacity: var(--done-opacity); }
 .team-dot.raus b { text-decoration: line-through; }
 .wb-resource-input { border: none; outline: none; background: var(--blue-8); border-radius: var(--r-xs); font-family: var(--body);

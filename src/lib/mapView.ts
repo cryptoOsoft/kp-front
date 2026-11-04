@@ -57,9 +57,10 @@ export const TEAM_DOT_GAP = 8
 export const TEAM_PILL_CAP_PX = 11
 /** `.team-link` + its gap — the «angedockt» glyph at the right end of the same strip. */
 /** the resting strip's name chip, as the label pass measures it (`.team-dot b` – 700 12.5px
- *  Sora, 2px/4px padding, line-height 1.25). ONE definition: MapView books the box with it and
+ *  Sora, 2px/8px padding – the measure label's, every one-line plate's since hill climb r6 –,
+ *  line-height 1.25). ONE definition: MapView books the box with it and
  *  MapMarkers centres a docked strip with it, so the two can never disagree. */
-export const TEAM_LABEL_STYLE = { font: '700 12.5px Sora, system-ui, sans-serif', maxTextW: Infinity, chromeW: 8, chromeH: 4, lineH: 15.625 }
+export const TEAM_LABEL_STYLE = { font: '700 12.5px Sora, system-ui, sans-serif', maxTextW: Infinity, chromeW: 16, chromeH: 4, lineH: 15.625 }
 /** The label-pass boxes of the other on-map labels, as their CSS draws them. ONE place, held to the
  *  CSS by mapView.labelCss.test.ts: a type step there (stage 2 took them 11.5 → 11px, the 4px grid;
  *  the hill climb took the names, captions, readouts and trail times up to --fs-1 12.5px, 04.11.2026,
@@ -75,10 +76,10 @@ export const SYM_PILL_STYLE = { font: '700 11px "Spline Sans Mono", ui-monospace
 export const SYM_CAPTION_GAP = 4
 /** `.measure-label.draw-label` (11-measure.css) — 700 --fs-1 mono, never wraps, 2px/8px padding, line-height 1.25 */
 export const READOUT_LABEL_STYLE = { font: '700 12.5px "Spline Sans Mono", ui-monospace, monospace', maxTextW: Infinity, chromeW: 16, chromeH: 4, lineH: 15.625 }
-/** `.map-trail-dot i` (09-whiteboard.css) — a breadcrumb's time: 700 --fs-1 mono, 2px/4px
+/** `.map-trail-dot i` (09-whiteboard.css) — a breadcrumb's time: 700 --fs-1 mono, 2px/8px
  *  padding, line-height 1.25, hung CRUMB_LABEL_DX right of the coordinate (12px off the 9px dot's
  *  left edge, the dot centred on the point). */
-export const CRUMB_LABEL_STYLE = { font: '700 12.5px "Spline Sans Mono", ui-monospace, monospace', maxTextW: Infinity, chromeW: 8, chromeH: 4, lineH: 15.625 }
+export const CRUMB_LABEL_STYLE = { font: '700 12.5px "Spline Sans Mono", ui-monospace, monospace', maxTextW: Infinity, chromeW: 16, chromeH: 4, lineH: 15.625 }
 export const CRUMB_LABEL_DX = 12 - 9 / 2
 /** `.line-end-tag` (09-whiteboard.css) — 800 --fs-micro/1, 2px/4px padding plus a 1.5px border; `inline-grid` stacks the Trupp row */
 export const END_TAG_LABEL_STYLE = { font: '800 11px Sora, system-ui, sans-serif', maxTextW: Infinity, chromeW: 11, chromeH: 7, lineH: 11 }
