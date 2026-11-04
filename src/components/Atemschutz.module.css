@@ -73,6 +73,11 @@
 @keyframes az-pulse-tile { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
 
 .body { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-gutter: stable; padding: var(--sp-4) var(--head-pad-x); }
+/* Touch (the tablet's grid): the cards start 8px under the head (hill climb r4, 04.11.2026 — on
+   the 1180×820 landscape iPad the second grid row's foot met the panel's bottom edge; this, the
+   12px grid gap and the card head's 4px top give the foot its air). Before the phone block
+   (`--phone` below), which keeps its own 12px. */
+@media (pointer: coarse) { .body { padding-top: var(--sp-2); } }
 
 .empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
   height: 100%; color: var(--ink-faint); text-align: center; }
@@ -94,6 +99,8 @@
    with at the same height. */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(288px, 1fr));
   gap: 16px; align-items: start; }
+/* touch: 12px between cards, the card's own side padding (see `.body` above) */
+@media (pointer: coarse) { .grid { gap: var(--sp-3); } }
 /* ⚠️ The «Raus»-Abschnitt this separated is GONE (17.08.) — a Trupp that came back keeps its slot
    on every screen size (see AtemschutzView · board). The rule is kept out of the sheet rather than
    left behind styling nothing. */
@@ -1639,12 +1646,16 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
    card drops its caption (RowLine · `headed`). The clock cell dissolves into the head's grid
    (`display: contents`) so the caption takes a row of its own across the whole head: its nowrap
    width never squeezes the name, and a name that wraps grows row 1 only. Row 1 is at least the
-   inside clock's 25px, so the names of a quiet out card and a running one line up across a grid row. */
-.grid .trowHeadStatic { grid-template-rows: minmax(25px, auto); }
+   inside clock's 25px, so the names of a quiet out card and a running one line up across a grid row.
+   Tight since hill climb r4 (04.11.2026, the tablet's second row lost its foot under the panel's
+   edge): 4px over the line — the 25px line box already holds ~4px of air over the digits, so they
+   stand ~8px under the card's top, as the caption stands 8px over the band's foot — and the caption
+   hangs straight under the digits, which have no descenders. */
+.grid .trowHeadStatic { grid-template-rows: minmax(25px, auto); padding-top: var(--sp-1); }
 .grid .trowHeadStatic .trowClock { display: contents; }
 .grid .trowHeadStatic .trowClockLine { grid-column: 2; grid-row: 1; }
 .grid .trowHeadStatic .trowSub { display: block; grid-column: 1 / -1; grid-row: 2; justify-self: end; line-height: 1;
-  margin-top: 2px; }
+  margin-top: 0; }
 .grid .trowHeadStatic .trowSub:empty { display: none; }
 /* ── Inside vs outside on the grid (hill climb r3, 04.11.2026) ───────────────────────────────────
    The out cards wore the strongest blocks (the filled «Wieder in den Einsatz», a surface lit at

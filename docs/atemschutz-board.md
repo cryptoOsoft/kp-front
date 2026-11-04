@@ -101,6 +101,12 @@ questions, and what the record keeps (`components/AtemschutzView`; the card and 
     clock; fällig / überfällig keep their own tones instead (amber wash, red edge — never the band).
     An out card sinks: its surface is mixed toward the canvas (it was mixed toward the ink, which
     lit it at night), its name is the dim ink and its clock the quiet 16px. Slots never move.
+  - *The tablet grid shows every foot* (hill climb r4, 04.11.2026): on the 1180×820 iPad the second
+    row's foot (duration, Schätzung) met the panel's bottom edge. The space came out of air, never a
+    target: the grid card's head starts 4px under the card's top and the caption hangs right under
+    the digits (every grid card, so names still line up across a row); on touch the board starts
+    8px under the page head and the cards sit 12px apart. Tiles, chips, their pads and the foot
+    line keep their heights.
 
 ## The Atemschutz-Link board (the handed-over phone board, `lite && compact`)
 
