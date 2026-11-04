@@ -20,15 +20,17 @@
    The head's controls used to be three recipes in one row — a red-FILLED alarm pill, framed
    squares (1px border), a light-filled «+ Trupp» — and the alarm chip was as loud as the alarm
    itself. Now every one of them is the phone card's tile (`.trowPressBtn` / `.trowCard .actBtn`):
-   44px, the one corner, ONE 1px inset edge, 800/14, meaning by text colour + a faint tint only.
-   The single primary action, «+ Trupp», is the one FILLED tile (ink fill, as the chip rows' «on»).
+   44px, the one corner, ONE 1px inset edge, 700/14, meaning by text colour + a faint tint only.
+   The single primary action, «+ Trupp», is the one FILLED tile (ink fill, as the chip rows' «on»)
+   and the one at 800 (the button spec: 800 only on a surface's single action — hill climb r1,
+   04.11.2026; the way-of-looking tiles at 800 out-shouted the cards under them).
    ⚠️ `--ink` + `--surface`, not `--btn-primary`: it reads right by night (a light pill, dark
    word). The sheet chips' «on» used to be this same fill; since 28.09.2026 they wear the blue
    choice fill (--sel), so an ACTION and a CHOSEN answer no longer look alike. */
 .headTile { flex: none; display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
   height: 44px; min-width: 44px; padding: 0 12px; border: none; cursor: pointer; border-radius: var(--r-sm);
   background: var(--surface); color: var(--ink-dim); box-shadow: inset 0 0 0 1px var(--glass-edge);
-  font: var(--fw-heavy) var(--fs-2) var(--body); white-space: nowrap; -webkit-tap-highlight-color: transparent; }
+  font: var(--fw-bold) var(--fs-2) var(--body); white-space: nowrap; -webkit-tap-highlight-color: transparent; }
 /* glyphs: one size, centred by the flex box — never a baseline-sensitive inline SVG */
 .headTile :global(.i) { flex: none; width: 17px; height: 17px; }
 .headTile:active:not(:disabled) { background-image: linear-gradient(var(--press), var(--press)); }
@@ -37,7 +39,7 @@
 /* «+ Trupp» — THE filled tile, in the app's one primary fill (01-tokens · --btn-primary). It was
    --ink until 23.10.2026: the glaring near-white at night that --btn-primary exists to avoid, so
    a routine «+ Trupp» outshone the overdue Trupps on the board. */
-.newBtn { composes: headTile; background: var(--btn-primary); color: var(--on-btn-primary); box-shadow: none; }
+.newBtn { composes: headTile; background: var(--btn-primary); color: var(--on-btn-primary); box-shadow: none; font-weight: var(--fw-heavy); }
 @media (hover: hover) { .newBtn:hover:not(:disabled) { color: var(--on-btn-primary); box-shadow: none; background: var(--btn-primary-hover); } }
 /* per-device alarm-sound toggle (visual alarm + wake-lock stay on either way) */
 .muteBtn { composes: headTile; }
@@ -127,6 +129,9 @@
    Sicherungstrupp zone's own 4px top / 18px bottom made two more numbers for one boundary. ONE
    adjacency rule, whichever sections happen to be on screen; the first one stays at the top. */
 .phoneBoard > * + :is(.sect, .safetyZone) { margin-top: var(--sp-5); }
+/* …and the wide grid under the same heads (AtemschutzView · `gridGrouped`, «Dringlichkeit» /
+   «Auftrag»): each section is one wrapper (head + grid), the same 24px between them. */
+.stateBoard > * + * { margin-top: var(--sp-5); }
 .sectEmpty { margin: 0; font-size: var(--fs-2); font-weight: var(--fw-medium); color: var(--ink-dim); }
 
 
@@ -313,8 +318,9 @@
 /* ── The lifecycle tiles (26.09.2026 evening on the phone, EVERY board since 29.09.2026) ─────────
    «Rückzug» | «Raus», «Im Einsatz», «Wieder in den Einsatz» — the second row of the card's tile
    grid, the same shape as «⌓ 240 bar | Kontakt» above them (`.trowPressBtn`, `.kontaktBtn`):
-   48px, the one corner, ONE 1px inset edge, 800/14. Four tiles under one clock are read as a
-   keypad, and a keypad has equal keys.
+   48px, the one corner, ONE 1px inset edge, 700/14 (the button spec's standard; 800 is Kontakt's
+   alone, the board's one action — hill climb r1, 04.11.2026). Four tiles under one clock are read
+   as a keypad, and a keypad has equal keys.
    ⚠️ The tablet's weights (04.09.: a loud amber-worded, framed «Rückzug melden» in `1fr` beside a
    ghost «Raus melden» in `auto`) went on 29.09.2026 (T11): amber means «warning», and on a Trupp
    at 300 bar nothing is wrong. Colour is state and nothing else — «Rückzug» turns amber only at or
@@ -325,7 +331,7 @@
 .actBtn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2); border: none; cursor: pointer;
   min-height: 48px; min-width: 0; padding: 0 12px; border-radius: var(--r-sm);
   background: var(--surface); box-shadow: inset 0 0 0 1px var(--glass-edge);
-  font: var(--fw-heavy) var(--fs-2) var(--body); color: var(--ink-dim); }
+  font: var(--fw-bold) var(--fs-2) var(--body); color: var(--ink-dim); }
 .actBtn :global(.i) { width: 16px; height: 16px; }
 /* press wash for the whole lifecycle row — every variant below rides on .actBtn */
 .actBtn:active:not(:disabled) { background-image: linear-gradient(var(--press), var(--press)); }
@@ -334,13 +340,19 @@
 .actRueckzug.actAlarm { color: var(--amber-strong);
   background: color-mix(in srgb, var(--amber) 10%, var(--surface));
   box-shadow: inset 0 0 0 1px var(--amber-45); }
-/* ⚠️ The card's ONE filled tile (27.09.2026, owner screenshot r2-1): «Wieder in den Einsatz» /
-   «In den Einsatz» on a Trupp that is out, «Im Einsatz» on one still waiting. In the tile family
+/* ⚠️ The card's ONE filled tile (27.09.2026, owner screenshot r2-1): «Im Einsatz» on a Trupp still
+   waiting — the next step of a crew at the door, so it keeps the primary's 800. In the tile family
    the one primary action is the filled tile («+ Trupp» in the head, `.newBtn`; «Anmelden» in
-   the form), never a green band — in the app's one primary fill (`--btn-primary`, dimmed at night). */
-.actEnter, .actReenter { color: var(--on-btn-primary); background: var(--btn-primary); box-shadow: none; }
+   the form), never a green band — in the app's one primary fill (`--btn-primary`, dimmed at night).
+   «Wieder in den Einsatz» / «In den Einsatz» on a Trupp that is OUT is a framed tile since the hill
+   climb r1 (04.11.2026): three filled slabs on the out cards outweighed the live contact clocks of
+   the crews inside, on the board whose question is «who is inside?». It is the plain `.actBtn`
+   in full ink — still the card's one action, no longer its loudest thing. */
+.actEnter { color: var(--on-btn-primary); background: var(--btn-primary); box-shadow: none; font-weight: var(--fw-heavy); }
+.actReenter { color: var(--ink); }
 @media (hover: hover) {
-  .actEnter:hover, .actReenter:hover { background: var(--btn-primary-hover); }
+  .actEnter:hover { background: var(--btn-primary-hover); }
+  .actReenter:hover { background: var(--fill-soft); }
 }
 /* (`.st-aktiv` … `.st-raus`, the tablet card's status TOP EDGE, went on 29.09.2026: the card's tone
    is the phone row's LEFT edge and wash by tier — `rowTone`, `.trowWarn` / `.trowCrit` / `.trowIdle`
@@ -1566,7 +1578,7 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 .trowIdle .trowClockVal { font-size: var(--fs-3); font-weight: var(--fw-bold); color: var(--ink-dim); }
 /* ── ONE tile family on the phone (26.09.2026 evening, phone card slim-down) ───────────────────
    The pressure tile, «Kontakt», «Rückzug» and «Raus» are one shape — 48px, the one corner, ONE
-   1px inset edge, 800/14 — laid as a 2×2 grid on the opened card (the pair, then `.actions`
+   1px inset edge, 14px; 800 for Kontakt, 700 for the rest (04.11.2026) — laid as a 2×2 grid on the opened card (the pair, then `.actions`
    under it with the same columns and gap) and as the pair alone on the closed row. Colour is
    state and nothing else: the Kontakt tile wears the tier (`.kontaktWarn` / `.kontaktCrit` over
    its calm green), «Rückzug» is amber only while the Trupp is at or under its Alarmdruck
@@ -1578,8 +1590,9 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 @media (hover: hover) { .trowPressBtn:hover { background: var(--fill-soft); } }
 /* the last reported bar on the pressure tile (TruppPair, 26.09.2026) — the band's pressure readout
    moved here, so the row and the opened card show it in one place. Mono like every bar on this
-   board; red at or under this Trupp's line, the colour the band's «Alarmdruck» wore. */
-.pairBar { font: var(--fw-heavy) var(--fs-2) var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+   board; red at or under this Trupp's line, the colour the band's «Alarmdruck» wore. 700, the
+   tiles' weight: 800 is Kontakt's alone (hill climb r1, 04.11.2026). */
+.pairBar { font: var(--fw-bold) var(--fs-2) var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .pairBarLow { color: var(--red-strong); }
 /* (…the second row of the grid, the lifecycle tiles, is `.actions` / `.actBtn` above — the base
    rules since 29.09.2026, when the tablet card took the phone's tiles.) */
@@ -1624,19 +1637,22 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; line-height: 1.2; }
 .trowCard > .trowActs { margin-top: var(--sp-2); }
 /* ── The facts as chips (26.09.2026 evening, phone card slim-down, ③ — TruppCard · facts) ────────
-   A wrapping strip of 36px chips: one 1px inset edge, the one corner, 700/12.5 ink, no colour —
-   the crew, «Löschen · Test», «Ltg 1», «Kanal 11», the Kürzel of the Ausrüstung, and the ⋯ last.
+   A wrapping strip of 36px chips: the crew, «Löschen · Test», «Ltg 1», «Kanal 11», the Kürzel of
+   the Ausrüstung. Each is the door to its sheet, but what it SHOWS is a fact, so it reads as a quiet
+   field, not as one more button (hill climb r1, 04.11.2026: framed 700 capsules under the framed
+   800 tiles made the card a wall of controls): no edge, a faint ink fill, the one corner, 500/12.5
+   ink, no colour. The tiles above stay the framed buttons.
    Rows sit 8px apart, so a chip plus its invisible 4px pad above and below is the 44px tap floor
    without two pads ever overlapping (the pad is a pseudo-element: it grows the hit area, not the
    drawn chip). The one colour is the gap's: a dashed amber «+ Auftrag». */
 .facts { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-3); }
 .fact { position: relative; display: inline-flex; align-items: center; gap: var(--sp-1); min-height: 36px; max-width: 100%;
-  min-width: 0; padding: 0 var(--sp-3); border: none; border-radius: var(--r-sm); background: transparent;
-  box-shadow: inset 0 0 0 1px var(--glass-edge); font: var(--fw-bold) var(--fs-1) var(--body); color: var(--ink);
+  min-width: 0; padding: 0 var(--sp-3); border: none; border-radius: var(--r-sm); background: var(--ink-5);
+  font: var(--fw-medium) var(--fs-1) var(--body); color: var(--ink);
   white-space: nowrap; text-align: left; }
 button.fact { cursor: pointer; }
 button.fact:active { background-image: linear-gradient(var(--press), var(--press)); }
-@media (hover: hover) { button.fact:hover { background: var(--fill-soft); } }
+@media (hover: hover) { button.fact:hover { background: var(--ink-8); } }
 @media (pointer: coarse) { button.fact::before { content: ''; position: absolute; inset: -4px -3px; } }
 .factTxt { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 /* the crew chip never ellipsises (31.10.2026, owner: «crew names must not be cut off»): every name
@@ -1648,7 +1664,7 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
 .crewName { white-space: nowrap; }
 .fact :global(.i) { width: 13px; height: 13px; flex: none; color: var(--ink-faint); }
 /* the missing Auftrag: dashed and amber, the one gap that stays visible on the card */
-.factDash { box-shadow: none; outline: 1.5px dashed color-mix(in srgb, var(--amber) 70%, transparent);
+.factDash { background: transparent; outline: 1.5px dashed color-mix(in srgb, var(--amber) 70%, transparent);
   outline-offset: -1.5px; color: var(--amber-strong); }
 /* a chip that JUMPS somewhere (the drawn Leitung, the docked symbol) keeps a small chevron, in the
    dim ink — NOT the Kennzeile's blue (owner review 27.09.2026): on the phone card no chip wears a

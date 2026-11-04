@@ -607,6 +607,17 @@ export function AtemschutzView({
   const phoneSafety = byHand(paBoard.filter((t) => t.status === 'angemeldet' && t.auftrag === 'sichern'))
   const phoneReady = byHand(paBoard.filter((t) => t.status === 'angemeldet' && t.auftrag !== 'sichern'))
   const phoneOut = byHand(paBoard.filter((t) => t.status === 'raus'))
+  /* ── The wide grid under its state heads, where the chosen order already reads that way ────────
+   * (hill climb r1, 04.11.2026). «Wie gesetzt» stays one slot-keeping grid: a card that jumps
+   * into «Draussen» the moment its Trupp comes out is what that mode exists to prevent (17.08.,
+   * 23.10.2026). «Dringlichkeit» and «Auftrag» are recomputed anyway and already put the crews
+   * inside first, so the grid stands under the phone's heads there — Drin · Bereit · Draussen,
+   * each in the order's own sequence (a stable split of `paBoard`, which is `board`'s order).
+   * «Name» stays an alphabet. Not on the handed-over Tafel (its arrangement is fixed). */
+  const gridGrouped = !compact && !lite && (order === 'dringlichkeit' || order === 'auftrag')
+  const gridIn = paBoard.filter((t) => t.status !== 'angemeldet' && t.status !== 'raus')
+  const gridReady = paBoard.filter((t) => t.status === 'angemeldet')
+  const gridOut = paBoard.filter((t) => t.status === 'raus')
   /* The Atemschutznotfall (F1, 08.10.2026): who is in one, and who can go in for them — the one
    * model of a READY Sicherungstrupp the board has (lib/atemschutz · safetyReady), in hand order.
    * A closed Einsatz shows none: its Tafel alarms nothing (R3). */
@@ -1040,8 +1051,8 @@ export function AtemschutzView({
       // …and the card's Druck is the same picker, on EVERY board since 29.09.2026 (the tablet's
       // ± stepper went with the tablet card — see TruppCard)
       onAskPressure={(id) => setPressureAsk({ id, kind: 'pressure' })}
-      // the phone board's section heads say Drin / Bereit / Draussen; everywhere else the card does
-      headed={phoneMode}
+      // the section heads say Drin / Bereit / Draussen (phone board, grouped grid); elsewhere the card does
+      headed={phoneMode || gridGrouped}
       onEdit={(focus) => openForm('edit', t, focus)} onReenter={() => openForm('redeploy', t)}
       onQuick={canEdit ? (kind) => setQuick({ id: t.id, kind }) : undefined}
       onDelete={deleteTrupp} onPlace={handlePlace} onShowPlan={focusTruppOnPlan}
@@ -1689,6 +1700,26 @@ export function AtemschutzView({
                 </div>
                 <div className={s.rowList}>{cards(plainBoard)}</div>
               </>
+            )}
+          </div>
+        ) : gridGrouped ? (
+          // the same heads and the same one air rule as the phone board (`.stateBoard`); an empty
+          // section is simply absent, the work squads keep their «Weitere Trupps» at the end
+          <div ref={listRef} className={s.stateBoard}>
+            {([[az.phoneSectionIn, gridIn], [az.phoneSectionReady, gridReady], [az.phoneSectionOut, gridOut]] as const).map(([title, list]) => list.length > 0 && (
+              <div key={title}>
+                <div className={s.sect}><span className={s.sectTitle}>{title}</span><span className={s.sectCount}>{list.length}</span></div>
+                <div className={s.grid}>{cards(list)}</div>
+              </div>
+            ))}
+            {plainBoard.length > 0 && (
+              <div>
+                <div className={s.sect}>
+                  <span className={s.sectTitle}><Icon id="people" />{az.sectionPlain}</span>
+                  <span className={s.sectCount}>{plainBoard.length}</span>
+                </div>
+                <div className={s.grid}>{cards(plainBoard)}</div>
+              </div>
             )}
           </div>
         ) : !sectioned ? (
