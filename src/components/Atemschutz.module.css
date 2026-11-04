@@ -1632,6 +1632,20 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 /* the tablet grid and the handed-over Tafel: every card stands open, nothing collapses — the same
    line without the toggle and its chevron track (TruppCard · `head`) */
 .trowHeadStatic { grid-template-columns: minmax(0, 1fr) auto; cursor: auto; }
+/* ── The FAB's column on the phone list (hill climb r5, 04.11.2026) ──────────────────────────────
+   The recording FAB floats at the list's bottom-right corner and stays there (settled, sweep16
+   #10), so whichever row rests in its band had the circle on its chevron and against its clock —
+   at scroll top that was the first «Draussen» row. Every phone line (the closed row's first line,
+   `.trowOne` / `.trowTwo`, and the opened card's head, which must not move when it opens) now
+   ends with the shared FAB reserve: the chevron's track grows by --fab-safe and the chevron sits
+   at its start, so clock and chevron always stand clear of the circle's column and the clock
+   column stays straight down the board. The tiles under the line still run the full width (their
+   words sit left of the circle). --fab-safe is 0 without a FAB (viewer, Tafel pur). */
+@media (--phone) {
+  .trow:is(.trowOne, .trowTwo), .rowList .trowHead:not(.trowHeadStatic) {
+    grid-template-columns: minmax(0, 1fr) auto calc(24px + var(--fab-safe, 0px)); }
+  .trow:is(.trowOne, .trowTwo) .trowChevron, .rowList .trowHead .trowChevron { justify-self: start; }
+}
 /* the crew line and the clock's caption stand on the wide ROW's tracks only (hidden ≤ 1023px): on
    a card the crew is the first chip. The phone's opened card keeps the caption hidden — its section
    heads say Drin / Draussen (owner 24.09.2026: «just the time») — but the wide grid's card names
@@ -1660,12 +1674,17 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 /* ── Inside vs outside on the grid (hill climb r3, 04.11.2026) ───────────────────────────────────
    The out cards wore the strongest blocks (the filled «Wieder in den Einsatz», a surface lit at
    night) while the crews under PA blended into the controls round them. A crew inside with a
-   calm clock (`rowTone` → `.trowIn`) gets a head BAND: a faint green wash behind its name and
-   its contact clock, bled to the card's edges. Fällig / überfällig are other tones (`.trowWarn`
-   keeps its amber wash over the whole card, `.trowCrit` its quiet ground — no red wash, 24.10.),
-   so they never wear it. No coloured top rule: the tablet card's top status edge went on
-   29.09.2026 and stays gone. The phone row has its section head «Drin» and no band. */
-.grid .trowIn .trowHead { background: var(--green-8); padding-bottom: var(--sp-2); }
+   calm clock (`rowTone` → `.trowIn`) gets a head BAND: a green wash behind its name and its
+   contact clock, bled to the card's edges, closed by a 3px green rule along its FOOT (r5: the
+   8 % wash alone was too quiet to find the crews inside at a glance, at night most of all — now
+   12 % and the rule). Fällig / überfällig are other tones (`.trowWarn` keeps its amber wash over
+   the whole card, `.trowCrit` its quiet ground — no red wash, 24.10.), so they never wear it. No
+   coloured TOP rule: the tablet card's top status edge went on 29.09.2026 and stays gone. The
+   phone row has its section head «Drin» and no band. */
+.grid .trowIn .trowHead { background: var(--green-12); padding-bottom: var(--sp-2); border-bottom: 3px solid var(--green); }
+/* the clock's caption steps up one ink tier on the stronger wash: --ink-faint measured 4.49:1 on it
+   at night */
+.grid .trowIn .trowHead .trowSub { color: var(--ink-dim); }
 /* ONE type on every board (29.09.2026): the phone's 25px clock and a name that wraps once rather
    than ellipsising — a 4-column desktop grid cut «Brunner Thomas» to «Brunner Tho…» beside the
    row's wide-screen 28px. (The Tafel's focus card keeps its 34px — `.focusCard` above.) */

@@ -97,8 +97,8 @@ questions, and what the record keeps (`components/AtemschutzView`; the card and 
     with a mouse). On the grid, touch keeps «Druck | Kontakt» and the filled tile at 48px and sets
     Rückzug | Raus and Notfall at 44px; a mouse gets 40px tiles and a 36px foot line.
   - *Inside reads louder than outside* (hill climb r3, 04.11.2026): on the grid a crew inside with
-    a calm clock (`rowTone` → `.trowIn`) wears a faint green head band behind its name and contact
-    clock; fällig / überfällig keep their own tones instead (amber wash, red edge — never the band).
+    a calm clock (`rowTone` → `.trowIn`) wears a green head band behind its name and contact
+    clock, closed by a 3px green rule along its foot (r5); fällig / überfällig keep their own tones instead (amber wash, red edge — never the band).
     An out card sinks: its surface is mixed toward the canvas (it was mixed toward the ink, which
     lit it at night), its name is the dim ink and its clock the quiet 16px. Slots never move.
   - *The tablet grid shows every foot* (hill climb r4, 04.11.2026): on the 1180×820 iPad the second
@@ -235,7 +235,9 @@ good but we don't need the triangle thing. red and notfall is already enough»):
   12px to the clock; the number stays in the TruppFinder and the Verlauf. The handed-over phone board opens on the most
   urgent crew inside; the Eintrag FAB floats over the phone Trupps page (27.10.2026) and the list
   ends above it with the shared `--fab-safe` foot (28.10.2026); an opened card's foot row keeps the
-  FAB's column free while it stands under the circle (`data-az-fab-foot`).
+  FAB's column free while it stands under the circle (`data-az-fab-foot`), and every phone row's
+  name/clock line ends with the same reserve, so the circle never sits on a clock or a chevron
+  (hill climb r5).
 
 - *The Eingangsdruck is guarded, once* (item 2, every width): locked in «Bearbeiten» once the
   Trupp is raus (pointing at the exit's Restdruck); below `doctrine.entryPressureMin` (default
