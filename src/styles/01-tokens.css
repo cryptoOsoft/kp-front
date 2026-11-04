@@ -390,8 +390,11 @@
   /* Elevation: five heights, each with its night value (below). e3/e4 ARE --shadow-sm/--shadow,
      which now point here; e1/e2/e5 are the most common literals of their height, which were
      day-tinted rgba(30, 45, 70, …) and stayed blue-grey on a black map at night.
-     e1 a marker or handle resting on the map/plan · e2 lifted (a dragged chip, a pinned note) ·
+     e1 a marker, handle or note resting on the map/plan · e2 lifted (a dragged chip, a selected note) ·
      e3 a small floating card · e4 a panel, a bar, a sheet · e5 a blocking card over a scrim. */
+  /* e0 a contact shadow only – a small label plate on the map/plan (hill climb r8, 04.11.2026: with
+     e1's 5px spread, touching plates ran their shadows into dark seams between them) */
+  --e0: 0 1px 2px rgba(15, 22, 34, .2);
   --e1: 0 1px 2px rgba(15, 22, 34, .3), 0 2px 5px rgba(30, 45, 70, .2);
   --e2: 0 4px 10px rgba(30, 45, 70, .2);
   /* e3/e4 tightened 04.11.2026 (hill climb, «broad grey halos»): the chrome that floats on every
@@ -435,6 +438,7 @@
   --snap: #f472b6;
   /* elevation (--shadow/--shadow-sm are --e4/--e3): black, not the day's blue-grey, and stronger —
      a dark panel on a dark map needs more shadow to lift, not less */
+  --e0: 0 1px 2px rgba(0, 0, 0, .45);
   --e1: 0 1px 2px rgba(0, 0, 0, .5), 0 2px 5px rgba(0, 0, 0, .4);
   --e2: 0 4px 10px rgba(0, 0, 0, .45);
   /* tightened with the day's e3/e4 (04.11.2026): the 36px black blur read as a soft heavy halo
@@ -566,6 +570,6 @@
   --ink-45: color-mix(in srgb, var(--ink) 45%, transparent);
   --ink-62: color-mix(in srgb, var(--ink) 62%, transparent);
   /* the edge of a floating map/plan label plate (names, readouts, captions, trail times): a
-     hairline ring + the e1 lift, so two plates that touch keep their own outlines. */
-  --label-plate: inset 0 0 0 1px var(--ink-16), var(--e1);
+     hairline ring + the e0 contact shadow, so two plates that touch keep their own outlines. */
+  --label-plate: inset 0 0 0 1px var(--ink-16), var(--e0);
 }

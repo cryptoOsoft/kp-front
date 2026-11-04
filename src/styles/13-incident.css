@@ -1066,6 +1066,10 @@ button.list-row:disabled { opacity: var(--disabled); cursor: default; }
 /* right inset 16, the title row's own: the right-aligned «bis 15:50» ends under the row's ›
    (it was 8 while 190px columns needed every pixel; entries wrap now, council 04.11.2026) */
 .rp-check-extra { padding: 0 var(--sp-4) 16px 48px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+/* …except a list of people/material/partners (hill climb r8, 04.11.2026): two columns of names under
+   the label's 48px left a dead strip under the check dot and wrapped the details; a list starts at
+   the card's own 16px, the row's title keeps its dot + label above it */
+.rp-check-extra:has(> .rp-people) { padding-left: var(--sp-4); }
 /* quick double-check lists (Anwesenheit names + Mittel lines): read-only chips, early
    leavers / amounts inline — corrections go through the row's Go arrow */
 /* No inner scroller. A 34vh cap put a second scroll region inside a surface that already scrolls

@@ -699,6 +699,10 @@ span.jr-rem { cursor: default; }
   /* its own gutter's thumb in the box's hue, a step stronger than the app's thin --ink-28 (02-base):
      where a scrollbar does show (a mouse), it is the box's, not the log's */
   scrollbar-color: var(--amber-45) transparent; }
+/* night: over the board's step, not --surface (hill climb r8, 04.11.2026) – on the drawer's dark glass
+   the #232c3a block was the brightest thing in the Verlauf and pushed the live log below into the
+   background; the amber edge, count and rules still mark it as the open work */
+:root[data-theme="night"] .jr-pinned { --jr-pinned-bg: color-mix(in srgb, var(--amber) 7%, var(--board-bg)); }
 /* «there is more below» (`.jr-pinned-foot`, Journal.tsx): while rows lie below the fold
    (`data-more`, measured on scroll) the box's foot is a 28px band of its own opaque fill with a rule
    on top, not a fade over the text (hill climb r2, 04.11.2026: that read as faded content). It says
