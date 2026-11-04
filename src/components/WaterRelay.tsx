@@ -112,9 +112,10 @@ export function WaterRelay({ ctrl, showHose = false, wide = false, onClose, onAd
           </div>
         )}
       </div>
-      {!plan ? (
+      {/* no plan and nothing loading: a route under a metre – nothing to compute along */}
+      {!plan ? (ctrl.profileLoading && (
         <div className={cx(s.graph, s.loading)}><LoadingStatus>{appConfig.copy.measure.profileLoading}</LoadingStatus></div>
-      ) : (
+      )) : (
         <>
           <div className={s.graph}>
             <RelayChart ctrl={ctrl} plan={plan} />
@@ -186,7 +187,8 @@ function RelayActions({ ctrl, plan, onAdoptLine, onPlacePumps }: {
 }) {
   const R = appConfig.copy.relay
   const pinned = !ctrl.readOnly && ctrl.input.pumps.some((o) => o?.atM != null)
-  const placeable = !!onPlacePumps && plan.pumps.length > 0
+  // (not while the profile reloads: the pumps would stand on the previous route's terrain)
+  const placeable = !!onPlacePumps && plan.pumps.length > 0 && !ctrl.profileLoading
   if (!pinned && !onAdoptLine && !placeable) return null
   return (
     <div className={s.actions}>
@@ -285,6 +287,12 @@ export function RelayChart({ ctrl, plan }: { ctrl: RelayController; plan: RelayP
     if (d.moved) ctrl.dragPump(d.i, atM(e.clientX, d.range), 'end')
     else ctrl.tapPump(d.i, 'chart')
   }
+  // the gesture taken away (a scroll, a system swipe): the pump goes back, nothing is written
+  const cancel = () => {
+    const d = drag.current
+    drag.current = null
+    if (d?.moved) ctrl.dragPump(d.i, 0, 'cancel')
+  }
   const terrain = plan.terrain ? (() => {
     const alts = plan.prof.map((p) => p.alt)
     const mn = Math.min(...alts), span = Math.max(1, Math.max(...alts) - mn)
@@ -329,7 +337,7 @@ export function RelayChart({ ctrl, plan }: { ctrl: RelayController; plan: RelayP
                 {ctrl.selected === i && <circle className={s.pumpHalo} cx={x} cy={y} r={13} />}
                 <g className={cx(s.pumpHit, ctrl.readOnly && s.pumpStatic)} role="button" tabIndex={0} {...PUMP_ATTR}
                   aria-label={fillTemplate(R.pumpN, { n: i + 1 })} aria-expanded={open === p}
-                  onPointerDown={down(i)} onPointerMove={move} onPointerUp={up} onPointerCancel={() => { drag.current = null }}
+                  onPointerDown={down(i)} onPointerMove={move} onPointerUp={up} onPointerCancel={cancel}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ctrl.tapPump(i, 'chart') } }}>
                   <circle cx={x} cy={y} r={20} fill="transparent" />
                   <circle className={cx(s.pumpDot, p.low && s.pumpLow, p.pinned && s.pumpPinned)} cx={x} cy={y} r={DOT_R} />

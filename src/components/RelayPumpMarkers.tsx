@@ -111,7 +111,8 @@ function PumpGrip({ relay, i, low, pinned, at }: { relay: RelayOverlay; i: numbe
         window.removeEventListener('pointermove', move, true)
         window.removeEventListener('pointerup', up, true)
         window.removeEventListener('pointercancel', up, true)
-        if (moved) { endSheetPeek(); live.current.onDrag(i, atM(ev), 'end') }
+        // a cancelled gesture (the browser took it) puts the pump back instead of committing
+        if (moved) { endSheetPeek(); live.current.onDrag(i, atM(ev), ev.type === 'pointerup' ? 'end' : 'cancel') }
         else if (ev.type === 'pointerup') live.current.onSelect(i)
       }
       window.addEventListener('pointermove', move, true)

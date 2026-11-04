@@ -1,6 +1,7 @@
 import { type SetStateAction, useRef, useState } from 'react'
 import { appConfig } from '../config/appConfig'
 import { detachDrawings, flipLine, wireFreed, withDetach } from './lineAttachments'
+import { flippedRelay } from './hydraulics'
 import { drawingEditChanges, drawingLogName } from './drawingEdit'
 import type { Doc } from './workspace'
 import type { Drawing, LineAttachment, LineEndpoint, LngLat, MapTool, TimelineEvent } from '../types'
@@ -366,7 +367,9 @@ export function useMapDrawing(deps: MapDrawingDeps) {
     const lines = drawings.filter((d) => d.kind === 'line' && d.coords.length >= 2)
       .map((d) => ({ id: d.id, points: d.coords, startAttachment: d.startAttachment, endAttachment: d.endAttachment }))
     const flip = flipLine({ id, points: dr.coords, startAttachment: dr.startAttachment, endAttachment: dr.endAttachment }, lines)
-    const patch: Partial<Drawing> = { coords: flip.points, startAttachment: flip.startAttachment, endAttachment: flip.endAttachment, endLabelAt: undefined }
+    // a Wassertransport keeps its water source at the same physical end (lib/hydraulics · flippedRelay)
+    const patch: Partial<Drawing> = { coords: flip.points, startAttachment: flip.startAttachment, endAttachment: flip.endAttachment, endLabelAt: undefined,
+      ...(dr.relay ? { relay: flippedRelay(dr.relay) } : null) }
     commit((d) => ({ ...d, drawings: d.drawings.map((x) => {
       if (x.id === id) return { ...x, ...patch }
       const mine = flip.incoming.filter((i) => i.lineId === x.id)

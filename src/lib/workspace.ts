@@ -11,6 +11,7 @@ import { UNDERGROUND_LAYER_ID, undergroundLayerDef } from './underground'
 import { keyCartoTileTemplates, retinaCartoTileTemplates } from './carto'
 import { loadLayerPrefs } from './layerPrefs'
 import { isSafeColor } from './shapes'
+import { HOSE_SIZES } from './hydraulics'
 import { sanitizeSvgResult } from './sanitizeSvg'
 import { minPoints } from './vertexOps'
 import { isFormData } from './boardForm'
@@ -462,6 +463,9 @@ export function sanitizeWorkspace(raw: unknown): WorkspaceGate {
     const r = o as Record<string, unknown>
     let out: Record<string, unknown> | undefined
     if (r.color != null && !isSafeColor(r.color)) { out = { ...r }; delete out.color; dropped++ }
+    // a Leitung's Ø outside the four (lib/hydraulics · HOSES) would throw in the Wassertransport's
+    // plan: dropped, so the line reads as the default 75 mm
+    if (r.hose != null && !(HOSE_SIZES as readonly unknown[]).includes(r.hose)) { out = out ?? { ...r }; delete out.hose; dropped++ }
     for (const k of DRAW_NUMBERS) {
       if (r[k] == null || num(r[k])) continue
       out = out ?? { ...r }

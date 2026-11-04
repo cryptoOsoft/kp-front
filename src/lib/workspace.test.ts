@@ -460,6 +460,12 @@ describe('sanitizeWorkspace — per-object shape gate', () => {
     expect(g.dropped).toBe(5)
   })
 
+  it('drawings: a Leitung with an unknown Ø loses the Ø, not the line (the relay plan would throw)', () => {
+    const g = sanitizeWorkspace({ drawings: [{ ...LINE, hose: '2x75' }, { ...LINE, id: 'odd', hose: '90' }] })
+    expect(g.ws?.drawings.map((d) => d.hose)).toEqual(['2x75', undefined])
+    expect(g.dropped).toBe(1)
+  })
+
   it('drawings: a circle is its centre plus a finite radius', () => {
     const g = sanitizeWorkspace({ drawings: [
       { id: 'c', kind: 'circle', coords: [[7.5, 47.5]], radiusM: 50 },

@@ -38,6 +38,16 @@ export function useChartReadout(coords: LngLat[] | undefined, toM: (frac: number
     else if (current?.owner === owner) { current = null; notify() }
   }
   useEffect(() => () => { if (current?.owner === owner) { current = null; notify() } }, [owner])
+  // the route changed under a spot this chart still holds (a point added or moved after a touch
+  // read): the map dot follows the new route. By content – a reversed relay hands a new array
+  // every render.
+  useEffect(() => {
+    if (m == null || !coords || current?.owner !== owner) return
+    const was = current.spot.coords
+    if (was.length === coords.length && was.every((p, i) => p[0] === coords[i][0] && p[1] === coords[i][1])) return
+    current = { owner, spot: { coords, m } }
+    notify()
+  }, [coords, m, owner])
   const read = (e: ReactPointerEvent<Element>) => {
     const r = e.currentTarget.getBoundingClientRect()
     set(toM(r.width ? Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) : 0))

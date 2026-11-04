@@ -14,6 +14,7 @@
 
 import type { CaptionMode, Drawing, Entity, LngLat } from '../types'
 import { circlePolygon, fmtDistance, hoseLengthHint, pathLengthM } from './geo'
+import { hoseLines } from './hydraulics'
 import { krokiEntity, krokiSymbolMul } from './krokiPayload'
 import { shapePx, symPx } from './mapView'
 
@@ -92,7 +93,7 @@ export function krokiLabels(args: {
       const lines: string[] = []
       if (d.showDistance) {
         const m = pathLengthM(coords)
-        lines.push(`${fmtDistance(m)} · ${hoseLengthHint(m)}`)
+        lines.push(`${fmtDistance(m)} · ${hoseLengthHint(m, hoseLines(d.hose))}`)
       }
       // ⚠️ NOT `d.labelAt`. A label dragged by hand moves on the Lage map, but no payload carries
       // that anchor to kroki.py — the sheet always uses the midpoint VERTEX (same rule as the end

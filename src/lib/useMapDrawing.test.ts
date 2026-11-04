@@ -510,6 +510,22 @@ describe('reverseDrawing — replay', () => {
     expect(replayed).not.toHaveProperty('endAttachment')
   })
 
+  // the points turn round, the water does not: it still comes from the same physical end, so the
+  // pumps (metres from that source) stand where they stood
+  it('a Leitung with a Wassertransport keeps its water source, there and back, in replay too', async () => {
+    const relay = { flow: 1000, pumps: [{ atM: 300 }] }
+    const deps = makeDeps({ drawings: [line({ coords: [[0, 0], [1, 1]], relay })] })
+    const before = deps.drawings
+    const { result, rerender } = renderHook((p) => useMapDrawing(p), { initialProps: deps })
+    act(() => { result.current.reverseDrawing('d1') })
+    expect(deps.drawings[0].relay).toMatchObject({ ...relay, reverse: true })
+    rerender({ ...deps })
+    act(() => { result.current.reverseDrawing('d1') })
+    expect(deps.drawings[0].relay?.reverse).toBeFalsy()
+    const [replayed] = (await replayEmits({ drawings: before }, deps.emit.mock.calls)).drawings
+    expect(replayed.relay).toEqual(relay)
+  })
+
   it('a pinned end label goes with the old end in replay too', async () => {
     const deps = makeDeps({ drawings: [line({ coords: [[0, 0], [1, 1]], endLabelAt: [1.1, 1.1] })] })
     const before = deps.drawings

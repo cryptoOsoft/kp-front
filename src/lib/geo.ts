@@ -142,9 +142,10 @@ export function hoseCount(lenM: number, lines = 1): number {
   return Math.ceil((lenM * (1 + reserve)) / h) * lines
 }
 
-/** hose-length helper for the Messpfeil label, e.g. "~5 Schläuche" (incl. the reserve). */
-export function hoseLengthHint(lenM: number): string {
-  return appConfig.copy.hoseHint.replace('{n}', String(hoseCount(lenM)))
+/** hose-length helper for the Messpfeil label, e.g. "~5 Schläuche" (incl. the reserve); `lines`
+ *  as in hoseCount (lib/hydraulics · hoseLines). */
+export function hoseLengthHint(lenM: number, lines = 1): string {
+  return appConfig.copy.hoseHint.replace('{n}', String(hoseCount(lenM, lines)))
 }
 
 /** planar area of a polygon (m²), shoelace over LV95 metric coords — accurate for

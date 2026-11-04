@@ -154,9 +154,10 @@ export function planRelay({ profile, lengthM, hose, flow, startBar, pumpBars = [
     const i = pumps.length
     const out = pumpBars[i] ?? defaultPumpBar
     // only a MOVED pump can be «too low»: an automatic one stands where the minimum is reached,
-    // and the one at a Löschweier (or a weak hydrant) draws from the source — that is its job
+    // and the one at a Löschweier (or a weak hydrant) draws from the source — that is its job,
+    // moved back onto the source or not
     const pinned = pinAt(i) != null
-    pumps.push({ dist, alt, inBar: p, outBar: out, pinned, low: pinned && p < MIN - 1e-6 })
+    pumps.push({ dist, alt, inBar: p, outBar: out, pinned, low: pinned && dist > 0 && p < MIN - 1e-6 })
     line.push({ dist, bar: p }, { dist, bar: out })
     p = out
     if (out <= MIN) stuck = true
@@ -195,11 +196,21 @@ export function planRelay({ profile, lengthM, hose, flow, startBar, pumpBars = [
  */
 export function pumpRange(plan: RelayPlan, pins: readonly (number | null | undefined)[], i: number, lengthM: number): [number, number] {
   const gap = RELAY.pinGapM
-  const lo = i > 0 && plan.pumps[i - 1] ? plan.pumps[i - 1].dist + gap : 0
+  // (on the route even when the pump before stands within the gap of its end: a pin past the end
+  // would count as unpinned, and the pump would jump back on release)
+  const lo = i > 0 && plan.pumps[i - 1] ? Math.min(lengthM, plan.pumps[i - 1].dist + gap) : 0
   const nextPin = pins.slice(i + 1).find((x) => x != null)
   const hi = Math.min(lengthM - gap, nextPin != null ? nextPin - gap : Infinity)
   return [lo, Math.max(lo, hi)]
 }
+
+/** How many lines a Leitung's hose lays side by side (a «2× 75» is two) – the hose count's factor. */
+export const hoseLines = (hose: HoseSize | undefined): number => HOSES[hose ?? RELAY.defaultHose].lines
+
+/** A Leitung's relay once its points are turned round (Richtung umkehren): the water keeps its
+ *  physical source, so the calculation flips with the points – and the pumps, measured from that
+ *  source, stay where they stand. */
+export const flippedRelay = (relay: RelaySettings): RelaySettings => ({ ...relay, reverse: !relay.reverse || undefined })
 
 /** The relay assumptions with every default filled in — what the surfaces show and compute with. */
 export interface RelayInput {
@@ -252,9 +263,10 @@ export function withPumpOverride(pumps: readonly (RelayPumpOverride | null)[], i
   return next.length ? next : undefined
 }
 
-/** …and every pin dropped at once («Alle Pumpen automatisch»), output overrides kept. */
-export function withoutPins(pumps: readonly (RelayPumpOverride | null)[]): (RelayPumpOverride | null)[] | undefined {
+/** …and every pin from pump `from` on dropped at once («Alle Pumpen automatisch»), output
+ *  overrides kept. */
+export function withoutPins(pumps: readonly (RelayPumpOverride | null)[], from = 0): (RelayPumpOverride | null)[] | undefined {
   let out: (RelayPumpOverride | null)[] | undefined = [...pumps]
-  for (let i = 0; i < pumps.length; i++) out = withPumpOverride(out ?? [], i, { atM: undefined })
+  for (let i = from; i < pumps.length; i++) out = withPumpOverride(out ?? [], i, { atM: undefined })
   return out?.length ? out : undefined
 }

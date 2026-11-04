@@ -15,6 +15,8 @@ import { reverseProfile, type ProfileResult } from './profile'
  *  04.11.2026) – at the chart's dot, or at the map's marker. */
 export type PumpOrigin = 'chart' | 'map'
 
+export type DragPhase = 'move' | 'end' | 'cancel'
+
 /** A hose + relay pair as stored on a Leitung (Drawing · hose/relay) or held by Messen. */
 export interface RelayValue { hose?: HoseSize; relay?: RelaySettings }
 
@@ -42,8 +44,9 @@ export interface RelayController {
   set: (patch: { hose?: HoseSize; flow?: number; source?: RelaySource; startBar?: number }) => void
   setPumpBar: (i: number, bar: number) => void
   unpinAll: () => void
-  /** a pump moved on the chart or the map: `move` previews (nothing is written), `end` commits */
-  dragPump: (i: number, atM: number, phase: 'move' | 'end') => void
+  /** a pump moved on the chart or the map: `move` previews (nothing is written), `end` commits,
+   *  `cancel` (the gesture was taken away) drops the preview and writes nothing */
+  dragPump: (i: number, atM: number, phase: DragPhase) => void
   /** where pump `i` may go (lib/hydraulics · pumpRange) */
   range: (i: number) => [number, number]
   /** the same route with another hose or flow — what the alternatives would take (RelayMessages) */
@@ -104,21 +107,29 @@ export function useRelay({ coords: drawn, profile: drawnProfile, profileLoading,
       setSelected(null)
     },
     set: ({ hose, ...rest }) => {
-      if (hose) onChange?.({ hose })
-      if (!Object.keys(rest).length) return
       // a new source renumbers the pumps (a Löschweier puts one AT the source), so what was set
       // by hand on «Pumpe 2» would land on another pump: the overrides go with the old source
       const fresh = rest.source && rest.source !== stored.source
-      write({ ...value.relay, ...rest, ...(fresh ? { startBar: undefined, pumps: undefined } : null) })
+      // the hose, the flow and the start pressure move the AUTOMATIC pumps, and a pump moved by
+      // hand is held by its number – it would land past its spot, or drop out: the moved pumps go
+      // back to automatic, their outputs stay (owner 04.11.2026)
+      const moves = (!!hose && hose !== stored.hose) || (rest.flow != null && rest.flow !== stored.flow)
+        || (rest.startBar != null && rest.startBar !== stored.startBar)
+      const unpin = !fresh && moves && stored.pumps.some((o) => o?.atM != null)
+      if (!Object.keys(rest).length && !unpin) { if (hose) onChange?.({ hose }); return }
+      const relay = { ...value.relay, ...rest, ...(fresh ? { startBar: undefined, pumps: undefined } : unpin ? { pumps: withoutPins(stored.pumps) } : null) }
+      onChange?.({ ...(hose ? { hose } : null), relay: compact(relay) })
       if (fresh) setSelected(null)
     },
-    setPumpBar: (i, bar) => write({ ...value.relay, pumps: withPumpOverride(stored.pumps, i, { bar: bar === RELAY.defaultPumpBar ? undefined : bar }) }),
+    // …and a new output moves the automatic pumps AFTER this one: the pumps moved there go back too
+    setPumpBar: (i, bar) => write({ ...value.relay, pumps: withoutPins(withPumpOverride(stored.pumps, i, { bar: bar === RELAY.defaultPumpBar ? undefined : bar }) ?? [], i + 1) }),
     unpinAll: () => write({ ...value.relay, pumps: withoutPins(stored.pumps) }),
     // a drag only MOVES the pump — its card opens on a tap, not on every move (owner 04.11.2026:
     // the card popping up mid-drag threw the whole panel around); the moved pump wears its ring
     dragPump: (i, atM, phase) => {
       if (phase === 'move') { setPreview({ i, atM }); return }
       setPreview(null)
+      if (phase === 'cancel') return
       write({ ...value.relay, pumps: withPumpOverride(stored.pumps, i, { atM: Math.round(atM * 10) / 10 }) })
     },
     range: (i) => (plan ? pumpRange(plan, pins, i, lengthM) : [0, lengthM]),
@@ -173,7 +184,7 @@ export interface RelayOverlay {
   onPumpBar: (i: number, bar: number) => void
   /** close the bubble (nothing selected) */
   onClose: () => void
-  onDrag: (i: number, atM: number, phase: 'move' | 'end') => void
+  onDrag: (i: number, atM: number, phase: DragPhase) => void
   range: (i: number) => [number, number]
 }
 

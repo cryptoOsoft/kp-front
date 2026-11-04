@@ -23,7 +23,7 @@ import { Menu } from '../lib/overlays'
 import { OnOff, Segmented } from './Segmented'
 import { AddRelayButton, WaterRelay } from './WaterRelay'
 import { HOSE_SIZES, HOSES, RELAY } from '../lib/hydraulics'
-import { usePublishRelay, useRelay } from '../lib/useRelay'
+import { usePublishRelay, useRelay, type RelayValue } from '../lib/useRelay'
 import type { HoseSize, LineAttachment, LineContent, LineEndpoint, LngLat, LineRoutingMode, RelaySettings } from '../types'
 
 // small glyph for the line-ending picker: plain · arrow · arrow with Entwicklungsgrenze · FKS
@@ -140,7 +140,7 @@ interface Props {
   /** the Wassertransport section inside «Messung» — Lage only: it needs real ground and the
    *  Höhenprofil (`profileCoords`). `onChange` absent ⇒ shown read-only. `onPlacePumps`: its
    *  «Pumpen als Symbole setzen» (absent ⇒ hidden). Omitted ⇒ no section. */
-  waterRelay?: { onChange?: (relay: RelaySettings) => void; onPlacePumps?: (coords: LngLat[]) => void }
+  waterRelay?: { onChange?: (patch: RelayValue) => void; onPlacePumps?: (coords: LngLat[]) => void }
   /** Druckleitung number + storey badge on the line (undefined clears) */
   onLineNo?: (lineNo: number | undefined) => void
   onFloorTag?: (floor: number | undefined) => void
@@ -253,7 +253,7 @@ export function DrawEditor({ drawing, pointCount, readOnly = false, areaM2, boxM
   const relayCtrl = useRelay({
     coords: profileCoords ?? [], profile, profileLoading,
     value: { hose: drawing.hose, relay: drawing.relay },
-    onChange: !readOnly && waterRelay?.onChange ? (p) => { if (p.relay) waterRelay.onChange?.(p.relay) } : undefined,
+    onChange: !readOnly ? waterRelay?.onChange : undefined,
   })
   usePublishRelay(relayCtrl, relayShown && measureOpen)
   // Opening «Messung» brings it to the top of the sheet's scroller: it is the LAST group, so on a
@@ -611,7 +611,9 @@ export function DrawEditor({ drawing, pointCount, readOnly = false, areaM2, boxM
             {onHose && (
               <div className="de-row"><span>{appConfig.copy.drawingEditor.hose}</span>
                 <Segmented ariaLabel={appConfig.copy.drawingEditor.hose} value={drawing.hose ?? RELAY.defaultHose}
-                  onChange={(h) => { if (h !== (drawing.hose ?? RELAY.defaultHose)) onHose(h) }}
+                  // through the relay where there is one: a new Ø sends its pumps moved by hand back
+                  // to automatic, in the same edit (lib/useRelay · set)
+                  onChange={(h) => { if (h !== (drawing.hose ?? RELAY.defaultHose)) { if (relayCtrl.readOnly) onHose(h); else relayCtrl.set({ hose: h }) } }}
                   options={HOSE_SIZES.map((h) => ({ value: h, label: appConfig.copy.relay.hoseShort[h] }))} />
               </div>
             )}

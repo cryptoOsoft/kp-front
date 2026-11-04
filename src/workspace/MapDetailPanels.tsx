@@ -378,6 +378,8 @@ export function MapDetailPanels({
 
       {detailSlotFree && tool === 'select' && selectedDrawing && (
         <DrawEditor
+          // a fresh editor per line: its local state (the Wassertransport added or not) is the line's
+          key={selectedDrawing.id}
           drawing={selectedDrawing}
           pointCount={selectedDrawing.coords.length}
           // locked: the panel keeps the numbers (Länge, Höhenprofil, Fläche) and the
@@ -415,7 +417,8 @@ export function MapDetailPanels({
           onHose={selectedDrawing.role ? undefined : (hose) => patchDrawing({ hose })}
           waterRelay={selectedDrawing.kind === 'line' && !selectedDrawing.role
             ? {
-              onChange: tacticalLocked ? undefined : (relay) => patchDrawing({ relay }),
+              // the hose comes along when the Ø changes, in the same edit (DrawEditor · Schlauch)
+              onChange: tacticalLocked ? undefined : (patch) => patchDrawing(patch),
               onPlacePumps: tacticalLocked ? undefined : placePumpSymbols,
             }
             : undefined}

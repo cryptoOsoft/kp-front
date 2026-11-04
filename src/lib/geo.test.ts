@@ -122,6 +122,9 @@ describe('hoseLengthHint', () => {
     expect(hoseLengthHint(100)).toBe('~6 Schläuche')
     expect(hoseLengthHint(0)).toBe('~0 Schläuche')
   })
+  it('counts both lines of a «2× 75»', () => {
+    expect(hoseLengthHint(100, 2)).toBe('~12 Schläuche')
+  })
 })
 
 

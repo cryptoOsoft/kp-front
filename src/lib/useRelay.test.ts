@@ -46,6 +46,32 @@ describe('useRelay — what an edit writes', () => {
     expect(result.current.reversed).toBe(true)
   })
 
+  it('a cancelled drag puts the pump back and writes nothing', () => {
+    const { result, onChange } = setup()
+    const auto = result.current.plan!.pumps[0].dist
+    act(() => result.current.dragPump(0, 250, 'move'))
+    act(() => result.current.dragPump(0, 0, 'cancel'))
+    expect(onChange).not.toHaveBeenCalled()
+    expect(result.current.plan!.pumps[0]).toMatchObject({ dist: auto, pinned: false })
+  })
+
+  // a moved pump is held by its number: what moves the automatic pumps before it would carry it
+  // past its spot, or drop it – it goes back to automatic, its output stays (owner 04.11.2026)
+  it('a new flow, start pressure or Ø sends the moved pumps back to automatic', () => {
+    for (const patch of [{ flow: 600 }, { startBar: 8 }, { hose: '110' as const }]) {
+      const { result, onChange } = setup({ relay: { pumps: [{ atM: 300, bar: 8 }] } })
+      act(() => result.current.set(patch))
+      const { hose, ...rest } = patch as { hose?: '110' }
+      expect(onChange).toHaveBeenCalledWith({ ...(hose ? { hose } : null), relay: { ...rest, pumps: [{ bar: 8 }] } })
+    }
+  })
+
+  it('a new output on pump 1 sends the moved pumps after it back, not pump 1 itself', () => {
+    const { result, onChange } = setup({ relay: { pumps: [{ atM: 300 }, { atM: 900 }] } })
+    act(() => result.current.setPumpBar(0, 8))
+    expect(onChange).toHaveBeenCalledWith({ relay: { pumps: [{ atM: 300, bar: 8 }] } })
+  })
+
   it('the hose is its own key, the relay untouched', () => {
     const { result, onChange } = setup({ relay: { flow: 1000 } })
     act(() => result.current.set({ hose: '110' }))

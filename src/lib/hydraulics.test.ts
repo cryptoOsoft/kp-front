@@ -93,6 +93,11 @@ describe('planRelay', () => {
       expect(plan.pumps[1].pinned).toBe(false)
     })
 
+    it('moved back onto a Löschweier, it is the source pump again – not flagged', () => {
+      const plan = planRelay(flat({ startBar: 0, pins: [0] }))
+      expect(plan.pumps[0]).toMatchObject({ dist: 0, pinned: true, low: false })
+    })
+
     it('counts as automatic when the line got shorter than its pin', () => {
       const plan = planRelay(flat({ pins: [1500] }))
       expect(plan.pumps[0]).toMatchObject({ pinned: false })
@@ -126,6 +131,12 @@ describe('pumpRange — where a pump may be dragged', () => {
     const [lo, hi] = pumpRange(plan, pins, 1, 3000)
     expect(lo).toBeCloseTo(plan.pumps[0].dist + RELAY.pinGapM, 6)
     expect(hi).toBe(1500 - RELAY.pinGapM)
+  })
+
+  it('stays on the route when the pump before stands within the gap of the end', () => {
+    const plan = planRelay(flat({ lengthM: 1000, pins: [998] }))
+    const [lo, hi] = pumpRange(plan, [998], 1, 1000)
+    expect([lo, hi]).toEqual([1000, 1000])
   })
 
   it('the first one from the source, the last one up to the end', () => {

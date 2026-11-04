@@ -90,6 +90,7 @@ import { isSelectOnlySurface } from '../lib/useObjectPlans'
 import { useIsPhone } from '../lib/useIsPhone'
 import type { PlanScales } from '../lib/workspace'
 import { fmtDistance, fmtArea } from '../lib/geo'
+import { flippedRelay } from '../lib/hydraulics'
 import { activeViewDeg, bandAspect, BOX_H, BOX_W, buildView, pointRemapper, principalAngleDeg, stackScaleMPerU, type Ring } from '../lib/footprint'
 import { reorientAnnos } from '../lib/reorientAnnos'
 import { usePlanMeasure } from './usePlanMeasure'
@@ -1558,12 +1559,14 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
     const lines = annos.filter((a) => a.kind === 'draw' && (a.pts?.length ?? 0) >= 2)
       .map((a) => ({ id: a.id, points: a.pts!, startAttachment: a.startAttachment, endAttachment: a.endAttachment }))
     const flip = flipLine({ id: selDraw.id, points: selDraw.pts, startAttachment: selDraw.startAttachment, endAttachment: selDraw.endAttachment }, lines)
+    // a Wassertransport riding along keeps its water source at the same end (lib/hydraulics · flippedRelay)
+    const relay = selDraw.relay ? { relay: flippedRelay(selDraw.relay) } : null
     commit(annos.map((a) => {
-      if (a.id === selDraw.id) return { ...a, pts: flip.points, startAttachment: flip.startAttachment, endAttachment: flip.endAttachment }
+      if (a.id === selDraw.id) return { ...a, pts: flip.points, startAttachment: flip.startAttachment, endAttachment: flip.endAttachment, ...relay }
       const mine = flip.incoming.filter((i) => i.lineId === a.id)
       return mine.reduce((acc, i) => ({ ...acc, [i.endpoint === 'start' ? 'startAttachment' : 'endAttachment']: i.attachment }), a)
     }))
-    emit('board.edit', { id: selDraw.id, patch: wireFreed({ pts: flip.points, startAttachment: flip.startAttachment, endAttachment: flip.endAttachment }), planId: activeId })
+    emit('board.edit', { id: selDraw.id, patch: wireFreed({ pts: flip.points, startAttachment: flip.startAttachment, endAttachment: flip.endAttachment, ...relay }), planId: activeId })
     flip.incoming.forEach((i) => emit('board.edit', { id: i.lineId, patch: { [i.endpoint === 'start' ? 'startAttachment' : 'endAttachment']: i.attachment }, planId: activeId }))
   }
 
