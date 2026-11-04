@@ -25,11 +25,14 @@
   --glass-line: rgba(255, 255, 255, .7);
   --glass-edge: rgba(30, 45, 70, .1);
   --ink: #1b2330;
-  --ink-dim: #4d586a;
+  --ink-dim: #424d5e;
   /* The three ink tiers all clear WCAG AA (4.5:1) on --surface, the canvas and the glass, in both
      themes — tokenContrast.test.ts holds them there. --ink-faint was #6c7686 / #76829a until
-     23.10.2026: 4.05:1 on the canvas by day and 3.64:1 on every night sheet, on 312 text rules. */
-  --ink-faint: #606a7a;
+     23.10.2026: 4.05:1 on the canvas by day and 3.64:1 on every night sheet, on 312 text rules.
+     Darkened again 04.11.2026 (#4d586a / #606a7a): --ink-faint was 3.9:1 on the dark end of
+     --app-bg, where the Trupps and Rapport section titles sit, and 4.1:1 at night on the
+     amber-washed Pendenzen card; --ink-dim moved with it to keep the step. */
+  --ink-faint: #556071;
   --red: #e8392b;
   /* Brand-identity accent. Defaults to the brigade red (and inherits its day/night
      flip via var(--red)), so the look is unchanged with no deployment config. A
@@ -151,7 +154,7 @@
      (a selected chip, the ÜBUNG badge, the overdue «Kontakt»). Darkened just enough to clear 4.5
      there (tokenContrast.test.ts). */
   --green-strong: #12743d;
-  --amber-strong: #9e5c08;
+  --amber-strong: #8a5007;   /* #9e5c08 until 04.11.2026: 3.8:1 on --app-bg, 4.4:1 on the Verlauf button's wash */
   --red-strong: #bd2f21;
   --red-solid-hover: #cf2c1f; /* hover bg on a solid-red (warn) button */
   --green-solid-hover: #1f9d57; /* hover bg on a solid-green (enter) button */
@@ -416,8 +419,8 @@
   --glass-line: rgba(255, 255, 255, .08);
   --glass-edge: rgba(255, 255, 255, .12);
   --ink: #e8edf4;
-  --ink-dim: #a4b0c2;
-  --ink-faint: #8a95ab;
+  --ink-dim: #b4bfd0;
+  --ink-faint: #97a2b8;   /* #a4b0c2 / #8a95ab until 04.11.2026 – see the day tier */
   /* brighter, slightly desaturated accents for contrast on dark surfaces */
   --red: #ff5a4d;
   --blue: #5aa0ff;

@@ -172,8 +172,10 @@
    its tiles the box it is positioned in. */
 .nav-item { position: relative; }
 /* the grip hangs off the RIGHT edge — this rail is anchored left and opens rightward. The rest
-   of it (the bar, its drag colour, and its absence while the words are on) is the shared base. */
-.nav-grip { right: -7px; }
+   of it (the bar, its drag colour, and its absence while the words are on) is the shared base.
+   It covers the rail's padding and reaches out over the map, never over the tiles: at -7px it
+   took the outer 6px of every tile, so a tap on a tile's edge started a resize (04.11.2026). */
+.nav-grip { right: -13px; justify-content: flex-start; padding-left: 2px; }
 /* The rail is TOP-anchored (top:88px) in every mode so it sits in the same place whatever
    surface is active — previously non-plan modes vertically centred it (margin-block:auto),
    which made the rail jump up/down between e.g. Plan and Checkliste. */

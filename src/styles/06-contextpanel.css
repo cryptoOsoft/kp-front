@@ -793,8 +793,9 @@ span.jr-pinned-text::after { display: none; }
 }
 /* 38×21 drawn; the pad fills the row's corner to a --tap square — up over the row's 6px top
    padding, left over its 9px side, down to the 44px row floor, and right only 1px into the 10px
-   gap, whose other 9px are the ring's own pad (.jr-rem::before above). */
-@media (pointer: coarse) { .jr-when::before { content: ''; position: absolute; inset: -6px -1px -17px -9px; } }
+   gap, whose other 9px are the ring's own pad (.jr-rem::before above). On every pointer: a mouse
+   needs 24px, and 21 drawn was under it (04.11.2026). */
+.jr-when::before { content: ''; position: absolute; inset: -6px -1px -17px -9px; }
 /* «meldet sich selbst» — the only mark a timed Erinnerung needs in this list. At the right end,
    where nothing competes with it: the ring moved into the icon slot at the front. */
 /* the Fälligkeit, as a clock AND the time it stands for — see Journal.tsx. `align-self` rather

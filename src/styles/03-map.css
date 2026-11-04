@@ -1,6 +1,11 @@
 /* map */
 #map { position: absolute; inset: 0; background: var(--map-bg); }
 .maplibregl-ctrl-attrib { font-size: var(--fs-micro) !important; }
+/* MapLibre's ⓘ is 24px: a finger gets a pad out to --tap around it (it sits in the corner, so the
+   pad reaches over the map, never over another control) */
+@media (pointer: coarse) {
+  .maplibregl-ctrl-attrib-button::after { content: ''; position: absolute; inset: calc((var(--tap) - 24px) / -2); }
+}
 /* The Lage map's twin of the plan canvas's tool cursors (.wb-canvas.tool-* below). `.placing`
    alone only covered a symbol/shape already picked from the palette — arming Linie, Fläche,
    Messen, Notiz or Trupp left the plain grab hand, so an armed tool was indistinguishable from
