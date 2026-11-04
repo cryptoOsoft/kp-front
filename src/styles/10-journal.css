@@ -394,6 +394,17 @@
 /* …and the head's ✕ and ⓘ are --tap like the rest of the head (see .journal-replay): beside 44px
    neighbours a 36px ✕ is the «stray badge» the search row's ✕ was (below). Glyphs stay 18px. */
 .journal-head .journal-x, .journal-head .ui-info { width: var(--tap); height: var(--tap); }
+/* ⓘ · lens · funnel are UTILITIES, and rest as the quiet icon button does (components/Button ·
+   IconButton `quiet`: no fill, `--ink-8` under a hover or a keyboard focus) — hill climb r9: three
+   filled squares in a row out-weighed the title and ▶ beside them, worst across the phone's full
+   head. Their ON looks stay as they were (legend/search open = the blue wash, a filter set = the
+   `--sel` fill, below), so «on» now reads against nothing instead of against a grey chip. The ✕
+   keeps the house close pill and ▶ its frame. */
+.journal-head .ui-info:not(.on) { background: none; }   /* the lens and funnel rest bare in their own rule */
+.journal-head .ui-info:not(.on):focus-visible, .journal-legend-btn:not(.on, .jr-filter-on):focus-visible { background: var(--ink-8); }
+@media (hover: hover) {
+  .journal-head .ui-info:not(.on):hover, .journal-legend-btn:not(.on, .jr-filter-on):hover { background: var(--ink-8); color: var(--ink); }
+}
 
 /* ── the icon legend ──
    The disc carries the Bereich, and a glyph has to be learned. This is the answer to that, and
@@ -403,13 +414,9 @@
    read, not to the drawer's controls. */
 .journal-legend-btn { flex: none; position: relative; width: var(--tap); height: var(--tap); border-radius: var(--r-sm);
   border: none; cursor: pointer; display: grid; place-items: center;
-  /* the ✕'s own fill and ink (see .journal-x): on `--surface-2` — white at .6 over a white glass
-     drawer — the chip vanished and only its 18px glyph stayed, so ⓘ and the lens read smaller
-     than the ✕ they are the size of (22.09.2026) */
-  background: var(--ink-8); color: var(--ink-dim); }
-@media (hover: hover) {
-  .journal-legend-btn:hover { background: var(--ink-12); color: var(--ink); }
-}
+  /* the ✕'s ink (see .journal-x); at rest no fill since hill climb r9 (the head's utilities,
+     above) — it wore the ✕'s `--ink-8` chip from 22.09.2026 */
+  background: none; color: var(--ink-dim); }
 .journal-legend-btn:active:not(:disabled) { background-image: linear-gradient(var(--press), var(--press)); }
 /* OPEN (the lens's search) is the one «open» look, the InfoToggle's blue wash (29.09.2026 — it
    was the ink «where you are» pill); the ⓘ beside it IS the InfoToggle (`.ui-info`) */
@@ -417,7 +424,7 @@
 .journal-legend-btn .i { width: 18px; height: 18px; }
 
 /* ── the search ──
-   The lens is a second .journal-legend-btn beside the ⓘ (same 44px chip). Tapped, the
+   The lens is a second .journal-legend-btn beside the ⓘ (same 44px button). Tapped, the
    field REPLACES the head row (mock verlauf-02, 14.09.): the title, ⓘ and Replay go, the field
    takes their width, and the ✕ that closes the search stands where the drawer's ✕ stood — one
    place for «back out of this», whichever «this» is. No space is lost while nothing is searched. */
@@ -452,7 +459,7 @@
 :is(.jr-legend, .jr-filter-menu) .ic.jr-ic-ring { background: none; border-color: transparent; }
 
 /* ── the filter (feat 37 · option B, 23.09.2026) ──
-   A third .journal-legend-btn beside the lens (same 44px chip). While any category is
+   A third .journal-legend-btn beside the lens (same 44px button). While any category is
    ticked it wears the CHOICE fill (`--sel`, 29.09.2026 — the Anwesenheit's filter buttons do
    the same): it was the ink «where you are» pill plus a blue dot, two channels for one bit and
    the wrong role. Nothing is printed on it, so it measures the same filtered or not. */
