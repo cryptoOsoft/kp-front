@@ -116,10 +116,27 @@ p.fb-prompt-q { margin: 0; font: var(--fw-bold) var(--fs-2) var(--body); color: 
    strip put the first and last one ON its rounded corners, where the radius and the inset
    hairline eat them — and those two are the start and the end of the whole Einsatz. */
 .jr-strip-track { position: absolute; top: 0; bottom: 0; pointer-events: none; }
+/* ⚠️ TWO layers in the one 44px band (hill climb r2, 04.11.2026: hundreds of equal ticks read as a
+   barcode with no time on it). The upper 24px are the ticks: one per row, short and in secondary
+   ink at low opacity — so a busy minute reads as a darker patch, not as a wall — and the scale's
+   marks (`b`, lib/verlauf · stripScale) taller and in the strong ink. The lower 16px carry the
+   clocks: the first and last moment at the ends (`.jr-strip-end`), round times centred under
+   their marks where a label fits. Nothing here is a target; the strip takes the tap. */
 .jr-strip i {
-  position: absolute; top: calc(50% - 8px); width: 1.5px; height: 16px; margin-left: -0.75px;
-  border-radius: 1px; background: var(--ink-faint); opacity: .7;
+  position: absolute; top: 8px; width: 1.5px; height: 12px; margin-left: -0.75px;
+  border-radius: 1px; background: var(--ink-faint); opacity: .5;
 }
+.jr-strip-major {
+  position: absolute; top: 4px; width: 1.5px; height: 20px; transform: translateX(-50%);
+  border-radius: 1px; background: var(--ink-dim);
+}
+.jr-strip-lbl {
+  position: absolute; bottom: 4px; transform: translateX(-50%); white-space: nowrap;
+  font: var(--fw-medium) var(--fs-1)/1 var(--mono); font-variant-numeric: tabular-nums; color: var(--ink-faint);
+}
+/* the ends sit INSIDE the track (left- and right-aligned) and in the stronger ink: they are the
+   two clocks that bracket the Einsatz */
+.jr-strip-end { transform: none; color: var(--ink-dim); }
 /* The row the strip — or the Wiedergabe's «im Verlauf» — just landed on. Without it a scroll
    ends somewhere with no sign of which line was meant.
    ⚠️ The SHARED ink ring (02-base.css · ui-flash-ring), not a background wash of its own. The

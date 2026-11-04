@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { groupByDay, isHandWritten, rowGlyph, isNachtrag, rowText, rowTime, rowPhotos, rowTarget, liveTargets, swapUrl, repeatRuns } from './verlauf'
+import { groupByDay, isHandWritten, rowGlyph, isNachtrag, rowText, rowTime, rowPhotos, rowTarget, liveTargets, swapUrl, repeatRuns, stripScale } from './verlauf'
 import type { BoardAnno, TimelineEvent } from '../types'
 
 const row = (id: string, at?: string): TimelineEvent =>
@@ -382,5 +382,32 @@ describe('rowTarget', () => {
     expect(rowTarget({ ...base, surface: 'plan', planId: 'p1', annoId: 'gone', px: 0.4, py: 0.6 }, live)).toBeNull()
     // a plan no longer in the catalog (a Gebäude whose stack was removed)
     expect(rowTarget({ ...base, surface: 'plan', planId: 'geb', kind: 'symbol' }, live)).toBeNull()
+  })
+})
+
+describe('stripScale', () => {
+  const from = new Date('2026-07-02T14:33:00').getTime()
+  const to = new Date('2026-07-02T19:05:00').getTime()
+
+  it('marks full hours and labels only the ones clear of the end labels', () => {
+    const s = stripScale(from, to, 330)
+    expect(s.marks).toHaveLength(5) // 15, 16, 17, 18, 19 h
+    // 15:00 sits 33px in, under the start label; 19:00 6px before the end label
+    expect(s.marks.map((m) => m.label !== undefined)).toEqual([false, true, true, true, false])
+    expect(s.marks[1].label).toMatch(/16.00/)
+    expect(s.start).toMatch(/14.33/)
+    expect(s.end).toMatch(/19.05/)
+  })
+
+  it('never prints two labels closer than one label width', () => {
+    const s = stripScale(from, to, 120)
+    expect(s.marks.filter((m) => m.label)).toHaveLength(0)
+    expect(s.marks.length).toBeLessThanOrEqual(3)
+  })
+
+  it('unmeasured, it draws a few unlabelled marks', () => {
+    const s = stripScale(from, to, 0)
+    expect(s.marks.length).toBeLessThanOrEqual(6)
+    expect(s.marks.every((m) => m.label === undefined)).toBe(true)
   })
 })

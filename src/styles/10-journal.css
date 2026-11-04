@@ -355,8 +355,12 @@
   .journal-drawer.is-kb { top: calc(88px + var(--vv-pan, 0px)); }
 }
 .journal-head { display: flex; align-items: center; gap: 8px; padding: 4px 4px var(--sp-2); }
-.journal-title { display: flex; align-items: center; gap: 8px; font-size: var(--fs-2); font-weight: var(--fw-bold); color: var(--ink); }
-.journal-title .i { width: 17px; height: 17px; }
+/* the drawer's title is its strongest anchor — `--fs-4`, the head-title size (hill climb r2,
+   04.11.2026: at 14px «Verlauf · 322» stood below its own filled ▶ button in weight). On a
+   phone it steps down and drops its glyph (below): the head has no width to spare there. */
+.journal-title { display: flex; align-items: center; gap: 8px; min-width: 0; white-space: nowrap;
+  font: var(--fw-bold) var(--fs-4)/var(--lh-4) var(--body); color: var(--ink); }
+.journal-title .i { width: 19px; height: 19px; flex: none; }
 .jr-delivery { padding: var(--sp-3); margin-block: 4px 12px; border-radius: var(--r-ctl); background: color-mix(in srgb, var(--amber) 16%, var(--glass)); color: var(--ink); }
 .jr-delivery-danger { background: color-mix(in srgb, var(--red) 14%, var(--glass)); }
 .jr-delivery strong { font-size: var(--fs-2); }
@@ -365,17 +369,11 @@
 /* ⚠️ ONE size for every button of this head, and it is the app's --tap (30.10.2026, owner: «increase
    the size of the touch targets/buttons to match the size we have otherwise»). It was 36 to the eye
    over a 44 pad – the ✕'s house size (13-incident.css · «ONE size for the ✕») – so the Verlauf read
-   smaller than every surface of 44px buttons around it. ⓘ, lens, funnel, ▶ and ✕ are all 44 now. */
-.journal-replay { position: relative; margin-left: auto; display: inline-flex; align-items: center; gap: var(--sp-2);
-  height: var(--tap); min-width: var(--tap); justify-content: center; padding: 0 var(--sp-3); border: none; border-radius: var(--r-sm); cursor: pointer;
-  background: var(--btn-primary); color: var(--on-btn-primary); font-family: var(--body); font-weight: var(--fw-bold); font-size: var(--fs-1); }
-/* the normal primary, not amber (sweep B7, 07.10.2026): amber means «needs attention» everywhere
-   else («4 offen», Kontakt fällig), and a play button is not asking for any */
-@media (hover: hover) {
-  .journal-replay:hover { background: var(--btn-primary-hover); }
-}
-.journal-replay:active:not(:disabled) { background-image: linear-gradient(var(--press), var(--press)); }
-.journal-replay .i { width: 15px; height: 15px; }
+   smaller than every surface of 44px buttons around it. ⓘ, lens, funnel, ▶ and ✕ are all 44 now.
+   ▶ is THE button's framed secondary (<Button>, `.ip-btn`, 44px) — placement only here. It was the
+   filled primary until the hill climb (r2, 04.11.2026): playing back the past became the
+   strongest thing in a view whose job is what is still open. */
+.journal-replay { margin-left: auto; flex: none; }
 /* with the replay button taking the auto margin, the × just trails it */
 .journal-replay + .journal-x { margin-left: 0; }
 .journal-x { margin-left: auto; width: 28px; height: 28px; border-radius: var(--r-sm); border: none; cursor: pointer;
@@ -487,7 +485,10 @@
    above. The button keeps its `aria-label` (Journal.tsx), so nothing is lost but the letters. */
 @media (--phone) {
   .journal-replay span { display: none; }
-  .journal-replay { padding: 0 8px; }
+  .journal-head .journal-replay { width: var(--tap); padding: 0; }
+  /* the title a step down and without its glyph: at 19px with it the head ran past a 390px screen */
+  .journal-title { font-size: var(--fs-3); line-height: var(--lh-3); }
+  .journal-title .i { display: none; }
   /* …and since the funnel joined it the head is SIX items: at 360px a real Einsatz's
      «Verlauf · 312» ran 1px past the edge and the ✕ was squeezed to 34px (measured 24.09.2026).
      The gaps close up to 6px — the room a four-digit count needs — and no chip may shrink: the
