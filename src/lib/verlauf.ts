@@ -347,6 +347,35 @@ export function stripScale(from: number, to: number, trackPx: number): { start: 
   return { start: formatTime(new Date(from)), end: formatTime(new Date(to)), marks }
 }
 
+/** One density mark on the Verlauf strip: where it stands (0–1 along the track) and how many
+ *  rows it stands for. */
+export interface StripTick { frac: number; n: number }
+
+/** The strip's density column, px: rows closer than this draw as ONE mark. */
+const STRIP_COL_PX = 3
+
+/**
+ * The Verlauf strip's row marks (Journal · `.jr-strip i`): the rows' moments (`ticks`, ascending
+ * ms) merged into `STRIP_COL_PX` columns of the measured track, one mark per column that holds
+ * any, at the mean position of its rows and with their count — so 300 rows read as density
+ * (a busy column a step darker), not as 300 equal hairlines. Look only: the tap still jumps
+ * by time (Journal · jumpTo). Unmeasured (`trackPx` 0, e.g. jsdom) every row is its own mark.
+ */
+export function stripDensity(ticks: readonly number[], from: number, to: number, trackPx: number): StripTick[] {
+  const span = to - from
+  if (span <= 0) return []
+  const fracs = ticks.map((t) => (t - from) / span)
+  if (trackPx <= 0) return fracs.map((frac) => ({ frac, n: 1 }))
+  const lastCol = Math.max(0, Math.ceil(trackPx / STRIP_COL_PX) - 1)
+  const cols = new Map<number, { sum: number; n: number }>()
+  for (const f of fracs) {
+    const col = Math.min(lastCol, Math.floor((f * trackPx) / STRIP_COL_PX))
+    const c = cols.get(col)
+    if (c) { c.sum += f; c.n++ } else cols.set(col, { sum: f, n: 1 })
+  }
+  return [...cols.values()].map(({ sum, n }) => ({ frac: sum / n, n }))
+}
+
 /**
  * Where the Pendenzen box (Journal · `.jr-pinned`) ends at rest so it never shows a partly
  * visible row: the box's height when it is cut at the top of the first row that does not fit

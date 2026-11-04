@@ -117,24 +117,27 @@ p.fb-prompt-q { margin: 0; font: var(--fw-bold) var(--fs-2) var(--body); color: 
    hairline eat them — and those two are the start and the end of the whole Einsatz. */
 .jr-strip-track { position: absolute; top: 0; bottom: 0; pointer-events: none; }
 /* ⚠️ TWO layers in the one 44px band (hill climb r2, 04.11.2026: hundreds of equal ticks read as a
-   barcode with no time on it), stacked as a ruler and centred in the band: the scale's marks
-   (`b`, lib/verlauf · stripScale) 14px in the strong ink, the rows' ticks only 6px beside them,
-   standing on the same baseline in the muted ink at low opacity — so a busy minute reads as a
-   darker patch along the floor of the ruler, never as a wall (r3: 12px ticks still read barcode
-   first). Then a clear 4px gap and the clocks: the first and last moment at the ends
-   (`.jr-strip-end`), round times centred under their marks where a label fits.
-   7 + 14 + 4 + 12.5 (the label, line-height 1) leaves 6.5 under it. Nothing here is a target;
+   barcode with no time on it), stacked as a ruler and centred in the band, in three levels:
+   the scale's marks (`b`, lib/verlauf · stripScale) 10px in the strong ink; the rows' marks 4px
+   beside them, standing on the same baseline in a quiet ink tint and merged per 3px column
+   (lib/verlauf · stripDensity), a column of 3+ rows (`data-busy`) a step darker — so a busy
+   stretch reads as a darker patch along the floor of the ruler, never as a wall (r3 at 14/6px
+   and one hairline per row still read barcode first, r6). Then a clear 4px gap and the clocks
+   on one baseline: the first and last moment at the ends (`.jr-strip-end`), round times centred
+   under their marks where a label fits.
+   9 + 10 + 4 + 12.5 (the label, line-height 1) leaves 8.5 under it. Nothing here is a target;
    the strip takes the tap. */
 .jr-strip i {
-  position: absolute; top: 15px; width: 1.5px; height: 6px; margin-left: -0.75px;
-  border-radius: 1px; background: var(--ink-faint); opacity: .55;
+  position: absolute; top: 15px; width: 1.5px; height: 4px; margin-left: -0.75px;
+  border-radius: 1px; background: var(--ink-28);
 }
+.jr-strip i[data-busy] { background: var(--ink-45); }
 .jr-strip-major {
-  position: absolute; top: 7px; width: 1.5px; height: 14px; transform: translateX(-50%);
+  position: absolute; top: 9px; width: 1.5px; height: 10px; transform: translateX(-50%);
   border-radius: 1px; background: var(--ink-dim);
 }
 .jr-strip-lbl {
-  position: absolute; top: 25px; transform: translateX(-50%); white-space: nowrap;
+  position: absolute; top: 23px; transform: translateX(-50%); white-space: nowrap;
   font: var(--fw-medium) var(--fs-1)/1 var(--mono); font-variant-numeric: tabular-nums; color: var(--ink-faint);
 }
 /* the ends sit INSIDE the track (left- and right-aligned) and in the stronger ink: they are the

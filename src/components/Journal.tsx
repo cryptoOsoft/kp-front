@@ -12,7 +12,7 @@ import { openPhoto } from '../lib/ui'
 import { appConfig } from '../config/appConfig'
 import { dueClock, fillTemplate, fmtDuration, formatTime } from '../lib/format'
 import { thumbUrl } from '../lib/mediaUrl'
-import { ART_DISC, groupByDay, isHandWritten, isNachtrag, pendenzenBelow, pendenzenCut, repeatRuns, rowPhotos, rowTarget, rowText, stripScale, type ArtTone, type LiveTargets } from '../lib/verlauf'
+import { ART_DISC, groupByDay, isHandWritten, isNachtrag, pendenzenBelow, pendenzenCut, repeatRuns, rowPhotos, rowTarget, rowText, stripDensity, stripScale, type ArtTone, type LiveTargets } from '../lib/verlauf'
 import { journalDisc, withoutAreaPrefix } from '../lib/report'
 import { journalQuery, matchesJournalQuery } from '../lib/journalSearch'
 import { journalCategories, journalFacets, matchesJournalCategories, showsPinnedPendenzen, type JournalCategoryKind } from '../lib/journalFilter'
@@ -55,6 +55,8 @@ function useAudioPlayer() {
  *  track is inset by this and the tap→time maths subtracts it, so the two cannot drift apart
  *  and leave a tap landing a few minutes off what the ticks show. */
 const STRIP_INSET = 10
+/** A strip column holding this many rows or more draws a step darker (`.jr-strip i[data-busy]`). */
+const STRIP_BUSY = 3
 
 /** Rows the log mounts at first, and how many more each scroll to the tail reveals. */
 const PAGE_ROWS = 150
@@ -343,6 +345,8 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
     return () => ro.disconnect()
   }, [])
   const scale = useMemo(() => (stripSpan ? stripScale(stripSpan.from, stripSpan.to, stripTrackPx) : null), [stripSpan, stripTrackPx])
+  // …and the rows' marks merged per 3px column, so a busy stretch reads as density, not barcode
+  const density = useMemo(() => (stripSpan ? stripDensity(stripTicks, stripSpan.from, stripSpan.to, stripTrackPx) : []), [stripTicks, stripSpan, stripTrackPx])
   /** Scroll the list to the row nearest a moment on the strip. */
   const jumpTo = (ms: number) => {
     let best: string | null = null
@@ -651,7 +655,9 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
             timeline strip vacates (the strip is hidden while searching anyway), with its own ✕.
             The lens in the head is lit while the field is open and closes it on a second tap. */}
         <div className="journal-head">
-          <span className="journal-title"><Icon id="history" />{C.title} · {events.length}</span>
+          {/* the title and its count as two pieces (hill climb r6): the count is a caption beside
+              the name, not part of it — so «Verlauf» leads and «· 322» steps back (10-journal.css) */}
+          <span className="journal-title"><Icon id="history" /><span className="journal-title-txt">{C.title}</span>{' '}<span className="journal-count">· {events.length}</span></span>
           {/* ⚠️ ON A TAP, never by itself. The disc carries the Bereich now, and a glyph has to be
               learned — but a panel that opens on its own, or one the app remembers having opened,
               is a thing to dismiss on the way to the record. This one is a question somebody asks
@@ -769,8 +775,8 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
             {/* …and on it, under the ticks, the scale: the first and last moment at the ends, round
                 times between them as taller marks, labelled where a label fits (stripScale). */}
             <div className="jr-strip-track" style={{ insetInline: STRIP_INSET }} aria-hidden>
-              {stripTicks.map((t, i) => (
-                <i key={i} style={{ left: `${((t - stripSpan.from) / (stripSpan.to - stripSpan.from)) * 100}%` }} />
+              {density.map((d, i) => (
+                <i key={i} data-busy={d.n >= STRIP_BUSY || undefined} style={{ left: `${d.frac * 100}%` }} />
               ))}
               {scale?.marks.map((m) => (
                 <Fragment key={m.frac}>
