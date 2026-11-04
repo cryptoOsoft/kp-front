@@ -741,6 +741,9 @@ export function TruppCard({
    * Leitung (it lives in the Auftrag sheet), no small-caps labels, no «#N» (dropped 30.09.2026, see TruppNo).
    * `chip(key, node, onTap, cls)`: a button when it has somewhere to go, a plain chip otherwise
    * (a viewer's card, the lite board's jumps).
+   * «Kanal 11» and the Ausrüstung after it stand in `.factsEnd`: on the grid that is the facts'
+   * own LAST row, so the Kanal keeps one address from card to card (hill climb r8, 04.11.2026);
+   * everywhere else the wrapper is `display: contents` and the chips wrap as before.
    * ⚠️ The crew chip wraps BETWEEN people (31.10.2026, owner: names are never cut): each name is
    * its own nowrap span and the « · » is the break (`.crewName`), so the chip grows in lines.
    * «Rückzug» is not a chip: it is the amber badge in the card head (RowLine · `rueckzug`), which
@@ -749,6 +752,7 @@ export function TruppCard({
   const chip = (key: string, node: ReactNode, onTap?: () => void, cls?: string) => onTap
     ? <button key={key} type="button" className={cx(s.fact, cls)} onClick={onTap}>{node}</button>
     : <span key={key} className={cx(s.fact, cls)}>{node}</span>
+  const gear = equipmentTags.map(({ id, tag }) => chip(`eq-${id}`, tag, onQuick && (() => onQuick('trupp'))))
   const facts = (
     <div className={s.facts}>
       {!!crewNames.length && chip('crew', <span className={s.crewTxt}>{crewNames.map((n, i) => (
@@ -764,8 +768,12 @@ export function TruppCard({
         lite ? undefined : () => onShowPlan(t.id), s.factGo)}
       {lineTag && chip('line', <>{fillTemplate(az.lineChip, { n: lineTag })}{hasLine && !lite && <Icon id="chevron" />}</>,
         hasLine && !lite ? () => onShowLine(t.id) : onQuick && (() => onQuick('auftrag')), hasLine && !lite ? s.factGo : undefined)}
-      {t.funkkanal != null && chip('kanal', `${az.funkkanalUnit} ${t.funkkanal}`, onQuick && (() => onQuick('kanal')))}
-      {equipmentTags.map(({ id, tag }) => chip(`eq-${id}`, tag, onQuick && (() => onQuick('trupp'))))}
+      {t.funkkanal == null ? gear : (
+        <div className={s.factsEnd}>
+          {chip('kanal', `${az.funkkanalUnit} ${t.funkkanal}`, onQuick && (() => onQuick('kanal')))}
+          {gear}
+        </div>
+      )}
     </div>
   )
   /* the card says in WORDS what its line and its Kontakt say in colour — one line under the tile

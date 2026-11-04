@@ -113,7 +113,7 @@ describe('the mini sheets', () => {
     mount({ trupps: [{ ...withFacts(), equipment: ['wbk'] }], editTrupp })
     fireEvent.click(document.querySelector(`.${s.trow}`)!)
     const card = document.querySelector('[data-az-open]') as HTMLElement
-    const chips = [...card.querySelectorAll(`.${s.facts} > *`)]
+    const chips = [...card.querySelectorAll(`.${s.facts} .${s.fact}`)]
     expect(chips.map((c) => c.textContent)).toEqual(['Huber', 'Löschen · Test', fillTemplate(az.lineChip, { n: 1 }), `${az.funkkanalUnit} 11`, 'WBK'])
     // every chip is a button; the ⋯ is NOT a chip — it ends the foot line (29.09.2026, owner pick B)
     expect(chips.every((c) => c.tagName === 'BUTTON')).toBe(true)

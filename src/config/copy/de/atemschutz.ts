@@ -44,6 +44,8 @@ export const atemschutzCopy = {
     // fremdes Handy geben, damit jemand ohne Login nur den Atemschutz bedient. Nur für
     // Bearbeiter, und nicht auf der abgegebenen Tafel selbst.
     shareLink: 'Überwachung abgeben',
+    // …gefaltet im engen Kopf (Handy): das eine Wort unter dem QR-Zeichen
+    shareLinkShort: 'Abgeben',
     // …und wenn schon ein Link läuft. Der Knopf sagt nur, DASS es einen gibt – wer ihn drückt,
     // sieht im Blatt alles Weitere.
     shareLinkOn: 'Überwachung abgeben – ein Link ist aktiv',
