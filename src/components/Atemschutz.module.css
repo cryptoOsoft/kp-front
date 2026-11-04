@@ -340,19 +340,14 @@
 .actRueckzug.actAlarm { color: var(--amber-strong);
   background: color-mix(in srgb, var(--amber) 10%, var(--surface));
   box-shadow: inset 0 0 0 1px var(--amber-45); }
-/* ⚠️ The card's ONE filled tile (27.09.2026, owner screenshot r2-1): «Im Einsatz» on a Trupp still
-   waiting — the next step of a crew at the door, so it keeps the primary's 800. In the tile family
-   the one primary action is the filled tile («+ Trupp» in the head, `.newBtn`; «Anmelden» in
-   the form), never a green band — in the app's one primary fill (`--btn-primary`, dimmed at night).
-   «Wieder in den Einsatz» / «In den Einsatz» on a Trupp that is OUT is a framed tile since the hill
-   climb r1 (04.11.2026): three filled slabs on the out cards outweighed the live contact clocks of
-   the crews inside, on the board whose question is «who is inside?». It is the plain `.actBtn`
-   in full ink — still the card's one action, no longer its loudest thing. */
-.actEnter { color: var(--on-btn-primary); background: var(--btn-primary); box-shadow: none; font-weight: var(--fw-heavy); }
-.actReenter { color: var(--ink); }
+/* ⚠️ The card's ONE filled tile (27.09.2026, owner screenshot r2-1): «Wieder in den Einsatz» /
+   «In den Einsatz» on a Trupp that is out, «Im Einsatz» on one still waiting – the owner's pick,
+   kept through the hill climb (04.11.2026). In the tile family the one primary action is the
+   filled tile («+ Trupp» in the head, `.newBtn`; «Anmelden» in the form), never a green band — in
+   the app's one primary fill (`--btn-primary`, dimmed at night), at the primary's 800. */
+.actEnter, .actReenter { color: var(--on-btn-primary); background: var(--btn-primary); box-shadow: none; font-weight: var(--fw-heavy); }
 @media (hover: hover) {
-  .actEnter:hover { background: var(--btn-primary-hover); }
-  .actReenter:hover { background: var(--fill-soft); }
+  .actEnter:hover, .actReenter:hover { background: var(--btn-primary-hover); }
 }
 /* (`.st-aktiv` … `.st-raus`, the tablet card's status TOP EDGE, went on 29.09.2026: the card's tone
    is the phone row's LEFT edge and wash by tier — `rowTone`, `.trowWarn` / `.trowCrit` / `.trowIdle`

@@ -82,10 +82,10 @@ questions, and what the record keeps (`components/AtemschutzView`; the card and 
     24px air (`.stateBoard`). «Wie gesetzt» stays one slot-keeping grid (a card never jumps when
     its Trupp comes out — 17.08., 23.10.2026) and «Name» an alphabet. No Sicherungstrupp section
     on the grid: a standing «Sichern» crew is a Bereit card with its Auftrag chip.
-  - *Out cards do not outweigh the crews inside* (04.11.2026): «Wieder in den Einsatz» is a framed
-    tile in full ink, not the filled primary («Im Einsatz» on a waiting Trupp stays filled); the
-    fact chips are quiet fields (no edge, `--ink-5` fill, 500) that still open their sheets; the
-    tiles and the head's tiles are 700, 800 is kept for Kontakt and the filled primaries.
+  - *Quiet facts, one loud action per card* (04.11.2026): the fact chips are quiet fields (no edge,
+    `--ink-5` fill, 500) that still open their sheets; the tiles and the head's tiles are 700, 800 is
+    kept for Kontakt and the filled primaries. «Wieder in den Einsatz» stays the out card's one
+    filled tile (owner, 27.09.2026).
 
 ## The Atemschutz-Link board (the handed-over phone board, `lite && compact`)
 
