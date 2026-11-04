@@ -89,8 +89,9 @@
    height, so an opened fold (Zeiten, Verlauf) grows only ITS card. With `stretch`, expanding one
    Trupp's Verlauf pumped empty space into every neighbour's belly — worse than the ragged
    bottoms `stretch` was once chosen against (the clocks the board is compared BY stay
-   top-aligned either way). The one exception is the out cards' shared foot (hill climb r6,
-   `.grid > .trowOut` below): they stretch to their row while no fold in the grid is open. */
+   top-aligned either way). ⚠️ And no shared foot line either (hill climb r6 tried out cards stretched
+   to their row with the foot pinned down: beside a taller crew inside, that is the 04.09. «Draussen
+   card stretched into an empty box» again – reverted, the ragged feet are the price). */
 /* ⚠️ 288px, not 270. 270 was chosen to fit three cards on a landscape tablet (300 fitted only
    two). Since 29.09.2026 the card is the phone's (TruppCard): its tiles are a 2×2 grid of equal
    keys, and 288 keeps «Rückzug» and «Raus» on one line each with the glyph beside the word. */
@@ -1776,18 +1777,6 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
   .grid .trowCard .vrow { min-height: 36px; }
   .grid .trowCard .footMore { width: 36px; height: 36px; }
 }
-/* ── The out cards' feet on one line (hill climb r6, 04.11.2026) ─────────────────────────────────
-   An out card is as tall as its facts wrap, so in a row of them the one with fewer chip lines ended
-   high and the «29:00 min · 175 bar» feet stood on a ragged line. An out card now takes its row's
-   height (beside a taller crew inside, that crew's — every foot of the row on one line) and its foot
-   sits on the card's bottom edge (`margin-top: auto`, the free space goes
-   between the facts and the foot; whatever stands right above the foot keeps its 8px). Slots and
-   order are untouched. ⚠️ Only while no Verlauf in this grid is open (`.vopen`): the `start` above
-   exists so an opened fold grows only ITS card, and a stretched neighbour would take that space
-   into its belly again. The crews inside keep their natural height. */
-.grid:not(:has(.vopen)) > .trowOut { align-self: stretch; }
-.grid > .trowOut > .vfoot { margin-top: auto; }
-.grid > .trowOut > :has(+ .vfoot) { margin-bottom: var(--sp-2); }
 
 /* the Sicherungstrupp — one place, between the crews inside and everybody else */
 /* (its air above is the phone board's one section rule, `.phoneBoard`; the head after it brings its own) */
