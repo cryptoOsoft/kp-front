@@ -485,11 +485,13 @@
      `.ip-switch-title`; here the title is half of what the pill says and never goes */
   .ip-switch-two .ip-switch-title, .topbar.fit-9 .ip-switch-two .ip-switch-title {
     display: block; max-width: 100%; font-size: var(--fs-2); font-weight: var(--fw-bold); }
-  .ip-switch-clock { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap;
+  .ip-switch-clock { display: inline-flex; align-items: center; gap: var(--sp-1); white-space: nowrap;
     font: var(--fw-bold) var(--fs-1)/1.1 var(--mono); color: var(--ink-dim); font-variant-numeric: tabular-nums; }
   /* the time is a <b> inside this bold line: the UA's `bolder` would make it 900, off the scale */
   .ip-switch-clock b { font-weight: inherit; }
-  .ip-switch-btn .ip-switch-clock svg { width: 12px; height: 12px; opacity: .8; }
+  /* the glyph as tall as the figure's line and at full ink: at 12px and .8 opacity the hourglass
+     was a hairline beside the bold mono time (hill climb r11) */
+  .ip-switch-btn .ip-switch-clock svg { width: 14px; height: 14px; }
   .topbar .ip-switch-two .ip-status { display: inline-flex; }
   /* the Übung marker in this pill is ONE letter («Ü», copy.exerciseInitial) in an amber square
      (08.10.2026, owner): the word ellipsised to «ÜBU…» and cost the street its last letters. A

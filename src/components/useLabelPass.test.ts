@@ -65,3 +65,22 @@ describe('mapLabelDecisions — a trail\'s times', () => {
     expect(mapLabelDecisions(px, scene({ entities: [trupp], hiddenTrails: new Set(['T']) })).size).toBe(0)
   })
 })
+
+describe('mapLabelDecisions — the floating chrome', () => {
+  // a radius readout at (500, 40) – i.e. right under a top bar spanning the top 70 px
+  const circleLabels = [{ id: 'c1', coord: [0.5, 0.04] as LngLat, text: '77 m' }]
+  const topBar = { x: 0, y: 0, w: 900, h: 70 }
+
+  it('a readout on or against the chrome is not drawn', () => {
+    expect(mapLabelDecisions(px, scene({ circleLabels, chrome: [topBar] })).has('cl:c1')).toBe(true)
+  })
+
+  it('…and stands where it belongs once the chrome is elsewhere', () => {
+    expect(mapLabelDecisions(px, scene({ circleLabels, chrome: [{ x: 0, y: 600, w: 900, h: 70 }] })).has('cl:c1')).toBe(false)
+  })
+
+  it('a caption is never hidden by the chrome (the plan twins mirror the map\'s caption decisions)', () => {
+    const sym: Entity = { id: 'S', kind: 'symbol', layer: 'taktisch', symbol: 'Hydrant', coord: [0.5, 0.03], notes: 'Weiher' }
+    expect(mapLabelDecisions(px, scene({ entities: [sym], chrome: [topBar] })).has('cap:S')).toBe(false)
+  })
+})

@@ -104,6 +104,9 @@ questions, and what the record keeps (`components/AtemschutzView`; the card and 
     clock, closed by a 3px green rule along its foot (r5); fällig / überfällig keep their own tones instead (amber wash, red edge — never the band).
     An out card sinks: its surface is mixed toward the canvas (it was mixed toward the ink, which
     lit it at night), its name is the dim ink and its clock the quiet 16px. Slots never move.
+    Since r11 the grid card's 5px left edge is drawn only for a tone that means something (amber
+    fällig, red überfällig, blue angemeldet); a calm inside card, an out card and a work squad
+    have just the 1px card border (the phone rows keep their grey edge).
   - *The tablet grid shows every foot* (hill climb r4, 04.11.2026): on the 1180×820 iPad the second
     row's foot (duration, Schätzung) met the panel's bottom edge. The space came out of air, never a
     target: the grid card's head starts 4px under the card's top and the caption hangs right under

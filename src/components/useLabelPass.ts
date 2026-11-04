@@ -2,7 +2,7 @@ import { useEffect, useState, type RefObject } from 'react'
 import type { Map as MlMap } from 'maplibre-gl'
 import type { CaptionMode, Drawing, Entity, LayerId, LngLat } from '../types'
 import { dockSlots } from '../lib/docking'
-import { cachedLabelSize, LABEL_RANK, placeLabels, type LabelBox, type LabelCandidate, type LabelStyle } from '../lib/labelPass'
+import { boxesOverlap, cachedLabelSize, LABEL_RANK, placeLabels, type LabelBox, type LabelCandidate, type LabelStyle } from '../lib/labelPass'
 import { CRUMB_LABEL_DX, CRUMB_LABEL_STYLE, effectiveLayer, END_TAG_LABEL_STYLE, READOUT_LABEL_STYLE, READOUT_WORDS_STYLE, shapePx, symPx, SYM_CAPTION_GAP, SYM_CAPTION_STYLE, SYM_PILL_STYLE, teamDockAnchor, teamStripPx, TEAM_DOT_GAP, TEAM_DOT_PX, TEAM_LABEL_STYLE } from '../lib/mapView'
 import { noteWPx } from '../lib/notes'
 import { SHAPE_MAX_PX, shapeAspect } from '../lib/shapes'
@@ -83,6 +83,9 @@ export interface LabelPassScene {
   storedDrawings: Drawing[]
   /** Trupps whose trail the operator switched off (lib/useHiddenTrails) – their crumbs are not drawn */
   hiddenTrails: ReadonlySet<string>
+  /** the floating chrome over the map (top bar, rails, floating chips), in map-container px – a
+   *  label may not sit on or against it. Optional: tests and a bare map have none. */
+  chrome?: readonly LabelBox[]
 }
 
 /**
@@ -98,7 +101,7 @@ export interface LabelPassScene {
  */
 export function mapLabelDecisions(px: (c: LngLat) => { x: number; y: number }, scene: LabelPassScene): ReadonlySet<string> {
   const { initialCenter, entities, isVisible, zoom, symMul, captionMode, selectedId, selectedEntityIds, teamLines,
-    drawingsVisible, lineDecor, drawLabels, circleLabels, selectedDrawingId, storedDrawings, hiddenTrails } = scene
+    drawingsVisible, lineDecor, drawLabels, circleLabels, selectedDrawingId, storedDrawings, hiddenTrails, chrome = [] } = scene
   // ties inside a rank go to whatever is nearer the incident — never to placement order
   const hub = px(initialCenter)
   const near = (p: { x: number; y: number }) => Math.hypot(p.x - hub.x, p.y - hub.y)
@@ -222,7 +225,35 @@ export function mapLabelDecisions(px: (c: LngLat) => { x: number; y: number }, s
   // The live Messen readouts deliberately stay OUT of the pass: they belong to a tool the
   // operator is holding right now, they change on every vertex drag, and a measurement that
   // blinks out because a caption got there first would be unusable.
-  return placeLabels(cands, occupied)
+  // The chrome is a wall too: a readout, trail time or end tag that would stand on or against the top
+  // bar, a rail or a floating chip read as part of it («77 m» glued to the bar's end, hill climb r11,
+  // 04.11.2026). CHROME_PAD widens each box so «against» counts. Applied AFTER the pass and never to
+  // captions – MapView reports the hidden captions to the plan twins, and a symbol under the map's
+  // top bar must not lose its caption on the Plan – nor to the selection or a pinned label.
+  const suppressed = placeLabels(cands, occupied)
+  if (!chrome.length) return suppressed
+  const walls = chrome.map((b) => ({ x: b.x - CHROME_PAD, y: b.y - CHROME_PAD, w: b.w + 2 * CHROME_PAD, h: b.h + 2 * CHROME_PAD }))
+  const out = new Set(suppressed)
+  for (const c of cands) {
+    if (c.pinned || c.rank === LABEL_RANK.selected || c.key.startsWith('cap:')) continue
+    if (walls.some((w) => boxesOverlap(c.box, w, 0))) out.add(c.key)
+  }
+  return out
+}
+
+/** Clearance in px a label keeps from the floating chrome. */
+const CHROME_PAD = 8
+/** What floats over the map and must not wear a label: the top bar, both rails, the phone's floating
+ *  read-outs and the Eintrag FAB. */
+const CHROME_SELECTOR = '.topbar, .rail, .phone-wx, .tb-share, .tb-gps, .fab-entry'
+
+/** The chrome's boxes in the map container's px (read at render time, like `project`). */
+function chromeBoxes(container: HTMLElement): LabelBox[] {
+  const at = container.getBoundingClientRect()
+  return [...document.querySelectorAll<HTMLElement>(CHROME_SELECTOR)].flatMap((el) => {
+    const r = el.getBoundingClientRect()
+    return r.width > 0 && r.height > 0 ? [{ x: r.left - at.left, y: r.top - at.top, w: r.width, h: r.height }] : []
+  })
 }
 
 /**
@@ -236,7 +267,7 @@ export function mapLabelDecisions(px: (c: LngLat) => { x: number; y: number }, s
 export function useLabelPass(mapInst: RefObject<MlMap | null>, scene: LabelPassScene, onCaptionSuppressionChange?: (ids: ReadonlySet<string>) => void) {
   const [, bump] = useState(0)
   const m = mapInst.current
-  const suppressedLabels = m ? mapLabelDecisions((c) => m.project(c as [number, number]), scene) : NO_LABELS
+  const suppressedLabels = m ? mapLabelDecisions((c) => m.project(c as [number, number]), { ...scene, chrome: chromeBoxes(m.getContainer()) }) : NO_LABELS
   const suppressedCaptionKey = [...suppressedLabels]
     .filter((key) => key.startsWith('cap:'))
     .map((key) => key.slice(4))

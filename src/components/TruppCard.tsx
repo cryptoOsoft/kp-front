@@ -154,7 +154,8 @@ export function TruppRow({
 /** The phone row's tone (left edge + wash) — the collapsed row's and, since 26.09.2026, the opened
  *  card's too, so a Trupp keeps its colour when it is opened. See TruppRow for why each is what it is.
  *  `trowIn` (a crew under PA with its clock calm) draws nothing on the phone; on the grid it is the
- *  card's green head band (hill climb r3) — fällig / überfällig take its place, never both. */
+ *  card's green head band (hill climb r3) — fällig / überfällig take its place, never both. On the
+ *  grid only fällig / überfällig / angemeldet draw the left edge (r11); the grey ones have none. */
 function rowTone(t: Trupp, status: TruppLive['status'], sev: number): string {
   const inField = t.status === 'aktiv' || t.status === 'rueckzug'
   if (!isAtemschutzTrupp(t)) return status === 'raus' ? s.trowOut : status === 'angemeldet' ? s.trowIdle : s.trowPlain

@@ -341,9 +341,15 @@
    mobile breakpoint it becomes a bottom sheet anyway.
    ⚠️ The WIDE rail (--vrail-w 212) overlaps this — as it always did, and deliberately: it is a
    transient state you drag open and let go of, and it renders above (z-index 30 vs the drawer's
-   61 puts the drawer on top, so nothing is lost behind it). */
+   61 puts the drawer on top, so nothing is lost behind it).
+   ⚠️ OPAQUE glass (hill climb r11, 04.11.2026): the sheets' material (docs/ui-conventions ·
+   «Two materials», 29.09.2026) laid over --surface, so it keeps the glass's own tone in both
+   themes but lets nothing through. Translucent, the map's selected rail tiles showed as grey
+   blocks behind the clock column, and a busy Lage would do the same behind the log's prose — a
+   sheet you READ, unlike the floating chips and menus that keep the see-through glass. Scoped to
+   the Verlauf drawer (tablet, laptop and the phone's bottom sheet); no blur, nothing to blur. */
 .journal-drawer { position: fixed; top: 88px; right: 84px; bottom: 12px; width: 620px; max-width: calc(100vw - 96px); z-index: var(--z-drawer);
-  display: flex; flex-direction: column; background: var(--glass); backdrop-filter: blur(14px) saturate(1.4);
+  display: flex; flex-direction: column; background: linear-gradient(var(--glass), var(--glass)) var(--surface);
   border: 1px solid var(--glass-line); border-radius: var(--r-surface); box-shadow: var(--e4); padding: var(--sp-3);
   animation: drawerIn .18s var(--ease); }
 @keyframes drawerIn { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
@@ -448,10 +454,10 @@
   font: var(--fw-medium) var(--fs-1) var(--body); color: var(--ink-dim); }
 /* the discs here are the row's discs, at the row's size — a legend drawn smaller than the thing
    it explains is a second shape to recognise */
-:is(.jr-legend, .jr-filter-menu) .ic { width: 26px; height: 26px; border-radius: 50%; flex: none;
+:is(.jr-legend, .jr-filter-menu) .ic { width: 28px; height: 28px; border-radius: 50%; flex: none;
   display: grid; place-items: center; background: var(--surface-2);
-  border: 1px solid var(--border-soft); color: var(--ink-dim); }
-:is(.jr-legend, .jr-filter-menu) .ic .i { width: 14px; height: 14px; }
+  border: 1px solid var(--border); color: var(--ink-dim); }
+:is(.jr-legend, .jr-filter-menu) .ic > .i { width: 16px; height: 16px; }
 :is(.jr-legend, .jr-filter-menu) .ic.jr-ic-map { background: var(--blue-12);
   border-color: var(--blue-22); color: var(--blue-strong); }
 :is(.jr-legend, .jr-filter-menu) .ic.jr-ic-plan { background: var(--green-16);
@@ -517,7 +523,7 @@
 }
 
 /* ── Verlauf row: the classification column ────────────────────────────────────────────────
-   The 26px disc IS the Bereich (`.hist-ev .ic` sizes it in 06-contextpanel.css; the grid that
+   The 28px disc IS the Bereich (`.hist-ev .ic` sizes it in 06-contextpanel.css; the grid that
    places it is there too). There used to be a chip printing the same word in front of the
    sentence — and on a Pendenz a second chip printing «Pendenz» beside a text that already read
    «Pendenz erledigt: …». Both are gone, together with the Nachtrag/korrigiert/«6×» chips, which
@@ -576,12 +582,12 @@
    and find it again» is not how an Auftrag gets closed at 3am. */
 .hist-ev button.ic.jr-ic-tick { padding: 0; font: inherit; -webkit-appearance: none; appearance: none;
   cursor: pointer; }
-/* ⚠️ The button STAYS 26 × 26. The disc is the anchor for the timeline connector drawn above and
-   below it (`.hist-ev .ic::before/::after` in 06-contextpanel.css), so growing the element for a
-   gloved finger would tear a gap in the line. The TARGET grows instead, on a pseudo-element that
-   is out of the ring's grid flow: 44 × 44 (23.09.2026, was 30 × 42), i.e. 9px out to each side –
-   the 8px column gutter and 1px past it, over the plain time span and the sentence's first
-   glyph – and the row's height, and a miss lands on the row itself. The same trade the
+/* ⚠️ The button STAYS the disc's 28 × 28 (26 until r11). The disc is the anchor for the timeline
+   connector drawn above and below it (`.hist-ev .ic::before/::after` in 06-contextpanel.css), so
+   growing the element for a gloved finger would tear a gap in the line. The TARGET grows instead,
+   on a pseudo-element that is out of the ring's grid flow: 44 × 44 (23.09.2026, was 30 × 42), i.e.
+   8px out to each side – the 8px column gutters, up to the plain time span and the sentence's
+   first glyph – and the row's height, and a miss lands on the row itself. The same trade the
    pinned block's ring makes, and for the same reason. */
 .jr-ic-tick .jr-ring::before { content: ""; position: absolute; inset: -12px; border-radius: var(--r-sm); }
 /* ⚠️ No fill on hover — `--hover` is a neutral wash and the row already takes it. The RING
@@ -639,25 +645,34 @@
    with nothing between them. */
 .jr-note-on i { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-style: normal; }
 .jr-note-on::after { content: "›"; flex: none; color: var(--ink-faint); font-weight: var(--fw-regular); }
-/* «wieder in …» on a done row — small amber pills that CREATE a follow-up. Quiet on purpose: a
+/* «wieder in …» on a done row — small pills that CREATE a follow-up. Quiet on purpose: a
    closed Pendenz is a fact first, an offer second. ≥28px tap height inside a text row via padding
    (the row itself adds the rest). Framed, not dashed (27.09.2026, slim sweep · mockup 5): the dash
    said «this creates something», but a dashed edge in this app means «missing / hidden /
-   placeholder», and an offer is an ordinary action — the amber text and a faint amber tint carry
-   what kind of action it is. */
+   placeholder», and an offer is an ordinary action.
+   ⚠️ NEUTRAL, not amber (hill climb r11, 04.11.2026): amber is the colour of an OPEN Pendenz (the
+   block, the open ring), and amber chips under a finished item made the done row read as still
+   open. The framed --surface / --glass-edge recipe of the small framed buttons, in the secondary
+   ink; the ↻ and the minutes say what it does. */
 .jr-again { display: inline-flex; gap: var(--sp-1); flex: none; }
-.jr-again-btn { border: 1px solid color-mix(in srgb, var(--amber-strong) 45%, transparent);
-  background: var(--amber-8); border-radius: var(--r-pill, 999px); padding: var(--sp-1) var(--sp-2); cursor: pointer;
-  font: var(--fw-medium) var(--fs-1) var(--body); color: var(--amber-strong); white-space: nowrap; }   /* 12.5px: the interactive-text floor (was 11.5, UI sweep 07.10.2026); --tap under a finger: 20-touch-floors */
+.jr-again-btn { border: 1px solid var(--glass-edge);
+  background: var(--surface); border-radius: var(--r-pill, 999px); padding: var(--sp-1) var(--sp-2); cursor: pointer;
+  font: var(--fw-medium) var(--fs-1) var(--body); color: var(--ink-dim); white-space: nowrap; }   /* 12.5px: the interactive-text floor (was 11.5, UI sweep 07.10.2026); --tap under a finger: 20-touch-floors */
 @media (hover: hover) {
-  .jr-again-btn:hover { background: color-mix(in srgb, var(--amber-strong) 10%, transparent); }
+  .jr-again-btn:hover { background: var(--hover-strong); color: var(--ink); }
 }
 
 /* The sentence. Its cell (`.jr-main`) owns grid track 3 (06-contextpanel · .hist-ev), so there
    is nothing left to take space from it and no `flex` left to defend. `overflow-wrap: anywhere`
    stays: an unbroken 40-letter street name has to break somewhere, and that is what it is for —
    an ordinary word never needs it, now that the trail beside it holds controls only (#12). */
-.jr-main { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+/* ⚠️ The lead (06-contextpanel · .hist-ev · --jr-lead) above, paid back below: the first line is
+   centred on the disc, and a row is no taller than it was when everything was centred (r11). */
+.jr-main { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  padding-top: var(--jr-lead); margin-bottom: calc(-1 * var(--jr-lead)); }
+/* …except over a sub-line (transcript, subtitles, correction): paid back there, the sentence's
+   last line would run into the line below it */
+.hist-ev:has(> .jr-subs, > .jr-transcript) > .jr-main { margin-bottom: 0; }
 /* ⚠️ Regular weight and --lh-2 (≈20px) (hill climb r3, 04.11.2026): the row's prose is the quiet
    layer under its marks (.jr-link below) — at the row's medium, with every name bold on top, a
    wrapped crew line on a phone was one dark block with nothing in it to find. */

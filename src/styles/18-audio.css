@@ -559,7 +559,10 @@
   .tb-einsatzuhr:hover { color: var(--ink); background: var(--fill-soft); }
 }
 .tb-einsatzuhr:active { background: var(--fill-soft); }
-.tb-einsatzuhr .i { width: 14px; height: 14px; }
+/* the mode's glyph at the size of the bar's action glyphs (Eintrag's 16px, 10-journal): at 14px the
+   hourglass drew a 7×9px mark beside the bold mono figure, the smallest thing in the bar (hill climb r11;
+   the symbol itself was redrawn fuller the same day, lib/icons · #hourglass) */
+.tb-einsatzuhr .i { width: 16px; height: 16px; }
 .tb-uhr-chev { width: 12px; height: 12px; opacity: .5; margin-left: 1px; }
 /* Einsatzuhr mode dropdown: labelled, selectable rows (Dauer / Uhrzeit / Beginn) so the reading
    is never ambiguous — recognition over the old blind tap-to-cycle. */

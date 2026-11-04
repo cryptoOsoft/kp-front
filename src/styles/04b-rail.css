@@ -78,7 +78,18 @@
 /* drag grip — pull it to resize the rail. Which EDGE it hangs off is per-rail. */
 .rail-grip { position: absolute; top: 0; width: 20px; height: 100%; border: 0; background: transparent; padding: 0;
   cursor: ew-resize; z-index: 3; display: flex; align-items: center; justify-content: center; touch-action: none; }
-.rail-grip::after { content: ""; width: 4px; height: 38px; border-radius: 3px; background: var(--border); transition: background .14s var(--ease); }
+/* The visible mark is a short pill in the rail's own padding, not the whole hit strip: at 38px tall
+   it was a grey bar at the rail's inner edge, which is where a scrollbar thumb sits, and it read as
+   one (04.11.2026, hill climb r11). The BUTTON keeps its full-height strip – only the mark shrank. */
+.rail-grip::after { content: ""; width: 4px; height: 20px; border-radius: var(--r-pill); background: var(--border);
+  transition: background .14s var(--ease), opacity .14s var(--ease); }
+/* …and with a mouse it is not drawn until the pointer is on the rail (or the grip has focus): a
+   handle that shows where the hand is, the way a desktop split view's does. Touch has no hover, so
+   there it stays, quiet, at rest. */
+@media (hover: hover) and (pointer: fine) {
+  .rail-grip::after { opacity: 0; }
+  :is(.rail:hover .rail-grip, .rail-grip:focus-visible, .rail-grip.drag)::after { opacity: 1; }
+}
 /* ⚠️ GRAY, not the app blue (owner, review 7: «the mobile pull … has an ugly blue color. Change
    this to clean gray for the expansion»). Blue is this app's SELECTED/active meaning — a rail
    being dragged wider is neither; it is the same hairline the grip rests in, just taken up a
