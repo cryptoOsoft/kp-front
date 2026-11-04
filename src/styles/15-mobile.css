@@ -1017,7 +1017,7 @@
   /* the Gebäude's «+ UG» above the floating row (08-toasts · --stack-foot-lift): here the row's
      reserve already clears the chips, so the lift is only the pill's own band. On :root, like the
      other reserves, because THE message lane below is computed there. */
-  :root:has(.wb-floor-add-down) { --stack-foot-lift: 70px; }
+  :root:has(.wb-floor-add-down) { --stack-foot-lift: 64px; } /* = lib/whiteboard · STACK_VPAD */
   /* …and the docked tab strip (Rapport · Anwesenheit, PhoneTabBar) is one more fixed piece of
      bottom chrome, on whichever page shows one. `:has`, like every other lane state here, because
      the host is a root sibling of `.app`. Inside this media query a rendered strip is always

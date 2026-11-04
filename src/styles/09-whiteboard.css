@@ -368,13 +368,8 @@
 }
 .wb-floor-menu:active { background-image: linear-gradient(var(--press), var(--press)); }
 .wb-floor-menu[data-popup-open] { color: var(--ink); }
-/* …and on a narrow stack the top storey's label steps down out from under «+ OG» (which straddles
-   the stack's top edge, centred): a door that sits under another button is no door (phone,
-   29.09.2026) */
-@container (max-width: 359px) {
-  .wb-floor-under-add > .wb-floor-label,
-  .wb-floor-under-add > .wb-floor-menu-host > .wb-floor-label { top: calc(var(--tap) / 2 + 4px); }
-}
+/* (the top storey's label no longer steps down out from under «+ OG»: the pill stands outside
+   the stack now, so every storey's label keeps the same inset — hill climb r1, 04.11.2026) */
 /* …and what it leaves behind: a strip where the storey belongs, which says what it is and how to
    get it back. Sits at the seam between the two drawn tiles, so the stack still reads in order. */
 /* ⚠️ ONE line, whatever the strip is wide (18.09.2026). The row is as wide as the sheet, which on
@@ -410,7 +405,10 @@
   .wb-floor-folded:hover { background: color-mix(in srgb, var(--board-bg) 70%, var(--ink) 10%); }
 }
 /* add-storey control (mirrors the floating zoom) */
-/* add-storey pills positioned like a real building section: OG above the stack, UG below */
+/* add-storey pills positioned like a real building section: OG above the stack, UG below —
+   OUTSIDE it, one --sp-3 off the edge (hill climb r1, 04.11.2026). Straddling the edge they sat
+   on the end storeys' labels and symbols («3. OG», a «Druck» caption). The fit reserves the room
+   (lib/whiteboard · STACK_VPAD); `--folded-h` (inline) steps past that end's folded strips. */
 .wb-floor-add { position: absolute; left: 50%; transform: translateX(-50%); z-index: 8;
   /* a full --tap tall (3am test r3, 25.09.2026: they were 34px); still straddling the edge, by half.
      28.09.2026: the ONE «add» look (13-incident `.cv-btn-add`) — framed «+ word», the one corner
@@ -424,8 +422,8 @@
   .wb-floor-add:hover { background: var(--surface); color: var(--ink); }
 }
 .wb-floor-add .i { width: 13px; height: 13px; stroke-width: 2.4; }
-.wb-floor-add-up { top: calc(var(--tap) / -2); }     /* straddle the top edge of the stack */
-.wb-floor-add-down { bottom: calc(var(--tap) / -2); } /* straddle the bottom edge of the stack */
+.wb-floor-add-up { bottom: calc(100% + var(--sp-3) + var(--folded-h, 0px)); }
+.wb-floor-add-down { top: calc(100% + var(--sp-3) + var(--folded-h, 0px)); }
 
 /* the Gebäude's Messungen (ReadingParts · StackReadings, owner pick W2 27.10.2026): a column left of
    the stack, each storey's card at its own storey's height, inside the board so it pans and zooms
