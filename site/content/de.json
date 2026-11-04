@@ -108,7 +108,7 @@
         "time": "03:12",
         "tag": "Trupps",
         "h3": "Trupp 1 geht rein.",
-        "p": "Druck, Rückzugszeit und Kontaktuhr laufen pro Trupp mit. Die App meldet sich,\n            bevor es knapp wird – auch wenn gerade niemand auf die Uhr schaut."
+        "p": "Druck, Rückzugszeit und Kontaktuhr laufen pro Trupp mit. Die App meldet sich,\n            bevor es knapp wird – auch wenn gerade niemand auf die Uhr schaut.\n            KP Front gibt relevante Warnungen direkt in der Anwendung optisch und akustisch aus. Bei der Verwendung\n            mehrerer synchronisierter Geräte werden die Warnzustände über die bestehende Netzwerkverbindung abgeglichen.\n            Akustische Warnungen können bei Bedarf deaktiviert werden."
       },
       {
         "time": "03:18",
@@ -325,8 +325,8 @@
   },
   "sibling": {
     "eyebrow": "Verwandtes Projekt",
-    "h2": "KP Front führt vorne. KP Rück hält hinten den Überblick.",
-    "p": "<strong>KP Rück</strong> bildet die Magnettafel im rückwärtigen Kommandoposten\n          digital ab: ein Board für Personal, Fahrzeuge und Material. Eigene App, gleiche Handschrift –\n          beide erhalten denselben Alarm\n          vom Dispositionssystem und brauchen einander nicht.",
+    "h2": "KP Front schafft taktische Tiefe am Schadenplatz. KP Rück schafft operative Breite in der Gesamtlage.",
+    "p": "<strong>KP Rück</strong> bildet die Magnettafel im rückwärtigen Kommandoposten\n          digital ab: ein Board für Personal, Fahrzeuge und Material. Eigene App, gleiche Handschrift –\n          beide erhalten denselben Alarm\n          vom Dispositionssystem und brauchen einander nicht. Beide Anwendungen können bei derselben Lage parallel und unabhängig voneinander eingesetzt werden.",
     "cta": "KP Rück ansehen",
     "setup": {
       "h3": "Beide betreiben – ohne alles doppelt einzurichten",
@@ -378,7 +378,7 @@
       },
       {
         "q": "Funktioniert KP Front ohne Internetverbindung?",
-        "a": "Ja. Als installierte App läuft KP Front auf dem Gerät: Karte, Pläne, Trupps und\n          Verlauf bleiben bedienbar, auch wenn das Netz wegbricht. Karten und Pläne rund um den\n          Einsatz lädt die App selbst, kurz nachdem er geöffnet wurde – und die\n          <strong>Bereitschaftsprüfung</strong> zeigt vor dem Einsatz, ob die benötigten Daten\n          auf dem Gerät sind. Nach einem Unterbruch wird abgeglichen, sobald wieder eine\n          Verbindung besteht; was in der Zwischenzeit erfasst wurde, bleibt erhalten."
+        "a": "Ja. KP Front ist grundsätzlich offline nutzbar. Karten und weitere benötigte Daten werden lokal gespeichert.\n          Die Karten und Pläne rund um den Einsatz lädt die App selbst, kurz nachdem er geöffnet wurde – und die\n          <strong>Bereitschaftsprüfung</strong> zeigt vor dem Einsatz, ob die benötigten Daten auf dem Gerät sind.\n          Wetter- und andere zeitabhängige externe Daten entsprechen offline dem Stand der letzten Aktualisierung.\n          Mehrere Geräte können über eine bestehende Netzwerkverbindung synchronisiert werden, bei Bedarf auch\n          innerhalb eines eigenen lokalen Netzes ohne Internetzugang. Nach einem Unterbruch wird abgeglichen, sobald\n          wieder eine Verbindung besteht; was in der Zwischenzeit erfasst wurde, bleibt erhalten."
       },
       {
         "q": "Können wir es an unsere Abläufe anpassen?",

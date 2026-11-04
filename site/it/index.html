@@ -214,7 +214,7 @@
       "name": "KP Front – Condotta d’intervento digitale per i pompieri",
       "description": "KP Front è il posto di comando digitale sul posto: mappa, piani, squadre, diario e rapporto – offline e open source.",
       "inLanguage": "it-CH",
-      "dateModified": "2026-10-31",
+      "dateModified": "2026-11-04",
       "isPartOf": {
         "@id": "https://kp-front.ch/#website"
       },
@@ -272,7 +272,7 @@
           "name": "KP Front funziona senza connessione a Internet?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Sì. Installata come app, KP Front funziona sul dispositivo: mappa, piani, squadre e diario restano utilizzabili anche se la rete viene a mancare. L’app carica da sé le mappe e i piani attorno a un intervento, poco dopo che è stato aperto – e la verifica di prontezza indica prima dell’intervento se i dati necessari sono sul dispositivo. Dopo un’interruzione le modifiche vengono sincronizzate appena la connessione è di nuovo disponibile; quanto è stato registrato nel frattempo viene conservato."
+            "text": "Sì. KP Front è in linea di principio utilizzabile offline. Le mappe e gli altri dati necessari vengono salvati localmente. L’app carica da sé le mappe e i piani attorno a un intervento, poco dopo che è stato aperto – e la verifica di prontezza indica prima dell’intervento se i dati necessari sono sul dispositivo. Offline, i dati meteo e gli altri dati esterni legati al tempo corrispondono allo stato dell’ultimo aggiornamento. Più dispositivi possono essere sincronizzati tramite una connessione di rete esistente, se necessario anche all’interno di una propria rete locale senza accesso a Internet. Dopo un’interruzione le modifiche vengono sincronizzate appena la connessione è di nuovo disponibile; quanto è stato registrato nel frattempo viene conservato."
           }
         },
         {
@@ -495,7 +495,10 @@
           <p class="tag">Squadre</p>
           <h3>La squadra 1 entra.</h3>
           <p>Pressione, tempo di rientro e orologio di contatto scorrono per ogni squadra. L’app
-            avvisa prima che il margine diventi critico – anche quando nessuno sta guardando l’ora.</p>
+            avvisa prima che il margine diventi critico – anche quando nessuno sta guardando l’ora.
+            KP Front emette gli avvisi rilevanti direttamente nell’applicazione, in modo visivo e acustico. Se si
+            usano più dispositivi sincronizzati, gli stati di allarme vengono allineati tramite la connessione di rete
+            esistente. Gli avvisi acustici possono essere disattivati all’occorrenza.</p>
         </div>
       </article>
       <article class="entry">
@@ -778,11 +781,11 @@
       <div class="sibling-grid">
         <div class="sibling-txt">
           <p class="eyebrow">Progetto affine</p>
-          <h2>KP Front conduce davanti. KP Rück tiene la visione d’insieme dietro.</h2>
+          <h2>KP Front crea profondità tattica sul luogo d’intervento. KP Rück crea ampiezza operativa nella situazione generale.</h2>
           <p><strong>KP Rück</strong> riproduce in digitale la lavagna magnetica del posto di comando
           arretrato: una tavola per personale, veicoli e materiale. App propria, stessa grafia –
           i due ricevono lo stesso allarme dal sistema di allertamento
-          e non hanno bisogno l’uno dell’altro.</p>
+          e non hanno bisogno l’uno dell’altro. Le due applicazioni possono essere impiegate nella stessa situazione in parallelo e in modo indipendente l’una dall’altra.</p>
           <a class="btn btn-ghost" href="https://kp-rueck.ch">Guarda KP Rück<svg class="ico" style="width:14px;height:14px"><use href="#i-arrow"/></svg></a>
         </div>
 
@@ -852,13 +855,14 @@
       </div>
       <div class="faq-item">
         <h3>KP Front funziona senza connessione a Internet?</h3>
-        <p>Sì. Installata come app, KP Front funziona sul dispositivo: mappa, piani,
-          squadre e diario restano utilizzabili anche se la rete viene a mancare.
-          L’app carica da sé le mappe e i piani attorno a un intervento, poco dopo che è stato
-          aperto – e la <strong>verifica di prontezza</strong> indica prima dell’intervento se i
-          dati necessari sono sul dispositivo. Dopo un’interruzione le modifiche vengono
-          sincronizzate appena la connessione è di nuovo disponibile; quanto è stato registrato
-          nel frattempo viene conservato.</p>
+        <p>Sì. KP Front è in linea di principio utilizzabile offline. Le mappe e gli altri dati necessari vengono
+          salvati localmente. L’app carica da sé le mappe e i piani attorno a un intervento, poco dopo che è stato
+          aperto – e la <strong>verifica di prontezza</strong> indica prima dell’intervento se i dati necessari sono
+          sul dispositivo. Offline, i dati meteo e gli altri dati esterni legati al tempo corrispondono allo stato
+          dell’ultimo aggiornamento. Più dispositivi possono essere sincronizzati tramite una connessione di rete
+          esistente, se necessario anche all’interno di una propria rete locale senza accesso a Internet. Dopo
+          un’interruzione le modifiche vengono sincronizzate appena la connessione è di nuovo disponibile; quanto è
+          stato registrato nel frattempo viene conservato.</p>
       </div>
       <div class="faq-item">
         <h3>Possiamo adattarlo ai nostri processi?</h3>
