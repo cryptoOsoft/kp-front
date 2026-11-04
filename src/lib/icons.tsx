@@ -115,7 +115,10 @@ export function IconSprite() {
           Distinct from #clock and #history at 20px because of the crown and the side button: a
           stopwatch is a clock somebody STARTED, which is exactly what a Trupp is. */}
       <symbol id="stopwatch" viewBox="0 0 24 24"><circle cx="12" cy="13.5" r="7.5" /><path d="M9.5 2.5h5M12 2.5V6M12 13.5V9.2M18.6 7.5 20 6.1" /></symbol>
-      <symbol id="hourglass" viewBox="0 0 24 24"><path d="M6 4h12M6 20h12M8 4l4 8 4-8M8 20l4-8 4 8" /></symbol>
+      {/* The Einsatzuhr's «Dauer» (lib/einsatzuhr · CLOCK_ICON). Drawn to the size of #history beside it
+          in the top bar – 14×18 of the box, two rounded bulbs: the old two-V outline was 12×16 of hairline
+          diagonals and read as the smallest, thinnest mark in the bar (04.11.2026, hill climb r11). */}
+      <symbol id="hourglass" viewBox="0 0 24 24"><path d="M5 3h14M5 21h14M7 3v2.5a5 5 0 0 0 2.1 4.1L12 12l2.9-2.4A5 5 0 0 0 17 5.5V3M7 21v-2.5a5 5 0 0 1 2.1-4.1L12 12l2.9 2.4a5 5 0 0 1 2.1 4.1V21" /></symbol>
       <symbol id="check" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7" stroke-width="2.2" /></symbol>
       {/* Am Einsatzort: the map's own position pin, so «vor Ort» on the crew list and a dot on
           the Lage read as the same idea. Deliberately NOT a flame — this says WHERE somebody is,
