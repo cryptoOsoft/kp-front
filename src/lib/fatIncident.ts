@@ -81,6 +81,13 @@ const PER_HOUR = {
 
 const SYMBOLS = ['VKF Feuer', 'VKF Rettungen', 'VKF Gefaehrliche Stoffe', 'VKF KP Front', 'VKF Sammelstelle', 'VKF Einsatzleiter', 'VKF Bereich Sanitaet', 'VKF Luefter mobil', 'FW Elektroanlage', 'SI Unterflurhydrant', 'VKF Rauch']
 const WORDS = ['Lage', 'Trupp', 'Angriff', 'Wasser', 'Leitung', 'Rauch', 'Treppenhaus', 'Dach', 'Keller', 'Sanität', 'Polizei', 'Werkhof', 'Zufahrt', 'Absperrung', 'Lüfter', 'Nachlöschen', 'Kontrolle', 'Wärmebild', 'Hydrant', 'Druck', 'gemeldet', 'eingetroffen', 'erledigt', 'unter Kontrolle', 'Personen', 'evakuiert', 'Gebäude', 'Nordseite', 'Westfassade', '2. OG']
+// people get names from their own pools, surname first as the app writes them («Brunner Thomas»), so a
+// shot of the Anwesenheit or a Trupp card reads like a real crew (they were drawn from WORDS –
+// «Absperrung unter Kontrolle» as a person). A Trupp's name IS its leader (lib/atemschutz ·
+// truppHeadName). Every pick costs the same draws as before, so everything else stays where it was.
+const FIRST_NAMES = ['Anna', 'Beat', 'Claudia', 'Daniel', 'Eva', 'Fabian', 'Lara', 'Lukas', 'Marco', 'Nina', 'Reto', 'Sandra', 'Simon', 'Urs']
+const SURNAMES = ['Meier', 'Müller', 'Huber', 'Schmid', 'Weber', 'Brunner', 'Baumann', 'Frei', 'Gerber', 'Fischer', 'Graf', 'Roth', 'Steiner', 'Widmer', 'Moser', 'Wyss', 'Suter', 'Bühler', 'Hofer', 'Lüthi']
+const PEOPLE = SURNAMES.flatMap((last) => FIRST_NAMES.map((first) => `${last} ${first}`))
 const AUFTRAG = ['loeschen', 'retten', 'absuchen', 'sichern', 'erkunden'] as const
 
 /** mulberry32 — small, fast, good enough for fixtures, and the same on every machine */
@@ -97,7 +104,7 @@ function rng(seed: number) {
     next,
     int: (lo: number, hi: number) => lo + Math.floor(next() * (hi - lo + 1)),
     pick: <T>(xs: readonly T[]): T => xs[Math.floor(next() * xs.length)],
-    words: (lo: number, hi: number) => Array.from({ length: lo + Math.floor(next() * (hi - lo + 1)) }, () => WORDS[Math.floor(next() * WORDS.length)]).join(' '),
+    words: (lo: number, hi: number, pool: readonly string[] = WORDS) => Array.from({ length: lo + Math.floor(next() * (hi - lo + 1)) }, () => pool[Math.floor(next() * pool.length)]).join(' '),
   }
 }
 
@@ -190,7 +197,7 @@ export function fatIncident(opts: FatOptions = {}): FatIncident {
       if (out) readings.push({ t: iso(exit), bar, kind: 'exit' })
       const onMap = r.next() < 0.5
       const trupp: Trupp = {
-        id: tid, no: ++truppNo, name: r.words(1, 1) + ` ${truppNo}`, members: [r.words(1, 1), r.words(1, 1)],
+        id: tid, no: ++truppNo, name: r.words(1, 1, PEOPLE), members: [r.words(1, 1, PEOPLE), r.words(1, 1, PEOPLE)],
         auftrag: r.pick(AUFTRAG), ziel: r.words(1, 3), funkkanal: 11, order: truppNo,
         entryPressureBar: 300, entryTime: iso(entry), lastContactTime: readings[readings.length - 1].t,
         lastPressureBar: bar, lastPressureTime: readings[readings.length - 1].t, lowestBar: bar, readings,
@@ -225,7 +232,7 @@ export function fatIncident(opts: FatOptions = {}): FatIncident {
   for (let i = 0; i < count(BASE.areas, scale); i++) {
     const at = early()
     const ring = walk(near(), r.int(5, 16), 12)
-    drawings.push({ id: id('a', at), kind: 'area', coords: [...ring, ring[0]], color: '#e8392b', fillOpacity: 0.15, label: `Abschnitt ${i + 1}`, abschnittLeiter: r.words(1, 1), abschnittAuftrag: r.words(3, 8) })
+    drawings.push({ id: id('a', at), kind: 'area', coords: [...ring, ring[0]], color: '#e8392b', fillOpacity: 0.15, label: `Abschnitt ${i + 1}`, abschnittLeiter: r.words(1, 1, PEOPLE), abschnittAuftrag: r.words(3, 8) })
   }
   for (let i = 0; i < count(BASE.circles, scale); i++) {
     const at = early()
@@ -264,7 +271,7 @@ export function fatIncident(opts: FatOptions = {}): FatIncident {
     const pid = id('p', at)
     const left = r.next() < 0.3 ? Math.min(t1, at + r.int(60, 240) * 60_000) : null
     attendance[pid] = {
-      status: left ? 'left' : 'present', checkedInAt: iso(at), displayNameSnapshot: `${r.words(1, 1)} ${r.words(1, 1)}`,
+      status: left ? 'left' : 'present', checkedInAt: iso(at), displayNameSnapshot: `${r.words(1, 1, SURNAMES)} ${r.words(1, 1, FIRST_NAMES)}`,
       intervals: [left ? { from: iso(at), to: iso(left) } : { from: iso(at) }], ...(left ? { leftAt: iso(left) } : {}),
       source: r.next() < 0.6 ? 'capture' : 'kp', ...(r.next() < 0.2 ? { note: r.words(2, 5), noteAt: iso(at) } : {}),
     }
@@ -272,11 +279,11 @@ export function fatIncident(opts: FatOptions = {}): FatIncident {
   const mittel: MittelEntry[] = []
   for (let i = 0; i < count(PER_HOUR.mittel * hours, scale); i++) {
     const at = anytime()
-    mittel.push({ id: id('m', at), materialId: `mat${r.int(1, 40)}`, label: r.words(1, 2), unit: 'Stk', menge: r.int(1, 20), at: iso(at), by: r.words(1, 1) })
+    mittel.push({ id: id('m', at), materialId: `mat${r.int(1, 40)}`, label: r.words(1, 2), unit: 'Stk', menge: r.int(1, 20), at: iso(at), by: r.words(1, 1, SURNAMES) })
   }
   mittel.sort((a, b) => a.at.localeCompare(b.at))
   const cameraViews: CameraView[] = Array.from({ length: count(BASE.cameraViews, scale) }, (_, i) => ({ id: id('cv', early()), name: `Ansicht ${i + 1}`, center: near(), zoom: 17 + r.next() * 2, bearing: r.int(0, 359) }))
-  const ticks = (n: number) => Object.fromEntries(Array.from({ length: n }, (_, i) => [`step${i}`, { t: iso(early()), by: r.words(1, 1) }]))
+  const ticks = (n: number) => Object.fromEntries(Array.from({ length: n }, (_, i) => [`step${i}`, { t: iso(early()), by: r.words(1, 1, SURNAMES) }]))
   const checklists: ChecklistState = { brand: { ticks: ticks(12) }, atemschutz: { ticks: ticks(6) } }
   const buildingRing: [number, number][] = Array.from({ length: 32 }, (_, i) => [0.5 + 0.45 * Math.cos((i / 32) * 2 * Math.PI), 0.5 + 0.45 * Math.sin((i / 32) * 2 * Math.PI)])
   const building: BuildingDoc = { ring: buildingRing, ringAspect: 1.4, floors: [-1, 0, 1, 2, 3], rings: [buildingRing], geo: { origin: center, spanM: 24 } }
