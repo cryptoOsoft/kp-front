@@ -121,7 +121,7 @@ export const incidentCopy: Localizable<Pick<Copy, Keys>> = {
     deleteFailed: 'Eliminazione non riuscita',
   },
   abschluss: {
-    leftEarly: ' · fino alle {t}',
+    leftEarly: 'fino alle {t}',
     steps: {
       zeiten: 'Fine intervento',
       anwesenheit: 'Presenze',
@@ -141,6 +141,7 @@ export const incidentCopy: Localizable<Pick<Copy, Keys>> = {
     mittelCount: (n: number) => (n === 1 ? '1 posizione' : `${n} posizioni`),
     mittelNone: 'Niente usato',
     complete: 'Chiudere l’intervento',
+    completeShort: 'Chiudere',
     backToRapport: 'Torna al rapporto',
     confirmTitle: 'Chiudere l’intervento',
     confirmMsg: 'Il rapporto viene contrassegnato come chiuso e l’intervento chiuso. Le correzioni restano possibili e appaiono come aggiunte.',

@@ -205,6 +205,12 @@
    the box». `--glass-edge` rather than `--border` is the hairline every other surface uses;
    the rapport was the only place on `--border`. */
 .report-pre-section { border: 1px solid var(--glass-edge); border-radius: var(--r-ctl); padding: var(--sp-4); background: var(--surface-2); }
+/* Night: the cards (these and the side column's `.rp-check`) are their hairline only. The 6% white
+   wash lifted the card to the very tone of the fields inside it (#232c3a on ≈#232933, 1.05:1), so
+   at night an empty form read as one flat slab with no wells to type into (council 04.11.2026).
+   Without it the fields stand off the card as they do on every night sheet and on the phone,
+   whose cards never had the wash. Day keeps it: white fields on a tinted card are already apart. */
+[data-theme="night"] :is(.report-pre-section, .rp-check) { background-color: transparent; }
 /* section header = the SAME uppercase eyebrow as the details modal (.ctx-section-label) so every
    header across the app reads identically (was a one-off 14px sentence-case here) */
 .report-pre-section h3 {
