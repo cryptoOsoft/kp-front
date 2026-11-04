@@ -1077,23 +1077,30 @@ button.list-row:disabled { opacity: var(--disabled); cursor: default; }
    200px` – two at most, one below 2 × 200 + gap: the phone), filled down the first and then the
    second like the Kroki legend: the list is alphabetical, and a grid row levelled a short name
    beside a wrapped one into a hole. 200, not the council's 240: the tablet's side column has 439px,
-   and 240 sent its 42 names into ONE column twice as long. An entry WRAPS instead of ellipsizing —
-   the hanging indent and the gap under each entry keep a second line reading as the same entry. */
-.rp-people { columns: 2 200px; column-gap: var(--sp-4); width: 100%; }
+   and 240 sent its 42 names into ONE column twice as long. An entry WRAPS instead of ellipsizing.
+   24px between the columns (council round 3): at 16 a long left name ran up against the right
+   column on the tablet, and 2 × 200 + 24 still fits its 439.
+   ONE entry shape, two edges (council round 3): the name and the qualifier share the left edge —
+   a wrapped qualifier is small, regular and faint, so it reads as the entry's second line without
+   a hanging indent (that indent was a third left edge); the «bis» time is the right edge, the
+   same track in every row. 8px under each entry, 0 inside one: a wrapped entry stays one block. */
+.rp-people { columns: 2 200px; column-gap: var(--sp-5); width: 100%; }
 .rp-person { display: flex; align-items: baseline; gap: var(--sp-2); min-width: 0;
-  break-inside: avoid; padding-bottom: var(--sp-2);   /* 8 between entries vs 0 inside one: a wrapped entry stays one block */
+  break-inside: avoid; padding-bottom: var(--sp-2);
   font: var(--fw-medium) var(--fs-2)/var(--lh-2) var(--body); color: var(--ink); }
-.rp-person-txt { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere;
-  padding-left: var(--sp-3); text-indent: calc(-1 * var(--sp-3)); }
-/* the departure time: its own item at the right edge, so every «bis 15:50» stands in one column */
-.rp-person em { flex: none; font-style: normal; color: var(--amber); font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; }
+.rp-person-txt { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+/* the departure time: its own item at the right edge, so every «bis 15:50» stands in one column.
+   The TEXT amber (`--amber-strong`), not the bright accent: as 14px type on the pale card the
+   bright one read light by day (council round 3) — the bright --amber stays for glyphs and fills */
+.rp-person em { flex: none; font-style: normal; color: var(--amber-strong); font-weight: var(--fw-bold); font-variant-numeric: tabular-nums; }
 .rp-person b { font-weight: var(--fw-bold); }
 /* Material: the amount is the value (bold), the material is the thing (regular) */
 .rp-person.rp-mittel { font-weight: var(--fw-regular); }
-/* the dim qualifier on both lists: a person's Funktion («· Einsatzleiter») and a material's
-   Quelle («· TLF»). Same weight as the line, quieter colour — it answers a second question,
-   and at 3am the name and the amount are the first one. */
-.rp-person i { font-style: normal; color: var(--ink-faint); }
+/* the dim qualifier on every list here: a person's Funktion («· Einsatzleiter»), a material's
+   Quelle («· TLF»), a partner's remark. Smaller, regular and quieter than the line (12.5/400,
+   council round 3) — it answers a second question, and at 3am the name and the amount are the
+   first one. */
+.rp-person i { font: var(--fw-regular) var(--fs-1)/var(--lh-1) var(--body); color: var(--ink-faint); }
 /* Unterschriften (15.10.2026, ReportPreflight · lib/reportSignature): one row per line of the
    paper's Visum — who, the drawn signature, the time. No rules between the rows, like every other
    card in this column (owner, round 3). */
@@ -1709,10 +1716,20 @@ select.cv-input { appearance: none; -webkit-appearance: none;
    (Surface.module.css · the phone block, sweep 30.10.2026 #12) */
 @media (--phone) { .rp-head { background: none; box-shadow: none; } }
 .rp-head-titles { flex: 1 1 auto; min-width: 0; }
-.rp-head[data-fit-wrap] { flex-wrap: wrap; }
-.rp-head[data-fit-wrap] > .rp-head-titles { flex-basis: 100%; }
-/* on the second row the chip may give again (its label ellipsizes) — the row is then all there is */
-.rp-head[data-fit-wrap] .rp-head-actions { flex: 0 1 auto; max-width: 100%; }
+/* The second row (the ladder's last step — a phone with something open, since the Kontrolle chip
+   keeps its words, council round 3): the TITLE and the chip share the first row (what this is,
+   what is wrong), the actions take the second, splitting its width — «Abschliessen» and «PDF ▾»,
+   each a full tap tall, 8px under the first row. The actions box dissolves (`display: contents`)
+   so its tiles can sit on different rows; `order` + a zero-height break (`::after`) sort them,
+   and the 8px is the second row's margin, not a row-gap the break would charge twice. */
+.rp-head[data-fit-wrap] { flex-wrap: wrap; row-gap: 0; }
+.rp-head[data-fit-wrap] > .rp-head-titles { flex: 1 1 0; }
+.rp-head[data-fit-wrap] .rp-head-actions { display: contents; }
+.rp-head[data-fit-wrap]::after { content: ''; order: 1; flex-basis: 100%; }
+/* the chip may give again on the first row (its label ellipsizes) — the title keeps «Rapport» */
+.rp-head[data-fit-wrap] .rp-state { flex: 0 1 auto; }
+.rp-head[data-fit-wrap] .rp-head-actions > :not(.rp-state) { order: 2; flex: 1 1 0; margin-top: var(--sp-2); }
+.rp-head[data-fit-wrap] .rp-split-main { flex: 1 1 auto; justify-content: center; }
 /* it truncates, exactly as the line under it always did — an <h2> that does not is an <h2> that
    paints over whatever is beside it */
 .rp-head-titles h2 { margin: 0; font: var(--head-title); color: var(--ink);
