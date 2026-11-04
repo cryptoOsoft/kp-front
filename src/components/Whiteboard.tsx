@@ -73,7 +73,7 @@ import { dismissNearbyBanner, nearbyBannerDismissed, nearbyBannerKey } from '../
 import { ghostTrailLabel, type TruppTrail } from '../lib/truppTrails'
 import { carryDoors, copyGrundriss, grundrissOf, wallRolePatch, wallRoleWire, wandBlock, wandBlockHint, DOOR_SYMBOL, GEBAEUDE_CATEGORY, GRUNDRISS_STYLE } from '../lib/grundriss'
 import { StoreyCopySheet } from './StoreyCopySheet'
-import { planUrl, tileAspectOf, TOP_INSET, STACK_VPAD, STACK_CHIP_ROW, STACK_READINGS_LANE, chipRowInset, containFit, sideInsets, clamp01, floorLabel, floorGeometry, signedFloor, floorCrossings, storeyTowards } from '../lib/whiteboard'
+import { planUrl, tileAspectOf, TOP_INSET, STACK_VPAD, STACK_CHIP_ROW, STACK_READINGS_LANE, STACK_LABEL_LANE, chipRowInset, containFit, sideInsets, clamp01, floorLabel, floorGeometry, signedFloor, floorCrossings, storeyTowards } from '../lib/whiteboard'
 import { loadHiddenFloors, saveHiddenFloors, shownFloors } from '../lib/floorPrefs'
 import { arrowEdgePadPx, attachInsetPx, boundaryPoint, candidateAttachment, DEFAULT_OBJECT_ROUTING, DETACH_SHOW_PROGRESS, detachAnnos, dwellFor, flipLine, forkPortPoint, wireFreed, isMagnetAnno, lineEndTargets, relationshipNetwork, resolveLinePoints, withDetach, type AnnoDetachPatch, type AttachableLine, type MagneticTarget } from '../lib/lineAttachments'
 import { packFrameRing, packPagePlacement, pagePlacement, regionCorners, stackGroundFit } from '../lib/stackFit'
@@ -725,9 +725,11 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
   // both rails still in place (lib/whiteboard · sideInsets).
   const side = useMemo(() => {
     const base = sideInsets(vp.w, isPhone)
-    // …and with Messpunkte, the stack moves over for their list (StackReadings)
-    return stackReadings.length ? { ...base, l: base.l + STACK_READINGS_LANE } : base
-  }, [vp.w, isPhone, stackReadings.length])
+    if (!stack) return base
+    // the stack keeps its storey-label gutter free on the left (STACK_LABEL_LANE), and with
+    // Messpunkte it moves over for their list too (StackReadings)
+    return { ...base, l: base.l + STACK_LABEL_LANE + (stackReadings.length ? STACK_READINGS_LANE : 0) }
+  }, [vp.w, isPhone, stack, stackReadings.length])
   const fit = useMemo(() => {
     const pad = stack ? STACK_VPAD : 0
     return containFit(vp, effAspect, { top: topRes + pad, bottom: botRes + pad, l: side.l, r: side.r })
