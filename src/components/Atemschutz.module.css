@@ -51,14 +51,15 @@
 /* the board's arrangement, behind its own icon; the archive menu and the lite ↶ ↷ wear it too (the QR: `.shareBtn`) */
 .orderBtn { composes: headTile; }
 /* «Überwachung abgeben»: a head tile that, folded (lib/pageHeadFit · its first rank), keeps a word
-   — «Abgeben» UNDER the glyph, 700/12.5 (`--fw-bold`, `--fs-1`) on a 15px line (hill climb r8,
-   04.11.2026: the bare QR glyph on the phone head did not say «hand over»; the tablet's worded
-   tile did). Still 44px tall like the bell and «+ Trupp» beside it; it grows only in width,
-   toward the title. At its second rank (the ladder's last word) the word goes and it is the plain
-   44px square again. */
+   — «Abgeben» (hill climb r8, 04.11.2026: the bare QR glyph on the phone head did not say «hand
+   over»). Since r11 the word stands BESIDE the glyph, one line like «+ Trupp» — stacked under it,
+   it was a third anatomy in a row of three tiles. To fit the 390px head beside «✓ Gespeichert»
+   (measured: 98px wide, the title block 6px to spare; at the tiles' 14px with these insets it was
+   105px and cut «Gespeichert» by a pixel) the folded tile closes up — 8px inside (the ladder's
+   tight-rung inset), 4px glyph gap — and its word is 700/12.5 (`--fs-1`). At its second rank (the
+   ladder's last word) the word goes and it is the plain 44px square again. */
 .shareBtn { composes: headTile; }
-.shareBtn[data-folded="1"] { flex-direction: column; gap: 2px; padding: 0 var(--sp-2);
-  font-size: var(--fs-1); line-height: 15px; }
+.shareBtn[data-folded="1"] { padding: 0 var(--sp-2); gap: var(--sp-1); font-size: var(--fs-1); }
 /* «Überwachung abgeben», while a link IS live. Green = a running, healthy state, the same
    reading the contact clock gives — not an alarm and not the primary action of the header.
    Tokens only, so it survives the day/night flip and a station's own accent. */
@@ -213,7 +214,10 @@
 .metaLine > span + span { position: relative; }
 .metaLine > span + span::before { content: '·'; position: absolute; right: 100%; width: var(--sp-4); text-align: center;
   color: var(--ink-faint); opacity: .7; }
-.metaLine i { font-style: normal; }
+/* a value's WORD («Schätzung ≈», «Draussen seit») in its value's ink and 700 (hill climb r11,
+   04.11.2026): at the line's 500/dim ink the word read lighter than the number it names, against
+   the owner's «full ink, full weight» Schätzung. Only the figures stay mono. */
+.metaLine i { font-style: normal; font-weight: var(--fw-bold); color: var(--ink); }
 .metaLine b { font: var(--fw-bold) var(--fs-1) var(--mono); color: var(--ink); font-variant-numeric: tabular-nums; }
 /* (`.metaEst`, the Schätzung's dimmed + lighter value, went on 29.09.2026, T2: the owner wants the
    Schätzung CLEARLY visible, so it keeps full ink and its WORD — «Schätzung ≈ 0 bar» — and the word
@@ -1696,6 +1700,17 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 .grid .trowHeadStatic .trowSub { display: block; grid-column: 1 / -1; grid-row: 2; justify-self: end; line-height: 1;
   font-size: var(--fs-1); letter-spacing: .01em; margin-top: 0; }
 .grid .trowHeadStatic .trowSub:empty { display: none; }
+/* ── The grid card's left edge only where it says something (hill climb r11, 04.11.2026) ─────────
+   The row's 5px left edge is the phone's state tone (amber fällig, red überfällig, blue
+   angemeldet, green Sicherungstrupp). A calm crew inside, a crew out and a work squad wear the
+   neutral grey one — on the phone list that grey is part of the row's frame, but on the grid it
+   stood on every DRIN and DRAUSSEN card alike and said nothing, beside the DRIN band's green rule.
+   So on the grid the card is its 1px border, and only a tone with a meaning draws the edge — as
+   an overlay inside the card, so every card keeps the same 12px gutter and the head band and the
+   foot still bleed to the card's edge. `isolation` keeps its z-index inside the card. */
+.grid .trowCard { border-left-width: 0; position: relative; isolation: isolate; }
+.grid .trowCard:is(.trowWarn, .trowCrit, .trowIdle)::before { content: ''; position: absolute; inset: 0 auto 0 0; z-index: 1;
+  border-left: 5px solid; border-left-color: inherit; pointer-events: none; }
 /* ── Inside vs outside on the grid (hill climb r3, 04.11.2026) ───────────────────────────────────
    The out cards wore the strongest blocks (the filled «Wieder in den Einsatz», a surface lit at
    night) while the crews under PA blended into the controls round them. A crew inside with a
@@ -2032,6 +2047,8 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
    «Stand beim Abschluss» means. Last in the file and scoped to the surface, so it outranks the
    status and tier rules above without touching the live board. */
 .surfaceFrozen .trow { border-left-color: var(--ink-faint); background: var(--surface); }
+/* (the grid card's edge is a state's alone — closed, no card has one) */
+.surfaceFrozen .grid .trowCard::before { content: none; }
 .surfaceFrozen .trowHead { background: transparent; }
 .surfaceFrozen .trowClockVal, .surfaceFrozen .tabClock { color: var(--ink-dim); animation: none; }
 .surfaceFrozen .trowState { color: var(--ink-faint); }
