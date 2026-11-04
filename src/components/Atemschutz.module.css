@@ -89,7 +89,9 @@
    height, so an opened fold (Zeiten, Verlauf) grows only ITS card. With `stretch`, expanding one
    Trupp's Verlauf pumped empty space into every neighbour's belly — worse than the ragged
    bottoms `stretch` was once chosen against (the clocks the board is compared BY stay
-   top-aligned either way). */
+   top-aligned either way). ⚠️ And no shared foot line either (hill climb r6 tried out cards stretched
+   to their row with the foot pinned down: beside a taller crew inside, that is the 04.09. «Draussen
+   card stretched into an empty box» again – reverted, the ragged feet are the price). */
 /* ⚠️ 288px, not 270. 270 was chosen to fit three cards on a landscape tablet (300 fitted only
    two). Since 29.09.2026 the card is the phone's (TruppCard): its tiles are a 2×2 grid of equal
    keys, and 288 keeps «Rückzug» and «Raus» on one line each with the glyph beside the word. */
@@ -339,7 +341,15 @@
   min-height: 48px; min-width: 0; padding: 0 12px; border-radius: var(--r-sm);
   background: var(--surface); box-shadow: inset 0 0 0 1px var(--glass-edge);
   font: var(--fw-bold) var(--fs-2) var(--body); color: var(--ink-dim); }
-.actBtn :global(.i) { width: 16px; height: 16px; }
+/* ONE glyph on every tile of the card (hill climb r6, 04.11.2026) — the pair (`.trowPressBtn`,
+   `.trowKontakt`) and the lifecycle row (`.actBtn`, the Notfall's held tile too) were 16–17px
+   boxes, and these 24-grid glyphs draw only 9–18 units of them: beside the 700 labels the gauge,
+   the radio waves, the flag and the exit read as specks. 18px and a 2-unit stroke (~1.5px drawn,
+   the label's weight) on all of them, one step more (20px) for the pair's two sparse glyphs — the
+   manometer is an arc in the box's lower half, the radio three thin waves — so all of them read at
+   one optical size; the 8px to the word is the tiles' own `gap: var(--sp-2)`. */
+:is(.actBtn, .trowPressBtn, .trowKontakt) :global(.i) { width: 18px; height: 18px; stroke-width: 2; }
+:is(.trowPressBtn, .trowKontakt) :global(.i) { width: 20px; height: 20px; }
 /* press wash for the whole lifecycle row — every variant below rides on .actBtn */
 .actBtn:active:not(:disabled) { background-image: linear-gradient(var(--press), var(--press)); }
 @media (hover: hover) { .actRueckzug:hover, .actContinue:hover, .actExit:hover { background: var(--fill-soft); } }
@@ -1191,7 +1201,6 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
    Trupp leaving a hole here is what pulled every other column out of line */
 .trowAct { justify-self: stretch; }
 .trowKontakt { width: 100%; padding: 0 12px; min-height: 48px; border-radius: var(--r-ctl); font-size: var(--fs-2); }
-.trowKontakt :global(.i) { width: 16px; height: 16px; }
 .trowChevron { width: var(--tap); height: var(--tap); display: grid; place-items: center; color: var(--ink-faint); }
 .trowChevron :global(.i) { width: 18px; height: 18px; }
 
@@ -1592,7 +1601,6 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 .trowPressBtn { min-height: 48px; padding: 0 12px; border-radius: var(--r-sm); font-size: var(--fs-2);
   background: var(--surface); color: var(--ink); gap: var(--sp-2);
   box-shadow: inset 0 0 0 1px var(--glass-edge); }
-.trowPressBtn :global(.i) { width: 17px; height: 17px; }
 @media (hover: hover) { .trowPressBtn:hover { background: var(--fill-soft); } }
 /* the last reported bar on the pressure tile (TruppPair, 26.09.2026) — the band's pressure readout
    moved here, so the row and the opened card show it in one place. Mono like every bar on this
@@ -1660,11 +1668,11 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
    card drops its caption (RowLine · `headed`). The clock cell dissolves into the head's grid
    (`display: contents`) so the caption takes a row of its own across the whole head: its nowrap
    width never squeezes the name, and a name that wraps grows row 1 only. Row 1 is at least the
-   inside clock's 25px, so the names of a quiet out card and a running one line up across a grid row.
+   inside clock's 25px line box (its 32px digits fill it — see the grid clock rule below), so the
+   names of a quiet out card and a running one line up across a grid row.
    Tight since hill climb r4 (04.11.2026, the tablet's second row lost its foot under the panel's
-   edge): 4px over the line — the 25px line box already holds ~4px of air over the digits, so they
-   stand ~8px under the card's top, as the caption stands 8px over the band's foot — and the caption
-   hangs straight under the digits, which have no descenders. */
+   edge): 4px over the line, and the caption hangs straight under the digits, which have no
+   descenders. */
 .grid .trowHeadStatic { grid-template-rows: minmax(25px, auto); padding-top: var(--sp-1); }
 .grid .trowHeadStatic .trowClock { display: contents; }
 .grid .trowHeadStatic .trowClockLine { grid-column: 2; grid-row: 1; }
@@ -1689,6 +1697,19 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
    than ellipsising — a 4-column desktop grid cut «Brunner Thomas» to «Brunner Tho…» beside the
    row's wide-screen 28px. (The Tafel's focus card keeps its 34px — `.focusCard` above.) */
 .trowCard:not(.trowOut, .trowIdle) .trowHead .trowClockVal { font-size: 25px; }
+/* …but on the tablet / desktop grid the clock of a crew UNDER PA — calm, fällig, überfällig — is
+   the card's first read (hill climb r6, 04.11.2026: beside the filled «Wieder in den Einsatz» of
+   the out cards the 25px contact clocks took a second scan). 32px (`--fs-6`) at 700, the mono's
+   heaviest cut (Spline Sans Mono stops at 700, so the 800 above drew 700 anyway). It takes no
+   height: the line box stays the head's 25px row (`.grid .trowHeadStatic` above) — the mono's
+   digits are .76 em tall with no descenders, so at 32px they fill that box to within a pixel and
+   the tablet's second grid row keeps its whole foot. Their caption steps 2px down off the digits
+   (it touched them) and the calm band's foot gives those 2px back, so the head is as tall as
+   before. An out card's clock, a waiting crew's and a work squad's Einsatzzeit stay as they are. */
+.grid .trowCard:is(.trowIn, .trowWarn, .trowCrit) .trowHead .trowClockVal {
+  font-size: var(--fs-6); font-weight: var(--fw-bold); line-height: 25px; }
+.grid .trowCard:is(.trowIn, .trowWarn, .trowCrit) .trowHeadStatic .trowSub { margin-top: 2px; }
+.grid .trowIn .trowHeadStatic { padding-bottom: calc(var(--sp-2) - 2px); }
 .trowHead .trowNameTxt { white-space: normal; overflow-wrap: break-word;
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; line-height: 1.2; }
 .trowCard > .trowActs { margin-top: var(--sp-2); }
