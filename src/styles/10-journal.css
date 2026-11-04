@@ -641,7 +641,10 @@
    stays: an unbroken 40-letter street name has to break somewhere, and that is what it is for —
    an ordinary word never needs it, now that the trail beside it holds controls only (#12). */
 .jr-main { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
-.jr-text { min-width: 0; max-width: 100%; line-height: 1.3; overflow-wrap: anywhere; }
+/* ⚠️ Regular weight and --lh-2 (≈20px) (hill climb r3, 04.11.2026): the row's prose is the quiet
+   layer under its marks (.jr-link below) — at the row's medium, with every name bold on top, a
+   wrapped crew line on a phone was one dark block with nothing in it to find. */
+.jr-text { min-width: 0; max-width: 100%; font-weight: var(--fw-regular); line-height: var(--lh-2); overflow-wrap: anywhere; }
 /* the facts ABOUT the row, under its sentence (27.10.2026, sweep #12): the footnotes, then the
    missing-transcript / upload chips, then a done Pendenz's «wieder in» pills. Left-aligned on the
    sentence's axis, wrapping as a group. */
@@ -818,8 +821,13 @@
 }
 
 /* …and in the Verlauf, where there is real text: every mention — vehicle, partner, Trupp, person,
-   material, group — is bold INK, one look for «one of the Einsatz's own words» (29.09.2026) */
-.jr-link { font-weight: var(--fw-bold); color: var(--ink); }
+   material, group — is INK, one look for «one of the Einsatz's own words» (29.09.2026).
+   ⚠️ THREE weights in a row, no more (hill climb r3, 04.11.2026): the prose regular (.jr-text),
+   a mention medium — and bold for the Trupp alone, the crew a row is about. With every mention
+   bold, «Unter AS: Meier (AS-GF), Müller (AS)» wrapped into a block as dark as its neighbours
+   and the crew that changed had nothing to set it apart. */
+.jr-link { font-weight: var(--fw-medium); color: var(--ink); }
+.jr-link-trupp { font-weight: var(--fw-bold); }
 /* the address in the Verlauf: a real <a>, so it carries the underline that says «this opens»
    rather than a colour that only says «this is a thing» */
 a.jr-link-url { color: var(--blue); text-decoration: underline; text-underline-offset: 2px;
