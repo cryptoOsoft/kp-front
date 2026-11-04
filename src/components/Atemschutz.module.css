@@ -207,10 +207,8 @@
 .metaLine i { font-style: normal; }
 .metaLine b { font: var(--fw-bold) var(--fs-1) var(--mono); color: var(--ink); font-variant-numeric: tabular-nums; }
 /* (`.metaEst`, the Schätzung's dimmed + lighter value, went on 29.09.2026, T2: the owner wants the
-   Schätzung CLEARLY visible, so it keeps full ink, its 700 and its WORD — «Schätzung ≈ 0 bar» — and
-   the word is what keeps it from being read as a logged Druck. TruppCard · sockelLine `labelled`.
-   Hill climb r7 tried 500 and was reverted for that reason; the measured Druck stands out by size
-   instead – 16px on the tile, `.pairBar`.) */
+   Schätzung CLEARLY visible, so it keeps full ink and its WORD — «Schätzung ≈ 0 bar» — and the word
+   is what keeps it from being read as a logged Druck. TruppCard · sockelLine `labelled`.) */
 /* (`.metaEstimate` / `.metaEstLabel` / `.metaEstSource` retired 09.09. with the stacked Sockel
    row they dressed. The Schätzung's number lives on `.metaLine`, its provenance is the value of
    a `.zonePanelRow` in the opened Verlauf — `.zoneNote` — where it sits against the label it
@@ -362,18 +360,13 @@
 /* ⚠️ The card's ONE filled tile (27.09.2026, owner screenshot r2-1): «Wieder in den Einsatz» /
    «In den Einsatz» on a Trupp that is out, «Im Einsatz» on one still waiting – the owner's pick,
    kept through the hill climb (04.11.2026). In the tile family the one primary action is the
-   filled tile («+ Trupp» in the head, `.newBtn`; «Anmelden» in the form), never a green band, at
-   the primary's 800.
-   Its fill is a MID SLATE, not the primary's (hill climb r7, 04.11.2026): in `--btn-primary` (near-
-   black by day, near-white by night) three out cards' «Wieder in den Einsatz» were the board's
-   strongest blocks and outshouted the crews inside. `--ink-faint` under a `--surface` word is the
-   app's grey badge (tokenContrast.test holds the pair at AA): #556071 / white by day, #97a2b8 /
-   #232c3a by night — still a solid fill and the card's only one. Hover steps one ink tier
-   further from the sheet (`--ink-dim`). Every tile of this family wears it (`.rowEnter` below
-   too), so «In den Einsatz» / «Im Einsatz» keep the one look; the head's «+ Trupp» stays primary. */
-.actEnter, .actReenter { color: var(--surface); background: var(--ink-faint); box-shadow: none; font-weight: var(--fw-heavy); }
+   filled tile («+ Trupp» in the head, `.newBtn`; «Anmelden» in the form), never a green band — in
+   the app's one primary fill (`--btn-primary`, dimmed at night), at the primary's 800. Not a quieter
+   mid slate (hill climb r7 tried it): at night it read as a DISABLED button – on the one action
+   the card exists to offer. */
+.actEnter, .actReenter { color: var(--on-btn-primary); background: var(--btn-primary); box-shadow: none; font-weight: var(--fw-heavy); }
 @media (hover: hover) {
-  .actEnter:hover, .actReenter:hover { background: var(--ink-dim); }
+  .actEnter:hover, .actReenter:hover { background: var(--btn-primary-hover); }
 }
 /* (`.st-aktiv` … `.st-raus`, the tablet card's status TOP EDGE, went on 29.09.2026: the card's tone
    is the phone row's LEFT edge and wash by tier — `rowTone`, `.trowWarn` / `.trowCrit` / `.trowIdle`
@@ -1616,7 +1609,7 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
    board; red at or under this Trupp's line, the colour the band's «Alarmdruck» wore. 700, the
    tiles' weight: 800 is Kontakt's alone (hill climb r1, 04.11.2026). 16px, one step over the tile's
    14px words (r7): the card's measured Druck is its loudest number after the clock, above the
-   foot's 12.5px values. */
+   foot's 12.5px values (the Schätzung there keeps its 700 – owner, 29.09.2026 T2). */
 .pairBar { font: var(--fw-bold) var(--fs-3) var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .pairBarLow { color: var(--red-strong); }
 /* (…the second row of the grid, the lifecycle tiles, is `.actions` / `.actBtn` above — the base
@@ -1798,12 +1791,12 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* «Im Einsatz» on a row (TruppCard · RowEnter) — the Sicherungstrupp's one action, worded and
    filled like the card's (07.10.2026, UI sweep): `actEnter` (the button names the state it makes)
-   in the card's ONE filled tile (`.actEnter`, its mid slate), never a green band. It was a green
+   in the card's ONE filled tile (`.actEnter`, `--btn-primary`), never a green band. It was a green
    «Einsetzen» on the phone only. The row's green edge and tint stay: they say WHICH Trupp this
    is, not what the button does. Since 30.10.2026 every Bereit row wears it in its clock's place
    too, where «–:––» stood (owner: «show the next action rather than the empty time»). */
 .rowEnter { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 16px;
-  border-radius: var(--r-ctl); background: var(--ink-faint); color: var(--surface); font: var(--fw-heavy) var(--fs-2) var(--body); }
+  border-radius: var(--r-ctl); background: var(--btn-primary); color: var(--on-btn-primary); font: var(--fw-heavy) var(--fs-2) var(--body); }
 .rowEnter:active { background-image: linear-gradient(var(--press), var(--press)); }
 /* The SICHERUNGSTRUPP head (26.09.2026, phone card slim-down): a section head like DRIN / DRAUSSEN,
    and «Bestimmen» at the row's right — a 36px pill of the count badge's family, so the

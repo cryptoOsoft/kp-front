@@ -9,8 +9,7 @@
 //     bars and panels, composited over --map-bg)                                        4.5
 //   · --ink-faint stays a visible step under --ink-dim (≥ 1.25× its contrast)
 //   · a word on a fill: --on-btn-primary on --btn-primary, --on-accent-ink on --ink-fill (the «on»
-//     pill), --on-fill on --blue, --on-amber on --amber, --surface on --ink-faint (a grey badge,
-//     the Trupps card's one filled tile)                                                     4.5
+//     pill), --on-fill on --blue, --on-amber on --amber, --surface on --ink-faint (a grey badge) 4.5
 //   · a «strong» hue on its own 16 % tint over --surface (the ÜBUNG badge, the overdue «Kontakt»,
 //     the selected chip)                                                                    4.5
 //   · --on-fill on --green-fill and --red-fill – the green «go» button, the red rec buttons, the
