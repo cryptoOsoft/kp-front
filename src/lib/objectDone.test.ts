@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { fitSimilarity, type GeorefPair } from './georef'
 import { applyBoardToObjects, applyDocToObjects, bakeGeoBody, sheetAnnos, viewsOf, type TacticalObject } from './tacticalObjects'
 import {
-  canBeDone, doneAct, doneBadge, doneName, doneOf, donePlace, doneRowText, doneStateText, doneStatusText, doneWord,
+  canBeDone, doneAct, doneBadge, doneName, doneOf, donePlace, doneRowText, doneStatusText, doneWord,
   isFireFamily, markDone, offersDone, reopenedRowText,
 } from './objectDone'
 import { symbolLegendText } from './symbols'
@@ -30,11 +30,10 @@ describe('the words — one key, a family switch', () => {
     expect(doneWord('VKF Rettungen', 'inline')).toBe('erledigt')
   })
 
-  it('states the set state and the legend status with the time', () => {
-    expect(doneStateText({ ...feuer, done: { at: AT } })).toBe(`Gelöscht ${HHMM}`)
-    expect(doneStateText({ ...luefter, done: { at: AT } })).toBe(`Erledigt ${HHMM}`)
+  it('states the set state (editor head, legend status) with the time', () => {
     expect(doneStatusText({ ...feuer, done: { at: AT } })).toBe(`gelöscht ${HHMM}`)
-    expect(doneStateText(feuer)).toBeNull()
+    expect(doneStatusText({ ...luefter, done: { at: AT } })).toBe(`erledigt ${HHMM}`)
+    expect(doneStatusText(feuer)).toBeNull()
     expect(doneBadge({ done: { at: AT } })).toBe(HHMM)
   })
 

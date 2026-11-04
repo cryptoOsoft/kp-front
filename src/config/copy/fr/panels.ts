@@ -96,6 +96,8 @@ export const panelsCopy: Localizable<Pick<Copy, Keys>> = {
     symbolCaptionsSub: 'La valeur clé sous le symbole',
     railLabels: 'Étiquettes des barres',
     railLabelsSub: 'Un mot sous chaque symbole des deux barres',
+    keyHints: 'Afficher les raccourcis clavier',
+    keyHintsSub: 'Lettres sur les barres d\'outils – uniquement sur les appareils avec clavier et souris.',
     captionsOff: 'Aucune',
     captionsAuto: 'Auto',
     captionsAll: 'Toutes',

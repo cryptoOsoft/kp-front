@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { resolveHotkey, isTypingTarget, SURFACE_KEY, type HotkeyCommand, type SurfaceCmd } from './hotkeys'
+import { resolveHotkey, isTypingTarget, railToolKey, SURFACE_KEY, TOOL_KEY, type HotkeyCommand, type SurfaceCmd, type ToolCmd } from './hotkeys'
 
 // minimal KeyboardEvent stand-in — resolveHotkey only reads these five fields
 const ev = (key: string, mod: Partial<KeyboardEvent> = {}): KeyboardEvent =>
@@ -114,5 +114,27 @@ describe('isTypingTarget', () => {
     expect(isTypingTarget({ tagName: 'DIV', isContentEditable: true } as unknown as Element)).toBe(true)
     expect(isTypingTarget({ tagName: 'DIV', isContentEditable: false } as unknown as Element)).toBe(false)
     expect(isTypingTarget(null)).toBe(false)
+  })
+})
+
+// The ToolRail prints TOOL_KEY on its tiles: a badge may only name a letter that arms that tool.
+describe('the ToolRail badges', () => {
+  it('every letter in TOOL_KEY resolves to exactly its own tool', () => {
+    for (const [tool, key] of Object.entries(TOOL_KEY) as [ToolCmd, string][]) {
+      expect(resolve(key.toLowerCase())).toEqual({ type: 'tool', tool })
+    }
+  })
+
+  it('reads the Karte\'s rail ids and the Plan\'s alike', () => {
+    expect(railToolKey('select')).toBe('V')
+    expect(railToolKey('pan')).toBe(railToolKey('select')) // the Plan\'s Auswahl
+    expect(railToolKey('text')).toBe(railToolKey('note'))
+    expect(railToolKey('resource')).toBe(railToolKey('team'))
+    expect(railToolKey('lasso')).toBe('W')
+  })
+
+  it('gives a tile without a key no badge', () => {
+    expect(railToolKey('pin')).toBeUndefined()
+    expect(railToolKey('toString')).toBeUndefined()
   })
 })

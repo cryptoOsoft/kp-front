@@ -40,6 +40,16 @@ One object, two surfaces: how a tactical object is stored, anchored, projected a
   first and the glyph stands alone (the name stays its aria-label), then «Mehrere platzieren»
   folds to its ⟳ (a hold says the word) – measured on the top bar's ladder
   (`ArmedToolPill · fitArmedPill`), so a wider screen gives the words back.
+- **One detail card, one set of controls** (`components/ContextPanel`, owner decisions
+  31.10.2026). The Karte and every plan open the SAME card for a symbol, so a control added or
+  removed there is added or removed on both surfaces. «Erledigt» is ONE toggle in the foot, in
+  the same spot whether the matter is open or over: set, the tile stands pressed (check, green
+  tint) and a tap reopens it; when it was set is the header's subtitle («Schadenlage · erledigt
+  10:57»), which a read-only card shows too. Both directions stay ordinary undoable prop edits
+  (`lib/objectDone`). There is no «Auf {plan} zeigen» / «Auf Karte zeigen» door any more: every
+  object is drawn on the Karte and on its linked plans alike, so the door showed the same thing
+  again. And no «+ Feld»: a symbol's rows are its preset; a free row an older Einsatz carries still
+  renders with its editable key and ✕, but nothing adds a new one – a remark goes into Notizen.
 - **A new line starts from the plain default, always** (`useMapDrawing · DRAW_DEFAULTS`,
   `usePlanDraft · INK_DEFAULTS`, 23.10.2026): the surface's colour, width, solid, no marker, no
   arrowhead – whatever the last line was edited to. Until then the DrawEditor wrote every style

@@ -55,6 +55,17 @@
 }
 .running:has(.runningOpen:active) { background-image: linear-gradient(var(--press), var(--press)); }
 .runningMore:active span { background-image: linear-gradient(var(--press), var(--press)); }
+/* an Übung is amber, as everywhere (.ip-badge-exercise): the chip never reads as a real Einsatz.
+   A FILLED amber, so the chip keeps its weight in the bar; its ink is --on-amber (dark – white is
+   2.5:1 on amber by day) and the hover is the amber one step darker, ink-mixed so that ink stays
+   legible (--amber-strong is a text colour, too dark under dark ink). The pill and the press
+   follow the ink. */
+.runningExercise { background: var(--amber); color: var(--on-amber); }
+.runningExercise .runningMore span { background: color-mix(in srgb, var(--on-amber) 16%, transparent); }
+@media (hover: hover) {
+  .running.runningExercise:hover:not(:has(.runningMore:hover)) { background: color-mix(in srgb, var(--amber) 86%, var(--on-amber)); }
+  .runningExercise .runningMore:hover span { background: color-mix(in srgb, var(--on-amber) 26%, transparent); }
+}
 .runningText { min-width: 0; overflow: hidden; }
 .runningText b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pulse { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex: none; animation: koPulse 1.4s infinite; }

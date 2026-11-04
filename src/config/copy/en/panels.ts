@@ -86,6 +86,8 @@ export const panelsCopy: Localizable<Pick<Copy, Keys>> = {
     symbolCaptionsSub: 'Key value under the symbol',
     railLabels: 'Rail labels',
     railLabelsSub: 'A word under every glyph in both rails',
+    keyHints: 'Show keyboard shortcuts',
+    keyHintsSub: 'Letters on the toolbars – only on devices with a keyboard and mouse.',
     captionsOff: 'Off',
     captionsAuto: 'Auto',
     captionsAll: 'All',

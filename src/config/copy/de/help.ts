@@ -64,7 +64,7 @@ export const helpCopy = {
           ] },
           { kind: 'sub', text: 'Linke Leiste', only: 'wide' },
           { kind: 'list', items: [
-            'Je nach Einstellung zeigt die linke Leiste die Bezeichnungen der Arbeitsbereiche oder deren Tastaturkürzel. Die Kürzel entsprechen dem ersten Buchstaben des deutschen Begriffs, bei Anwesenheit steht P für Personal.',
+            'Mit Tastatur und Maus steht an den Feldern der linken und der rechten Leiste, die ein Tastaturkürzel haben, der Buchstabe dazu (abschaltbar in den **Einstellungen**: «Tastenkürzel anzeigen»). Alle Kürzel stehen unter **Tastaturkürzel**.',
             'Im Kartenbereich sind **Ebenen** und der **Karten**-Umschalter unten angeheftet – immer sichtbar.',
             'Am rechten Rand der Leiste ziehen klappt sie mit Beschriftungen auf bzw. wieder zu.',
           ], only: 'wide' },

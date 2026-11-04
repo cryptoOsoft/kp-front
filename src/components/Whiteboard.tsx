@@ -338,8 +338,6 @@ interface Props {
    *  surface can say when it ended: the release writes its final frame from the same pointerup
    *  a listener would hear (lib/useObjectStore · endSheetStep). */
   onStepEnd?: () => void
-  /** Show a plan-owned object at its projected position on the Lage map. */
-  onPlanProjection?: (planId: string, annoId: string, coord: LngLat) => void
   /** The Tafel's pages (10.10.2026, docs/board-templates.md): the station's template set, what a
    *  new page may be pre-filled with, and the live mini Karte for a «Lagekarte» box. Absent ⇒
    *  the Tafel is the free sheet only (an Einsatz-Link session). */
@@ -378,7 +376,7 @@ export interface PlanLogExtra {
 // timestamp updates each time they are moved. All annotation coordinates are
 // normalized 0..1 in plan-image space so they stick across zoom/pan.
 
-export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, captionMode = 'off', mapSuppressedCaptions, onChange: onChangeAll, building, floorPack, onSelectBuilding, onBuildingFace, onReorient, onAddFloor, onRemoveFloor, readOnly: readOnlyProp = false, sym, rosterNames = [], rosterRank, onRosterField, personStatus, fieldHints, onRecent, log, authorName, onStepLabel, emit = () => {}, historyRef, hist, setHist, onCheckpoint, views, fitRef, keysRef, focus, onView, trupps = [], placedTeamNames, teamNameTaken, onLinkTrupp, onShowTrupp, truppFinder, ghostTrails = [], onGhostTrail, onTrailDrop, onTeamTrupp, onTeamNewTrupp, onLinkLineTrupp, onLineAttached, onLineDetached, onLineRenumber, truppSeverities, objectName, objectAddress, objectNearby, buildingInfo, readingsChip, incidentId, incidentAddress, incidentPos, onObjectSwitch, planScale = {}, onCalibrate, live = [], photos = [], onPlanLiveMove, onStepEnd, onPlanProjection, slimTools: slimToolsProp = false, linkViewer = false, railLabels, tafel }: Props) {
+export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, captionMode = 'off', mapSuppressedCaptions, onChange: onChangeAll, building, floorPack, onSelectBuilding, onBuildingFace, onReorient, onAddFloor, onRemoveFloor, readOnly: readOnlyProp = false, sym, rosterNames = [], rosterRank, onRosterField, personStatus, fieldHints, onRecent, log, authorName, onStepLabel, emit = () => {}, historyRef, hist, setHist, onCheckpoint, views, fitRef, keysRef, focus, onView, trupps = [], placedTeamNames, teamNameTaken, onLinkTrupp, onShowTrupp, truppFinder, ghostTrails = [], onGhostTrail, onTrailDrop, onTeamTrupp, onTeamNewTrupp, onLinkLineTrupp, onLineAttached, onLineDetached, onLineRenumber, truppSeverities, objectName, objectAddress, objectNearby, buildingInfo, readingsChip, incidentId, incidentAddress, incidentPos, onObjectSwitch, planScale = {}, onCalibrate, live = [], photos = [], onPlanLiveMove, onStepEnd, slimTools: slimToolsProp = false, linkViewer = false, railLabels, tafel }: Props) {
   // ⚠️ RIDERS: what lives on a sheet but is not drawn ON it — the Tafel's pages (kind `form`,
   // lib/boardForm) and any board object this build does not understand (lib/workspace ·
   // isPassengerAnno). Nothing positional may see them: every drawing path below reads `annos` —
@@ -2878,10 +2876,6 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
           readOnly={readOnly}
           svg={selSymbol.symbol ? sym.byName[selSymbol.symbol] ?? '' : ''}
           onClose={() => setSelId(null)}
-          onProjection={georefFit && onPlanProjection && selSymbol.x != null && selSymbol.y != null
-            ? () => { const c = georefFit.toMap({ x: selSymbol.x!, y: selSymbol.y! }); onPlanProjection(activeId, selSymbol.id, [c.lng, c.lat]) }
-            : undefined}
-          projectionLabel={appConfig.copy.contextPanel.showOnMap}
           // ⚠️ Live while typing, one step on blur — the same split the Lage's symbol panel has
           // (IncidentWorkspace · titleLiveRef) and the same one the plan's LINE label already had.
           // Committing only on blur meant the glyph on the board still read «Fahrzeug» while the

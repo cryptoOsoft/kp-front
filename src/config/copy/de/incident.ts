@@ -224,8 +224,9 @@ export const incidentCopy = {
     insideTitle: 'Trupps noch drin',
     // die sichere, fokussierte Antwort auf der Liste der offenen Punkte
     confirmBack: 'Zurück',
-    // The rows' own answers, as buttons (3am sweep, 23.10.2026; lib/abschlussOpen · fixes). «Zeiten»
-    // is normally not on the list: an empty Einsatzende is pre-filled with «jetzt» (useAbschluss).
+    // The rows' own answers, as buttons (3am sweep, 23.10.2026; lib/abschlussOpen · fixes), on the
+    // Abschluss and – since 31.10.2026 – the print's «Angaben fehlen noch». «Jetzt setzen» stands
+    // mostly on the print's list: the Abschluss pre-fills an empty Einsatzende with «jetzt».
     fix: {
       zeiten: 'Jetzt setzen',
       mittel: 'Nichts verwendet',

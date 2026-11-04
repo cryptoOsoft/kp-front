@@ -98,6 +98,9 @@ export const alarmReady = (rows: readonly ReadinessRow[]): boolean => rows.every
 /** What the nudge card needs beyond the rows: where the device is and what it chose. */
 export interface NudgeContext {
   now: number
+  /** the installed app (lib/installPrompt · isStandalone) — a browser tab never gets the card
+   *  (owner, 31.10.2026); its rows stay in «Auf diesem Gerät» */
+  standalone: boolean
   /** an Einsatz is open on this device — the card never shows inside one */
   inIncident: boolean
   /** a link session has no login and no push — nothing to nudge */
@@ -108,10 +111,11 @@ export interface NudgeContext {
 }
 
 /** Whether the Karte home shows the nudge card: something is red, or nothing was checked for
- *  CHECK_DAYS — never inside an Einsatz, for a link session, after an opt-out, or inside «Später». */
+ *  CHECK_DAYS — only in the installed app, never inside an Einsatz, for a link session, after an
+ *  opt-out, or inside «Später». */
 export function nudgeDue(rows: readonly ReadinessRow[], ctx: NudgeContext): boolean {
   const s = ctx.store
-  if (ctx.inIncident || ctx.linkSession || ctx.pushUnavailable || s.optedOut) return false
+  if (!ctx.standalone || ctx.inIncident || ctx.linkSession || ctx.pushUnavailable || s.optedOut) return false
   if (s.laterUntil != null && s.laterUntil > ctx.now) return false
   if (!alarmReady(rows)) return true
   return s.lastCheck == null || ctx.now - s.lastCheck > CHECK_DAYS * DAY

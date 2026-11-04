@@ -15,7 +15,7 @@ import { DemoRibbon } from './components/DemoRibbon'
 import { Splash } from './components/Splash'
 import { lockChromeZoom } from './lib/lockZoom'
 import { loadPrefs, applyTheme, resolveTheme } from './lib/prefs'
-import { loadDeploymentConfigBounded, applyDeploymentBranding } from './lib/deploymentConfig'
+import { bootDeploymentConfig, applyDeploymentBranding } from './lib/deploymentConfig'
 import { loadStationPlanScales, refreshStationPlanScales } from './lib/stationPlanScale'
 import { migrateLocalStorageToIdb } from './lib/storageMigration'
 import { requestPersistentStorage } from './lib/idb'
@@ -120,8 +120,8 @@ function withBudget<T>(p: Promise<T>, ms: number, fallback: T): Promise<T> {
 
 // Resolve the deployment config (PUBLIC /api/config) BEFORE first render so per-deployment
 // branding/defaults are in place from the very first paint and the synchronous accessor
-// (getDeploymentConfig) is already populated when read sites run. Budgeted: a slow/stalled
-// network serves the offline-cached config instead of holding the blank page.
+// (getDeploymentConfig) is already populated when read sites run. From the device's cached copy
+// when it has one (the network answer refreshes it behind the app); budgeted on a first boot.
 void (async () => {
   // Base tiles a provider has since re-rendered under the same URL go before the map asks for
   // them (lib/tilePurge — the «seam» of 17.10.2026). Once per device, online only, not awaited.
@@ -132,9 +132,9 @@ void (async () => {
     // offline fallback and WorkspaceSync.init both now read from IDB. Best-effort; budgeted too,
     // because a blocked IndexedDB upgrade (another tab holding the old version) never settles.
     await withBudget(migrateLocalStorageToIdb(), BOOT_BUDGET_MS, undefined)
-    // Outer budget one second past the inner one: the inner race decides network vs. cache,
-    // the outer bound is only there for a cache read that never answers (see above).
-    const cfg = await withBudget(loadDeploymentConfigBounded(BOOT_BUDGET_MS), BOOT_BUDGET_MS + 1_000, {})
+    // Outer budget one second past the inner one: the inner race bounds a first boot's network
+    // wait, the outer bound is only there for a cache read that never answers (see above).
+    const cfg = await withBudget(bootDeploymentConfig(BOOT_BUDGET_MS, applyDeploymentBranding), BOOT_BUDGET_MS + 1_000, {})
     applyDeploymentBranding(cfg)
     // station plan calibration (public, offline-cached) — so plans measure out of the box (#3)
     void loadStationPlanScales()

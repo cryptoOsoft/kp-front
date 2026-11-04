@@ -5,7 +5,7 @@ import { closeTimeOf, isIncidentRunning, type IncidentMeta } from './api/inciden
 import type { ReportMeta } from './workspace'
 import type { MediaQueueApi } from './useMediaQueue'
 import { abschlussFacts, missingSteps, type AbschlussStep } from './abschluss'
-import { abschlussEndeItem, abschlussOpenItems, abschlussOpenPoints, countsAsOpen, insideAbschlussMessage, registeredAbschlussMessage } from './abschlussOpen'
+import { abschlussEndeItem, abschlussOpenPoints, abschlussSheet, insideAbschlussMessage, registeredAbschlussMessage } from './abschlussOpen'
 import { serverNowIso } from './serverClock'
 import { truppInNotfall, truppLogName, truppStillDeployed, truppStillRegistered } from './atemschutz'
 import { fillTemplate } from './format'
@@ -197,37 +197,32 @@ export function useAbschluss({
       trupps: () => { setMode('atemschutz'); setPanel(null) },
       media: () => setOfflineReadyOpen(true),
     }
-    /* The rows' own answers (3am sweep, 23.10.2026, owner's point 4): a step settled IN the sheet
-       («Nichts verwendet», «Entfällt») is written to the Rapport at once and its row stays as a
-       done one; the ask re-reads itself (ConfirmSpec · refresh) so the lead sentence and the
-       button follow. The step list itself (`abschlussMissing`) is the render's — `settled` is
-       what this sheet answered on top of it. */
-    const settled = new Map<AbschlussStep, string>()
-    const fix = patchReportMeta && ((step: AbschlussStep, over: Partial<ReportMeta>, answer: string) => {
-      patchReportMeta(over)
-      settled.set(step, answer)
-    })
     /* ⚠️ The Einsatzende is PRE-FILLED with «jetzt» (owner's pick): «Zeiten» stood open on
        almost every close because nothing ever set it, and the answer is nearly always «now».
-       Shown as already set, with «Ändern»; written with the close (below), on the server clock.
-       Only for a caller that may write the Rapport. */
-    const pendingEnde = fix && !reportMeta.endedAt ? serverNowIso() : null
+       Shown as already set, with «Ändern», in the step's own place on the list; written with the
+       close (below), on the server clock. Only for a caller that may write the Rapport.
+       ⚠️ Closing-only: the print's «Angaben fehlen noch» does not pre-fill (printing sets no
+       Einsatzende), its row offers the step's own «Jetzt setzen» (ReportPreflight · startOutput). */
+    const pendingEnde = patchReportMeta && !reportMeta.endedAt ? serverNowIso() : null
+    /* The rows, their order and their own answers («Nichts verwendet», «Entfällt» … 3am sweep,
+       23.10.2026, owner's point 4) are the ONE list both confirms read (lib/abschlussOpen ·
+       abschlussSheet): an answer is written to the Rapport at once, its row stays as a done one,
+       and the ask re-reads itself (ConfirmSpec · refresh) so the lead sentence and the button
+       follow. ⚠️ Every row is a LINK: naming a gap on the last screen before the Akte closes and
+       leaving the operator to hunt for it is the failure the «noch offen» chips fixed on the sheet
+       itself. Tapping one resolves the ask false — going there is not going ahead. */
+    const sheet = abschlussSheet(abschlussOpenPoints(abschlussMissing, truppsStillOut, media.pendingCount), go, {
+      write: patchReportMeta,
+      now: serverNowIso,
+      prefilled: pendingEnde ? { zeiten: abschlussEndeItem(pendingEnde, () => { patchReportMeta!({ endedAt: pendingEnde }); go.step('zeiten') }) } : undefined,
+    })
     const spec = () => {
-      const missing = abschlussMissing.filter((st) => !(pendingEnde && st === 'zeiten'))
-      const points = abschlussOpenPoints(missing, truppsStillOut, media.pendingCount)
-      // …and it counts as an open point for the WORDING, the way a missing Angabe does: the
-      // message and the button both have to say that something is being closed over.
-      const anyOpen = points.some((pt) => countsAsOpen(pt) && !(pt.kind === 'step' && settled.has(pt.step)))
+      // a Trupp still out counts as open for the WORDING, the way a missing Angabe does: the
+      // message and the button both have to say that something is being closed over
+      const { items, anyOpen } = sheet()
       return {
         message: anyOpen ? P.exportIncompleteLead : A.confirmMsg,
-        // ⚠️ Every row is a LINK, exactly as the print warning's rows are (lib/abschlussOpen).
-        // Naming a gap on the last screen before the Akte closes and leaving the operator to hunt
-        // for it is the same failure the «noch offen» chips fixed on the sheet itself. Tapping one
-        // resolves the ask false — going there is not going ahead.
-        items: [
-          ...(pendingEnde ? [abschlussEndeItem(pendingEnde, () => { patchReportMeta!({ endedAt: pendingEnde }); go.step('zeiten') })] : []),
-          ...abschlussOpenItems(points, go, fix ? { fix, now: serverNowIso, settled } : undefined),
-        ],
+        items,
         note: anyOpen ? A.confirmMsg : undefined,
         // the button names what is actually about to happen — closing an Einsatz with open points
         // is allowed, and the label is where that is said out loud

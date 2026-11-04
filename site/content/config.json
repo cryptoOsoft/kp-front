@@ -5,17 +5,20 @@
     "repo": "https://github.com/feuerwehr-oberwil/kp-front",
     "license": "https://www.gnu.org/licenses/agpl-3.0.html",
     "screenshot": "shots/lage.jpg",
-    "inLanguage": ["de", "fr", "it", "en"],
+    "demo": "https://demo.kp-front.ch/",
+    "inLanguage": ["de"],
     "suite": {
       "id": "https://kp-front.ch/#kp-suite",
       "name": "KP Front & KP Rück",
       "apps": ["https://kp-front.ch/#app", "https://kp-rueck.ch/#app"]
     },
-    "org": {
-      "name": "Feuerwehr Oberwil BL",
-      "url": "https://www.feuerwehr-oberwil.ch",
-      "github": "https://github.com/feuerwehr-oberwil"
-    }
+    "author": {
+      "id": "https://www.bastianeichenberger.ch/#person",
+      "name": "Bastian Eichenberger",
+      "url": "https://www.bastianeichenberger.ch",
+      "github": "https://github.com/BBQuercus"
+    },
+    "publisher": "https://www.feuerwehr-oberwil.ch/#organization"
   },
   "locales": [
     {

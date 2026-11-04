@@ -314,9 +314,12 @@ describe('useAbschluss', () => {
       const a = args({ patchReportMeta, onCompleteRapport: vi.fn(async () => { order.push('complete'); return true }) })
       await expect(renderHook(() => useAbschluss(a)).result.current.confirmAndComplete()).resolves.toBe(true)
       const spec = ask.mock.calls[0][0] as Ask
-      // the first row IS the Einsatzende, already set, with «Ändern»; «Zeiten» is not on the list
-      expect(spec.items?.[0]).toMatchObject({ label: A.ende, done: true, action: { label: A.endeChange, leaves: true } })
-      expect(spec.items?.slice(1).map((i) => typeof i === 'string' ? i : i.label)).not.toContain(A.steps.zeiten)
+      // the Einsatzende row is the pre-filled one, already set, with «Ändern» – ONE row, in the
+      // step's own place down the page (after Kontaktperson), as on the print's list (31.10.2026)
+      const labels = spec.items?.map((i) => typeof i === 'string' ? i : i.label)
+      expect(labels?.filter((l) => l === A.ende)).toHaveLength(1)
+      expect(labels?.indexOf(A.ende)).toBe(labels!.indexOf(A.steps.kontaktperson) + 1)
+      expect(spec.items?.[labels!.indexOf(A.ende)]).toMatchObject({ done: true, end: expect.stringMatching(/\d/), action: { label: A.endeChange, leaves: true } })
       expect(order).toEqual(['patch:endedAt', 'complete'])
       expect(patchReportMeta.mock.calls[0][0].endedAt).toMatch(/^\d{4}-/)
     })
@@ -365,7 +368,7 @@ describe('useAbschluss', () => {
       const patchReportMeta = vi.fn()
       const a = args({ patchReportMeta })
       await renderHook(() => useAbschluss(a)).result.current.confirmAndComplete()
-      const ende = (ask.mock.calls[0][0] as Ask).items?.[0]
+      const ende = (ask.mock.calls[0][0] as Ask).items?.find((i) => typeof i !== 'string' && i.label === A.ende)
       if (typeof ende === 'string' || !ende?.action) throw new Error('no Ende row')
       ende.action.onClick()
       expect(patchReportMeta).toHaveBeenCalledWith({ endedAt: expect.stringMatching(/^\d{4}-/) })

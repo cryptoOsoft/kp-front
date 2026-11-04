@@ -1,5 +1,5 @@
 // What a Trupp's row and card SAY, as plain values: the clock (`collapsedClock`), the tier
-// glyph (`tierMark`) and the link board's tab line (`tabState`). Pure, and shared by TruppCard and
+// word (`tierMark`) and the link board's tab line (`tabState`). Pure, and shared by TruppCard and
 // the board's focus strip (AtemschutzView).
 
 import { appConfig } from '../config/appConfig'
@@ -31,19 +31,17 @@ export function collapsedClock(t: Trupp, live: TruppLive): { val: string; sub: s
   return { val: fmtClock(live.sinceContactSec), sub: az.sinceContact }
 }
 
-/** The tier as a word for the row's aria-label and the hover title, and — for the red tiers —
- *  as a GLYPH (B5, 08.10.2026: sunlight, colour-blind): `crit` = «Überfällig» or the Alarmdruck,
- *  drawn as the warning triangle in front of the clock. «Fällig» draws NO glyph since 30.10.2026
- *  (owner: «remove the ugly clock icon» – the small clock under the amber digits): its amber
- *  carries it, and it stays a word for a screen reader. A pressure alarm never says «Überfällig»
- *  (see `TruppAlarm.reason`). `withPressure` false where the caller says the Alarmdruck in words
- *  already (the card's state line, with its limit). */
-export interface TierMark { text: string; crit: boolean }
-export function tierMark(alarm: TruppAlarm, sev: number, withPressure: boolean): TierMark | null {
+/** The tier as a WORD for a screen reader — the row's aria-label and the link board's tab. No
+ *  glyph anywhere since 30.10.2026 (owner: «we don't need the triangle thing. red and notfall is
+ *  already enough»; «remove the ugly clock icon»): «Überfällig» and the Alarmdruck stand in the
+ *  red clock and the card's red edge, «Fällig» in the amber digits, and this word is what keeps
+ *  them from riding on colour alone for assistive tech. A pressure alarm never says «Überfällig»
+ *  (see `TruppAlarm.reason`). */
+export function tierMark(alarm: TruppAlarm, sev: number): string | null {
   const az = appConfig.copy.atemschutz
   if (sev <= 0) return null
-  if (alarm.reason === 'pressure') return withPressure ? { text: az.clockAlarmPressure, crit: true } : null
-  return sev >= 2 ? { text: az.clockOverdue, crit: true } : { text: az.rowDue, crit: false }
+  if (alarm.reason === 'pressure') return az.clockAlarmPressure
+  return sev >= 2 ? az.clockOverdue : az.rowDue
 }
 
 /** An ISO stamp as the board prints it (hh:mm), or nothing for a stamp that does not parse. */

@@ -60,7 +60,7 @@ describe('the one line', () => {
 
 describe('the nudge card', () => {
   const store = (p: Partial<ReadinessStore> = {}): ReadinessStore => ({ subscribedAt: null, lastTest: null, lastCheck: NOW - DAY, optedOut: false, laterUntil: null, ...p })
-  const ctx = (p: Partial<Parameters<typeof nudgeDue>[1]> = {}) => ({ now: NOW, inIncident: false, linkSession: false, pushUnavailable: false, store: store(), ...p })
+  const ctx = (p: Partial<Parameters<typeof nudgeDue>[1]> = {}) => ({ now: NOW, standalone: true, inIncident: false, linkSession: false, pushUnavailable: false, store: store(), ...p })
   const red = readinessRows({ ...green, permission: 'default' })
   const ok = readinessRows(green)
 
@@ -69,6 +69,10 @@ describe('the nudge card', () => {
     expect(nudgeDue(ok, ctx())).toBe(false)
     expect(nudgeDue(ok, ctx({ store: store({ lastCheck: null }) }))).toBe(true)
     expect(nudgeDue(ok, ctx({ store: store({ lastCheck: NOW - (CHECK_DAYS + 1) * DAY }) }))).toBe(true)
+  })
+
+  it('never in a browser tab', () => {
+    expect(nudgeDue(red, ctx({ standalone: false }))).toBe(false)
   })
 
   it('never inside an Einsatz, for a link session, without push on the deployment, after an opt-out, or inside «Später»', () => {
@@ -164,7 +168,7 @@ describe('readiness policy boundaries', () => {
 
   it('allows a nudge at the snooze deadline and only after 90 full days since a green check', () => {
     const store = { subscribedAt: null, lastTest: null, lastCheck: NOW - 90 * DAY, optedOut: false, laterUntil: NOW }
-    const ctx = { now: NOW, inIncident: false, linkSession: false, pushUnavailable: false, store }
+    const ctx = { now: NOW, standalone: true, inIncident: false, linkSession: false, pushUnavailable: false, store }
     expect(nudgeDue(readinessRows({ ...green, permission: 'default' }), ctx)).toBe(true)
     expect(nudgeDue(readinessRows(green), ctx)).toBe(false)
     expect(nudgeDue(readinessRows(green), { ...ctx, store: { ...store, lastCheck: store.lastCheck - 1 } })).toBe(true)

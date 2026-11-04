@@ -15,7 +15,11 @@
       "Shift planning for long incidents, with a coverage view",
       "Incident report as a PDF, pre-filled from the incident data",
       "Replay: play the incident back for the debrief"
-    ]
+    ],
+    "audience": [
+      "Fire services"
+    ],
+    "demoAction": "Open the KP Front demo"
   },
   "nav": {
     "aria": "Main navigation",
@@ -284,8 +288,7 @@
           "Vehicle positions by GPS <span class=\"opt\">optional</span>",
           "Sign in with Microsoft to an existing account, alongside the PIN <span class=\"opt\">optional</span>",
           "<strong>Object visits</strong> without an incident, offline – checklist, photos and report <span class=\"opt\">optional</span>",
-          "<strong>Your own administration area</strong> per fire brigade: crew, vehicles, checklists, map layers and templates",
-          "Interface in German, English, French or Italian – set per fire brigade"
+          "<strong>Your own administration area</strong> per fire brigade: crew, vehicles, checklists, map layers and templates"
         ]
       }
     ]
@@ -340,6 +343,10 @@
         "a": "A small mini-PC or server at the station is enough. Setup, updates and backups\n          require someone with Docker and command-line experience, whether in the brigade, the\n          municipality or an IT support provider. The guide and administration area lead through\n          the setup. We are happy to answer general questions; data and operation remain the\n          responsibility of each fire brigade."
       },
       {
+        "q": "Is support available for installation and operation?",
+        "a": "Yes. General questions about installation and use can be answered free of charge. KP Front can be operated on an organisation’s own infrastructure or with a hosting or cloud provider of its choice. Support with installation, configuration, updates or operation is also available by individual agreement. More extensive support may be subject to a fee."
+      },
+      {
         "q": "Does KP Front work without an internet connection?",
         "a": "Yes. As an installed app, KP Front runs on the device: map, plans, teams and log\n          stay usable even when the network drops. The app loads the maps and plans around an\n          incident by itself, shortly after it is opened – and the <strong>readiness check</strong>\n          shows before an incident whether the required data is on the device. After an\n          interruption, changes are synchronised again as soon as a connection is available;\n          whatever was recorded in the meantime is kept."
       },
@@ -352,8 +359,8 @@
         "a": "No. As open-source software, KP Front is freely available and can be adapted to local conditions anywhere in the world. Out of the box it is preconfigured for Switzerland – with swisstopo maps, tactical symbols to FKS conventions and the FKS templates for incident command. Outside Switzerland other base maps can be configured; address search currently supports only the swisstopo interface and needs adapting there."
       },
       {
-        "q": "Which languages does KP Front support?",
-        "a": "The website is available in German, French, Italian, Romansh and English. The app itself and its help run in German, French, Italian and English – Romansh is not available there yet. The language is set <strong>once per fire brigade</strong>, not per device: during an incident everybody reads the same terms. The technical documentation for setup and operation is in English. The public demo runs in <strong>German</strong>, and the screenshots here come from that same instance."
+        "q": "Which languages are available for KP Front?",
+        "a": "The KP Front user interface is currently available in German. As an open-source application, KP Front can be extended to further languages. This requires a complete translation of the firefighting terminology and a professional review."
       },
       {
         "q": "How do we start?",
@@ -389,7 +396,9 @@
       "send": "Send message",
       "sending": "Sending …",
       "ok": "Thank you – the message is here. We will get back to you.",
-      "error": "That did not work. Please write directly to bastian.eichenberger@feuerwehr-oberwil.ch."
+      "error": "That did not work. Please write directly to bastian.eichenberger@feuerwehr-oberwil.ch.",
+      "privacy": "Delivered by e-mail via the form service staticforms.dev.",
+      "privacyLink": "Privacy"
     }
   },
   "lightbox": {
@@ -402,6 +411,12 @@
     "origin": "Born out of the operational work of <a href=\"https://www.feuerwehr-oberwil.ch\" target=\"_blank\" rel=\"noopener\">Feuerwehr Oberwil BL</a> –\n      because at incident after incident we kept seeing the same sources of error: double bookings, information\n      scattered across places, and transcription mistakes made by hand.\n      Every fire brigade runs its own KP Front, with its own maps, plans and data.",
     "demo": "Demo",
     "contact": "Contact",
-    "org": "Feuerwehr Oberwil on GitHub"
+    "org": "Feuerwehr Oberwil on GitHub",
+    "release": {
+      "label": "Current version",
+      "notes": "Release notes",
+      "dateFormat": "DD/MM/YYYY"
+    },
+    "security": "Security"
   }
 }

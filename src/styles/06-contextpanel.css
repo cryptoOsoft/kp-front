@@ -65,6 +65,8 @@
 [data-theme="night"] .ph .glyph-tile svg { width: 26px; height: 26px; }
 .ctx-head h3 { margin: 0; font: var(--sheet-title); } /* the one sheet title (28.09.2026; was 700) */
 .ctx-head p { margin: 2px 0 0; font-size: var(--fs-1); color: var(--ink-dim); font-weight: var(--fw-medium); }
+/* «… · erledigt 20:40» – the done time beside the type (31.10.2026), green like the pressed tile */
+.ctx-done-at { color: var(--green-strong); font-variant-numeric: tabular-nums; }
 /* ⚠️ ink-mix, not --surface-2: the glass tokens are white-based and vanish on this white card —
    the ✕ family (ip-x / ctx-x / journal-x) shares this quiet ink pill so every close reads alike */
 .ctx-x { margin-left: auto; align-self: flex-start; background: var(--ink-8);
@@ -395,17 +397,6 @@
    <IconButton variant="secondary"> since 08.10.2026 (it was a hand-made tile of the same size).
    The Stv. row leaves the same 44px empty (.kv-swap-gap), so the two fields end on one line. */
 .kv-swap-gap { flex: none; width: var(--tap); }
-/* «+ Feld» (27.09.2026; 28.09.2026 on the ONE «add» look, 13-incident `.cv-btn-add`): framed,
-   --tap tall, the one corner, 14/700 ink on the surface. It was a 36px grey tile — a second add
-   shape, and under the glove floor. */
-.kv-add { display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; min-height: var(--tap); padding: 0 16px 0 12px;
-  border: 1px solid var(--glass-edge); background: var(--surface); color: var(--ink);
-  border-radius: var(--r-sm); font: var(--fw-bold) var(--fs-2) var(--body); cursor: pointer; }
-@media (hover: hover) {
-  .kv-add:hover { border-color: var(--ink-faint); }
-}
-.kv-add:active:not(:disabled) { background-image: linear-gradient(var(--press), var(--press)); }
-.kv-add .i { width: 16px; height: 16px; }
 /* FKS Entwicklung (spread) controls — a label + a row of small toggle buttons, the capsules
    starting at the label column's edge like every other control in the panel (27B) */
 .spread-row { display: flex; align-items: center; gap: var(--ctx-col-gap); min-height: 52px; padding: 4px 0; }
@@ -458,21 +449,6 @@
 /* the caption row keeps only its tighter LABEL — height/radius come from the one segmented spec */
 .ctx-caprow .useg-btn { padding: 4px 12px; }
 
-/* «Erledigt» (lib/objectDone, 24.09.2026): SET, the row STATES the answer («Erledigt 20:40», the
-   grey the glyph now wears) — first in a damage symbol's body, last elsewhere — and holds its one
-   way back at the controls' edge. No hairline under it (the sheets draw one only above a NAMED
-   section, AGENTS · editor-sheet grammar). The press that sets it is the foot's middle tile
-   (`.ctx-done`, 27.09.2026 — it was a full-width row with a hint beside it). */
-.ctx-done-row { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 48px; padding: 4px 0;
-  margin: 2px 0 4px; }
-.ctx-done-row { justify-content: space-between; flex-wrap: wrap; row-gap: 2px; }
-.ctx-done-state { display: inline-flex; align-items: center; gap: 8px; font-size: var(--fs-2); font-weight: var(--fw-bold); color: var(--ink-dim);
-  font-variant-numeric: tabular-nums; }
-.ctx-done-state > .i { flex: none; width: 26px; height: 26px; padding: 4px; box-sizing: border-box; border-radius: 50%;
-  background: var(--ink-faint); color: var(--surface); stroke-width: 2.6; }
-/* «Wieder aktiv» is THE quiet button (<Button variant="quiet">, 08.10.2026); placement only */
-.ctx-done-reopen { margin-left: auto; }
-
 .ctx-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 12px 16px; }
 .ctx-actions > .btn { flex: 1 1 140px; }
 /* the foot's glyphs are one size (16px, the family's) — the bin's 18 in its square */
@@ -485,12 +461,19 @@
    stands, the two word tiles share the row equally (mockup 9); a foot without it (a read-only
    twin's five doors) keeps its content-sized wrap.
    ⚠️ It wears the same ink as «Zentrieren» (29.09.2026, sweep K12): it was --ink-dim, which is
-   the look of «not available» — the one thing an action must not say. */
+   the look of «not available» – the one thing an action must not say.
+   SET, it is the same tile pressed (31.10.2026, ONE toggle in one spot): the check and a green
+   tint – the green the header's «erledigt 20:40» wears – and a tap takes it back. */
 .ctx-actions:has(> .ctx-done) > .btn:not(.btn-sq) { flex: 1 1 0; }
-/* A DOOR to the object's other surface («Zum Original», «Auf Modul 1 zeigen») takes a row of its
-   own, above the foot's acts (30.09.2026, owner: «fix this» — in the equal split above, «Auf
-   Modul 1 zeigen» ran out of its third of the row and over «Zentrieren»). Its label is cut, never
-   spilled: the plan's NAME gives way and the verb around it stays (ContextPanel · LinkBtn). */
+.btn.ctx-done[aria-pressed='true'] { color: var(--green-strong); border-color: color-mix(in srgb, var(--green) 45%, var(--border));
+  background: color-mix(in srgb, var(--green) 12%, var(--surface-2)); }
+@media (hover: hover) {
+  .btn.ctx-done[aria-pressed='true']:hover { background: color-mix(in srgb, var(--green) 18%, var(--surface)); }
+}
+.btn.ctx-done[aria-pressed='true'] .i { stroke-width: 2.6; }
+/* A DOOR to the object's original («Zum Original») takes a row of its own, above the foot's acts
+   (30.09.2026, owner: «fix this» – in the equal split above, a door's label ran out of its third
+   of the row and over «Zentrieren»). Its label is cut, never spilled (ContextPanel · LinkBtn). */
 .ctx-actions > .btn.link:not(.btn-sq), .ctx-actions:has(> .ctx-done) > .btn.link:not(.btn-sq) { flex: 1 1 100%; }
 .btn-t { display: flex; min-width: 0; white-space: pre; }
 .btn-t > * { flex: none; }

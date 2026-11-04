@@ -1097,8 +1097,9 @@
      --tap tall), one --float-gap under it: the top lane lay on «● Brand Musterstrasse ›» */
   :root:has([data-karte-running]) .toaster { --strip-reserve: calc(88px + var(--tap) + var(--float-gap) - 72px); }
   /* …and below the alarm card (karte/AlarmReadiness · .alarmCardPhone: 88px down, its measured
-     `--nudge-h`), one --float-gap under it – the toast lay on the card's head (owner, 25.10.2026) */
-  :root:has([data-alarm-nudge]) .toaster { --nudge-reserve: calc(88px + var(--nudge-h, 0px) + var(--float-gap) - 72px); }
+     `--nudge-h`), one --float-gap under it – the toast lay on the card's head (owner, 25.10.2026);
+     the Meldeleiste too (08-toasts · .ml, owner 31.10.2026: «Update bereit» lay on the card) */
+  :root:has([data-alarm-nudge]) :is(.ml, .toaster) { --nudge-reserve: calc(88px + var(--nudge-h, 0px) + var(--float-gap) - 72px); }
   /* ⚠️ …but a MODAL bottom sheet no longer sends it up there (30.09.2026, owner, staging phone
      pass: «slightly odd positioning of the toasts» — with «Seite wählen» open the undo pill jumped
      from the foot of the list to the head of the page, over its blurred title). The sheet is the

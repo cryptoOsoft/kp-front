@@ -61,7 +61,8 @@ const BASELINE: Record<string, Counts> = {
   'src/components/AtemschutzView.tsx': { pressed: 1 },
   'src/components/BandGrid.tsx': { pressed: 1 },
   'src/components/ComboMenu.tsx': { pressed: 1 },
-  'src/components/ContextPanel.tsx': { pressed: 2 },
+  // +1 (31.10.2026): the foot's «Erledigt» toggle – an action tile pressed in place, not a choice
+  'src/components/ContextPanel.tsx': { pressed: 3 },
   'src/components/DrawEditor.tsx': { pressed: 1 },
   'src/components/GeorefMode.tsx': { pressed: 4 },
   'src/components/Journal.tsx': { pressed: 1 },

@@ -90,6 +90,12 @@ export interface Prefs {
   /** the device's own hand set `railLabels` in the Einstellungen. Until then the stored value is
    *  only the default the app saved along with everything else, and a phone reads 'short'. */
   railLabelsChosen?: boolean
+  /** «Tastenkürzel anzeigen» (31.10.2026): the shortcut letter badge (K · C · A … V · L · F …) on
+   *  every tile of both rails. A DEVICE pref – it is about the keyboard in front of THIS device,
+   *  never synced and never station config. Default ON (absent = on, see `keyHintsFor`); `false`
+   *  hides them. It only ever shows on a fine pointer with hover (CSS · 04b-rail.css): a touch-only
+   *  device has no keyboard to read them for, whatever this says. */
+  keyHints?: boolean
   /** radius (metres) of the box cached around the incident by "Alles für offline laden".
    *  Device pref — each device decides how much to store. Default 1200. */
   offlineRadiusM?: number
@@ -275,6 +281,9 @@ export function railLabelsFor(p: Pick<Prefs, 'railLabels' | 'railLabelsChosen'>,
   if (p.railLabelsChosen || p.railLabels === 'short') return p.railLabels ?? 'off'
   return phone ? 'short' : 'off'
 }
+
+/** «Tastenkürzel anzeigen» as this device reads it: ON until somebody switches it off. */
+export const keyHintsFor = (p: Pick<Prefs, 'keyHints'>): boolean => p.keyHints ?? true
 
 export function loadPrefs(): Prefs {
   try {

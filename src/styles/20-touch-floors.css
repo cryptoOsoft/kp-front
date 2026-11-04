@@ -65,9 +65,9 @@
   .ip-card-act, .ip-menu-logout { min-height: var(--tap); }
   /* (the plan's trust chips along its foot — Einsatzobjekt · Massstab · Karte verknüpfen — were 29px
      and stood --tap here; since 26.09.2026 they are --float-h at every width, 09-whiteboard) */
-  /* the Rapport's pencil on the Einsatzdaten card (26). (The ± stepper's reset is --tap at every
-     pointer since 07.10.2026, 07-toolrail.) */
-  .report-meta-dispatch-hint { width: var(--tap); height: var(--tap); }
+  /* (the Rapport's pencil on the Einsatzdaten card stood here at 26px; gone since 31.10.2026, the
+     card itself is the target. The ± stepper's reset is --tap at every pointer since 07.10.2026,
+     07-toolrail.) */
 }
 
 /* ---- Small controls with a close neighbour (UI sweep 07.10.2026) ----------------------------

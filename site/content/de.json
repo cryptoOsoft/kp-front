@@ -15,7 +15,11 @@
       "Schichtplanung für lange Einsätze mit Übersicht über die Deckung",
       "Einsatzrapport als PDF, aus den Einsatzdaten vorausgefüllt",
       "Zeitreise: den Einsatz für die Nachbesprechung nochmals abspielen"
-    ]
+    ],
+    "audience": [
+      "Feuerwehren"
+    ],
+    "demoAction": "KP Front Demo öffnen"
   },
   "nav": {
     "aria": "Hauptnavigation",
@@ -314,8 +318,7 @@
           "Fahrzeugpositionen per GPS <span class=\"opt\">optional</span>",
           "Anmeldung mit Microsoft auf das bestehende Konto, zusätzlich zum PIN <span class=\"opt\">optional</span>",
           "<strong>Objektbesuche</strong> ohne Einsatz, offline – Checkliste, Fotos und Bericht <span class=\"opt\">optional</span>",
-          "<strong>Eigener Verwaltungsbereich</strong> pro Feuerwehr: Mannschaft, Fahrzeuge, Checklisten, Karten-Ebenen und Vorlagen",
-          "Oberfläche auf Deutsch, Englisch, Französisch oder Italienisch – pro Feuerwehr eingestellt"
+          "<strong>Eigener Verwaltungsbereich</strong> pro Feuerwehr: Mannschaft, Fahrzeuge, Checklisten, Karten-Ebenen und Vorlagen"
         ]
       }
     ]
@@ -370,6 +373,10 @@
         "a": "Ein kleiner Mini-PC oder Server im Magazin reicht. Für Einrichtung, Updates und\n          Backups braucht es jemanden mit Docker- und Kommandozeilen-Erfahrung, sei es in der\n          Feuerwehr, in der Gemeinde oder bei einer unterstützenden IT. Die Anleitung und der\n          Verwaltungsbereich führen durch den Aufbau. Allgemeine Fragen beantworten wir gerne;\n          Daten und Betrieb bleiben in der Verantwortung der jeweiligen Feuerwehr."
       },
       {
+        "q": "Gibt es Unterstützung bei Installation und Betrieb?",
+        "a": "Ja. Allgemeine Fragen zur Installation und Nutzung werden unentgeltlich beantwortet. KP Front kann auf eigener Infrastruktur oder bei einem selbst gewählten Hosting- oder Cloud-Anbieter betrieben werden. Nach individueller Absprache ist auch Unterstützung bei Installation, Einrichtung, Updates oder Betrieb möglich. Weitergehende Unterstützung kann kostenpflichtig sein."
+      },
+      {
         "q": "Funktioniert KP Front ohne Internetverbindung?",
         "a": "Ja. Als installierte App läuft KP Front auf dem Gerät: Karte, Pläne, Trupps und\n          Verlauf bleiben bedienbar, auch wenn das Netz wegbricht. Karten und Pläne rund um den\n          Einsatz lädt die App selbst, kurz nachdem er geöffnet wurde – und die\n          <strong>Bereitschaftsprüfung</strong> zeigt vor dem Einsatz, ob die benötigten Daten\n          auf dem Gerät sind. Nach einem Unterbruch wird abgeglichen, sobald wieder eine\n          Verbindung besteht; was in der Zwischenzeit erfasst wurde, bleibt erhalten."
       },
@@ -382,8 +389,8 @@
         "a": "Nein. KP Front ist als Open-Source-Software frei zugänglich und kann weltweit an lokale Gegebenheiten angepasst werden. Ab Werk ist die Anwendung für die Schweiz vorkonfiguriert – mit swisstopo-Karten, taktischen Zeichen nach FKS und den FKS-Vorlagen für die Führung im Einsatz. Ausserhalb der Schweiz lassen sich andere Kartengrundlagen einstellen; die Adresssuche unterstützt heute nur die swisstopo-Schnittstelle und braucht dort eine Anpassung."
       },
       {
-        "q": "Welche Sprachen unterstützt KP Front?",
-        "a": "Die Website gibt es auf Deutsch, Französisch, Italienisch, Rätoromanisch und Englisch. Die Anwendung selbst und ihre Hilfe laufen auf Deutsch, Französisch, Italienisch und Englisch – Rätoromanisch ist dort noch nicht verfügbar. Die Sprache wird <strong>einmal pro Feuerwehr</strong> eingestellt, nicht pro Gerät: Im Einsatz lesen alle dieselben Begriffe. Die technische Dokumentation zu Einrichtung und Betrieb ist englisch. Die öffentliche Demo läuft auf <strong>Deutsch</strong>, und die Screenshots hier stammen aus derselben Instanz."
+        "q": "In welchen Sprachen ist KP Front verfügbar?",
+        "a": "Die Benutzeroberfläche von KP Front ist aktuell auf Deutsch verfügbar. Als Open-Source-Anwendung kann KP Front um weitere Sprachen erweitert werden. Dafür ist eine vollständige und fachlich geprüfte Übersetzung der Feuerwehrbegriffe erforderlich."
       },
       {
         "q": "Wie fangen wir an?",
@@ -419,7 +426,9 @@
       "send": "Nachricht senden",
       "sending": "Wird gesendet …",
       "ok": "Danke – die Nachricht ist da. Wir melden uns.",
-      "error": "Das hat nicht geklappt. Schreibt bitte direkt an bastian.eichenberger@feuerwehr-oberwil.ch."
+      "error": "Das hat nicht geklappt. Schreibt bitte direkt an bastian.eichenberger@feuerwehr-oberwil.ch.",
+      "privacy": "Wird über den Formulardienst staticforms.dev per E-Mail zugestellt.",
+      "privacyLink": "Datenschutz"
     }
   },
   "lightbox": {
@@ -432,6 +441,12 @@
     "origin": "Entstanden im Einsatzbetrieb der <a href=\"https://www.feuerwehr-oberwil.ch\" target=\"_blank\" rel=\"noopener\">Feuerwehr Oberwil BL</a> –\n      weil wir im Einsatz immer wieder dieselben Fehlerquellen gesehen haben: Doppelbelegungen, verstreute\n      Informationen und handschriftliche Übertragungsfehler.\n      Jede Feuerwehr betreibt ihr eigenes KP Front, mit eigenen Karten, Plänen und Daten.",
     "demo": "Demo",
     "contact": "Kontakt",
-    "org": "Feuerwehr Oberwil auf GitHub"
+    "org": "Feuerwehr Oberwil auf GitHub",
+    "release": {
+      "label": "Aktuelle Version",
+      "notes": "Release Notes",
+      "dateFormat": "DD.MM.YYYY"
+    },
+    "security": "Sicherheit"
   }
 }

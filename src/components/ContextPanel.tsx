@@ -16,14 +16,14 @@ import { useCommitDraftOnUnmount } from '../lib/useCommitDraftOnUnmount'
 import { Combo } from './Combo'
 import { Stepper } from './Stepper'
 import { Segmented } from './Segmented'
-import { Button, IconButton } from './Button'
+import { IconButton } from './Button'
 import { compositeSpec } from '../lib/symbolRender'
 import { bareBlack } from '../lib/glyphTile'
 import { UN_CAPABLE, alarmBar, countFieldValue, isMeasuredSymbol, symbolFieldKind } from '../lib/symbols'
 import { ReadingBar, ReadingHistory, ReadingInfo } from './ReadingParts'
 import { sanitizeSvg } from '../lib/sanitizeSvg'
 import { bearing360 } from '../lib/planProjection'
-import { doneStateText } from '../lib/objectDone'
+import { doneStatusText } from '../lib/objectDone'
 
 // detail-field controls: short fixed lists render as directly-tappable segmented tabs (they
 // wrap to multiple rows), longer lists (and the person roster) as a native dropdown; roster
@@ -139,14 +139,8 @@ export interface ContextPanelProps {
    *  different view of it, not a different copy.) */
   onOriginal?: () => void
   originalLabel?: string
-  /** Show this object where the linked sheet draws it. */
-  /** The inverse of «Zum Original»: show this source object on its linked surface. */
-  onProjection?: () => void
-  projectionLabel?: string
-  /** the plan a Karte object is shown on: «Auf {plan} zeigen» (copy.contextPanel.showOnPlan) with
-   *  the plan's NAME as the part that gives way, so the verb stays readable — wins over
-   *  `projectionLabel` */
-  projectionPlan?: string
+  // (no «Auf {plan} zeigen» / «Auf Karte zeigen» any more, 31.10.2026: every object is drawn on
+  // the Karte and on its linked plans alike, so a door to «the same thing over there» said nothing)
   /** commit the final label on blur (folds the whole edit into one undo step / audit event) */
   onTitle: (label: string) => void
   /** stream the label on every keystroke so the on-surface glyph/note updates live while
@@ -220,10 +214,10 @@ export interface ContextPanelProps {
   protectedKeys?: Set<string>
   onDelete: () => void
   /** «Gelöscht / erledigt» (lib/objectDone, review item 21b): `true` declares the matter over —
-   *  the symbol stays, greyed, with the time — `false` («Wieder aktiv») takes it back. Wired by
-   *  both surfaces for a placed symbol on an editable surface; absent everywhere else. Where it
-   *  is wired, the footer's delete reads «Entfernen»: next to a «gelöschtes» Feuer, «Löschen»
-   *  would say the opposite of what the button does. */
+   *  the symbol stays, greyed, with the time – `false` (the pressed «Erledigt» tapped again) takes
+   *  it back. Wired by both surfaces for a placed symbol on an editable surface; absent everywhere
+   *  else. Where it is wired, the footer's delete reads «Entfernen»: next to a «gelöschtes» Feuer,
+   *  «Löschen» would say the opposite of what the button does. */
   onDone?: (done: boolean) => void
   /** Clear a crew member's self-reported position (Selbstauskunft) from the command post.
    *  Editor-only, and offered ONLY on a live `person` dot: somebody drives home with sharing
@@ -306,25 +300,19 @@ function LabeledStepper({ label, ...rest }: { label: string } & React.ComponentP
   )
 }
 
-/** A door to the object's other surface («Zum Original», «Auf Modul 1 zeigen») — the foot's link
- *  tone. Its label may not outgrow its tile (30.09.2026, owner: «Auf Modul 1 zeigen» ran out of its
- *  frame into «Zentrieren»): with a `name` in `{plan}` it is the NAME that is cut, so the verb
- *  around it stays; a plain label is cut at its end. The whole sentence is the title. */
-function LinkBtn({ onClick, text, name }: { onClick: () => void; text: string; name?: string }) {
-  const [pre, post = ''] = name != null ? text.split('{plan}') : [text]
-  const full = name != null ? `${pre}${name}${post}` : text
+/** A door to the object's original («Zum Original») – the foot's link tone. Its label may not
+ *  outgrow its tile (30.09.2026, owner: a door's label ran out of its frame into «Zentrieren»): it
+ *  is cut at its end, and the whole label is the title. */
+function LinkBtn({ onClick, text }: { onClick: () => void; text: string }) {
   return (
-    <button className="btn link" onClick={onClick} title={full} aria-label={full}>
+    <button className="btn link" onClick={onClick} title={text} aria-label={text}>
       <Icon id="external" />
-      <span className="btn-t" aria-hidden>
-        {name != null ? <>{pre && <span>{pre}</span>}<span className="btn-t-cut">{name}</span>{post && <span>{post}</span>}</>
-          : <span className="btn-t-cut">{text}</span>}
-      </span>
+      <span className="btn-t" aria-hidden><span className="btn-t-cut">{text}</span></span>
     </button>
   )
 }
 
-export function ContextPanel({ entity, svg, onClose, onCenter, onOriginal, originalLabel, onProjection, projectionLabel, projectionPlan, onTitle, onTitleLive, onFields, onNotes, onFloorFrom, onFloorTo, onSpread, onCount, onRotate, onErgRings, ergCoord, onAdoptRadius, onRotate2, onCaption, captionDefault = 'auto', onAirflow, controls, titleOptions, fieldOptions, rosterRank, protectedKeys, onDelete, onDone, onStopSharing, readOnly, allowDelete = false, hasOverride, onPinGps, onResetGps, driver, personStatus, fieldHints, connectedLines = [], onFocusLine, dockedToLabel, onUndock, dockedTeams = [], onNoteSize, autoFocusNote = false, onNotePlain, onColor }: ContextPanelProps) {
+export function ContextPanel({ entity, svg, onClose, onCenter, onOriginal, originalLabel, onTitle, onTitleLive, onFields, onNotes, onFloorFrom, onFloorTo, onSpread, onCount, onRotate, onErgRings, ergCoord, onAdoptRadius, onRotate2, onCaption, captionDefault = 'auto', onAirflow, controls, titleOptions, fieldOptions, rosterRank, protectedKeys, onDelete, onDone, onStopSharing, readOnly, allowDelete = false, hasOverride, onPinGps, onResetGps, driver, personStatus, fieldHints, connectedLines = [], onFocusLine, dockedToLabel, onUndock, dockedTeams = [], onNoteSize, autoFocusNote = false, onNotePlain, onColor }: ContextPanelProps) {
   // read per-render (not module-load) so the resolved locale is applied — see config/copy
   const C = appConfig.copy.contextPanel
   const N = appConfig.copy.notes
@@ -605,7 +593,6 @@ const GRENZE_GLYPH = { left: 'grenze-v', right: 'grenze-v', up: 'grenze-up', dow
     if (k === EL_STV) return { ...r, v: rows.find((x) => x.k.trim() === EL_NAME)?.v ?? '' }
     return r
   }))
-  const addRow = () => setRows((rs) => [...rs, { k: '', v: '' }])
   const removeRow = (i: number) => commitRows(rows.filter((_, j) => j !== i))
 
   // Details are stored as a key→value MAP, so two rows sharing a Bezeichnung silently collapse
@@ -675,17 +662,24 @@ const GRENZE_GLYPH = { left: 'grenze-v', right: 'grenze-v', up: 'grenze-up', dow
       )}
     </div>
   )
-  /* ── «Erledigt» (lib/objectDone, review item 21b 24.09.2026; slim sweep 27.09.2026, item 9 / D8)
-     ── the foot's middle tile while the matter is open: one word for every family (the fire is
-     gelöscht, the symbol erledigt), its title says what the press will NOT do — the symbol stays,
-     grey. It was a full-width row in the body («bleibt grau sichtbar — ✓ Gelöscht / erledigt»,
-     first on a damage symbol, last elsewhere); the foot is pinned on a phone, so it is at hand on
-     every symbol without a reflex tap landing on it. Set, the body STATES the answer («Erledigt
-     20:40») with its one way back, «Wieder aktiv» — see doneRow. */
-  const doneState = !isNote ? doneStateText(entity) : null
+  /* ── «Erledigt» (lib/objectDone, review item 21b 24.09.2026; slim sweep 27.09.2026, item 9 / D8;
+     ONE toggle since 31.10.2026) ── the foot's middle tile, in the same spot in both states: one
+     word for every family (the fire is gelöscht, the symbol erledigt). Open, its title says what the
+     press will NOT do – the symbol stays, grey. Set, the SAME tile stands pressed (the check, the
+     green tint), and a tap takes it back – its name says so («Erledigt – wieder aktiv setzen»).
+     The foot is pinned on a phone, so it is at hand on every symbol without a reflex tap landing
+     on it. WHEN it was set is the header's subtitle («Schadenlage · erledigt 20:40», doneAt), so a
+     read-only panel, which has no tile, still states it. (Until 31.10.2026 the set state was a
+     row at the top of the body with its own «Wieder aktiv» – two places for one switch.)
+     ⚠️ A raw `aria-pressed` button, not a Chip or Segmented (controlDebt +1): it is one of the
+     foot's ACTION tiles and has to stand in their row with their look; a Chip is a choice. */
+  const doneAt = !isNote ? doneStatusText(entity) : null
   const O = appConfig.copy.objectDone
-  const doneTile = onDone && !readOnly && !isNote && !doneState ? (
-    <button type="button" className="btn ctx-done" onClick={() => onDone(true)} title={O.actionHint}>{O.action}</button>
+  const doneTile = onDone && !readOnly && !isNote ? (
+    <button type="button" className="btn ctx-done" aria-pressed={!!doneAt} onClick={() => onDone(!doneAt)}
+      title={doneAt ? O.reopenHint : O.actionHint}>
+      {doneAt && <Icon id="check" />}{O.action}
+    </button>
   ) : null
   // rendered twice: pinned at the sheet bottom on desktop/tablet, and again inside the
   // scrolling body for phones (.ctx-footer-inline) — CSS shows exactly one copy
@@ -694,9 +688,6 @@ const GRENZE_GLYPH = { left: 'grenze-v', right: 'grenze-v', up: 'grenze-up', dow
       {/* first, and in the link tone: on a read-only panel it is the only thing that DOES anything,
           and what it does is leave for the real object. */}
       {onOriginal && <LinkBtn onClick={onOriginal} text={originalLabel ?? C.toOriginal} />}
-      {onProjection && (projectionPlan != null
-        ? <LinkBtn onClick={onProjection} text={C.showOnPlan} name={projectionPlan} />
-        : <LinkBtn onClick={onProjection} text={projectionLabel ?? C.toProjection} />)}
       {onCenter && <button className="btn" onClick={onCenter}><Icon id="cross" />{C.center}</button>}
       {/* «GPS» (reset a vehicle's manual override) and «Löschen» are alternatives, and a live
           entity gets neither — `readOnly` is already true for anything externally sourced.
@@ -726,22 +717,6 @@ const GRENZE_GLYPH = { left: 'grenze-v', right: 'grenze-v', up: 'grenze-up', dow
         )}
     </div>
   )
-
-  /* ── the SET state (review item 21b, 24.09.2026) ── the first row of the body on a damage
-     symbol, the last elsewhere: it STATES «Erledigt 20:40» and its one way back, «Wieder aktiv».
-     A read-only panel still states it — who reads the Karte in the Führungsansicht wants to know
-     that the fire was declared out, and when. (The press that sets it is the foot's «Erledigt»
-     tile since 27.09.2026 — see doneTile.) */
-  const doneRow = doneState ? (
-    <div className="ctx-done-row">
-      <span className="ctx-done-state"><Icon id="check" />{doneState}</span>
-      {onDone && !readOnly && (
-        <Button variant="quiet" className="ctx-done-reopen" icon={<Icon id="undo" />} onClick={() => onDone(false)}>
-          {O.reopen}
-        </Button>
-      )}
-    </div>
-  ) : null
 
   // the header shares the grip's drag (tap stays a tap there — see useSheetDrag)
   const sheetDrag = useSheetDrag({ onClose, tapToggles: false })
@@ -780,8 +755,13 @@ const GRENZE_GLYPH = { left: 'grenze-v', right: 'grenze-v', up: 'grenze-up', dow
           <span className="ctx-title-input ctx-title-ro">
             {isNote ? N.section : entity.photoUrl ? appConfig.copy.photoViewer.title : (symbolName || title || C.titlePlaceholder)}
           </span>
-          {/* a note's subtitle IS «Notiz», which the title above already says — one word is enough */}
-          {entity.subtitle && !isNote && <p>{entity.subtitle}</p>}
+          {/* a note's subtitle IS «Notiz», which the title above already says – one word is enough.
+              A symbol declared over says when, beside its type: «Schadenlage · erledigt 20:40» –
+              on a read-only panel too, where the Führungsansicht wants to know that the fire was
+              declared out, and when (see doneTile). */}
+          {!isNote && (entity.subtitle || doneAt) && (
+            <p>{entity.subtitle}{entity.subtitle && doneAt && ' · '}{doneAt && <span className="ctx-done-at">{doneAt}</span>}</p>
+          )}
           {/* a photo placed from the Verlauf says where it came from, and when it was taken */}
           {entity.photoOf && !entity.subtitle && (
             <p>{takenClock(entity.takenAt) ? fillTemplate(appConfig.copy.photoGeo.markerTaken, { t: takenClock(entity.takenAt)! }) : appConfig.copy.photoGeo.marker}</p>
@@ -800,7 +780,6 @@ const GRENZE_GLYPH = { left: 'grenze-v', right: 'grenze-v', up: 'grenze-up', dow
       )}
 
       <div className="ctx-body">
-        {doneRow}
         {/* ── Notiz ── the same three settings the armed-tool dock offers while writing, plus the
             one that changes the note's state: Form. Deliberately short — every extra control here
             is one more thing to reason about at 3am, and each would have to be carried through
@@ -1012,7 +991,9 @@ const GRENZE_GLYPH = { left: 'grenze-v', right: 'grenze-v', up: 'grenze-up', dow
             </label>
           ))}
 
-          {/* labelled key/value detail rows (the symbol's preset, freely edited) */}
+          {/* labelled key/value detail rows: the symbol's preset, plus any free row an older record
+              carries. No new free rows (31.10.2026, «+ Feld» is gone) – what is worth saying about
+              one symbol beyond its preset goes into Notizen. */}
           {/* ⚠️ NO section title. A «Fahrer» row is a label and a value selector — exactly what the
               Drehung and the Bezeichnung above it are — so a heading over it only claimed that a
               different KIND of thing started here. Of 81 symbols, 30 carry no such row at all, 27
@@ -1022,7 +1003,7 @@ const GRENZE_GLYPH = { left: 'grenze-v', right: 'grenze-v', up: 'grenze-up', dow
               the Leitungen.
               ⚠️ `data-entity-edit` marks the whole block: every field control in it is free text
               somebody may still be typing — see the Notizen field below. */}
-          {(!readOnly || rows.length > 0) && (
+          {rows.length > 0 && (
             <div className="ctx-rows" ref={fieldsRef} data-entity-edit="">
               {rows.map((r, i) => {
                 const fixed = readOnly || !!protectedKeys?.has(r.k.trim())
@@ -1060,7 +1041,8 @@ const GRENZE_GLYPH = { left: 'grenze-v', right: 'grenze-v', up: 'grenze-up', dow
                 )
                 // a preset / read-only field reads like the Darstellung rows above — a plain label and
                 // the control, no editable-key box, no delete — so a «Typ» sits identically to a
-                // «Luftrichtung». A user-added custom field keeps its editable key + delete.
+                // «Luftrichtung». A free row from an older record keeps its editable key + delete
+                // (nothing new is added since 31.10.2026, but what was written stays editable).
                 // …and the Einsatzleiter pair gets the ⇄: the handover is a swap, and a swap is one
                 // gesture. A 44px square at the right end of the EL row (27.09.2026 — it was a
                 // sentence between the rows), and the Stv. row leaves the same space empty so the
@@ -1101,11 +1083,6 @@ const GRENZE_GLYPH = { left: 'grenze-v', right: 'grenze-v', up: 'grenze-up', dow
                   </Fragment>
                 )
               })}
-
-              {/* «+ Feld» — a small framed tile like its neighbours, not a dashed call-out (27.09.2026) */}
-              {!readOnly && (
-                <button className="kv-add" onClick={addRow} aria-label={C.addField} title={C.addField}><Icon id="plus" />{C.addFieldShort}</button>
-              )}
             </div>
           )}
 

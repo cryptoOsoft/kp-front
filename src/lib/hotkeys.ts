@@ -26,6 +26,16 @@
 // Bare letters are also the tools/panels/view; Cmd/Ctrl is reserved for the doc-level ops
 // (undo/redo/duplicate) and the OS-conventional Einstellungen (Cmd+,). The cheatsheet lives in
 // appConfig.copy.help ("Tastaturkürzel") — keep the three (here, SURFACE_KEY, help) in sync.
+//
+// The letters are SHOWN on the rails (31.10.2026, owner: «clear, uniform and configurable»): a
+// small badge on every tile of the left NavRail (SURFACE_KEY) and of the right ToolRail
+// (TOOL_KEY via `railToolKey`), the same `.rail-key` look on both. One rule, in
+// 04b-rail.css: shown whenever the device preference «Tastenkürzel anzeigen» (lib/prefs ·
+// keyHints, default ON) is on AND the device has hover and a fine pointer – a touch-only device
+// has no keyboard to read them for. They used to appear only while ⌘/Ctrl/Alt was held, and only
+// on the left rail; a hint that is hidden until you already know the shortcut teaches nothing.
+// Both badge sources are the SAME tables the keyboard decodes (SURFACE_KEY, TOOL_KEY), so a
+// badge cannot name a letter that does nothing.
 
 export type ToolCmd =
   | 'select' | 'lasso' | 'symbol' | 'line' | 'area' | 'circle' | 'note' | 'team' | 'measure'
@@ -63,9 +73,26 @@ const SURFACE_KEYS: Record<string, SurfaceCmd> = Object.fromEntries(
   (Object.entries(SURFACE_KEY) as [SurfaceCmd, string][]).map(([s, k]) => [k.toLowerCase(), s]),
 ) as Record<string, SurfaceCmd>
 
-const TOOL_KEYS: Record<string, ToolCmd> = {
-  v: 'select', w: 'lasso', s: 'symbol', l: 'line', f: 'area', u: 'circle', n: 'note', t: 'team', d: 'measure',
+/** the letter of each drawing tool – the single source the ToolRail's badges and the keyboard
+ *  (TOOL_KEYS below) both read, like SURFACE_KEY for the surfaces. Exhaustive over ToolCmd. */
+export const TOOL_KEY: Record<ToolCmd, string> = {
+  select: 'V', lasso: 'W', symbol: 'S', line: 'L', area: 'F', circle: 'U', note: 'N', team: 'T', measure: 'D',
 }
+
+/** The Plan's rail ids that differ from the Karte's tool names (Whiteboard · BoardTool): its
+ *  Auswahl is 'pan', Notiz is 'text', Trupp is 'resource'. Every other rail id IS the ToolCmd. */
+const PLAN_TOOL_CMD: Record<string, ToolCmd> = { pan: 'select', text: 'note', resource: 'team' }
+
+/** The badge letter for a ToolRail tile, or undefined when the tile has no key (a surface-specific
+ *  extra, the Karte viewer's Pin/ERG). Accepts the Karte's and the Plan's rail ids alike. */
+export function railToolKey(id: string): string | undefined {
+  const cmd = PLAN_TOOL_CMD[id] ?? id
+  return Object.prototype.hasOwnProperty.call(TOOL_KEY, cmd) ? TOOL_KEY[cmd as ToolCmd] : undefined
+}
+
+const TOOL_KEYS: Record<string, ToolCmd> = Object.fromEntries(
+  (Object.entries(TOOL_KEY) as [ToolCmd, string][]).map(([t, k]) => [k.toLowerCase(), t]),
+) as Record<string, ToolCmd>
 const PANEL_KEYS: Record<string, PanelCmd> = {
   j: 'journal', e: 'composer', b: 'layers',
 }

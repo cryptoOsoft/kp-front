@@ -2,7 +2,7 @@
 
 How the app fits a phone: the two bottom bars, the page heads and the pages. Module rules live in
 `lib/toolFold`, `lib/whiteboard · containFit`, `lib/useHoldEntry`, `lib/pageHeadFit`,
-`lib/shifts`, `lib/journalFilter`, `lib/useModifierHeld`, `components/GroupChooser`,
+`lib/shifts`, `lib/journalFilter`, `components/GroupChooser`,
 `components/ZeitplanView` and `lib/abschluss`. Moved here from AGENTS.md on 2026-10-08, wording
 unchanged.
 

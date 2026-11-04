@@ -71,7 +71,8 @@
 @media (prefers-reduced-motion: reduce) { .vrail-exp .i { transition: none; } }
 /* tool buttons mirror the left rail's nav-item: a fixed right-edge glyph column + a
    label that shows only in the committed expanded state (never mid-drag, so it can't clip) */
-.vrail-tool { display: flex; flex-direction: row-reverse; align-items: center; gap: 8px; height: 46px; flex: none;
+/* `position: relative` is the box the shortcut badge (.rail-key · 04b-rail.css) is placed in */
+.vrail-tool { position: relative; display: flex; flex-direction: row-reverse; align-items: center; gap: 8px; height: 46px; flex: none;
   border: none; background: transparent; border-radius: var(--r-sm); color: var(--ink); cursor: pointer; font: inherit; padding: 0; width: 100%;
   transition: background .14s var(--ease), color .14s var(--ease); }
 .vrail:not(.expanded) .vrail-tool, .vrail.dragging .vrail-tool { justify-content: center; }

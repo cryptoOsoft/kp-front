@@ -1763,9 +1763,9 @@ export function IncidentWorkspace({
   const georefFits = useGeorefFits({
     planDocs, planScale, building, setBuilding, planBindings, activeObjectId, board, objects, rebake,
     planFitsRef, fitsVersion, setFitsVersion, stepLabelRef: stepLabel, histSide, readOnly, canWriteBlob, tacticalLocked, replayActive,
-    twinLayers, twinLayerOpacity, activePlanId, selectedId, liveVehicles, livePeople, isVisible, mapEntities,
+    twinLayers, twinLayerOpacity, activePlanId, liveVehicles, livePeople, isVisible, mapEntities,
   })
-  const { linkedPlans, georefPlanRasters, selectedPlanProjection } = georefFits
+  const { linkedPlans, georefPlanRasters } = georefFits
 
   // The journal is append-only: every action pushes a row, and nothing ever edits
   // or removes one — undo/redo log their own lines. So the stream stays a faithful
@@ -2257,11 +2257,11 @@ export function IncidentWorkspace({
     planFit, stepHistory, planKeys, setJournalOpen, setComposerOpen, togglePanel, setSettingsOpen,
     setHelpOpen, coord, notePanelId, notePlacedId, mapWorkRect, drawings, drawTap, beginDrag, setDocRaw,
     endDrag, flyToMapVisible, setVehicleOverrides, trupps, linkTruppLine, patchEntity, objectsRef, objects,
-    selectedPlanProjection, setPlanFocus, focusEntity, editNoteId, user, stepLabelRef: stepLabel,
+    setPlanFocus, focusEntity, editNoteId, user, stepLabelRef: stepLabel,
   })
   const {
     deleteGroup, deleteEntity, placed, goToModule, goToTrupp, viewsApi, toggleViews, selected,
-    showMapSourceOnPlan, undockTeam, setEntityDone, focusDrawing, noteEntity, pick, pickShape,
+    undockTeam, setEntityDone, focusDrawing, noteEntity, pick, pickShape,
   } = mapActions
   // a generic (untracked) team marker — the map twin of the plan's placeTeamChip
   const teamMarkers = useTeamMarkerActions({
@@ -3164,7 +3164,7 @@ export function IncidentWorkspace({
 
       <MapDetailPanels {...{
         detailSlotFree, tacticalLocked, tool, selected, commit, setSelectedId, flyToMapVisible, deleteEntity,
-        timeline, sym, selectedPlanProjection, showMapSourceOnPlan, entityTypedAt, titleLiveRef, beginDrag,
+        timeline, sym, entityTypedAt, titleLiveRef, beginDrag,
         setDocRaw, endDrag, emit, patchEntity, linkRosterFields, createCircle, doc, undockTeam, effTrupps,
         symbolCaptions, rosterNames, rosterRank, personStatus, rosterFieldHints, setEntityDone,
         vehicleOverrides, canEditIncident, readOnly, stopPersonSharing, setVehicleOverrides, log,

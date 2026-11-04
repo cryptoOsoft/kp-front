@@ -48,7 +48,7 @@ import {
 } from '../lib/report'
 import { TAFEL_ID, findForms } from '../lib/boardForm'
 import { abschlussFacts, missingSteps, nextOpenStep, stepDone, type AbschlussFacts, type AbschlussStep } from '../lib/abschluss'
-import { controlChipLabel } from '../lib/abschlussOpen'
+import { abschlussSheet, controlChipLabel } from '../lib/abschlussOpen'
 import { hoursRows, unresolvedHoursRows } from '../lib/attendanceHours'
 import { openConflicts, sideLabel, sideValue, type OpenConflict } from '../lib/attendanceConflict'
 import { incidentDays } from '../lib/zeitplanFormat'
@@ -626,10 +626,12 @@ export function ReportPreflight({
   // rapport is being filled in, so by the time a button is pressed the state IS the framing on
   // screen. It used to be threaded through the modal's onConfirm because that value and the
   // setState landed in the same tick.
-  const buildDraft = (): ReportDraft => {
+  /** `over`: what this render's `meta` does not hold yet – the answers just given in the
+   *  «Angaben fehlen noch» sheet (startOutput), written but not rendered */
+  const buildDraft = (over: Partial<ReportMeta> = {}): ReportDraft => {
     const generatedAt = new Date().toISOString()
     return {
-      meta, generatedAt,
+      meta: { ...meta, ...over }, generatedAt,
       proof: { ...proof, checkedAt: proof.checkedAt || generatedAt },
       // krokiAt travels with the draft so the printed caption dates the PICTURE, not the print
       // — and only when the reconstruction for it is what prints (useKrokiMoment · printedAt)
@@ -739,8 +741,10 @@ export function ReportPreflight({
     onComplete && !missing.length ? { label: A.complete, onClick: () => void complete() } : undefined
   // ONE button (decided 2026-07-18): the server composes the complete rapport — map
   // render included (app/kroki.py) — from pure data. No Druckansicht detour anymore.
-  const downloadPdf = async (framing: Partial<ReportMeta> = {}) => {
-    const draft = buildDraft()
+  // `also`: the Kroki framing and the sheet's answers of the same click (startOutput) – on the
+  // paper, and on the stamp that follows it
+  const downloadPdf = async (also: Partial<ReportMeta> = {}) => {
+    const draft = buildDraft(also)
     setPdfBusy(true)
     try {
       await downloadDirectReportPdf({ ...pdfArgs(draft), signatures: printedSignatures(liveSigs, sigValid, closed) })
@@ -748,7 +752,7 @@ export function ReportPreflight({
       // under the head, which `reportMadeAt` turns on. No toast beside it (owner #31, 30.10.2026):
       // the same words twice, one of them over the head. A fresh PDF brings a band put away with
       // «Später» back – this is the moment it exists for.
-      stampReportMade(framing)
+      stampReportMade(also)
       showBand()
     } catch {
       toast(appConfig.copy.report.pdfFailed, { icon: 'warn', tone: 'warn' })
@@ -781,7 +785,7 @@ export function ReportPreflight({
   })
   useEffect(() => { warmTiles() }, [printStatus?.available, options.kroki, mapContentCount])
   const R = appConfig.copy.printRelay
-  const sendToPrinter = async (framing: Partial<ReportMeta> = {}) => {
+  const sendToPrinter = async (also: Partial<ReportMeta> = {}) => {
     // ALWAYS confirm — «Ausdrucken» must never produce accidental paper; when the relay is
     // offline the modal doubles as the store-and-forward warning. That one is now the TITLE and
     // nothing else: «Stationsdrucker offline» is the whole statement, and the paragraph under it
@@ -795,7 +799,7 @@ export function ReportPreflight({
     try {
       const t = editorPrintTransport()
       // the SAME arguments the PDF download sends, signatures included — paper and PDF are one document
-      const payload = await readyDirectReportPayload({ ...pdfArgs(buildDraft()), signatures: printedSignatures(liveSigs, sigValid, closed) })
+      const payload = await readyDirectReportPayload({ ...pdfArgs(buildDraft(also)), signatures: printedSignatures(liveSigs, sigValid, closed) })
       const jobId = await enqueuePrint(t, incident.id, payload)
       // ⚠️ NOT `stampReportMade`. EINGEREIHT IST NICHT GEDRUCKT: the stamp is the sole condition
       // for the band «Rapport erstellt. Der Einsatz ist noch offen – abschliessen?», and until
@@ -803,7 +807,7 @@ export function ReportPreflight({
       // dialog that had just said the printer was offline. So the app offered to close an Einsatz
       // whose rapport existed on no sheet of paper anywhere. What is recorded here is the OPEN
       // JOB; the stamp waits for the relay to say `done` (settlePrintJob).
-      holdPrintJob(jobId, framing)
+      holdPrintJob(jobId, also)
       // …and the Abschluss offer rides the END of the job's own status chain, not a second toast
       // beside it: the Einsatz is worth closing once the paper is out of the printer.
       trackPrintJob(t, jobId, completeOffer(), {
@@ -917,15 +921,38 @@ export function ReportPreflight({
     // building is the version that gets filed, so the gap is said out loud once, by name,
     // before it goes. Same words the Abschluss confirm uses; the only difference is that this
     // one is a warning and that one is a decision.
+    /** what the sheet's own buttons answered — written at once, AND onto this print: the draft is
+     *  built from this render's `meta`, which the write reaches only a render later */
+    let answered: Partial<ReportMeta> = {}
     if (missing.length) {
+      /* The rows are the Abschluss confirm's (31.10.2026, lib/abschlussOpen · abschlussSheet):
+         the same order, the same buttons («Jetzt setzen», «Nichts verwendet», «Entfällt»,
+         «Wählen», «Schreiben»), the same re-read after an answer. Each row still goes to its
+         field – the same jump the «noch offen» chip makes – and tapping one resolves the ask
+         false: nothing prints while the operator is off filling it in.
+         ⚠️ Mindestangaben ONLY. The Abschluss's other two rows are about CLOSING: a Trupp still
+         out is asked because the close freezes the Tafel over it (a print mid-Einsatz is a
+         Zwischenausdruck, the crew is the Tafel's business), the pending uploads because the
+         operator is about to walk away (here the Kontrolle chip says them). Nor is the Einsatzende
+         pre-filled with «jetzt» – the close writes that one; printing sets no end, so here it is
+         an open row like the others, with the step's own «Jetzt setzen». */
+      const sheet = abschlussSheet(missing.map((step) => ({ kind: 'step' as const, step })), { step: guideTo }, {
+        write: canEdit ? (over) => { answered = { ...answered, ...over }; persist(over) } : undefined,
+        now: serverNowIso,
+      })
+      const spec = () => {
+        const { items, anyOpen } = sheet()
+        // answered to the last one in the sheet: no longer «fehlen noch», and no «trotzdem» note
+        return {
+          title: anyOpen ? P.exportIncompleteTitle : P.exportCompleteTitle,
+          message: anyOpen ? P.exportIncompleteLead : '',
+          items,
+          note: anyOpen ? P.exportIncompleteMsg : undefined,
+        }
+      }
       const ok = await confirmDialog({
-        title: P.exportIncompleteTitle,
-        message: P.exportIncompleteLead,
-        // each open point is a ROW that goes there — the same jump the «noch offen» chip makes.
-        // Tapping one resolves the ask false: nothing prints while the operator is off filling
-        // the field in, and the «trotzdem» button below stays the one way to print regardless.
-        items: missing.map((st2) => ({ label: A.steps[st2], onClick: () => guideTo(st2) })),
-        note: P.exportIncompleteMsg,
+        ...spec(),
+        refresh: spec,
         confirmLabel: action === 'print' ? R.send : P.pdfFull,
         cancelLabel: appConfig.copy.cancel,
       })
@@ -949,9 +976,9 @@ export function ReportPreflight({
     if (framing.krokiPrint) persist(framing)
     // …and it rides along to the stamp that follows a successful export: that write lands after
     // this one, merges onto its own snapshot of the blob, and would otherwise drop the framing
-    // that was just saved.
-    if (action === 'pdf') void downloadPdf(framing)
-    else void sendToPrinter(framing)
+    // that was just saved. The sheet's answers ride with it, onto the paper as well.
+    if (action === 'pdf') void downloadPdf({ ...answered, ...framing })
+    else void sendToPrinter({ ...answered, ...framing })
   }
   const P = appConfig.copy.preflight
   const A = appConfig.copy.abschluss
@@ -1527,27 +1554,32 @@ export function ReportPreflight({
                 same words twice. The other three sections have one because they have nothing
                 else to say what they are. */}
             {/* ⚠️ The card is CLICKABLE, not a <button>. Wrapping the whole thing in a button
-                made the dispatch facts part of its label: a screen reader then gets one stop
-                announcing «Aus den Einsatzdaten – Bearbeiten», and the Alarmmeldung, the
-                Einsatzplan and the Alarmierung — the things this block exists to state —
-                collapse into it. So the <dl> stays readable content and the click on the card is
-                pure pointer convenience — exactly as before. The visible «Bearbeiten» chip is
-                gone, but a real (icon-only) button stays: it is the keyboard/AT target the card
-                itself can never be, and `stopPropagation` keeps the card's own handler from
-                also firing and asking twice from one tap.
+                (or giving the section role="button") made the dispatch facts part of its label: a
+                screen reader then gets one stop announcing «Aus den Einsatzdaten – Bearbeiten»,
+                and the Alarmmeldung, the Einsatzplan and the Alarmierung — the things this block
+                exists to state — collapse into it. So the <dl> stays readable content and the
+                click on the card is pure pointer convenience.
                 The click sits on the SECTION, the card itself (owner #32, 30.10.2026): it lights
                 and presses its own edge like Anwesenheit/Material beside it, instead of a second
-                grey box drawn inside the card. */}
+                grey box drawn inside the card.
+                The keyboard/AT target is the HEADING, «Aus den Einsatzdaten» (owner, 31.10.2026:
+                the 26px pencil beside it went – the card is the press target, the pencil was a
+                second one for the same thing). A role="button" span, not a <button>: the fieldset
+                around it is disabled when the Rapport may not be written (signed, viewer), while
+                the Einsatzdaten may still be (`onEditDispatch` is the session's own right), and a
+                disabled fieldset disables every <button> in it. Its click bubbles to the section –
+                one handler, one ask per tap; Enter/Space are its own. */}
             <div className="report-meta-dispatch">
-              <div className="report-meta-dispatch-head">
-                <span>{P.fromDispatch}</span>
-                {onEditDispatch && (
-                  <button type="button" className="report-meta-dispatch-hint" aria-label={P.edit} title={P.edit}
-                    onClick={(e) => { e.stopPropagation(); onEditDispatch() }}>
-                    <Icon id="pen" />
-                  </button>
-                )}
-              </div>
+              {onEditDispatch ? (
+                <span role="button" tabIndex={0} className="report-meta-dispatch-head report-meta-dispatch-go" title={P.edit}
+                  onKeyDown={(e) => {
+                    if (e.key !== 'Enter' && e.key !== ' ') return
+                    e.preventDefault()
+                    onEditDispatch()
+                  }}>
+                  {P.fromDispatch}
+                </span>
+              ) : <span className="report-meta-dispatch-head">{P.fromDispatch}</span>}
               <dl className="report-meta-readout">
                 {/* Stichwort, Art and Ort first (owner, 18.09.2026): the block is what the Rapport
                     was opened FOR, and with the three pages behind one tile the reader must see

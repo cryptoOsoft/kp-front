@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { abschlussEndeItem, abschlussOpenItems, abschlussOpenLabel, abschlussOpenPoints, abschlussStepAction, controlChipLabel, countsAsOpen, insideAbschlussMessage, registeredAbschlussMessage } from './abschlussOpen'
+import { abschlussEndeItem, abschlussOpenItems, abschlussOpenLabel, abschlussOpenPoints, abschlussSheet, abschlussStepAction, controlChipLabel, countsAsOpen, insideAbschlussMessage, registeredAbschlussMessage } from './abschlussOpen'
 import type { Trupp } from '../types'
 import { ABSCHLUSS_STEPS, type AbschlussStep } from './abschluss'
 import { appConfig } from '../config/appConfig'
@@ -166,5 +166,53 @@ describe('abschlussEndeItem — the Einsatzende pre-filled with «jetzt»', () =
     expect(it_.action).toMatchObject({ label: appConfig.copy.abschluss.endeChange, leaves: true })
     it_.action!.onClick()
     expect(change).toHaveBeenCalledTimes(1)
+  })
+})
+
+/* ONE list for both confirms (31.10.2026): the print's «Angaben fehlen noch» built plain links of
+   its own, so the same Material row said «Nichts verwendet» in the Abschluss and nothing before a
+   print. Both read `abschlussSheet` now; the words around the list stay each confirm's own. */
+describe('abschlussSheet — the open points both confirms show', () => {
+  const F = appConfig.copy.abschluss.fix
+  const now = () => '2026-10-31T21:41:00.000Z'
+  const steps = (...s: AbschlussStep[]) => s.map((step) => ({ kind: 'step' as const, step }))
+
+  it('an answer is written at once, and the next reading keeps the row as done and is no longer open', () => {
+    const write = vi.fn()
+    const read = abschlussSheet(steps('zeiten', 'mittel'), { step: vi.fn() }, { write, now })
+    const first = read()
+    expect(first.anyOpen).toBe(true)
+    // the print's Einsatzende is an open row with the step's own answer (nothing pre-filled)
+    expect(first.items.map((i) => i.action?.label)).toEqual([F.zeiten, F.mittel])
+    first.items[0].action!.onClick()
+    first.items[1].action!.onClick()
+    expect(write.mock.calls).toEqual([[{ endedAt: now() }], [{ mittelConfirmedNone: true }]])
+    const next = read()
+    expect(next.anyOpen).toBe(false)
+    expect(next.items).toMatchObject([{ done: true, end: F.zeiten }, { done: true, end: F.mittel }])
+  })
+
+  it('a pre-filled row stands in its step\'s place and counts as answered; a Trupp out stays open', () => {
+    const go = { step: vi.fn(), trupps: vi.fn(), media: vi.fn() }
+    const ende = abschlussEndeItem(now(), vi.fn())
+    const points = abschlussOpenPoints(['kontaktperson', 'zeiten'], 0, 2)
+    const read = abschlussSheet(points, go, { write: vi.fn(), now, prefilled: { zeiten: ende } })
+    expect(read().items.map((i) => i.label)).toEqual([
+      appConfig.copy.abschluss.steps.kontaktperson, appConfig.copy.abschluss.ende, abschlussOpenLabel({ kind: 'media', n: 2 }),
+    ])
+    expect(read().items[1]).toBe(ende)
+    read().items[0].action!.onClick()
+    // only the queue is left, and a queue is not a «trotzdem» …
+    expect(read().anyOpen).toBe(false)
+    // … a crew nobody reported out is
+    expect(abschlussSheet(abschlussOpenPoints([], 1, 0), go, { now })().anyOpen).toBe(true)
+  })
+
+  it('without a write (a session that may not edit the Rapport) the rows are links only', () => {
+    const go = { step: vi.fn() }
+    const { items } = abschlussSheet(steps('mittel', 'kurzbericht'), go, { now })()
+    expect(items.every((i) => !i.action)).toBe(true)
+    items[1].onClick()
+    expect(go.step).toHaveBeenCalledWith('kurzbericht')
   })
 })

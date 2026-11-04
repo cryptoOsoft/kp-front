@@ -1,19 +1,19 @@
 /*
  * **A symbol whose matter is over is marked, never deleted** (24.09.2026, review item 21b,
- * `lib/objectDone`). «Gelöscht / erledigt», a row of the symbol's editor sheet, sets
+ * `lib/objectDone`). «Erledigt», a toggle in the foot of the symbol's editor sheet, sets
  * `done {at, by?}` — a SymbolProps prop, so both bodies share it and every write-through and bake
  * carries it (never `BAKE_PRESERVED`: that list would re-add a cleared value from the map body).
  * ⚠️ It is offered ONLY where being over means something — the damage and hazard categories
  * (`appConfig.symbols.doneCategories`: Schadenlage, Gefahren) and the fire family
- * (`objectDone · offersDone`, decided by the PACK's category, never the editable subtitle); there
- * it is the editor's first row. A Fahrzeug, a KP Front, a Hydrant, an Einsatzmittel never gets
+ * (`objectDone · offersDone`, decided by the PACK's category, never the editable subtitle). A Fahrzeug, a KP Front, a Hydrant, an Einsatzmittel never gets
  * it (owner's sign-off, 26.09.2026: «we don't need "erledigt" for cars»). A `done` already on
  * another symbol (an older record) keeps rendering and can be reopened, never newly set
  * (`doneAct` refuses).
  * The symbol stays, greyed with its HH:MM top-left, by ONE rule on the Karte, the Plan and the
  * Gebäude (`TacticalSymbol` · `.ts-done`, the `--done-*` tokens) and on paper (`kroki ·
- * _place_symbol`, `DONE_ALPHA`). «Wieder aktiv» clears it; both are ordinary undoable prop edits,
- * audited with `done: null` for the clear (JSON drops `undefined`, and the replay would keep it
+ * _place_symbol`, `DONE_ALPHA`). The pressed tile tapped again («wieder aktiv») clears it; the
+ * editor's head says when it was set («Schadenlage · erledigt 20:40»). Both are ordinary undoable
+ * prop edits, audited with `done: null` for the clear (JSON drops `undefined`, and the replay would keep it
  * grey). A Feuer is «gelöscht», everything else «erledigt» (`appConfig.symbols.fireFamily`, one
  * copy key `objectDone.word`). The footer's delete reads «Entfernen» — for a mistake — and it
  * writes the Karte's removal row («… entfernt») on the Plan too. Symbols only: a
@@ -82,13 +82,8 @@ export function doneTime(done: ObjectDone): string {
   return formatTime(new Date(done.at))
 }
 
-/** «Gelöscht 20:40» / «Erledigt 20:40» — the editor's set state. Null when not done. */
-export function doneStateText(props: Pick<SymbolProps, 'done' | 'symbol'>): string | null {
-  const d = doneOf(props)
-  return d ? fillTemplate(appConfig.copy.objectDone.state, { word: doneWord(props.symbol), time: doneTime(d) }) : null
-}
-
-/** «gelöscht 20:40» — the Status half of a printed legend line (lib/symbols · symbolLegendText). */
+/** «gelöscht 20:40» – the set state: the editor's head beside the type (ContextPanel · doneAt) and
+ *  the Status half of a printed legend line (lib/symbols · symbolLegendText). Null when not done. */
 export function doneStatusText(props: Pick<SymbolProps, 'done' | 'symbol'>): string | null {
   const d = doneOf(props)
   return d ? fillTemplate(appConfig.copy.objectDone.state, { word: doneWord(props.symbol, 'inline'), time: doneTime(d) }) : null

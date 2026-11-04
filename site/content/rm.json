@@ -16,7 +16,11 @@
       "Plan da temp per acziuns lungas, cun survista da la cuvrida",
       "Rapport d’acziun sco PDF, preemplenì cun las datas da l’acziun",
       "Viadi en il temp: reproducir l’acziun per la discussiun finala"
-    ]
+    ],
+    "audience": [
+      "Corps da pumpiers"
+    ],
+    "demoAction": "Avrir la demo da KP Front"
   },
   "nav": {
     "aria": "Navigaziun principala",
@@ -285,8 +289,7 @@
           "Posiziuns GPS dals vehichels <span class=\"opt\">opziunal</span>",
           "S’annunziar cun Microsoft en il conto existent, ultra il PIN <span class=\"opt\">opziunal</span>",
           "<strong>Visitas d’objects</strong> senza acziun, offline – glista da controlla, fotografias e rapport <span class=\"opt\">opziunal</span>",
-          "<strong>Atgna administraziun</strong> per mintga corps da pumpiers: persunal, vehichels, glistas da controlla, nivels da charta e models",
-          "Interfatscha per tudestg, englais, franzos u talian – configurada per mintga corps da pumpiers"
+          "<strong>Atgna administraziun</strong> per mintga corps da pumpiers: persunal, vehichels, glistas da controlla, nivels da charta e models"
         ]
       }
     ]
@@ -341,6 +344,10 @@
         "a": "In pitschen mini-PC u server en il magazin basta. Per l’installaziun, actualisaziuns e\n          backups dovri ina persuna cun experientscha da Docker e da la lingia da commandos, saja quai\n          en il corps da pumpiers, en la vischnanca u tar ina IT che sustegna. L’instrucziun ed il\n          sectur d’administraziun mainan tras l’installaziun. Nus respundain gugent a dumondas generalas;\n          las datas ed il manaschi restan en la responsabladad dal corps da pumpiers respectiv."
       },
       {
+        "q": "Datti sustegn per l’installaziun ed il manaschi?",
+        "a": "Gea. Dumondas generalas davart l’installaziun e l’utilisaziun pon vegnir respundidas gratuitamain. KP Front po vegnir manà sin in’atgna infrastructura u tar in furnitur da hosting u cloud tschernì dal corp da pumpiers. Tenor cunvegnientscha individuala èsi era pussaivel da survegnir sustegn per l’installaziun, la configuraziun, actualisaziuns u il manaschi. In sustegn pli extendì po esser cunter pajament."
+      },
+      {
         "q": "Funcziuna KP Front senza connexiun a l’internet?",
         "a": "Gea. Sco applicaziun installada funcziuna KP Front sin l’apparat: charta, plans, gruppas e\n          decurs restan utilisabels, era sche la rait croda ora. Chartas e plans enturn l’acziun chargia\n          l’applicaziun sezza, curt suenter ch’ella è vegnida averta – e la <strong>controlla da prontezza</strong>\n          mussa avant l’acziun sche las datas necessarias èn memorisadas sin l’apparat. Suenter\n          in’interrupziun vegnan las modificaziuns sincronisadas uschespert ch’ina connexiun è puspè\n          disponibla; quai ch’è vegnì registrà en il fratemp resta conservà."
       },
@@ -353,8 +360,8 @@
         "a": "Na. Sco software open source è KP Front liberamain accessibla e po vegnir adattada a las circumstanzas localas en l’entir mund. Da fabrica è l’applicaziun preconfigurada per la Svizra – cun chartas da swisstopo, segns tactics tenor las convenziuns FKS ed ils models FKS per la direcziun da l’acziun. Ordaifer la Svizra pon vegnir configuradas autras basas da chartas; la tschertga d’adressas sustegna oz mo l’interfatscha da swisstopo e sto vegnir adattada là."
       },
       {
-        "q": "Tge linguas sustegna KP Front?",
-        "a": "La website è disponibla per tudestg, franzos, talian, rumantsch ed englais. L’applicaziun sezza e ses agid funcziunan per tudestg, franzos, talian ed englais – rumantsch n’è là anc betg disponibel. La lingua vegn fixada <strong>ina giada per corps</strong>, betg per apparat: durant l’acziun legian tuts ils medems terms. La documentaziun tecnica davart l’installaziun ed il manaschi è per englais. La versiun demo publica è per <strong>tudestg</strong>, ed ils screenshots qua derivan da la medema instanza."
+        "q": "En tge linguas è KP Front disponibel?",
+        "a": "L’interfatscha d’utilisader da KP Front è actualmain disponibla per tudestg. Sco applicaziun open source po KP Front vegnir amplifitgà cun ulteriuras linguas. Per quai dovri ina translaziun cumpletta e controllada professiunalmain dals terms dals pumpiers."
       },
       {
         "q": "Co cumenzar?",
@@ -390,7 +397,9 @@
       "send": "Trametter il messadi",
       "sending": "Vegn tramess …",
       "ok": "Grazia – il messadi è arrivà. Nus ans annunziain.",
-      "error": "Quai n’ha betg funcziunà. Scrivai per plaschair directamain a bastian.eichenberger@feuerwehr-oberwil.ch."
+      "error": "Quai n’ha betg funcziunà. Scrivai per plaschair directamain a bastian.eichenberger@feuerwehr-oberwil.ch.",
+      "privacy": "Vegn tramess per e-mail via il servetsch da formulars staticforms.dev.",
+      "privacyLink": "Protecziun da datas"
     }
   },
   "lightbox": {
@@ -403,6 +412,12 @@
     "origin": "Nascì dal manaschi d’acziun dals <a href=\"https://www.feuerwehr-oberwil.ch\" target=\"_blank\" rel=\"noopener\">pumpiers d’Oberwil BL</a> –\n      perquai che nus avain adina puspè vesì las medemas funtaunas d’errurs: attribuziuns dublas, infurmaziuns\n      sparpagliadas ed errurs da transcripziun a maun.\n      Mintga corps da pumpiers maina ses agen KP Front cun atgnas chartas, agens plans ed atgnas datas.",
     "demo": "Demo",
     "contact": "Contact",
-    "org": "Pumpiers d’Oberwil sin GitHub"
+    "org": "Pumpiers d’Oberwil sin GitHub",
+    "release": {
+      "label": "Versiun actuala",
+      "notes": "Notizias da la versiun",
+      "dateFormat": "DD.MM.YYYY"
+    },
+    "security": "Segirezza"
   }
 }

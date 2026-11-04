@@ -105,7 +105,7 @@ export function PlansSurface({
 }: PlansSurfaceProps) {
   const { activeObjectName, activeObjectAddress, activeObjectNearby } = objectPlans
   const { activeLinkedPlan, floorPack, planLive, planPhotos } = georefFits
-  const { moveLiveOnSheet, showPlanSourceOnMap } = mapActions
+  const { moveLiveOnSheet } = mapActions
   const { board, setBoard } = store
   const { rosterNames, rosterRank, linkRosterFields, personStatus, rosterFieldHints } = roster
   const {
@@ -160,7 +160,6 @@ export function PlansSurface({
           live={planLive}
           photos={planPhotos}
           onPlanLiveMove={tacticalLocked ? undefined : moveLiveOnSheet}
-          onPlanProjection={showPlanSourceOnMap}
           /* ⚠️ REPLAY shows the recorded sheet and nothing else. `replayBoard` is the anno list as
              it was written down, so a plan-drawn object appears exactly as it was — but a Karte
              object standing beside it does NOT, because its place on this paper is derived and

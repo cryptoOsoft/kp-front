@@ -299,8 +299,9 @@ describe('the handed-over board on a phone (focus mode)', () => {
     expect(screen.getAllByRole('button', { name: az.newTrupp })).toHaveLength(1)
   })
 
-  // UX sweep F6 (20.10.2026): a tab's tier was its tint and border alone — now a glyph and a word
-  it('says a tab\'s tier with a glyph and its word, not with the tint alone', () => {
+  // UX sweep F6 (20.10.2026): a tab's tier was its tint and border alone — now a word for the
+  // screen reader (the ⚠ went 30.10.2026, owner: «red and notfall is already enough»)
+  it('says a tab\'s tier in a word for the screen reader, with no glyph', () => {
     vi.mocked(useIsPhone).mockReturnValue(true)
     mount({ lite: { subtitle: 'Brand · Hauptstrasse 12' }, trupps: [
       { ...aktivTrupp(), id: 'k', name: 'Calm Karl' },
@@ -308,12 +309,10 @@ describe('the handed-over board on a phone (focus mode)', () => {
       { ...aktivTrupp(), id: 'o', name: 'Over Otto', lastContactTime: iso(8 * 60_000) },
     ] })
     const tab = (name: string) => screen.getByRole('tab', { name: new RegExp(name) })
-    expect(tab('Calm Karl').querySelector(`.${s.tabTier}`)).toBeNull()
-    expect(tab('Due Dora').textContent).toContain(az.rowDue)
-    // «Fällig» is the chip's amber and its spoken word — no clock glyph (owner, 30.10.2026)
-    expect(tab('Due Dora').querySelector(`.${s.tabTier}`)).toBeNull()
-    expect(tab('Over Otto').textContent).toContain(az.clockOverdue)
-    expect(tab('Over Otto').querySelector(`.${s.tabTier} use`)?.getAttribute('href')).toBe('#warn')
+    expect(tab('Calm Karl').querySelector('.sr-only')).toBeNull()
+    expect(tab('Due Dora').querySelector('.sr-only')?.textContent).toBe(az.rowDue)
+    expect(tab('Over Otto').querySelector('.sr-only')?.textContent).toBe(az.clockOverdue)
+    for (const name of ['Calm Karl', 'Due Dora', 'Over Otto']) expect(tab(name).querySelector('use[href="#warn"]')).toBeNull()
   })
 
   /* ── The two-line head (Atemschutz-Link redesign, owner pick R1 on AB, 30.10.2026) ──────────
@@ -423,18 +422,26 @@ describe('the handed-over board on a phone (focus mode)', () => {
   // ⚠️ SIX zones since 09.09., not seven: the Sockel folded into the Verlauf block under it
   // (`.metaLine` + the expander), so there is no standing look-up strip on the card any more —
   // at any width, on any board. That is the point of asserting the list rather than one class.
-  it('uses the same card as every other board — the same zones, in the same order', () => {
+  it('uses the same card as every other board — the same zones, the tiles at the page\'s foot', () => {
     vi.mocked(useIsPhone).mockReturnValue(true)
-    mount({ lite: { subtitle: 'Brand · Hauptstrasse 12' }, trupps: [aktivTrupp()] })
+    mount({ lite: { subtitle: 'Brand · Hauptstrasse 12' }, trupps: [aktivTrupp()], triggerNotfall: noop })
     const card = document.querySelector(`.${s.trowCard}`)!
     // ⚠️ the whole zone list, in order, and NOTHING besides — one card means one zone list, and
     // that is what a phone-only arrangement would break first.
     // Asserting «.cardHead exists» proves nothing: it exists on every card at every width.
     // the FIRST class of each child: the block also carries its tier, which is not the point here
-    // ⚠️ since 29.09.2026 the card of EVERY board is the phone's opened row: line · tiles · the
-    // lifecycle row · (the state in words, where there is one) · note · facts · foot
-    expect([...card.children].map((c) => c.className.trim().split(/\s+/)[0]).filter((c) => c !== s.stateLine)).toEqual([
-      s.trowHead, s.trowActs, s.actZone, s.noteZone, s.facts, s.vfoot,
+    // ⚠️ since 29.09.2026 the card of EVERY board is the phone's opened row; on this page (31.10.2026,
+    // «read at the top, tap at the bottom») the same zones read line · (state words) · note · facts ·
+    // foot, and the tiles stand last — in the DOM, so the tab order is the visual one
+    const first = (c: Element) => c.className.trim().split(/\s+/)[0]
+    expect([...card.children].map(first).filter((c) => c !== s.stateLine)).toEqual([
+      s.trowHead, s.noteZone, s.facts, s.vfoot, s.pageActs,
+    ])
+    // …Notfall leads the group, Rückzug | Raus under it, Druck | Kontakt lowest
+    const group = card.lastElementChild as HTMLElement
+    expect([...group.children].map(first)).toEqual([s.actZone, s.trowActs])
+    expect(within(group).getAllByRole('button').map((b) => b.getAttribute('aria-label') ?? b.textContent)).toEqual([
+      expect.stringContaining(az.notfall.act), az.actRueckzug, az.actExit, `${az.actPressure} 240 bar`, az.actContact,
     ])
     // Kontakt is still an in-card control, not a pinned screen-edge bar
     expect(card.querySelector(`.${s.kontaktBtn}`)).toBeTruthy()

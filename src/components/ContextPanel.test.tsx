@@ -174,24 +174,16 @@ describe('ContextPanel — basic wiring', () => {
   })
 })
 
-// 30.09.2026 (owner: «fix this» — «Auf Modul 1 zeigen» ran out of its frame into «Zentrieren»):
-// the door to the linked plan is cut, never spilled, and the part that gives way is the plan's
-// NAME — the verb around it stays. The whole sentence is the button's name.
-describe('ContextPanel — the door to a linked plan', () => {
-  it('names the plan in the sentence and cuts only the name', () => {
-    const onProjection = vi.fn()
-    setup({ onProjection, projectionPlan: 'Modul 1 Untergeschoss Nord', onCenter: vi.fn() })
-    const btn = screen.getAllByRole('button', { name: 'Auf Modul 1 Untergeschoss Nord zeigen' })[0]
-    expect(btn.querySelector('.btn-t-cut')?.textContent).toBe('Modul 1 Untergeschoss Nord')
-    expect(btn.querySelector('.btn-t')?.textContent).toBe('Auf Modul 1 Untergeschoss Nord zeigen')
+// 30.09.2026 (owner: «fix this» – a door's label ran out of its frame into «Zentrieren»): the
+// door to the original is cut at its end, never spilled, and the whole label is its name.
+describe('ContextPanel – the door to the original', () => {
+  it('cuts its label at the end, still one name', () => {
+    const onOriginal = vi.fn()
+    setup({ onOriginal, originalLabel: 'Zum Original' })
+    const btn = screen.getAllByRole('button', { name: 'Zum Original' })[0]
+    expect(btn.querySelector('.btn-t-cut')?.textContent).toBe('Zum Original')
     fireEvent.click(btn)
-    expect(onProjection).toHaveBeenCalled()
-  })
-
-  it('a plain label (Plan → Karte) is cut at its end, still one name', () => {
-    setup({ onProjection: vi.fn(), projectionLabel: 'Auf Karte zeigen' })
-    const btn = screen.getAllByRole('button', { name: 'Auf Karte zeigen' })[0]
-    expect(btn.querySelector('.btn-t-cut')?.textContent).toBe('Auf Karte zeigen')
+    expect(onOriginal).toHaveBeenCalled()
   })
 })
 
@@ -831,6 +823,7 @@ describe('ContextPanel — «Gelöscht / erledigt»', () => {
     const p = setup({ onDone: vi.fn(), onCenter: vi.fn() })
     const tile = screen.getAllByRole('button', { name: O.action })[0]
     expect(tile.closest('.ctx-actions')).toBeTruthy()
+    expect(tile.getAttribute('aria-pressed')).toBe('false')
     expect(tile.title).toBe(O.actionHint)
     expect(tile.closest('.ctx-body')?.firstElementChild?.contains(tile)).toBe(false)
     const foot = tile.closest('.ctx-actions')!
@@ -844,18 +837,25 @@ describe('ContextPanel — «Gelöscht / erledigt»', () => {
     expect(screen.queryByRole('button', { name: appConfig.copy.delete })).toBeNull()
   })
 
-  it('states a set one — «Gelöscht 20:40 · Wieder aktiv» — and «Wieder aktiv» takes it back', () => {
-    const p = setup({ onDone: vi.fn(), entity: { id: 's1', symbol: 'VKF Feuer', label: 'Brand', done: { at: AT } } })
-    expect(screen.getByText(new RegExp(`^${O.word.fire.title} \\d\\d:\\d\\d$`))).toBeTruthy()
-    expect(screen.queryByRole('button', { name: new RegExp(O.action) })).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: new RegExp(O.reopen) }))
+  // ONE toggle (31.10.2026): set, the SAME tile stays in the same spot, pressed, and a tap
+  // reopens – the time it was set moved into the header, beside the type.
+  it('set, the same foot tile (same name) stands pressed, its title says it reopens, and a tap takes it back; the header says when', () => {
+    const p = setup({ onDone: vi.fn(), onCenter: vi.fn(), entity: { id: 's1', symbol: 'VKF Feuer', label: 'Brand', subtitle: 'Schadenlage', done: { at: AT } } })
+    const tile = screen.getAllByRole('button', { name: O.action, pressed: true })[0]
+    expect(tile.getAttribute('aria-pressed')).toBe('true')
+    expect(tile.title).toBe(O.reopenHint)
+    const foot = tile.closest('.ctx-actions')!
+    expect([...foot.querySelectorAll('button')].map((b) => b.textContent || b.getAttribute('aria-label')))
+      .toEqual([appConfig.copy.contextPanel.center, O.action, appConfig.copy.remove])
+    expect(document.querySelector('.ctx-head p')?.textContent).toMatch(new RegExp(`^Schadenlage · ${O.word.fire.inline} \\d\\d:\\d\\d$`))
+    fireEvent.click(tile)
     expect(p.onDone).toHaveBeenCalledWith(false)
   })
 
   it('a read-only panel states it and offers nothing; a surface that does not wire it has no row, and its delete is «Entfernen» too', () => {
     setup({ readOnly: true, onDone: vi.fn(), entity: { id: 's1', symbol: 'VKF Rettungen', done: { at: AT } } })
-    expect(screen.getByText(new RegExp(`^${O.word.other.title} `))).toBeTruthy()
-    expect(screen.queryByRole('button', { name: new RegExp(O.reopen) })).toBeNull()
+    expect(screen.getByText(new RegExp(`^${O.word.other.inline} \\d\\d:\\d\\d$`))).toBeTruthy()
+    expect(screen.queryByRole('button', { name: new RegExp(O.action) })).toBeNull()
     cleanup()
     setup()
     expect(screen.queryByRole('button', { name: new RegExp(O.action) })).toBeNull()

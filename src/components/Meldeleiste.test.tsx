@@ -194,8 +194,9 @@ describe('the phone strip ends above the floating row', () => {
   it('caps its height at the message lane, so it never reaches the FAB or a bar', () => {
     const phone = css.slice(css.indexOf('@media (--phone)', css.indexOf(':root:has(.as-link-shell) .ml')))
     const rule = /(?:^|[\s}])\.ml\s*\{([^}]*)\}/.exec(phone)?.[1] ?? ''
-    expect(rule).toMatch(/top:\s*calc\(72px \+ env\(safe-area-inset-top\)\)/)
-    expect(rule).toMatch(/max-height:\s*calc\(100dvh - 72px - env\(safe-area-inset-top\) - var\(--msg-lane-bottom\)\)/)
+    // (`--nudge-reserve`: under the Karte home's alarm card while it stands, 31.10.2026)
+    expect(rule).toMatch(/top:\s*calc\(72px \+ var\(--nudge-reserve, 0px\) \+ env\(safe-area-inset-top\)\)/)
+    expect(rule).toMatch(/max-height:\s*calc\(100dvh - 72px - var\(--nudge-reserve, 0px\) - env\(safe-area-inset-top\) - var\(--msg-lane-bottom\)\)/)
   })
 })
 

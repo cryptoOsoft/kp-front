@@ -127,7 +127,9 @@ column, ONE control edge». A Messung read-out starts at the edge too, as a chip
 **A symbol's context sheet is headed by its TYPE**, for every symbol, the generic Fahrzeug too
 («Fahrzeug» / the pack's name; 29.09.2026). A user-given name lives in its field
 («Bezeichnung») only — never twice, never an underlined head that jumps to a field. The foot's
-«Erledigt» wears the same ink as «Zentrieren» (a dimmed action reads «not available»).
+«Erledigt» wears the same ink as «Zentrieren» (a dimmed action reads «not available»); it is ONE
+toggle in one spot (31.10.2026): set, the same tile stands pressed (check, green tint) and a tap
+reopens, while the head's subtitle says when («Schadenlage · erledigt 10:57»).
 
 ## Button components
 
@@ -420,13 +422,11 @@ Three rules the primitives own, so no surface re-answers them (18.09.2026):
   - *Cancel (28.09.2026, owner pick A):* «Abbrechen» in a footer is a FRAMED `.ip-btn` 14/700 at
     its word's width, never a ghost word; the primary takes the rest of the row, same height (on a
     phone `[role=dialog] .ui-sheet-foot > .ip-btn.primary` flexes).
-  - *A label never leaves its button* (30.09.2026, owner: «fix this» — «Auf Modul 1 zeigen» ran
-    out of its tile over «Zentrieren»). A tile in a row whose share is fixed (`flex: 1 1 0`) cuts
-    its label with an ellipsis; where the label carries a NAME (`{plan}`), the name is the part
-    that gives way and the verb around it stays (ContextPanel · `LinkBtn`, `.btn-t` /
-    `.btn-t-cut`), with the whole sentence as the button's name. A door to the object's other
-    surface («Zum Original», «Auf {plan} zeigen») stands on a row of its own above the symbol
-    panel's foot. A rotation reads in whole degrees; ± from a hand-turned angle snaps to the next
+  - *A label never leaves its button* (30.09.2026, owner: «fix this» – a door's label ran out of
+    its tile over «Zentrieren»). A tile in a row whose share is fixed (`flex: 1 1 0`) cuts its
+    label with an ellipsis (ContextPanel · `LinkBtn`, `.btn-t` / `.btn-t-cut`), with the whole
+    label as the button's name. A door to the object's original («Zum Original») stands on a row
+    of its own above the symbol panel's foot. A rotation reads in whole degrees; ± from a hand-turned angle snaps to the next
     15° mark (`Stepper · snap`).
   - *Text actions (28.09.2026, owner pick A):* no bare blue word as an action. A verb that ends a
     row makes the WHOLE row the button — `.row-go` (13-incident): ink text, the verb in

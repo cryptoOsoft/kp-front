@@ -1,11 +1,13 @@
 import { useCallback, useState, useSyncExternalStore } from 'react'
-import { clampSymbolScale, loadPrefs, railLabelsFor, savePrefs, symbolScales, type RailLabels, type SymbolSurface } from './prefs'
+import { clampSymbolScale, keyHintsFor, loadPrefs, railLabelsFor, savePrefs, symbolScales, type RailLabels, type SymbolSurface } from './prefs'
 import { PHONE_QUERY } from './useIsPhone'
 import { appConfig } from '../config/appConfig'
 import type { CaptionMode } from '../types'
 
 /** fired on `window` when the Einstellungen change «Beschriftung» – `useRailLabels` listens */
 const RAIL_LABELS_EVENT = 'kp:rail-labels'
+/** fired on `window` when the Einstellungen change «Tastenkürzel anzeigen» – `useKeyHints` listens */
+const KEY_HINTS_EVENT = 'kp:key-hints'
 
 /** Device-local display prefs shared by the incident workspace and the landing
  *  Einstellungen: tactical-symbol size (Karte / standalone Module; linked Module follow Karte),
@@ -57,4 +59,22 @@ const onRailLabels = (cb: () => void) => {
  *  made there shows on the rail at once, without a remount. */
 export function useRailLabels(phone: boolean): RailLabels {
   return useSyncExternalStore(onRailLabels, () => railLabelsFor(loadPrefs(), phone))
+}
+
+const onKeyHints = (cb: () => void) => {
+  window.addEventListener(KEY_HINTS_EVENT, cb)
+  return () => window.removeEventListener(KEY_HINTS_EVENT, cb)
+}
+
+/** «Tastenkürzel anzeigen» (lib/prefs · keyHints, default ON): the letter badges on both rails
+ *  read it, the Einstellungen sheet writes it. Its own store rather than a `useDevicePrefs` field
+ *  because the rails and the sheet never share a parent that could thread it down – and live,
+ *  like `useRailLabels`: the sheet sits over the rails and nothing remounts. */
+export function useKeyHints(): [boolean, (v: boolean) => void] {
+  const on = useSyncExternalStore(onKeyHints, () => keyHintsFor(loadPrefs()))
+  const set = useCallback((v: boolean) => {
+    savePrefs({ ...loadPrefs(), keyHints: v })
+    window.dispatchEvent(new Event(KEY_HINTS_EVENT))
+  }, [])
+  return [on, set]
 }

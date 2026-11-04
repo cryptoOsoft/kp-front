@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { SYMBOL_SCALE, clampSymbolScale, initialMode, legacySymbolMul, planSymbolScale, railLabelsFor, symbolScales, type Prefs } from './prefs'
+import { SYMBOL_SCALE, clampSymbolScale, initialMode, keyHintsFor, legacySymbolMul, planSymbolScale, railLabelsFor, symbolScales, type Prefs } from './prefs'
 
 // The Symbolgrösse rework: one global S/M/L pref became one multiplier PER SURFACE (Karte /
 // Module). Two things have to hold — the bands the sliders offer, and that nobody's stored
@@ -130,5 +130,17 @@ describe('railLabelsFor', () => {
     expect(railLabelsFor({ railLabels: 'short', railLabelsChosen: true }, false)).toBe('short')
     // «Wörter» was never a default, so a stored one is a choice even from before the flag
     expect(railLabelsFor({ railLabels: 'short' }, false)).toBe('short')
+  })
+})
+
+// «Tastenkürzel anzeigen» (31.10.2026): on until somebody switches it off
+describe('keyHintsFor', () => {
+  it('defaults to on, including for a cookie written before the pref existed', () => {
+    expect(keyHintsFor({})).toBe(true)
+  })
+
+  it('keeps a device\'s own choice', () => {
+    expect(keyHintsFor({ keyHints: false })).toBe(false)
+    expect(keyHintsFor({ keyHints: true })).toBe(true)
   })
 })

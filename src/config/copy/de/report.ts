@@ -264,6 +264,8 @@ export const reportCopy = {
     bandZipLead: 'Danach für die Ablage:',
     bandLater: 'Später',
     exportIncompleteTitle: 'Angaben fehlen noch',
+    // …once the last open point is answered IN that confirm (lib/abschlussOpen · abschlussSheet)
+    exportCompleteTitle: 'Alle Angaben erfasst',
     exportIncompleteLead: 'Noch offen:',
     exportIncompleteMsg: 'Der Rapport lässt sich trotzdem erstellen – die offenen Felder bleiben leer und können von Hand ergänzt werden.',
     remarksLabel: 'Bemerkungen',

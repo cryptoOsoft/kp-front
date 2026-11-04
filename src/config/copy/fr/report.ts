@@ -225,6 +225,7 @@ export const reportCopy: Localizable<Pick<Copy, 'auswertung' | 'report' | 'print
     bandZipLead: 'Ensuite pour l’archivage :',
     bandLater: 'Plus tard',
     exportIncompleteTitle: 'Des indications manquent',
+    exportCompleteTitle: 'Toutes les données saisies',
     exportIncompleteLead: 'Encore ouvert :',
     exportIncompleteMsg: 'Le rapport peut tout de même être établi – les champs ouverts restent vides et peuvent être complétés à la main.',
     now: 'Maintenant',

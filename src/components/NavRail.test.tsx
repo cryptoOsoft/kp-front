@@ -3,8 +3,10 @@ import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest'
 import { render, screen, cleanup, fireEvent, act } from '@testing-library/react'
 import { NavRail } from './NavRail'
 import type { PlanDocument } from '../types'
+import { SURFACE_KEY } from '../lib/hotkeys'
+import { loadPrefs, savePrefs } from '../lib/prefs'
 
-afterEach(cleanup)
+afterEach(() => { cleanup(); document.cookie = 'kp-front-prefs=; max-age=0; path=/' })
 
 const docs: PlanDocument[] = [
   { id: 'modul1', code: 'Modul 1', title: 'Übersicht', subtitle: '', imageUrl: '', orientation: 'portrait' },
@@ -381,5 +383,23 @@ describe('the folded bar carries no separators', () => {
   it('marks the bar as folded so the stylesheet can share its width', () => {
     setup({ fold: true })
     expect(screen.getByRole('navigation').className).toContain('folded')
+  })
+})
+
+// «Tastenkürzel anzeigen» (lib/prefs · keyHints): the surface letters are on the tiles by default
+// and gone once the device switches them off (CSS then shows them on a mouse + keyboard only)
+describe('the shortcut letters', () => {
+  const letters = () => [...document.querySelectorAll('.rail-key')].map((el) => el.textContent)
+
+  it('are on every surface tile by default, from the same table the keyboard reads', () => {
+    setup()
+    expect(letters()).toEqual(['K', 'C', 'A', 'P', 'M', 'R'])
+    expect([...letters()].sort()).toEqual(Object.values(SURFACE_KEY).sort())
+  })
+
+  it('are not rendered when the device pref is off', () => {
+    savePrefs({ ...loadPrefs(), keyHints: false })
+    setup()
+    expect(letters()).toEqual([])
   })
 })

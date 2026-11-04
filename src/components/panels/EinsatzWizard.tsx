@@ -29,6 +29,7 @@ import {
 import { Modal, realCoord } from './_shared'
 import { SearchField } from '../SearchField'
 import { pointAtField } from '../../lib/pointAtField'
+import { objectPicklistSub } from '../../lib/karte/places'
 
 // --- Einsatz eröffnen / Einsatzdaten korrigieren -------------------------------------
 // `ix` (appConfig.copy.intake) is read inside each function below rather than captured at
@@ -353,7 +354,7 @@ export function EinsatzWizard({ edit, nearCoord, onClose, onCreated }: {
     <button key={o.id} type="button" className="ip-objrow" onClick={() => pickObject(o)}>
       <span className="ip-objrow-main">
         <span className="ip-objrow-name">{o.name}{o.distance_m != null ? <span className="ip-objrow-dist"> · {Math.round(o.distance_m)} m</span> : null}</span>
-        <span className="ip-objrow-sub">{o.address ?? '—'} · {o.plans.length ? ix.objectPlans(o.plans.length) : ix.objectNoPlans}</span>
+        <span className="ip-objrow-sub">{objectPicklistSub(o, o.plans.length ? ix.objectPlans(o.plans.length) : ix.objectNoPlans)}</span>
       </span>
     </button>
   )

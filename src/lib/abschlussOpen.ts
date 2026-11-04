@@ -15,9 +15,10 @@ import { truppLogName } from './atemschutz'
  * the Einsatz — was still plain text (18.09.2026). Same failure, worse moment: it is the last
  * screen before the Akte closes.
  *
- * So the list lives here, once, and both callers ask it for rows. The Abschluss knows about two
- * open points the Rapport's own «noch offen» chips do not — a Trupp nobody reported back in, and
- * captures still sitting on this device — and those get targets too.
+ * So the list lives here, once, and both callers ask it for rows — through ONE builder since
+ * 31.10.2026 (`abschlussSheet`): same order, same in-place answers on both. The Abschluss knows
+ * about two open points the Rapport's own «noch offen» chips do not — a Trupp nobody reported back
+ * in, and captures still sitting on this device — and those get targets too.
  */
 export type AbschlussOpenPoint =
   | { kind: 'step'; step: AbschlussStep }
@@ -47,6 +48,11 @@ export function abschlussOpenPoints(
     ...(pendingMedia > 0 ? [{ kind: 'media', n: pendingMedia } as const] : []),
   ]
 }
+
+/** The targets a list needs: `step` always (a step's own button may leave for its field), `trupps`
+ *  and `media` only where such a point can be on it — the print's list carries Mindestangaben only,
+ *  so it is not asked for a Tafel it never points at. */
+export type OpenTargetsFor<P extends AbschlussOpenPoint> = Pick<AbschlussOpenTargets, P['kind'] | 'step'>
 
 /** What a point is CALLED — the same words the Rapport's chips and the print warning use. */
 export function abschlussOpenLabel(p: AbschlussOpenPoint): string {
@@ -82,7 +88,7 @@ export type AbschlussFix = (step: AbschlussStep, over: Partial<ReportMeta>, answ
  * focused («Wählen», «Schreiben» — `leaves`). Anwesenheit and Abweichungen have no one-tap
  * answer: a head count is counted and a divergence is decided, both on their own surfaces.
  */
-export function abschlussStepAction(step: AbschlussStep, go: AbschlussOpenTargets, fix: AbschlussFix, now: () => string): ConfirmItem['action'] {
+export function abschlussStepAction(step: AbschlussStep, go: Pick<AbschlussOpenTargets, 'step'>, fix: AbschlussFix, now: () => string): ConfirmItem['action'] {
   const F = appConfig.copy.abschluss.fix
   switch (step) {
     case 'zeiten': return { label: F.zeiten, onClick: () => fix(step, { endedAt: now() }, F.zeiten) }
@@ -100,20 +106,62 @@ export function abschlussStepAction(step: AbschlussStep, go: AbschlussOpenTarget
  *  ahead) and then navigates — see overlays/ConfirmCard · ConfirmItem. With a `fix`, each step
  *  row also carries its button (abschlussStepAction); `settled` rows (answered in this sheet)
  *  stay in place as the record of it — a check and the answer's word, still a link. */
-export function abschlussOpenItems(
-  points: AbschlussOpenPoint[], go: AbschlussOpenTargets,
+export function abschlussOpenItems<P extends AbschlussOpenPoint>(
+  points: P[], go: OpenTargetsFor<P>,
   opts?: { fix: AbschlussFix; now: () => string; settled?: ReadonlyMap<AbschlussStep, string> },
 ): ConfirmItem[] {
+  // the signature guarantees a target for every kind in `points`; read as optional only because a
+  // generic Pick does not narrow per point
+  const to: Partial<AbschlussOpenTargets> = go
   return points.map((p) => {
     const onClick = () => {
       if (p.kind === 'step') go.step(p.step)
-      else if (p.kind === 'trupps') go.trupps()
-      else go.media()
+      else if (p.kind === 'trupps') to.trupps?.()
+      else to.media?.()
     }
     const answer = p.kind === 'step' ? opts?.settled?.get(p.step) : undefined
     if (answer) return { label: abschlussOpenLabel(p), end: answer, done: true, onClick }
     const action = p.kind === 'step' && opts ? abschlussStepAction(p.step, go, opts.fix, opts.now) : undefined
     return { label: abschlussOpenLabel(p), onClick, ...(action ? { action } : {}) }
+  })
+}
+
+/** One reading of a confirm's open points (`abschlussSheet`). */
+export interface AbschlussSheetState {
+  items: ConfirmItem[]
+  /** something is still open that makes going ahead a «trotzdem» (`countsAsOpen`, minus the
+   *  points answered in this sheet or pre-filled) – the caller words its lead, note and button by it */
+  anyOpen: boolean
+}
+
+/**
+ * The ONE list of open points, for BOTH confirms that show it (31.10.2026): «Einsatz
+ * abschliessen» (useAbschluss) and «Angaben fehlen noch» in front of a PDF or a print
+ * (ReportPreflight). The print built its own plain links, so the Material row said «Nichts
+ * verwendet» on one and nothing on the other. Rows, order and in-place answers come from here;
+ * the words around the list (title, lead, note, buttons) stay each confirm's own.
+ *
+ * Returns a READER: call it for the first spec and pass it again as the ask's `refresh`
+ * (ConfirmSpec). A row answered in the sheet (`write` ran) stays in place as a done one, its
+ * answer at the end — the reader remembers it, because `points` is the caller's render and does
+ * not move while the ask stands. Without `write` (a session that may not edit the Rapport) the
+ * rows are links only. `prefilled` puts the caller's own row in a step's place and counts that
+ * step as answered: the Abschluss's Einsatzende «jetzt 23:41», which the close itself writes.
+ */
+export function abschlussSheet<P extends AbschlussOpenPoint>(
+  points: P[], go: OpenTargetsFor<P>,
+  opts: { write?: (over: Partial<ReportMeta>) => void; now: () => string; prefilled?: Partial<Record<AbschlussStep, ConfirmItem>> },
+): () => AbschlussSheetState {
+  const { write, now, prefilled = {} } = opts
+  const settled = new Map<AbschlussStep, string>()
+  const fix: AbschlussFix | undefined = write && ((step, over, answer) => {
+    write(over)
+    settled.set(step, answer)
+  })
+  const ownRow = (p: AbschlussOpenPoint) => (p.kind === 'step' ? prefilled[p.step] : undefined)
+  return () => ({
+    items: abschlussOpenItems(points, go, fix && { fix, now, settled }).map((row, i) => ownRow(points[i]) ?? row),
+    anyOpen: points.some((p) => countsAsOpen(p) && !(p.kind === 'step' && (settled.has(p.step) || ownRow(p)))),
   })
 }
 

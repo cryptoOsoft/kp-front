@@ -189,15 +189,15 @@ function summary(rows: readonly ReadinessRow[], lastTest: number | null): { stat
 // `--nudge-reserve`; owner 25.10.2026: «Rapport abgeschlossen» covered «… noch nie getestet»)
 const nudgeHeight = publishHeight('--nudge-h')
 
-/** The Karte home's card (owner's pick, round 1): only when a row is red or nothing was checked
- *  for 90 days, never inside an Einsatz. The first red row with its fix, or — all green — the
+/** The Karte home's card (owner's pick, round 1): only in the installed app, only when a row is
+ *  red or nothing was checked for 90 days, never inside an Einsatz. The first red row with its fix, or — all green — the
  *  Testalarm; «Später» hides it 30 days, «Keine Alarme auf diesem Gerät» for good (push off).
  *  Collapses to nothing when there is nothing to say — not to a line. */
 export function AlarmNudgeCard({ inIncident, phone }: { inIncident: boolean; phone: boolean }) {
   const A = appConfig.copy.karte.device.alarm
   const { now, rows, store, available, refresh, linkSession } = useAlarmReadiness()
   const { run, test, optOut, guideEl } = useFixes(refresh)
-  if (available == null || !nudgeDue(rows, { now, inIncident, linkSession, pushUnavailable: !available, store })) return guideEl
+  if (available == null || !nudgeDue(rows, { now, standalone: isStandalone(), inIncident, linkSession, pushUnavailable: !available, store })) return guideEl
   const red = rows.find((r) => r.state === 'red') ?? null
   const head = red ? A.nudgeRed : store.lastCheck == null ? A.nudgeCheck : A.nudgeCheckOld
   return (

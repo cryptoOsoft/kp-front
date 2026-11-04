@@ -6,6 +6,8 @@ import { RAIL_COMPACT, RAIL_LABELLED, RAIL_WIDE } from '../lib/navRail'
 import { useRail } from '../lib/useRail'
 import { useIsPhone } from '../lib/useIsPhone'
 import { addFace, barTools } from '../lib/toolFold'
+import { railToolKey } from '../lib/hotkeys'
+import { useKeyHints } from '../lib/useDevicePrefs'
 
 export interface ToolDef {
   id: string
@@ -41,6 +43,10 @@ interface Props {
    *  earns most — «Auswahl», «Linie», «Fläche», «Messen» are short, real words, and nine glyphs
    *  with no text is the densest thing on the screen for anybody who does not know them. */
   labels?: RailLabels
+  /** the surface binds the tool hotkeys (lib/hotkeys), so each tile may wear its letter. Default
+   *  true – the Karte and the Plan; the Karte's viewer rail (Pin · Messen · ERG) has no keyboard
+   *  layer and passes false, so «Messen» does not advertise a D that does nothing there. */
+  hotkeys?: boolean
   /** pinned footer cluster — surface-specific (map nav vs plan zoom), rendered inside .vrail-nav */
   footer: React.ReactNode
   /** root class so each surface keeps its own selector hook (.tool-rail / .wb-tools) */
@@ -67,15 +73,23 @@ const MAXW = 280
  *  wanting the words permanently is what the `railLabels` device pref is for. */
 let lastExpanded = false
 
-export function ToolRail({ primary, tools, active, open = false, onPick, toolRefs, extras, footer, className, labels }: Props) {
+export function ToolRail({ primary, tools, active, open = false, onPick, toolRefs, extras, footer, className, labels, hotkeys = true }: Props) {
   const [expanded, setExpandedState] = useState(lastExpanded)
   const setExpanded = (v: boolean) => { lastExpanded = v; setExpandedState(v) }
   const nav = appConfig.copy.navRail
+  // the tile's shortcut letter (lib/hotkeys · TOOL_KEY) – the same badge as the left rail, shown
+  // by the device pref «Tastenkürzel anzeigen» (lib/prefs · keyHints) and, in CSS, only with a
+  // mouse and keyboard. Not on the phone's folded bar: its «+» tile is a door to many tools.
+  const [keyHints] = useKeyHints()
   // PHONE: the bar keeps Auswahl · «+» · Messen, and everything that PUTS SOMETHING ON THE
   // SURFACE moves into the «+» sheet (lib/toolFold, components/Palette) — five wide tiles with
   // the footer's two, nothing scrolls. The vertical rail has the room and is unchanged.
   const phone = useIsPhone()
   const bar = phone ? barTools(tools) : tools
+  const keyHint = (toolId: string) => {
+    const k = keyHints && hotkeys && !phone ? railToolKey(toolId) : undefined
+    return k ? <span className="rail-key" aria-hidden>{k}</span> : null
+  }
   /** the armed tool that came out of the sheet, which the «+» tile wears while it is armed */
   const face = phone ? addFace(tools, active) : null
 
@@ -119,6 +133,7 @@ export function ToolRail({ primary, tools, active, open = false, onPick, toolRef
         onClick={() => onPick(target)}
       >
         <span className="vrail-glyph"><Icon id={shown.icon} /></span><span className="vrail-label">{shown.label}</span>
+        {keyHint(shown.id)}
       </button>
     )
   }
@@ -165,6 +180,7 @@ export function ToolRail({ primary, tools, active, open = false, onPick, toolRef
                 onClick={() => onPick(primary.id)}
               >
                 <span className="vrail-glyph"><Icon id={face?.icon ?? primary.icon} /></span><span className="vrail-label">{label}</span>
+                {keyHint(primary.id)}
               </button>
             )
           }

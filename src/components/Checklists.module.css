@@ -9,8 +9,12 @@
    review round 5, 20.10.2026 – see .cl-main). */
 .cl-surface { composes: shell from './Surface.module.css'; }
 
-/* left rail */
-.cl-rail { flex: 0 0 248px; overflow-y: auto; scrollbar-gutter: stable; padding: var(--sp-3) var(--sp-2); background: var(--surface);
+/* left rail. 248px on a tablet, growing with the viewport to 400px: the document pane is a centred
+   760px column anyway, so a wide screen has the room for a long title («Viele Personen (Schule /
+   Heim / Saal)» is 300px in Sora bold 16 – with the row's and the rail's padding it needs ~380px) on
+   ONE line. 40vw − 150px is 248px up to ~1000px, ~320px on an iPad landscape (1180), ~396px at 1366.
+   `--cl-rail-w` so the Karte library's wider column (ChecklistLibrary · .column) follows the same curve. */
+.cl-rail { --cl-rail-w: clamp(248px, 40vw - 150px, 400px); flex: 0 0 var(--cl-rail-w); overflow-y: auto; scrollbar-gutter: stable; padding: var(--sp-3) var(--sp-2); background: var(--surface);
   border-right: 1px solid var(--glass-edge); display: flex; flex-direction: column; gap: 16px; }
 .cl-rail-search { margin: 2px 0 4px; }   /* THE search (components/SearchField, 29.09.2026) — placement only */
 /* all groups («Passend», Aufgaben, each reference template, the devices) are peers under the search bar –

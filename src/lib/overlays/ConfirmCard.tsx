@@ -60,8 +60,9 @@ export interface ConfirmSpec {
    *  nothing is destroyed, so no red. Every dismissal still resolves `false`. */
   safeAnswer?: 'cancel' | 'alt'
   /** Re-read the ask after a row's in-place action: what is still open, the words on the
-   *  message and the buttons. Only the parts returned change. */
-  refresh?: () => Partial<Pick<ConfirmSpec, 'items' | 'message' | 'note' | 'confirmLabel' | 'cancelLabel' | 'safeAnswer'>>
+   *  title, the message and the buttons («Angaben fehlen noch» is not true any more once the last
+   *  one is answered in the sheet). Only the parts returned change. */
+  refresh?: () => Partial<Pick<ConfirmSpec, 'title' | 'items' | 'message' | 'note' | 'confirmLabel' | 'cancelLabel' | 'safeAnswer'>>
 }
 
 /**

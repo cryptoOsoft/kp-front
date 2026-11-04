@@ -13,8 +13,9 @@
 .home { background: transparent; }
 
 /* the tablet's list column: wider than the Einsatz rail (it carries device rows with pictures);
-   its groups are THE rail look (ChecklistRail, look="rail") */
-.column { flex-basis: 300px; gap: 0; }
+   its groups are THE rail look (ChecklistRail, look="rail"). At least 300px, and on a wide screen
+   the Einsatz rail's own width (Checklists · --cl-rail-w) when that is more. */
+.column { flex-basis: max(300px, var(--cl-rail-w)); gap: 0; }
 .column :global(.list-group) + :global(.list-group) { margin-top: var(--sp-4); }
 
 /* the phone's page head under the back row (components/ListRow · BackRow): the page's own title

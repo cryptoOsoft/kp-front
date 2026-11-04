@@ -4,8 +4,9 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { ToolRail } from './ToolRail'
 import { appConfig } from '../config/appConfig'
 import { slimTools, MAP_READONLY_TOOLS } from '../lib/readOnlyTools'
+import { loadPrefs, savePrefs } from '../lib/prefs'
 
-afterEach(cleanup)
+afterEach(() => { cleanup(); document.cookie = 'kp-front-prefs=; max-age=0; path=/' })
 
 /** jsdom has no `matchMedia`, and the rail asks it whether this is a phone (lib/useIsPhone) —
  *  the bar folds there. Every suite below is the vertical rail unless it says otherwise. */
@@ -276,5 +277,44 @@ describe('the phone bar', () => {
   it('leaves the vertical rail every tool and its old word', () => {
     render(<ToolRail className="tool-rail" primary={appConfig.copy.primarySymbol} tools={appConfig.copy.mapTools} active="select" onPick={vi.fn()} footer={null} />)
     for (const name of ['Linie', 'Trupp', appConfig.copy.primarySymbol.label]) expect(screen.getByRole('button', { name })).toBeTruthy()
+  })
+})
+
+// «Tastenkürzel anzeigen» (lib/prefs · keyHints): each tool tile wears the letter the keyboard binds
+describe('the shortcut letters', () => {
+  const rail = (over: Partial<React.ComponentProps<typeof ToolRail>> = {}) => render(
+    <ToolRail className="tool-rail" primary={appConfig.copy.primarySymbol} tools={appConfig.copy.mapTools}
+      active="line" onPick={vi.fn()} footer={null} {...over} />)
+  const letters = () => [...document.querySelectorAll('.vrail-tool .rail-key')].map((el) => el.textContent)
+
+  it('are on every tool tile by default – Symbol included', () => {
+    rail()
+    // Auswahl · Symbol · Linie · Fläche · Absperrkreis · Notiz · Trupp · Messen
+    expect(letters()).toEqual(['V', 'S', 'L', 'F', 'U', 'N', 'T', 'D'])
+  })
+
+  it('follow the Plan\'s own tool ids and the armed half of Auswahl', () => {
+    rail({ tools: appConfig.copy.planTools, active: 'pan' })
+    expect(letters()[0]).toBe('V')
+    cleanup()
+    rail({ active: 'lasso' })
+    expect(letters()[0]).toBe('W') // the tile wears Mehrfach, and Mehrfach is W
+  })
+
+  it('are not rendered when the device pref is off', () => {
+    savePrefs({ ...loadPrefs(), keyHints: false })
+    rail()
+    expect(letters()).toEqual([])
+  })
+
+  it('are not rendered on a rail whose surface binds no tool keys', () => {
+    rail({ hotkeys: false })
+    expect(letters()).toEqual([])
+  })
+
+  it('are not rendered on the phone\'s folded bar', () => {
+    phone = true
+    rail()
+    expect(letters()).toEqual([])
   })
 })

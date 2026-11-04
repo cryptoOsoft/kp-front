@@ -15,7 +15,6 @@ import { duplicateDrawing, duplicateEntity } from '../lib/duplicate'
 import { fillTemplate, formatSymbolName, formatTime } from '../lib/format'
 import { bearingDeg, circlePolygon, haversineM, midCoord } from '../lib/geo'
 import { georefDispatch, useGeorefMode } from '../lib/georefMode'
-import type { GeorefPlan } from '../lib/georefTwins'
 import { routeEscape, routeHotkey } from '../lib/hotkeyRoute'
 import { resolveHotkey, isTypingTarget } from '../lib/hotkeys'
 import { newId } from '../lib/ids'
@@ -150,7 +149,6 @@ export interface UseMapActionsInputs {
   patchEntity: (id: string, patch: Partial<Entity>) => void
   objectsRef: RefObject<TacticalObject[]>
   objects: TacticalObject[]
-  selectedPlanProjection: { plan: GeorefPlan; pt: { x: number; y: number } } | null
   setPlanFocus: Dispatch<SetStateAction<{ x: number; y: number; floor: number; annoId?: string; twinEntityId?: string; flash?: boolean; nonce: number } | null>>
   focusEntity: (id: string) => void
   editNoteId: string | null
@@ -172,7 +170,7 @@ export function useMapActions({
   planFit, stepHistory, planKeys, setJournalOpen, setComposerOpen, togglePanel, setSettingsOpen,
   setHelpOpen, coord, notePanelId, notePlacedId, mapWorkRect, drawings, drawTap, beginDrag, setDocRaw,
   endDrag, flyToMapVisible, setVehicleOverrides, trupps, linkTruppLine, patchEntity, objectsRef,
-  objects, selectedPlanProjection, setPlanFocus, focusEntity, editNoteId, user, stepLabelRef,
+  objects, setPlanFocus, focusEntity, editNoteId, user, stepLabelRef,
 }: UseMapActionsInputs) {
   // Every path through here ends the "I am reading this object" state — reaching for a tool means
   // you are done with the detail panel, exactly as it has always worked for a note (see the
@@ -895,25 +893,6 @@ export function useMapActions({
    * second set of rules about what «zeigen» leaves behind: the map jump selects the marker, the
    * plan jump opens its storey and points at the chip.
    */
-  /** «Auf Plan zeigen». The object is an ordinary anno on that sheet — same id — so this is the
-   *  sheet's own «zeigen», not a door to a projection. */
-  const showMapSourceOnPlan = (entity: Entity, target = selectedPlanProjection) => {
-    if (!target) return
-    setPanel(null); setMode('plans'); setActivePlanId(target.plan.id)
-    setPlanFocus({ x: target.pt.x, y: target.pt.y, floor: 0, annoId: entity.id, nonce: Date.now() })
-  }
-  /** «Auf der Karte zeigen», from a plan-drawn object's own panel. It IS a map object — same id,
-   *  same selection, same detail panel — so this is the ordinary jump, not a door to a projection.
-   *
-   *  ⚠️ …unless it is not there yet: a sheet whose georeference has just been made, or an object
-   *  the fit cannot place, has no map body to select. `coord` is the projected point the caller
-   *  already worked out, and flying to it is the honest answer — the operator asked to be shown
-   *  where this is, not to have it selected. */
-  const showPlanSourceOnMap = (_planId: string, annoId: string, coord: LngLat) => {
-    setPanel(null); setMode('map')
-    if (doc.entities.some((e) => e.id === annoId)) focusEntity(annoId)
-    flyToMapVisible(coord, 18.4)
-  }
   const goToTrupp = (t: PlacedTrupp) => {
     setPanel(null)
     if (t.target.kind === 'map') { setMode('map'); focusEntity(t.target.entityId); return }
@@ -981,5 +960,5 @@ export function useMapActions({
     for (const [op, payload] of act.events) emit(op, payload)
     log(on ? 'check' : 'undo', act.text, 'symbol', undefined, ent.id)
   }
-  return { deleteGroup, deleteEntity, placed, goToModule, finishSelection, onMapClick, startEntityMove, streamEntityMove, finishEntityMove, onMarquee, transformGroup, goToTrupp, viewsApi, toggleViews, selected, showMapSourceOnPlan, undockTeam, setEntityDone, focusDrawing, noteEntity, pick, pickShape, moveLiveOnSheet, showPlanSourceOnMap }
+  return { deleteGroup, deleteEntity, placed, goToModule, finishSelection, onMapClick, startEntityMove, streamEntityMove, finishEntityMove, onMarquee, transformGroup, goToTrupp, viewsApi, toggleViews, selected, undockTeam, setEntityDone, focusDrawing, noteEntity, pick, pickShape, moveLiveOnSheet }
 }

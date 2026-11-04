@@ -2094,13 +2094,13 @@ describe('«Gelöscht / erledigt» on the plan', () => {
     expect(emit).toHaveBeenCalledWith('entity.edit', { id: 'f1', patch: { done: saved[0].done } })
   })
 
-  it('states a set one and takes it back with «Wieder aktiv» — a row, and `done: null` for the replay', () => {
+  it('states a set one and the pressed «Erledigt» takes it back – a row, and `done: null` for the replay', () => {
     const done = { at: '2026-09-23T18:40:00.000Z' }
     const { onChange, log, emit, container } = open([{ ...feuer, done }])
     // greyed on the board, the time in its corner
     expect(container.querySelector('.ts.ts-done .sym-done')?.textContent).toMatch(/^\d\d:\d\d$/)
-    expect(screen.getAllByText(new RegExp(`^${O.word.fire.title} \\d\\d:\\d\\d$`)).length).toBeGreaterThan(0)
-    fireEvent.click(screen.getAllByRole('button', { name: new RegExp(O.reopen) })[0])
+    expect(screen.getAllByText(new RegExp(`^${O.word.fire.inline} \\d\\d:\\d\\d$`)).length).toBeGreaterThan(0)
+    fireEvent.click(screen.getAllByRole('button', { name: O.action, pressed: true })[0])
     expect(lastSaved(onChange)[0].done).toBeUndefined()
     expect(log.mock.calls[0][1]).toBe('Feuer EG wieder aktiv')
     expect(emit).toHaveBeenCalledWith('board.edit', expect.objectContaining({ id: 'f1', patch: { done: null } }))
@@ -2137,14 +2137,14 @@ describe('«Gelöscht / erledigt» on the plan', () => {
   it('…but a Fahrzeug that already carries `done` (an older record) can still be reopened', () => {
     const car: BoardAnno = { id: 'v1', kind: 'symbol', x: 0.5, y: 0.5, floor: 0, symbol: 'VKF Fahrzeug', label: 'TLF', done: { at: '2026-09-23T18:40:00.000Z' } }
     const { onChange } = open([car])
-    fireEvent.click(screen.getAllByRole('button', { name: new RegExp(O.reopen) })[0])
+    fireEvent.click(screen.getAllByRole('button', { name: O.action, pressed: true })[0])
     expect(lastSaved(onChange)[0].done).toBeUndefined()
   })
 
   it('offers nothing on a read-only board — but still states that it is done', () => {
     open([{ ...feuer, done: { at: '2026-09-23T18:40:00.000Z' } }], { readOnly: true })
-    expect(screen.queryByRole('button', { name: new RegExp(O.reopen) })).toBeNull()
-    expect(screen.getAllByText(new RegExp(`^${O.word.fire.title} `)).length).toBeGreaterThan(0)
+    expect(screen.queryByRole('button', { name: new RegExp(O.action) })).toBeNull()
+    expect(screen.getAllByText(new RegExp(`^${O.word.fire.inline} \\d\\d:\\d\\d$`)).length).toBeGreaterThan(0)
   })
 })
 

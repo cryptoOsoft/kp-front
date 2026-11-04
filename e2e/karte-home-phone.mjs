@@ -1,6 +1,7 @@
 // The Karte home on a phone, two owner checks (25.10.2026, iPhone screenshot):
 //   1. a toast never covers the alarm card under the bar – «Rapport abgeschlossen · Wieder öffnen»
 //      lay on «Alarm auf diesem Gerät noch nie getestet» (karte/AlarmReadiness · AlarmNudgeCard);
+//      nor does the Meldeleiste – «Update bereit» lay on it too (31.10.2026, Safari on a Mac);
 //   2. one hand zooms the map: a double tap whose second touch is held and dragged down zooms in
 //      (MapLibre's tap-drag-zoom, off only while a tap tool is armed – MapView, UX sweep M4).
 // A device-class check, not a Playwright spec: WebKit at iPhone 13 size (and the tablet for 1),
@@ -9,11 +10,13 @@
 //   LD_LIBRARY_PATH=… node e2e/karte-home-phone.mjs http://127.0.0.1:5188   (PIN 000000 stack)
 //
 // The local stack has no VAPID key, so `/api/push/vapid-key` is answered with a stand-in – push
-// counts as available and the card shows as on a station phone. WebKit on Linux has no touch
+// counts as available – and the page answers as the installed app (ios-standalone · standalone):
+// the card shows only there, as on a station phone. WebKit on Linux has no touch
 // drag: the gesture is dispatched as touch + pointer EVENTS, which is what MapLibre listens to.
 // Exit code 1 and «✗» lines when a check fails.
 import { createRequire } from 'node:module'
 import path from 'node:path'
+import { standalone } from './ios-standalone.mjs'
 
 const require = createRequire(path.join(process.cwd(), 'package.json'))
 const { webkit, devices } = require('@playwright/test')
@@ -33,6 +36,7 @@ const browser = await webkit.launch()
 for (const [name, dev] of Object.entries(DEVICES)) {
   const ctx = await browser.newContext({ ...dev, baseURL: BASE, serviceWorkers: 'block' })
   await ctx.route(/\/api\/push\/vapid-key/, (r) => r.fulfill({ json: { key: 'stand-in', enabled: true } }))
+  await ctx.addInitScript(standalone)
   await ctx.addInitScript(() => sessionStorage.setItem('kp.karte.view', JSON.stringify({ center: [7.555, 47.515], zoom: 16, bearing: 0, objectId: null, surface: 'karte' })))
   const page = await ctx.newPage()
   await page.goto('/')
@@ -57,6 +61,16 @@ for (const [name, dev] of Object.entries(DEVICES)) {
   const [p, c] = [await pill.boundingBox(), await card.boundingBox()]
   const overlap = p.y < c.y + c.height && c.y < p.y + p.height && p.x < c.x + c.width && c.x < p.x + p.width
   check(!overlap, `${name}: toast (y ${Math.round(p.y)}–${Math.round(p.y + p.height)}) clear of the alarm card (y ${Math.round(c.y)}–${Math.round(c.y + c.height)})`)
+  // the Meldeleiste's lane: a bare `.ml` takes the strip's real geometry (08-toasts / 15-mobile)
+  const ml = await page.evaluate(() => {
+    const el = Object.assign(document.createElement('div'), { className: 'ml' })
+    el.style.height = '60px'
+    document.body.append(el)
+    const r = el.getBoundingClientRect()
+    el.remove()
+    return { y: r.y, height: r.height }
+  })
+  check(ml.y >= c.y + c.height, `${name}: Meldeleiste (y ${Math.round(ml.y)}) under the alarm card (ends y ${Math.round(c.y + c.height)})`)
 
   if (name === 'phone') {
     await page.evaluate(() => document.querySelectorAll('.toaster > *').forEach((t) => t.remove()))

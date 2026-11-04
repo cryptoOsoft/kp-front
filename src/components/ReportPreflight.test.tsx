@@ -100,6 +100,57 @@ describe('ReportPreflight · the PDF with missing Mindestangaben', () => {
     // going there is not going ahead
     expect(downloadDirectReportPdf).not.toHaveBeenCalled()
   })
+
+  // 31.10.2026: the rows are the Abschluss confirm's (lib/abschlussOpen · abschlussSheet)
+  it('answers a row in place, re-words itself, and the answer is ON the PDF made from that tap', async () => {
+    const onSaveMeta = vi.fn()
+    // everything recorded but the Material; the prop never catches up – the draft must not need it to
+    const meta = { endedAt: '2026-09-14T10:00:00.000Z', einsatzleiter: 'Muster', kontaktpersonNone: true, summary: 'ok', rueckmeldungNone: true }
+    render(
+      <>
+        <Overlays />
+        <ReportPreflight
+          incident={incident} reportMeta={meta} events={[]}
+          annotatedPlanCount={0} truppCount={0} attendanceCount={1} mittelCount={0}
+          onSaveMeta={onSaveMeta}
+        />
+      </>,
+    )
+    await act(async () => {})
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: P.pdfFull })) })
+    const dialog = screen.getByRole('alertdialog')
+    await act(async () => { fireEvent.click(within(dialog).getByRole('button', { name: A.fix.mittel })) })
+
+    expect(onSaveMeta).toHaveBeenLastCalledWith(expect.objectContaining({ mittelConfirmedNone: true }))
+    // still open, the row done, and the title no longer says anything is missing
+    expect(dialog.textContent).toContain(P.exportCompleteTitle)
+    expect(dialog.textContent).not.toContain(P.exportIncompleteMsg)
+    await act(async () => { fireEvent.click(within(dialog).getByRole('button', { name: P.pdfFull })) })
+    expect(vi.mocked(downloadDirectReportPdf).mock.calls[0][0].draft.meta).toMatchObject({ mittelConfirmedNone: true })
+  })
+})
+
+// owner, 31.10.2026: the pencil went – the card is the pointer's target, its heading the keyboard's
+describe('ReportPreflight · the Einsatzdaten card', () => {
+  it('opens from the keyboard on its heading, even where the Rapport itself may not be written', async () => {
+    const onEditDispatch = vi.fn()
+    render(
+      <ReportPreflight
+        incident={incident} reportMeta={{}} events={[]} canEdit={false}
+        annotatedPlanCount={0} truppCount={0} attendanceCount={1} mittelCount={1}
+        onSaveMeta={() => {}} onEditDispatch={onEditDispatch}
+      />,
+    )
+    await act(async () => {})
+    const head = screen.getByRole('button', { name: P.fromDispatch })
+    fireEvent.keyDown(head, { key: 'Enter' })
+    fireEvent.keyDown(head, { key: ' ' })
+    fireEvent.keyDown(head, { key: 'Tab' })
+    expect(onEditDispatch).toHaveBeenCalledTimes(2)
+    // a pointer tap anywhere on the card is ONE ask
+    fireEvent.click(head)
+    expect(onEditDispatch).toHaveBeenCalledTimes(3)
+  })
 })
 
 describe('ReportPreflight · Auswertung default and operator choice', () => {

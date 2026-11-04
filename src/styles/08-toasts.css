@@ -81,10 +81,12 @@
   --lane-l: calc(max(16px, env(safe-area-inset-left)) + var(--rail-w) + 24px);
   --lane-r: calc(max(16px, env(safe-area-inset-right)) + var(--rail-w) + 24px); }
 .ml { position: fixed; z-index: var(--z-messages); overflow-x: hidden; overflow-y: auto;
-  top: calc(92px + env(safe-area-inset-top));
+  /* under the Karte home's alarm card while it stands (`--nudge-reserve`, below): «Update bereit»
+     lay on «Alarm auf diesem Gerät noch nie getestet» (owner, 31.10.2026) */
+  top: calc(92px + var(--nudge-reserve, 0px) + env(safe-area-inset-top));
   left: var(--lane-l); right: var(--lane-r);
   max-width: 860px; margin-inline: auto;
-  max-height: calc(100dvh - 116px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  max-height: calc(100dvh - 116px - var(--nudge-reserve, 0px) - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   /* no reserved scrollbar gutter (S3 rework, 21.10.2026): a strip that does not scroll held ~12px
      of empty gutter on a desktop pointer, which stood its ✕ that far left of the toast's under it */
   overscroll-behavior: contain;
@@ -211,8 +213,8 @@
   /* …at the head's and the bars' 8px (S3 rework, 21.10.2026): it was 12, the one card on the
      screen with an edge of its own, and the toast under it stood at the bars' 8 */
   :is(.ml, .toaster) { --lane-l: max(8px, env(safe-area-inset-left)); --lane-r: max(8px, env(safe-area-inset-right)); }
-  .ml { top: calc(72px + env(safe-area-inset-top));
-    max-height: calc(100dvh - 72px - env(safe-area-inset-top) - var(--msg-lane-bottom)); }
+  .ml { top: calc(72px + var(--nudge-reserve, 0px) + env(safe-area-inset-top));
+    max-height: calc(100dvh - 72px - var(--nudge-reserve, 0px) - env(safe-area-inset-top) - var(--msg-lane-bottom)); }
   /* the ✕ keeps its 44px slot beside the title, so the title's room is what the gaps leave: 8 and a
      12px inset (not 12 and 16) keep «TLF fährt weg · 340 m vom Einsatzort» on one 14px line at 390 */
   .ml-row { flex-wrap: wrap; column-gap: var(--sp-2); padding-bottom: 8px; padding-left: var(--sp-3); }
@@ -275,8 +277,9 @@
 :root:has(.ml) .toaster { --ml-reserve: calc(var(--ml-h, 0px) + 8px); }
 /* …and under the Karte home's alarm card (karte/AlarmReadiness · AlarmNudgeCard, 84px down, its
    measured `--nudge-h`) + the same 8px channel: «Rapport abgeschlossen · Wieder öffnen» lay on the
-   card's head (owner, 25.10.2026) */
-:root:has([data-alarm-nudge]) .toaster { --nudge-reserve: calc(84px + var(--nudge-h, 0px) + 8px - 92px); }
+   card's head (owner, 25.10.2026). The strip steps down by the same reserve (31.10.2026), so the
+   order under the bar is card · strip · toasts. */
+:root:has([data-alarm-nudge]) :is(.ml, .toaster) { --nudge-reserve: calc(84px + var(--nudge-h, 0px) + 8px - 92px); }
 /* (the foot's lifts over the plan's chip row and the Gebäude's «+ UG» went with the foot lane,
    20.10.2026.) While a placement mode takes the map's or the plan's taps (`data-placing`,
    lib/toastLane · usePlacementLane) the strip is bounded, so the lane under it stays near the

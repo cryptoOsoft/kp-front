@@ -11,7 +11,6 @@ import { appConfig } from '../config/appConfig'
 import { connectedLineLabel } from '../lib/connectedLines'
 import { fillTemplate, formatSymbolName, formatTime } from '../lib/format'
 import { polygonAreaM2, bboxSizeM, pathLengthM, haversineM } from '../lib/geo'
-import type { GeorefPlan } from '../lib/georefTwins'
 import { type GpsEnd, hasTraced, freshBefore, gpsLineName, fmtAway, onSiteAnchor, onSiteKnown } from '../lib/gpsReturn'
 import { wandBlock, wandBlockHint } from '../lib/grundriss'
 import { lineLabel } from '../lib/lineDecor'
@@ -41,8 +40,6 @@ export interface MapDetailPanelsProps {
   deleteEntity: (id: string) => Promise<boolean>
   timeline: TimelineEvent[]
   sym: ReturnType<typeof useSymbols>
-  selectedPlanProjection: { plan: GeorefPlan; pt: { x: number; y: number } } | null
-  showMapSourceOnPlan: (entity: Entity, target?: { plan: GeorefPlan; pt: { x: number; y: number } } | null) => void
   entityTypedAt: RefObject<Map<string, number>>
   titleLiveRef: RefObject<boolean>
   beginDrag: () => void
@@ -109,7 +106,7 @@ export interface MapDetailPanelsProps {
 
 export function MapDetailPanels({
   detailSlotFree, tacticalLocked, tool, selected, commit, setSelectedId, flyToMapVisible, deleteEntity,
-  timeline, sym, selectedPlanProjection, showMapSourceOnPlan, entityTypedAt, titleLiveRef, beginDrag,
+  timeline, sym, entityTypedAt, titleLiveRef, beginDrag,
   setDocRaw, endDrag, emit, patchEntity, linkRosterFields, createCircle, doc, undockTeam, effTrupps,
   symbolCaptions, rosterNames, rosterRank, personStatus, rosterFieldHints, setEntityDone,
   vehicleOverrides, canEditIncident, readOnly, stopPersonSharing, setVehicleOverrides, log,
@@ -203,8 +200,6 @@ export function MapDetailPanels({
           svg={selected.symbolSvg ?? (selected.symbol === appConfig.symbols.vehicleName ? vehicleSymbolSvg(selected.label ?? '', selected.rotation ?? 0) : selected.symbol ? sym.byName[selected.symbol] : undefined)}
           onClose={() => setSelectedId(null)}
           onCenter={() => flyToMapVisible(selected.coord, 18.4)}
-          onProjection={selectedPlanProjection ? () => showMapSourceOnPlan(selected) : undefined}
-          projectionPlan={selectedPlanProjection?.plan.code}
           onTitleLive={(v) => {
             // stream into the doc so the note-pill / label updates live, but silently —
             // snapshot once for undo, no per-keystroke audit event

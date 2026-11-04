@@ -79,6 +79,10 @@
 <meta property="og:image:width" content="1500">
 <meta property="og:image:height" content="937">
 <meta property="og:locale" content="rm_CH">
+<meta property="og:locale:alternate" content="de_CH">
+<meta property="og:locale:alternate" content="fr_CH">
+<meta property="og:locale:alternate" content="it_CH">
+<meta property="og:locale:alternate" content="en_GB">
 <meta name="twitter:card" content="summary_large_image">
 <script type="application/ld+json">
 {
@@ -102,11 +106,11 @@
       "applicationCategory": "BusinessApplication",
       "operatingSystem": "Web browser",
       "inLanguage": [
-        "de",
-        "fr",
-        "it",
-        "en"
+        "de"
       ],
+      "softwareVersion": "0.12.0",
+      "dateModified": "2026-10-13",
+      "releaseNotes": "https://github.com/feuerwehr-oberwil/kp-front/releases/tag/v0.12.0",
       "license": "https://www.gnu.org/licenses/agpl-3.0.html",
       "sameAs": "https://github.com/feuerwehr-oberwil/kp-front",
       "subjectOf": {
@@ -122,8 +126,31 @@
         "price": "0",
         "priceCurrency": "CHF"
       },
+      "audience": [
+        {
+          "@type": "Audience",
+          "audienceType": "Corps da pumpiers"
+        }
+      ],
+      "potentialAction": {
+        "@type": "ViewAction",
+        "name": "Avrir la demo da KP Front",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://demo.kp-front.ch/"
+        }
+      },
+      "author": {
+        "@id": "https://www.bastianeichenberger.ch/#person"
+      },
+      "creator": {
+        "@id": "https://www.bastianeichenberger.ch/#person"
+      },
+      "copyrightHolder": {
+        "@id": "https://www.bastianeichenberger.ch/#person"
+      },
       "publisher": {
-        "@id": "https://kp-front.ch/#org"
+        "@id": "https://www.feuerwehr-oberwil.ch/#organization"
       }
     },
     {
@@ -131,7 +158,13 @@
       "@id": "https://kp-front.ch/#source",
       "name": "KP Front source code",
       "codeRepository": "https://github.com/feuerwehr-oberwil/kp-front",
-      "license": "https://www.gnu.org/licenses/agpl-3.0.html"
+      "license": "https://www.gnu.org/licenses/agpl-3.0.html",
+      "author": {
+        "@id": "https://www.bastianeichenberger.ch/#person"
+      },
+      "publisher": {
+        "@id": "https://www.feuerwehr-oberwil.ch/#organization"
+      }
     },
     {
       "@type": "CreativeWorkSeries",
@@ -144,16 +177,35 @@
         {
           "@id": "https://kp-rueck.ch/#app"
         }
+      ],
+      "publisher": {
+        "@id": "https://www.feuerwehr-oberwil.ch/#organization"
+      }
+    },
+    {
+      "@type": "Person",
+      "@id": "https://www.bastianeichenberger.ch/#person",
+      "name": "Bastian Eichenberger",
+      "url": "https://www.bastianeichenberger.ch",
+      "sameAs": [
+        "https://github.com/BBQuercus"
       ]
     },
     {
-      "@type": "Organization",
-      "@id": "https://kp-front.ch/#org",
-      "name": "Feuerwehr Oberwil BL",
-      "url": "https://www.feuerwehr-oberwil.ch",
-      "sameAs": [
-        "https://github.com/feuerwehr-oberwil"
-      ]
+      "@type": "WebSite",
+      "@id": "https://kp-front.ch/#website",
+      "url": "https://kp-front.ch/",
+      "name": "KP Front",
+      "inLanguage": [
+        "de-CH",
+        "fr-CH",
+        "it-CH",
+        "rm-CH",
+        "en"
+      ],
+      "publisher": {
+        "@id": "https://www.feuerwehr-oberwil.ch/#organization"
+      }
     },
     {
       "@type": "WebPage",
@@ -162,6 +214,10 @@
       "name": "KP Front – Direcziun digitala d’acziun per ils pumpiers",
       "description": "KP Front è il post da commando digital al lieu d’acziun: charta, plans, gruppas, decurs e rapport – utilisabel offline ed open source.",
       "inLanguage": "rm-CH",
+      "dateModified": "2026-10-31",
+      "isPartOf": {
+        "@id": "https://kp-front.ch/#website"
+      },
       "mainEntity": {
         "@id": "https://kp-front.ch/#app"
       }
@@ -205,6 +261,14 @@
         },
         {
           "@type": "Question",
+          "name": "Datti sustegn per l’installaziun ed il manaschi?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Gea. Dumondas generalas davart l’installaziun e l’utilisaziun pon vegnir respundidas gratuitamain. KP Front po vegnir manà sin in’atgna infrastructura u tar in furnitur da hosting u cloud tschernì dal corp da pumpiers. Tenor cunvegnientscha individuala èsi era pussaivel da survegnir sustegn per l’installaziun, la configuraziun, actualisaziuns u il manaschi. In sustegn pli extendì po esser cunter pajament."
+          }
+        },
+        {
+          "@type": "Question",
           "name": "Funcziuna KP Front senza connexiun a l’internet?",
           "acceptedAnswer": {
             "@type": "Answer",
@@ -229,10 +293,10 @@
         },
         {
           "@type": "Question",
-          "name": "Tge linguas sustegna KP Front?",
+          "name": "En tge linguas è KP Front disponibel?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "La website è disponibla per tudestg, franzos, talian, rumantsch ed englais. L’applicaziun sezza e ses agid funcziunan per tudestg, franzos, talian ed englais – rumantsch n’è là anc betg disponibel. La lingua vegn fixada ina giada per corps, betg per apparat: durant l’acziun legian tuts ils medems terms. La documentaziun tecnica davart l’installaziun ed il manaschi è per englais. La versiun demo publica è per tudestg, ed ils screenshots qua derivan da la medema instanza."
+            "text": "L’interfatscha d’utilisader da KP Front è actualmain disponibla per tudestg. Sco applicaziun open source po KP Front vegnir amplifitgà cun ulteriuras linguas. Per quai dovri ina translaziun cumpletta e controllada professiunalmain dals terms dals pumpiers."
           }
         },
         {
@@ -699,7 +763,6 @@
           <li>S’annunziar cun Microsoft en il conto existent, ultra il PIN <span class="opt">opziunal</span></li>
           <li><strong>Visitas d’objects</strong> senza acziun, offline – glista da controlla, fotografias e rapport <span class="opt">opziunal</span></li>
           <li><strong>Atgna administraziun</strong> per mintga corps da pumpiers: persunal, vehichels, glistas da controlla, nivels da charta e models</li>
-          <li>Interfatscha per tudestg, englais, franzos u talian – configurada per mintga corps da pumpiers</li>
         </ul>
       </div>
     </div>
@@ -772,6 +835,10 @@
           las datas ed il manaschi restan en la responsabladad dal corps da pumpiers respectiv.</p>
       </div>
       <div class="faq-item">
+        <h3>Datti sustegn per l’installaziun ed il manaschi?</h3>
+        <p>Gea. Dumondas generalas davart l’installaziun e l’utilisaziun pon vegnir respundidas gratuitamain. KP Front po vegnir manà sin in’atgna infrastructura u tar in furnitur da hosting u cloud tschernì dal corp da pumpiers. Tenor cunvegnientscha individuala èsi era pussaivel da survegnir sustegn per l’installaziun, la configuraziun, actualisaziuns u il manaschi. In sustegn pli extendì po esser cunter pajament.</p>
+      </div>
+      <div class="faq-item">
         <h3>Funcziuna KP Front senza connexiun a l’internet?</h3>
         <p>Gea. Sco applicaziun installada funcziuna KP Front sin l’apparat: charta, plans, gruppas e
           decurs restan utilisabels, era sche la rait croda ora. Chartas e plans enturn l’acziun chargia
@@ -793,8 +860,8 @@
         <p>Na. Sco software open source è KP Front liberamain accessibla e po vegnir adattada a las circumstanzas localas en l’entir mund. Da fabrica è l’applicaziun preconfigurada per la Svizra – cun chartas da swisstopo, segns tactics tenor las convenziuns FKS ed ils models FKS per la direcziun da l’acziun. Ordaifer la Svizra pon vegnir configuradas autras basas da chartas; la tschertga d’adressas sustegna oz mo l’interfatscha da swisstopo e sto vegnir adattada là.</p>
       </div>
       <div class="faq-item">
-        <h3>Tge linguas sustegna KP Front?</h3>
-        <p>La website è disponibla per tudestg, franzos, talian, rumantsch ed englais. L’applicaziun sezza e ses agid funcziunan per tudestg, franzos, talian ed englais – rumantsch n’è là anc betg disponibel. La lingua vegn fixada <strong>ina giada per corps</strong>, betg per apparat: durant l’acziun legian tuts ils medems terms. La documentaziun tecnica davart l’installaziun ed il manaschi è per englais. La versiun demo publica è per <strong>tudestg</strong>, ed ils screenshots qua derivan da la medema instanza.</p>
+        <h3>En tge linguas è KP Front disponibel?</h3>
+        <p>L’interfatscha d’utilisader da KP Front è actualmain disponibla per tudestg. Sco applicaziun open source po KP Front vegnir amplifitgà cun ulteriuras linguas. Per quai dovri ina translaziun cumpletta e controllada professiunalmain dals terms dals pumpiers.</p>
       </div>
       <div class="faq-item">
         <h3>Co cumenzar?</h3>
@@ -858,6 +925,7 @@
             </div>
             <button class="btn btn-primary f-send" type="submit">Trametter il messadi</button>
             <p class="f-note" role="status" hidden></p>
+            <p class="contact-note">Vegn tramess per e-mail via il servetsch da formulars staticforms.dev. <a href="https://github.com/feuerwehr-oberwil/kp-front/blob/main/PRIVACY.md#the-project-website" target="_blank" rel="noopener">Protecziun da datas</a></p>
           </div>
         </form>
       </div>
@@ -873,11 +941,13 @@
       Mintga corps da pumpiers maina ses agen KP Front cun atgnas chartas, agens plans ed atgnas datas.</p>
     <div class="foot-row">
       <span>© 2026 <a href="https://bastianeichenberger.ch" target="_blank" rel="noopener">Bastian Eichenberger</a> · AGPL-3.0</span>
+      <span>Versiun actuala v0.12.0 · <time datetime="2026-10-13">13.10.2026</time> · <a href="https://github.com/feuerwehr-oberwil/kp-front/releases/tag/v0.12.0" target="_blank" rel="noopener">Notizias da la versiun</a></span>
       <a href="https://github.com/feuerwehr-oberwil/kp-front" target="_blank" rel="noopener">GitHub</a>
       <a href="https://github.com/feuerwehr-oberwil" target="_blank" rel="noopener me">Pumpiers d’Oberwil sin GitHub</a>
       <a href="https://demo.kp-front.ch" target="_blank" rel="noopener">Demo</a>
       <a href="https://kp-rueck.ch">KP Rück</a>
       <a href="#kontakt">Contact</a>
+      <a href="https://github.com/feuerwehr-oberwil/kp-front/security/policy" target="_blank" rel="noopener">Segirezza</a>
     </div>
   </div>
 </footer>

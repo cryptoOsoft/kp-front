@@ -598,36 +598,36 @@ export async function loadDeploymentConfig(): Promise<DeploymentConfig> {
 }
 
 /**
- * Boot variant with a hard wall-clock budget. `loadDeploymentConfig` is awaited BEFORE
- * `createRoot`, so for as long as it is pending the operator stares at an empty `#root` — a
- * literally blank screen with no splash, no error boundary and nothing to tap. The request
- * itself is time-bounded (api.ts), but even that bound is far too long to hold first paint.
+ * The boot read, awaited BEFORE `createRoot`: for as long as it is pending the operator looks at
+ * the static boot cover with nothing to tap. NEVER throws.
  *
- * So: race the load against `budgetMs`. If the network hasn't answered by then we resolve with
- * the offline-cached config (the normal case on a station tablet) and let the in-flight load
- * keep running — when it lands it still updates the singleton, so read sites pick it up on
- * their next render. Only the ONE-SHOT boot side-effects (branding, locale) miss out on a
- * slow-network first boot, which is the right trade: a usable app with default chrome beats a
- * perfectly-branded blank screen. NEVER throws.
+ * **A device that has booted before renders from its cached copy at once** and refreshes in the
+ * background (cold-start sweep 01.11.2026). Waiting for the network first put a whole round trip –
+ * on a phone waking its radio often a second or more – in front of every launch, for a document
+ * that changes a few times a year. The fresh answer lands in the singleton (read sites pick it up
+ * on their next render, a value read once at mount on the next launch) and is handed to
+ * `onFresh`, which re-applies the branding. The locale switches from the next launch.
+ *
+ * **A first boot** (no cache) races the network against `budgetMs`. Past the budget it resolves
+ * with what is there (`{}`) and lets the load keep running: a usable app with default chrome beats
+ * a perfectly branded wait.
  */
-export async function loadDeploymentConfigBounded(budgetMs: number): Promise<DeploymentConfig> {
+export async function bootDeploymentConfig(
+  budgetMs: number,
+  onFresh: (cfg: DeploymentConfig) => void,
+): Promise<DeploymentConfig> {
+  const cached = await readCache()
+  if (cached) {
+    resolved = cached
+    void loadDeploymentConfig().then(onFresh)
+    return cached
+  }
   const load = loadDeploymentConfig()
-  const bootGeneration = loadGeneration
   let timer: ReturnType<typeof setTimeout> | undefined
   const budget = new Promise<'timeout'>((res) => { timer = setTimeout(() => res('timeout'), budgetMs) })
   const winner = await Promise.race([load, budget])
   clearTimeout(timer)
-  if (winner !== 'timeout') return winner
-  // Budget blown. The load is still pending, so `resolved` is necessarily still {} — seed it
-  // from the cache so synchronous read sites get the STATION's config from the first render
-  // instead of national defaults. Do not overwrite a newer authenticated refresh that may have
-  // started while IndexedDB was answering.
-  const cached = (await readCache()) ?? {}
-  if (bootGeneration === loadGeneration) {
-    resolved = cached
-    return cached
-  }
-  return resolved
+  return winner === 'timeout' ? resolved : winner
 }
 
 /** The Einsatz wizard's Kategorie picker: the server's German labels, in its order. These are

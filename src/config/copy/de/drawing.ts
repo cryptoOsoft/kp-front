@@ -220,12 +220,14 @@ export const drawingCopy = {
     },
     /** die Kachel im Fuss des Symbol-Editors – EIN Wort für jede Familie (D8, 27.09.2026: das
      *  Feuer ist gelöscht, das Symbol erledigt; der Doppelname «Gelöscht / erledigt» war die
-     *  Brücke vom alten «Löschen» und ist gefallen). `actionHint` ist ihr title. */
+     *  Brücke vom alten «Löschen» und ist gefallen). `actionHint` ist ihr title. Seit 31.10.2026
+     *  ein Schalter: gesetzt bleibt dieselbe Kachel stehen, gedrückt, und `reopenHint` ist ihr
+     *  Name – ein Tippen setzt das Symbol wieder aktiv. */
     action: 'Erledigt',
     actionHint: 'bleibt grau sichtbar',
-    /** der gesetzte Zustand im Editor und auf dem Rapport: «Erledigt 20:40» */
+    reopenHint: 'Erledigt – wieder aktiv setzen',
+    /** der gesetzte Zustand im Kopf des Editors und auf dem Rapport: «erledigt 20:40» */
     state: '{word} {time}',
-    reopen: 'Wieder aktiv',
     /** Der Knopf selbst heisst überall «Entfernen» (copy · remove); auf einem Symbol mit «Gelöscht /
      *  erledigt» sagt dieser Hinweis, wofür er noch da ist: für die Fehleingabe. */
     removeHint: 'nur bei Fehleingabe',

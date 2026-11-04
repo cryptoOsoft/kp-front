@@ -159,10 +159,31 @@ describe('the contact times (the head of the Verlauf)', () => {
  * lifecycle word — and each is a fact a viewer, who has no action bar to read it off, would
  * otherwise get from a 5px border colour alone. */
 describe('the state a tier cannot say', () => {
-  it('names «Rückzug» as a fact chip, where the calm clock says nothing about it', () => {
+  it('names «Rückzug» as an icon-only amber badge in the head, where the calm clock says nothing about it', () => {
     mount({ trupps: [{ ...aktivTrupp(), status: 'rueckzug' }], canEdit: false })
     expect(screen.queryByText(az.clockOk)).toBeNull()                    // «Kontakt ok» is the green's
-    expect(screen.getByText(az.status.rueckzug).className).toContain(s.factState) // …the fact is a word
+    const badge = screen.getByRole('img', { name: az.status.rueckzug })  // …the state is a badge with a name…
+    expect(badge.className).toContain(s.rueckzugBadge)
+    expect(badge.getAttribute('title')).toBe(az.status.rueckzug)
+    expect(badge.textContent).toBe('')                                  // …and no word
+    expect(screen.queryByText(az.status.rueckzug)).toBeNull()            // the old text chip is gone
+  })
+
+  // PR #530 review: overdue overlays the DERIVED status to «überfällig» – the crew is still on its
+  // way out, so the badge (and the row's spoken name) follow the recorded status
+  it('keeps the Rückzug badge and names it on the row when the crew on Rückzug is overdue', () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    try {
+      vi.mocked(useIsPhone).mockReturnValue(true)   // the collapsed row is the phone's
+      mount({ trupps: [{ ...aktivTrupp(), status: 'rueckzug', lastContactTime: iso(8 * 60_000) }], canEdit: false })
+      expect(screen.getByRole('img', { name: az.status.rueckzug })).toBeTruthy()
+      expect(document.querySelector(`button.${s.trow}`)!.getAttribute('aria-label')).toContain(az.status.rueckzug)
+    } finally { vi.useRealTimers(); vi.mocked(useIsPhone).mockReturnValue(false) }
+  })
+
+  it('draws no Rückzug badge on a Trupp that is not in Rückzug', () => {
+    mount({ trupps: [aktivTrupp()], canEdit: false })
+    expect(screen.queryByRole('img', { name: az.status.rueckzug })).toBeNull()
   })
 
   /* WHICH time an out card carries depends on whether anybody was ever monitoring it (settled
@@ -440,12 +461,9 @@ describe('the opened phone card wears the collapsed row’s line and pair', () =
       fireEvent.click(screen.getByText(name).closest(`.${s.trow}`)!)
       const card = document.querySelector('[data-az-open]') as HTMLElement
       expect(within(card).getByRole('button', { name: az.actContact }).className).toContain(tier)
-      // …and «Überfällig» never by colour alone: seen as the triangle at the head's clock (B5,
-      // 08.10.2026), and heard once, as the card's status line. «Fällig» is its amber alone
-      // (owner, 30.10.2026: «remove the ugly clock icon»).
-      const glyph = card.querySelector(`.${s.trowHead} .${s.trowTier} use`)
-      if (tier === s.kontaktWarn) expect(glyph).toBeNull()
-      else expect(glyph!.getAttribute('href')).toBe('#warn')
+      // …and «Überfällig» never by colour alone for a screen reader: heard once, as the card's
+      // status line. No glyph at the head's clock for either tier (owner, 30.10.2026).
+      expect(card.querySelector(`.${s.trowHead} use[href="#warn"]`)).toBeNull()
       expect(within(card).getByRole('status').textContent).toBe(tier === s.kontaktWarn ? az.clockWarn : az.clockOverdue)
       fireEvent.click(within(card).getByRole('button', { name: new RegExp(az.collapse) }))
     }
@@ -498,16 +516,16 @@ describe('a Trupp at the door shows its next act where the empty clock stood', (
   })
 })
 
-/* B5, 08.10.2026: the phone row carried überfällig by colour alone — no answer in direct sun or
- * to a colour-blind reader. The triangle now stands in front of the digits in the clock cell (no
- * new row, 24.10.2026); glyph only (owner, 09.10.2026: «Symbol only»), the word is in the row's
- * spoken name and the hover title, and the Alarmdruck never reads «Überfällig». «Fällig» has no
- * glyph since 30.10.2026 (owner: «remove the ugly clock icon») — its amber and its spoken word. */
-describe('the phone row says its tier with a glyph, not colour alone', () => {
+/* B5, 08.10.2026: the phone row carried überfällig by colour alone – no answer in a screen
+ * reader. Since 30.10.2026 (owner: «we don't need the triangle thing. red and notfall is already
+ * enough») there is NO glyph at the clock for fällig, überfällig or the Alarmdruck: the digits'
+ * colour is the tier for the eye, the row's spoken name carries the word, and the Alarmdruck
+ * never reads «Überfällig». */
+describe('the phone row says its tier in its spoken name, with no glyph at the clock', () => {
   afterEach(() => { vi.mocked(useIsPhone).mockReturnValue(false) })
-  const tierOf = (name: string) => screen.getByText(name).closest(`.${s.trow}`)!.querySelector(`.${s.trowClock} .${s.trowTier}`)
+  const rowOf = (name: string) => screen.getByText(name).closest(`.${s.trow}`)!
 
-  it('marks «Überfällig» and the Alarmdruck with the triangle, and «Fällig» and a calm Trupp with nothing', () => {
+  it('names «Überfällig», «Fällig» and the Alarmdruck for a screen reader and draws no triangle', () => {
     vi.mocked(useIsPhone).mockReturnValue(true)
     const low = (dz.alarmBar ?? 50) - 10
     mount({ trupps: [
@@ -517,24 +535,19 @@ describe('the phone row says its tier with a glyph, not colour alone', () => {
       { ...aktivTrupp(), id: 'p', name: 'Low Paula', lastPressureBar: low, lowestBar: low,
         readings: [{ t: iso(10 * 60_000), bar: 300, kind: 'entry' }, { t: iso(60_000), bar: low, kind: 'pressure' }] },
     ] })
-    expect(tierOf('Calm Karl')).toBeNull()
-    expect(tierOf('Due Dora')).toBeNull()
-    const over = tierOf('Over Otto')!, press = tierOf('Low Paula')!
-    // glyph only — no word drawn, the word is the title (and the row's aria-label, below)
-    expect(over.textContent).toBe('')
-    expect(over.getAttribute('title')).toBe(az.clockOverdue)
-    expect(over.querySelector('use')!.getAttribute('href')).toBe('#warn')
+    for (const name of ['Calm Karl', 'Due Dora', 'Over Otto', 'Low Paula']) {
+      expect(rowOf(name).querySelector(`.${s.trowClock} use[href="#warn"]`)).toBeNull()
+    }
+    const spoken = (name: string) => rowOf(name).getAttribute('aria-label')
+    expect(spoken('Due Dora')).toContain(az.rowDue)
+    expect(spoken('Over Otto')).toContain(az.clockOverdue)
     // a pressure alarm is a different event: it says so, and never «Überfällig»
-    expect(press.getAttribute('title')).toBe(az.clockAlarmPressure)
-    expect(press.querySelector('use')!.getAttribute('href')).toBe('#warn')
-    // the triangle stands in FRONT of the digits on the clock's line (sweep M3, 24.10.2026)
-    for (const crit of [over, press]) expect(crit.nextElementSibling!.className).toContain(s.trowClockVal)
-    // …and the row's spoken name carries the word (the mark itself is aria-hidden)
-    expect(screen.getByText('Due Dora').closest(`.${s.trow}`)!.getAttribute('aria-label')).toContain(az.rowDue)
-    expect(screen.getByText('Low Paula').closest(`.${s.trow}`)!.getAttribute('aria-label')).toContain(az.clockAlarmPressure)
+    expect(spoken('Low Paula')).toContain(az.clockAlarmPressure)
+    expect(spoken('Low Paula')).not.toContain(az.clockOverdue)
+    expect(spoken('Calm Karl')).not.toMatch(new RegExp(`${az.rowDue}|${az.clockOverdue}|${az.clockAlarmPressure}`))
   })
 
-  it('a crew in a NOTFALL wears the banner’s ⚠ in its dot’s place and no second glyph under the clock', () => {
+  it('a crew in a NOTFALL wears the banner’s ⚠ in its dot’s place, the only glyph on its row', () => {
     vi.mocked(useIsPhone).mockReturnValue(true)
     mount({ trupps: [
       { ...aktivTrupp(), id: 'n', name: 'Nora Notfall', lastContactTime: iso(8 * 60_000), notfallAt: iso(60_000) },
@@ -544,10 +557,9 @@ describe('the phone row says its tier with a glyph, not colour alone', () => {
     const nf = row('Nora Notfall')
     expect(nf.querySelector(`.${s.trowName} .${s.nfGlyph} use`)!.getAttribute('href')).toBe('#warn')
     expect(nf.querySelector(`.${s.trowDot}`)).toBeNull()
-    expect(nf.querySelector(`.${s.trowTier}`)).toBeNull()
-    // every other crew keeps its dot and its tier glyph
-    expect(row('Over Otto').querySelector(`.${s.trowTier}`)).not.toBeNull()
-    expect(row('Over Otto').querySelector(`.${s.nfGlyph}`)).toBeNull()
+    expect(nf.querySelectorAll('use[href="#warn"]')).toHaveLength(1)
+    // every other crew carries no glyph at all, überfällig or not
+    expect(row('Over Otto').querySelector('use[href="#warn"]')).toBeNull()
     // …and the banner names the crew exactly as its row does
     expect(document.querySelector(`section.${s.nfBanner} .${s.trowNameTxt}`)!.textContent).toBe('Nora Notfall')
   })

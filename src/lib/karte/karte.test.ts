@@ -6,7 +6,7 @@ import { nearestObjects, normText, openableCount, searchObjects } from './search
 import {
   compass8, nearbyPlaces, NEARBY_MAX, normAddress, objectAtAddress, splitAddress, objectVisitHref, outlineFor, pinNear, placeVisitHref,
   pointsFromGeoJson, ringAt, ringsFromOverpass, streetKey,
-  nameIsAddress, nameSaysAddress, objectAddress, objectHeadSub, objectRowSub,
+  nameIsAddress, nameSaysAddress, objectAddress, objectHeadSub, objectPicklistSub, objectRowSub,
 } from './places'
 import { isKartePath, karteHref, parseKarteRoute } from './route'
 import { KARTE_LAYER_PREFS_ID, karteViewSnapshot, loadKarteView, saveKarteView, saveViewerLayerPrefs, viewerLayers } from './session'
@@ -421,5 +421,17 @@ describe('the retired «depot» kind', () => {
     expect(read.objects.map((o) => o.kind)).toEqual(['einsatzobjekt', 'objekt'])
     const fresh = { generatedAt: 'x', objects: [SCHLOSS, DEPOT] }
     expect(withRetiredKinds(fresh)).toBe(fresh) // nothing to map: the same catalogue
+  })
+})
+
+describe('objectPicklistSub – the picker row never shows a «—» placeholder', () => {
+  it('joins the address and the plans', () => {
+    expect(objectPicklistSub({ name: 'Schloss', address: 'Schlossgasse 9' }, '2 Pläne')).toBe('Schlossgasse 9 · 2 Pläne')
+  })
+  it('says the plans alone when the object has no address', () => {
+    expect(objectPicklistSub({ name: 'ARA Birsig', address: null }, '2 Pläne')).toBe('2 Pläne')
+  })
+  it('does not repeat an address the name already says', () => {
+    expect(objectPicklistSub({ name: 'Bienenstrasse 28 (EH)', address: 'Bienenstrasse 28' }, 'Keine Pläne')).toBe('Keine Pläne')
   })
 })

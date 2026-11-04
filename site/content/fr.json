@@ -16,7 +16,11 @@
       "Plan de relève pour les longues interventions, avec vue de la couverture",
       "Rapport d’intervention en PDF, prérempli à partir des données de l’intervention",
       "Rejouer : repasser l’intervention pour le débriefing"
-    ]
+    ],
+    "audience": [
+      "Corps de sapeurs-pompiers"
+    ],
+    "demoAction": "Ouvrir la démo KP Front"
   },
   "nav": {
     "aria": "Navigation principale",
@@ -285,8 +289,7 @@
           "Positions des véhicules par GPS <span class=\"opt\">facultatif</span>",
           "Connexion avec Microsoft au compte existant, en plus du PIN <span class=\"opt\">facultatif</span>",
           "<strong>Visites d’objets</strong> sans intervention, hors ligne – check-list, photos et rapport <span class=\"opt\">facultatif</span>",
-          "<strong>Espace d’administration propre</strong> à chaque corps : effectif, véhicules, checklists, couches cartographiques et modèles",
-          "Interface en allemand, anglais, français ou italien – réglée une fois par corps"
+          "<strong>Espace d’administration propre</strong> à chaque corps : effectif, véhicules, checklists, couches cartographiques et modèles"
         ]
       }
     ]
@@ -341,6 +344,10 @@
         "a": "Un petit mini-PC ou serveur à la caserne suffit. L’installation, les mises à jour et\n          les sauvegardes nécessitent une personne à l’aise avec Docker et la ligne de commande,\n          que ce soit au sein du corps, de la commune ou auprès d’un prestataire informatique. Le\n          guide et l’espace d’administration accompagnent la mise en place. Nous répondons\n          volontiers aux questions générales ; les données et l’exploitation restent sous la\n          responsabilité de chaque corps."
       },
       {
+        "q": "Une assistance est-elle proposée pour l’installation et l’exploitation ?",
+        "a": "Oui. Les questions générales concernant l’installation et l’utilisation peuvent recevoir une réponse gratuitement. KP Front peut être exploité sur une infrastructure propre ou auprès d’un fournisseur d’hébergement ou de cloud choisi par le corps de sapeurs-pompiers. Une assistance pour l’installation, la configuration, les mises à jour ou l’exploitation est également possible sur accord individuel. Une assistance plus étendue peut être facturée."
+      },
+      {
         "q": "KP Front fonctionne-t-il sans connexion Internet ?",
         "a": "Oui. Installée comme application, KP Front fonctionne sur l’appareil : carte,\n          plans, binômes et journal restent utilisables même si le réseau tombe.\n          L’application charge d’elle-même les cartes et les plans autour d’une intervention, peu\n          après son ouverture – et le <strong>contrôle de disponibilité</strong> indique avant\n          l’intervention si les données nécessaires sont sur l’appareil. Après une coupure, les\n          modifications sont synchronisées dès qu’une connexion est de nouveau disponible ; ce qui\n          a été saisi entre-temps est conservé."
       },
@@ -353,8 +360,8 @@
         "a": "Non. En tant que logiciel open source, KP Front est librement accessible et peut être adapté aux conditions locales partout dans le monde. D’origine, l’application est préconfigurée pour la Suisse – avec les cartes swisstopo, les signes conventionnels selon la CSSP et les modèles CSSP pour la conduite en intervention. Hors de Suisse, d’autres fonds de carte peuvent être configurés ; la recherche d’adresses ne prend aujourd’hui en charge que l’interface swisstopo et doit y être adaptée."
       },
       {
-        "q": "Quelles langues KP Front prend-il en charge ?",
-        "a": "Le site web existe en allemand, français, italien, romanche et anglais. L’application elle-même et son aide fonctionnent en allemand, français, italien et anglais – le romanche n’y est pas encore disponible. La langue se règle <strong>une fois par corps</strong>, pas par appareil : en intervention, tout le monde lit les mêmes termes. La documentation technique d’installation et d’exploitation est en anglais. La démo publique tourne en <strong>allemand</strong>, et les captures d’écran de cette page viennent de cette même instance."
+        "q": "Dans quelles langues KP Front est-il disponible ?",
+        "a": "L’interface utilisateur de KP Front est actuellement disponible en allemand. En tant qu’application open source, KP Front peut être étendu à d’autres langues. Cela nécessite une traduction complète et vérifiée par des spécialistes de la terminologie des sapeurs-pompiers."
       },
       {
         "q": "Comment commencer ?",
@@ -390,7 +397,9 @@
       "send": "Envoyer le message",
       "sending": "Envoi en cours …",
       "ok": "Merci – le message est arrivé. Nous revenons vers vous.",
-      "error": "Cela n’a pas fonctionné. Écrivez directement à bastian.eichenberger@feuerwehr-oberwil.ch."
+      "error": "Cela n’a pas fonctionné. Écrivez directement à bastian.eichenberger@feuerwehr-oberwil.ch.",
+      "privacy": "Transmis par e-mail via le service de formulaires staticforms.dev.",
+      "privacyLink": "Protection des données"
     }
   },
   "lightbox": {
@@ -403,6 +412,12 @@
     "origin": "Né du service opérationnel des <a href=\"https://www.feuerwehr-oberwil.ch\" target=\"_blank\" rel=\"noopener\">sapeurs-pompiers d’Oberwil BL</a> –\n      parce qu’en intervention nous avons vu revenir les mêmes sources d’erreur : doubles\n      affectations, informations éparpillées et erreurs de recopie à la main.\n      Chaque corps exploite son propre KP Front, avec ses cartes, ses plans et ses données.",
     "demo": "Démo",
     "contact": "Contact",
-    "org": "Sapeurs-pompiers d’Oberwil sur GitHub"
+    "org": "Sapeurs-pompiers d’Oberwil sur GitHub",
+    "release": {
+      "label": "Version actuelle",
+      "notes": "Notes de version",
+      "dateFormat": "DD.MM.YYYY"
+    },
+    "security": "Sécurité"
   }
 }

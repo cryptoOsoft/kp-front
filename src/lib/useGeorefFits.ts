@@ -54,7 +54,6 @@ interface Args {
   twinLayers: Record<string, boolean>
   twinLayerOpacity: Record<string, number>
   activePlanId: string
-  selectedId: string | null
   liveVehicles: Entity[]
   livePeople: { people: Entity[] }
   isVisible: (layerId: string) => boolean
@@ -69,7 +68,7 @@ interface Args {
  * pack, the pack-seeded stack, its fit), the fits map the unified-object store bakes through —
  * with the RE-BAKE when a fit really changes (one undo step, one «Referenz angepasst» row; a
  * vanished reference its own row) — and what the fits lend the surfaces: the sheet rasters on the
- * Karte, the selection's projection, the live feed on the open sheet.
+ * Karte, the live feed on the open sheet.
  *
  * ⚠️ Moved verbatim, and called where the block stood: the hook order (the storage subscription,
  * the memos, the refs, the pack-seed and both re-bake effects, the previews) is the original one,
@@ -81,7 +80,7 @@ interface Args {
 export function useGeorefFits({
   planDocs, planScale, building, setBuilding, planBindings, activeObjectId, board, objects, rebake,
   planFitsRef, fitsVersion, setFitsVersion, stepLabelRef, histSide, readOnly, canWriteBlob, tacticalLocked, replayActive,
-  twinLayers, twinLayerOpacity, activePlanId, selectedId, liveVehicles, livePeople, isVisible, mapEntities,
+  twinLayers, twinLayerOpacity, activePlanId, liveVehicles, livePeople, isVisible, mapEntities,
 }: Args) {
   // --- Georeferenz: which plans are tied to the ground, and how ---------------------------------
   // The fits themselves. Everything derived FROM them — a sheet's view of the Karte's objects,
@@ -344,18 +343,6 @@ export function useGeorefFits({
   // which is solved at the aspect it has actually measured (lib/planProjection · liveOverlay,
   // drawn by components/PlanLiveLayer).
   const activeLinkedPlan = linkedPlans.find((p) => p.id === activePlanId) ?? null
-  /** Which linked sheet DRAWS the selected object — the active one first, so «auf Plan zeigen»
-   *  goes where the operator is looking. It is the sheet's own board view that answers, because
-   *  that view IS what the sheet draws (projections included). */
-  const selectedPlanProjection = useMemo(() => {
-    if (!selectedId) return null
-    const ordered = [...linkedPlans].sort((a, b) => Number(b.id === activePlanId) - Number(a.id === activePlanId))
-    for (const plan of ordered) {
-      const anno = (board[plan.id] ?? []).find((a) => a.id === selectedId)
-      if (anno && anno.x != null && anno.y != null) return { plan, pt: { x: anno.x, y: anno.y } }
-    }
-    return null
-  }, [board, selectedId, linkedPlans, activePlanId])
   /**
    * The live feed this sheet draws — vehicles and shared responder positions, projected and
    * clipped against the plan's own fit (lib/planProjection · liveOverlay).
@@ -389,5 +376,5 @@ export function useGeorefFits({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [replayActive, activeLinkedPlan, liveVehicles, livePeople.people, isVisible, fitsVersion, mapEntities])
 
-  return { linkedPlans, floorPack, georefPlanRasters, activeLinkedPlan, selectedPlanProjection, planLive, planPhotos }
+  return { linkedPlans, floorPack, georefPlanRasters, activeLinkedPlan, planLive, planPhotos }
 }

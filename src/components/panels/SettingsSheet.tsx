@@ -14,6 +14,7 @@ import { Button } from '../Button'
 import { ShellLoader } from '../ShellLoader'
 import { compareText } from '../../lib/format'
 import { AlarmReadinessRows } from '../karte/AlarmReadiness'
+import { useKeyHints } from '../../lib/useDevicePrefs'
 
 /** Percent for a symbol multiplier — «110 %» is a size anyone reads at a glance, «1.1» is not.
  *  No-break space before the sign, so the number and its unit never split across a line. */
@@ -44,8 +45,8 @@ function ScaleRow({ surface, label, sub, value, onChange }: {
   )
 }
 
-/** Einstellungen: device prefs only (theme, symbol size, rail words, offline radius, screen
- *  wake — local cookie) plus per-device utilities. The «Einsatz» doctrine values (Funkkontakt-
+/** Einstellungen: device prefs only (theme, symbol size, rail words, shortcut letters, offline
+ *  radius, screen wake — local cookie) plus per-device utilities. The «Einsatz» doctrine values (Funkkontakt-
  *  Intervall, Nachfrist, Funkkanal) left this sheet 28.08.: station configuration belongs in
  *  /admin, where whoever set it up changes it — not under the finger of an unknowing operator
  *  at 3am (per-incident overrides already written keep working; the doctrine is the source). */
@@ -93,6 +94,7 @@ export function SettingsSheet({
   onChangeShareName?: () => void
 }) {
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => loadPrefs().theme ?? 'auto')
+  const [keyHints, setKeyHints] = useKeyHints()
   const setTheme = (m: ThemeMode) => {
     setThemeMode(m)
     savePrefs({ ...loadPrefs(), theme: m })
@@ -177,6 +179,12 @@ export function SettingsSheet({
               {/* a yes/no too («soll da Text stehen»), so the same `OnOff` (28.09.2026) – it said
                   «Aus | Wörter»; the stored value keeps its 'off' | 'short' names */}
               <OnOff ariaLabel={cp.railLabels} value={railLabels === 'short'} onChange={(v) => onRailLabels(v ? 'short' : 'off')} />
+            </div>
+            <div className="set-row">
+              <span className="set-row-l">{cp.keyHints}<small>{cp.keyHintsSub}</small></span>
+              {/* its own device-pref store (useKeyHints), not a prop: the rails read it too and the
+                  sheet sits over them – no parent threads it, nothing remounts */}
+              <OnOff ariaLabel={cp.keyHints} value={keyHints} onChange={setKeyHints} />
             </div>
             <div className="set-row">
               <span className="set-row-l">{cp.offlineRadius}<small>{cp.offlineRadiusSub}</small></span>

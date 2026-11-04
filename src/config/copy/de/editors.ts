@@ -50,9 +50,6 @@ export const editorsCopy = {
     // Georeferenz-Zwilling: das Fenster spiegelt ein Objekt der anderen Fläche und ist deshalb
     // ganz gesperrt. Diese eine Zeile führt dorthin, wo es wirklich liegt – und bearbeitbar ist.
     toOriginal: 'Zum Original',
-    toProjection: 'Auf verknüpfter Fläche zeigen',
-    showOnMap: 'Auf Karte zeigen',
-    showOnPlan: 'Auf {plan} zeigen',
     resetGps: 'GPS',
     resetGpsTitle: 'Auf GPS-Position und -Kurs zurücksetzen',
     // The Kroki is printed hours later. A Fahrzeug that has since driven home takes its symbol
@@ -85,8 +82,6 @@ export const editorsCopy = {
     captionAll: 'Alle',
     notes: 'Notizen',
     notesPlaceholder: 'Allgemeine Notizen …',
-    /** the «+ Feld» tile's label (aria/title) and its word */
-    addField: 'Feld hinzufügen',
     /** a Messpunkt's readings under its fields, newest first (ReadingHistory) */
     readingHistory: 'Verlauf',
     /** the ⓘ beside a Messpunkt's values (ReadingParts · ReadingInfo, sweep 28.10.2026 #2b): the
@@ -100,7 +95,6 @@ export const editorsCopy = {
     readingOr: 'oder',
     readingInfoLevels: 'Gelb = A1 (Voralarm) erreicht, rot = A2 (Hauptalarm) erreicht.',
     readingInfoStale: 'Mit Alter (z. B. 18′) und nur der Rahmen farbig = älter als {min} min.',
-    addFieldShort: 'Feld',
     removeField: 'Feld löschen',
     // the ⇄ square at the end of the Einsatzleiter glyph's EL row (title/aria). Says what HAPPENS,
     // not what the button is: an Ablösung is «übergeben», and both Anwesenheits-Bemerkungen follow

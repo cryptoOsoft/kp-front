@@ -9,7 +9,8 @@ data and a personnel roster, so we take security seriously and welcome responsib
 
 Report privately via one of:
 
-- A **GitHub private security advisory** (Security → Report a vulnerability).
+- A **GitHub private security advisory** ([Security → Report a
+  vulnerability](https://github.com/feuerwehr-oberwil/kp-front/security/advisories/new)).
 - **Email:** bastian.eichenberger@feuerwehr-oberwil.ch – reaches the maintainer directly,
   and stays reachable if someone else takes the project on. Also for reporters without a
   GitHub account.

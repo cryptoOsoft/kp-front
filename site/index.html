@@ -79,6 +79,10 @@
 <meta property="og:image:width" content="1500">
 <meta property="og:image:height" content="937">
 <meta property="og:locale" content="de_CH">
+<meta property="og:locale:alternate" content="fr_CH">
+<meta property="og:locale:alternate" content="it_CH">
+<meta property="og:locale:alternate" content="rm_CH">
+<meta property="og:locale:alternate" content="en_GB">
 <meta name="twitter:card" content="summary_large_image">
 <script type="application/ld+json">
 {
@@ -102,11 +106,11 @@
       "applicationCategory": "BusinessApplication",
       "operatingSystem": "Web browser",
       "inLanguage": [
-        "de",
-        "fr",
-        "it",
-        "en"
+        "de"
       ],
+      "softwareVersion": "0.12.0",
+      "dateModified": "2026-10-13",
+      "releaseNotes": "https://github.com/feuerwehr-oberwil/kp-front/releases/tag/v0.12.0",
       "license": "https://www.gnu.org/licenses/agpl-3.0.html",
       "sameAs": "https://github.com/feuerwehr-oberwil/kp-front",
       "subjectOf": {
@@ -122,8 +126,31 @@
         "price": "0",
         "priceCurrency": "CHF"
       },
+      "audience": [
+        {
+          "@type": "Audience",
+          "audienceType": "Feuerwehren"
+        }
+      ],
+      "potentialAction": {
+        "@type": "ViewAction",
+        "name": "KP Front Demo öffnen",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://demo.kp-front.ch/"
+        }
+      },
+      "author": {
+        "@id": "https://www.bastianeichenberger.ch/#person"
+      },
+      "creator": {
+        "@id": "https://www.bastianeichenberger.ch/#person"
+      },
+      "copyrightHolder": {
+        "@id": "https://www.bastianeichenberger.ch/#person"
+      },
       "publisher": {
-        "@id": "https://kp-front.ch/#org"
+        "@id": "https://www.feuerwehr-oberwil.ch/#organization"
       }
     },
     {
@@ -131,7 +158,13 @@
       "@id": "https://kp-front.ch/#source",
       "name": "KP Front source code",
       "codeRepository": "https://github.com/feuerwehr-oberwil/kp-front",
-      "license": "https://www.gnu.org/licenses/agpl-3.0.html"
+      "license": "https://www.gnu.org/licenses/agpl-3.0.html",
+      "author": {
+        "@id": "https://www.bastianeichenberger.ch/#person"
+      },
+      "publisher": {
+        "@id": "https://www.feuerwehr-oberwil.ch/#organization"
+      }
     },
     {
       "@type": "CreativeWorkSeries",
@@ -144,16 +177,35 @@
         {
           "@id": "https://kp-rueck.ch/#app"
         }
+      ],
+      "publisher": {
+        "@id": "https://www.feuerwehr-oberwil.ch/#organization"
+      }
+    },
+    {
+      "@type": "Person",
+      "@id": "https://www.bastianeichenberger.ch/#person",
+      "name": "Bastian Eichenberger",
+      "url": "https://www.bastianeichenberger.ch",
+      "sameAs": [
+        "https://github.com/BBQuercus"
       ]
     },
     {
-      "@type": "Organization",
-      "@id": "https://kp-front.ch/#org",
-      "name": "Feuerwehr Oberwil BL",
-      "url": "https://www.feuerwehr-oberwil.ch",
-      "sameAs": [
-        "https://github.com/feuerwehr-oberwil"
-      ]
+      "@type": "WebSite",
+      "@id": "https://kp-front.ch/#website",
+      "url": "https://kp-front.ch/",
+      "name": "KP Front",
+      "inLanguage": [
+        "de-CH",
+        "fr-CH",
+        "it-CH",
+        "rm-CH",
+        "en"
+      ],
+      "publisher": {
+        "@id": "https://www.feuerwehr-oberwil.ch/#organization"
+      }
     },
     {
       "@type": "WebPage",
@@ -162,6 +214,10 @@
       "name": "KP Front – Digitale Einsatzführung für Feuerwehren",
       "description": "KP Front ist der digitale Kommandoposten am Einsatzort: Karte, Pläne, Trupps, Verlauf und Rapport – offline-fähig und quelloffen.",
       "inLanguage": "de-CH",
+      "dateModified": "2026-10-31",
+      "isPartOf": {
+        "@id": "https://kp-front.ch/#website"
+      },
       "mainEntity": {
         "@id": "https://kp-front.ch/#app"
       }
@@ -205,6 +261,14 @@
         },
         {
           "@type": "Question",
+          "name": "Gibt es Unterstützung bei Installation und Betrieb?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Ja. Allgemeine Fragen zur Installation und Nutzung werden unentgeltlich beantwortet. KP Front kann auf eigener Infrastruktur oder bei einem selbst gewählten Hosting- oder Cloud-Anbieter betrieben werden. Nach individueller Absprache ist auch Unterstützung bei Installation, Einrichtung, Updates oder Betrieb möglich. Weitergehende Unterstützung kann kostenpflichtig sein."
+          }
+        },
+        {
+          "@type": "Question",
           "name": "Funktioniert KP Front ohne Internetverbindung?",
           "acceptedAnswer": {
             "@type": "Answer",
@@ -229,10 +293,10 @@
         },
         {
           "@type": "Question",
-          "name": "Welche Sprachen unterstützt KP Front?",
+          "name": "In welchen Sprachen ist KP Front verfügbar?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Die Website gibt es auf Deutsch, Französisch, Italienisch, Rätoromanisch und Englisch. Die Anwendung selbst und ihre Hilfe laufen auf Deutsch, Französisch, Italienisch und Englisch – Rätoromanisch ist dort noch nicht verfügbar. Die Sprache wird einmal pro Feuerwehr eingestellt, nicht pro Gerät: Im Einsatz lesen alle dieselben Begriffe. Die technische Dokumentation zu Einrichtung und Betrieb ist englisch. Die öffentliche Demo läuft auf Deutsch, und die Screenshots hier stammen aus derselben Instanz."
+            "text": "Die Benutzeroberfläche von KP Front ist aktuell auf Deutsch verfügbar. Als Open-Source-Anwendung kann KP Front um weitere Sprachen erweitert werden. Dafür ist eine vollständige und fachlich geprüfte Übersetzung der Feuerwehrbegriffe erforderlich."
           }
         },
         {
@@ -701,7 +765,6 @@
           <li>Anmeldung mit Microsoft auf das bestehende Konto, zusätzlich zum PIN <span class="opt">optional</span></li>
           <li><strong>Objektbesuche</strong> ohne Einsatz, offline – Checkliste, Fotos und Bericht <span class="opt">optional</span></li>
           <li><strong>Eigener Verwaltungsbereich</strong> pro Feuerwehr: Mannschaft, Fahrzeuge, Checklisten, Karten-Ebenen und Vorlagen</li>
-          <li>Oberfläche auf Deutsch, Englisch, Französisch oder Italienisch – pro Feuerwehr eingestellt</li>
         </ul>
       </div>
     </div>
@@ -780,6 +843,10 @@
           Daten und Betrieb bleiben in der Verantwortung der jeweiligen Feuerwehr.</p>
       </div>
       <div class="faq-item">
+        <h3>Gibt es Unterstützung bei Installation und Betrieb?</h3>
+        <p>Ja. Allgemeine Fragen zur Installation und Nutzung werden unentgeltlich beantwortet. KP Front kann auf eigener Infrastruktur oder bei einem selbst gewählten Hosting- oder Cloud-Anbieter betrieben werden. Nach individueller Absprache ist auch Unterstützung bei Installation, Einrichtung, Updates oder Betrieb möglich. Weitergehende Unterstützung kann kostenpflichtig sein.</p>
+      </div>
+      <div class="faq-item">
         <h3>Funktioniert KP Front ohne Internetverbindung?</h3>
         <p>Ja. Als installierte App läuft KP Front auf dem Gerät: Karte, Pläne, Trupps und
           Verlauf bleiben bedienbar, auch wenn das Netz wegbricht. Karten und Pläne rund um den
@@ -802,8 +869,8 @@
         <p>Nein. KP Front ist als Open-Source-Software frei zugänglich und kann weltweit an lokale Gegebenheiten angepasst werden. Ab Werk ist die Anwendung für die Schweiz vorkonfiguriert – mit swisstopo-Karten, taktischen Zeichen nach FKS und den FKS-Vorlagen für die Führung im Einsatz. Ausserhalb der Schweiz lassen sich andere Kartengrundlagen einstellen; die Adresssuche unterstützt heute nur die swisstopo-Schnittstelle und braucht dort eine Anpassung.</p>
       </div>
       <div class="faq-item">
-        <h3>Welche Sprachen unterstützt KP Front?</h3>
-        <p>Die Website gibt es auf Deutsch, Französisch, Italienisch, Rätoromanisch und Englisch. Die Anwendung selbst und ihre Hilfe laufen auf Deutsch, Französisch, Italienisch und Englisch – Rätoromanisch ist dort noch nicht verfügbar. Die Sprache wird <strong>einmal pro Feuerwehr</strong> eingestellt, nicht pro Gerät: Im Einsatz lesen alle dieselben Begriffe. Die technische Dokumentation zu Einrichtung und Betrieb ist englisch. Die öffentliche Demo läuft auf <strong>Deutsch</strong>, und die Screenshots hier stammen aus derselben Instanz.</p>
+        <h3>In welchen Sprachen ist KP Front verfügbar?</h3>
+        <p>Die Benutzeroberfläche von KP Front ist aktuell auf Deutsch verfügbar. Als Open-Source-Anwendung kann KP Front um weitere Sprachen erweitert werden. Dafür ist eine vollständige und fachlich geprüfte Übersetzung der Feuerwehrbegriffe erforderlich.</p>
       </div>
       <div class="faq-item">
         <h3>Wie fangen wir an?</h3>
@@ -867,6 +934,7 @@
             </div>
             <button class="btn btn-primary f-send" type="submit">Nachricht senden</button>
             <p class="f-note" role="status" hidden></p>
+            <p class="contact-note">Wird über den Formulardienst staticforms.dev per E-Mail zugestellt. <a href="https://github.com/feuerwehr-oberwil/kp-front/blob/main/PRIVACY.md#the-project-website" target="_blank" rel="noopener">Datenschutz</a></p>
           </div>
         </form>
       </div>
@@ -882,11 +950,13 @@
       Jede Feuerwehr betreibt ihr eigenes KP Front, mit eigenen Karten, Plänen und Daten.</p>
     <div class="foot-row">
       <span>© 2026 <a href="https://bastianeichenberger.ch" target="_blank" rel="noopener">Bastian Eichenberger</a> · AGPL-3.0</span>
+      <span>Aktuelle Version v0.12.0 · <time datetime="2026-10-13">13.10.2026</time> · <a href="https://github.com/feuerwehr-oberwil/kp-front/releases/tag/v0.12.0" target="_blank" rel="noopener">Release Notes</a></span>
       <a href="https://github.com/feuerwehr-oberwil/kp-front" target="_blank" rel="noopener">GitHub</a>
       <a href="https://github.com/feuerwehr-oberwil" target="_blank" rel="noopener me">Feuerwehr Oberwil auf GitHub</a>
       <a href="https://demo.kp-front.ch" target="_blank" rel="noopener">Demo</a>
       <a href="https://kp-rueck.ch">KP Rück</a>
       <a href="#kontakt">Kontakt</a>
+      <a href="https://github.com/feuerwehr-oberwil/kp-front/security/policy" target="_blank" rel="noopener">Sicherheit</a>
     </div>
   </div>
 </footer>

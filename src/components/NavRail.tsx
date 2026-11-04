@@ -7,7 +7,7 @@ import type { PlanDocument } from '../types'
 import { RAIL_COMPACT, RAIL_LABELLED, RAIL_WIDE, foldPlanTiles, railMonoMax } from '../lib/navRail'
 import { RAPPORT_PAGES, type RapportPage } from '../lib/rapportPages'
 import { useRail } from '../lib/useRail'
-import { useModifierHeld } from '../lib/useModifierHeld'
+import { useKeyHints } from '../lib/useDevicePrefs'
 import { useLongPress } from '../lib/useLongPress'
 import { markChooserOffered, offerChooser } from '../lib/chooserOffer'
 import { buzz } from '../lib/haptics'
@@ -175,13 +175,16 @@ export function NavRail(p: Props) {
   // keeps its height and hugs its text, so «RWA» in a fixed 26px column painted through its own
   // border (22.09.2026). CSS cannot count letters, so the rail says how many its longest has —
   // and with a digit or none the column stays the 26px an icon needs.
-  // the key badges show while a modifier is held — see lib/useModifierHeld
-  const keysHeld = useModifierHeld()
+  // the shortcut letter on each surface tile: there while the device pref «Tastenkürzel anzeigen»
+  // is on (lib/prefs · keyHints), and CSS shows it only with a mouse and keyboard to use it
+  // (04b-rail.css · .rail-key). The same badge the ToolRail wears.
+  const [keyHints] = useKeyHints()
+  const keyHint = (k: string) => (keyHints ? <span className="rail-key" aria-hidden>{k}</span> : null)
   const monoMax = railMonoMax(p.planDocs)
 
   return (
     <nav className={`navrail rail${expanded ? ' expanded' : ''}${rail.dragging ? ' dragging' : ''}${p.labels === 'short' ? ' labelled' : ''}${p.fold ? ' folded' : ''}`}
-      data-mono-max={monoMax} data-keys={keysHeld || undefined}>
+      data-mono-max={monoMax}>
       {/* ⚠️ NO «Ausklappen» while the words are on. The chevron exists to reveal exactly what this
           setting already shows — with it on, expanding buys 128px of nothing but a second label
           position. It stays for everybody else, which is who it was for: somebody who does not
@@ -205,7 +208,7 @@ export function NavRail(p: Props) {
         <button className={`nav-item${p.mode === 'map' ? ' on' : ''}`} aria-pressed={p.mode === 'map'} aria-label={nav.map} onClick={() => p.onMode('map')}>
           <span className="nav-glyph"><Icon id="map" /></span>
           <span className="nav-label">{nav.map}</span>
-          <span className="nav-key" aria-hidden>{SURFACE_KEY.map}</span>
+          {keyHint(SURFACE_KEY.map)}
         </button>
 
         {/* divider ABOVE the plan group too, so the module/floor tabs read as their own
@@ -266,7 +269,7 @@ export function NavRail(p: Props) {
         <button className={`nav-item${p.mode === 'checklists' ? ' on' : ''}`} aria-pressed={p.mode === 'checklists'} aria-label={appConfig.copy.modes.checklists} onClick={() => p.onMode('checklists')}>
           <span className="nav-glyph"><Icon id="checklist" /></span>
           <span className="nav-label">{appConfig.copy.modes.checklists}</span>
-          <span className="nav-key" aria-hidden>{SURFACE_KEY.checklists}</span>
+          {keyHint(SURFACE_KEY.checklists)}
         </button>
         <button className={`nav-item${p.mode === 'atemschutz' ? ' on' : ''}`} aria-pressed={p.mode === 'atemschutz'} aria-label={appConfig.copy.modes.atemschutz} onClick={() => p.onMode('atemschutz')}>
           {/* ⚠️ A STOPWATCH, not the pressure dial this item wore until 04.09. The surface is
@@ -275,7 +278,7 @@ export function NavRail(p: Props) {
               Trupp on it has and what the alarm dot beside it is about. */}
           <span className="nav-glyph"><Icon id="stopwatch" />{(p.azSeverity ?? 0) >= 2 ? <span className="nav-live nav-alarm crit" /> : null}</span>
           <span className="nav-label">{appConfig.copy.modes.atemschutz}</span>
-          <span className="nav-key" aria-hidden>{SURFACE_KEY.atemschutz}</span>
+          {keyHint(SURFACE_KEY.atemschutz)}
         </button>
         {/* ⚠️ Anwesenheit and Material have no tile of their OWN on the folded phone bar — the
             «Rapport» tile below is the door to all three (see `fold`). They are still separate
@@ -285,14 +288,14 @@ export function NavRail(p: Props) {
           <button className={`nav-item${p.mode === 'anwesenheit' ? ' on' : ''}`} aria-pressed={p.mode === 'anwesenheit'} aria-label={appConfig.copy.modes.anwesenheit} onClick={() => p.onMode('anwesenheit')}>
             <span className="nav-glyph"><Icon id="people" /></span>
             <span className="nav-label">{appConfig.copy.modes.anwesenheit}</span>
-            <span className="nav-key" aria-hidden>{SURFACE_KEY.anwesenheit}</span>
+            {keyHint(SURFACE_KEY.anwesenheit)}
           </button>
         )}
         {!p.fold && (
           <button className={`nav-item${p.mode === 'mittel' ? ' on' : ''}`} aria-pressed={p.mode === 'mittel'} aria-label={appConfig.copy.modes.mittel} onClick={() => p.onMode('mittel')}>
             <span className="nav-glyph"><Icon id="box" /></span>
             <span className="nav-label">{appConfig.copy.modes.mittel}</span>
-            <span className="nav-key" aria-hidden>{SURFACE_KEY.mittel}</span>
+            {keyHint(SURFACE_KEY.mittel)}
           </button>
         )}
         {/* The Rapport is a SURFACE, not a dialog: it is filled in across a whole Einsatz, it
@@ -333,7 +336,7 @@ export function NavRail(p: Props) {
             {rapportCount ? <span className="nav-live nav-count nav-open" aria-hidden>{rapportCount > 99 ? '99+' : rapportCount}</span> : null}
           </span>
           <span className="nav-label">{rapportWord}</span>
-          <span className="nav-key" aria-hidden>{SURFACE_KEY.rapport}</span>
+          {keyHint(SURFACE_KEY.rapport)}
         </button>
 
         {/* (no object switch here: this rail is pure navigation, and collapsed — its default —

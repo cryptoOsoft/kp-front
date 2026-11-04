@@ -120,8 +120,6 @@
      whole button stays 56px tall. */
   font-size: var(--fs-micro); font-weight: var(--fw-bold); line-height: 1.1;
   overflow: hidden; text-overflow: ellipsis; }
-/* the keyboard hint has no room in a stacked item and is a desktop affordance anyway */
-.navrail.labelled:not(.expanded):not(.dragging) .nav-key { display: none; }
 /* Expanded: left-align the way the right .vrail already right-aligns. The 46px glyph column is
    there to CENTRE an icon in the slim rail; once labels appear it becomes a fixed gutter that
    floats every icon ~12px inward, so the two rails read as a mismatched pair — the right one
@@ -170,20 +168,9 @@
 .nav-live.nav-alarm { background: var(--amber); }
 .nav-live.nav-alarm.crit { background: var(--red); animation: nav-alarm-pulse 1.4s infinite; }
 @keyframes nav-alarm-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
-/* keyboard-shortcut badge on the fixed surface items (Karte/Checkliste/…) — mirrors .help-kbd and
-   sits bottom-right so it never collides with the top-right live/alarm dot. Shown only on devices
-   with a real keyboard/pointer, so touch tablets stay uncluttered. Modules already show their
-   number as the glyph, so they need no separate badge. */
+/* the shortcut badge (`.rail-key`) is the shared rail base's – 04b-rail.css. This rail only gives
+   its tiles the box it is positioned in. */
 .nav-item { position: relative; }
-.nav-key { display: none; position: absolute; right: 5px; bottom: 4px; min-width: 16px; height: 16px;
-  box-sizing: border-box; padding: 0 4px; font-family: var(--mono); font-size: var(--fs-micro); font-weight: var(--fw-bold);
-  line-height: 14px; text-align: center; border-radius: var(--r-xs); border: 1px solid var(--border);
-  background: var(--fill-soft); color: color-mix(in srgb, var(--ink) 55%, transparent); pointer-events: none; }
-.nav-item.on .nav-key { border-color: color-mix(in srgb, var(--on-accent-ink) 45%, transparent); color: var(--on-accent-ink); background: transparent; }
-/* ⚠️ …and only WHILE ⌘ / Ctrl / Alt is down (`data-keys`, lib/useModifierHeld · 22.09.2026).
-   Standing on every icon all day the six letters read as status marks — the one corner the
-   alarm dot also uses — and they are wanted at exactly one moment: the one the modifier marks. */
-@media (hover: hover) and (pointer: fine) { .navrail[data-keys] .nav-key { display: block; } }
 /* the grip hangs off the RIGHT edge — this rail is anchored left and opens rightward. The rest
    of it (the bar, its drag colour, and its absence while the words are on) is the shared base. */
 .nav-grip { right: -7px; }

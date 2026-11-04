@@ -7,8 +7,9 @@
  *   site/content/de.json       ← the German text (the base)
  *   site/content/fr.json       ← the translation, laid over the base
  *
- *   node site/build.mjs          → writes the pages
- *   node site/build.mjs --check  → writes nothing, reports drift only (CI)
+ *   node site/build.mjs            → asks GitHub for the latest release, writes the pages
+ *   node site/build.mjs --offline  → the same from the stored release, without asking GitHub
+ *   node site/build.mjs --check    → writes nothing, reports drift only (CI, never online)
  *
  * Two kinds of page come out:
  *
@@ -22,7 +23,8 @@
  * readable offline, no server needed.
  *
  * Alongside them the build writes site/404.html, site/sitemap.xml and site/robots.txt,
- * all three from the same config – so a new language never needs a second list.
+ * all three from the same config – so a new language never needs a second list – and
+ * site/content/release.json, the latest GitHub release as last seen (see below).
  *
  * theme.js is embedded before CSS in every page; picture sources retain both themes
  * in the offline bundle. Keep this builder and theme.js identical in both repositories.
@@ -37,6 +39,7 @@ import { dirname, join } from 'node:path'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const CHECK = process.argv.includes('--check')
+const OFFLINE = CHECK || process.argv.includes('--offline')
 
 const read = (...p) => readFileSync(join(HERE, ...p), 'utf8')
 const readJson = (...p) => JSON.parse(read(...p))
@@ -225,6 +228,54 @@ const bundle = (html) => {
   return out
 }
 
+// ─── Dates ────────────────────────────────────────────────────────────────────
+//
+// A calendar date as YYYY-MM-DD, taken in Zurich – where the project and its releases live – so
+// a release published at 00:30 is not dated the day before. The texts choose how a date is
+// shown (`footer.release.dateFormat`, e.g. DD.MM.YYYY), because no locale database agrees
+// with the Swiss convention for all five languages.
+const zurichDate = (date) => date.toLocaleDateString('sv-SE', { timeZone: 'Europe/Zurich' })
+const showDate = (iso, format) => {
+  const [y, m, d] = iso.split('-')
+  return format.replace('DD', d).replace('MM', m).replace('YYYY', y)
+}
+
+// ─── The latest release ───────────────────────────────────────────────────────
+//
+// The footer line and the app's softwareVersion, dateModified and releaseNotes name the latest
+// GitHub release. A plain build asks GitHub and stores the answer in content/release.json;
+// `--offline` and `--check` only read that file, so CI never depends on the network and judges
+// the committed pages against the committed release. When GitHub cannot be reached or answers
+// with something unusable, the stored release stands – never an empty or half-filled line.
+// Without a stored release the line and the three properties are left out altogether.
+//
+// GitHub Pages serves the committed pages, so a new release reaches the site with the next
+// rebuild that is committed – run `node site/build.mjs` after publishing one.
+const RELEASE_FILE = join('content', 'release.json')
+
+const fetchRelease = async () => {
+  const [, owner, repo] = new URL(config.product.repo).pathname.split('/')
+  const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/releases/latest`, {
+    headers: { accept: 'application/vnd.github+json', 'user-agent': `${repo}-site-build` },
+    signal: AbortSignal.timeout(10_000),
+  })
+  if (!res.ok) throw new Error(`GitHub answered ${res.status}`)
+  const { tag_name: tag, published_at: published, html_url: url } = await res.json()
+  if (!/^v\d+\.\d+\.\d+$/.test(tag ?? '') || !url?.startsWith(`${config.product.repo}/releases/`) || !Date.parse(published))
+    throw new Error(`unusable answer for ${tag}`)
+  return { tag, date: zurichDate(new Date(published)), url }
+}
+
+const storedRelease = existsSync(join(HERE, RELEASE_FILE)) ? readJson(RELEASE_FILE) : null
+let release = storedRelease
+if (!OFFLINE) {
+  try {
+    release = await fetchRelease()
+  } catch (err) {
+    console.warn(`Latest release not fetched (${err.message}) – keeping ${storedRelease?.tag ?? 'no release line'}.`)
+  }
+}
+
 // ─── Build ────────────────────────────────────────────────────────────────────
 const baseLocale = config.locales[0]
 const base = readJson('content', `${baseLocale.code}.json`)
@@ -260,6 +311,17 @@ const put = (rel, content) => {
   written.push(rel)
 }
 
+if (release) put(RELEASE_FILE, `${JSON.stringify(release, null, 2)}\n`)
+
+// The day a language page last changed, read back from its committed copy. It cannot come from
+// git: the page is committed together with the change that alters it, so its own commit date
+// is unknown while it is being built.
+const previousModified = (html, webPageId) => {
+  const ld = html?.match(/<script type="application\/ld\+json">\n([\s\S]*?)\n<\/script>/)
+  return ld ? JSON.parse(ld[1])['@graph']?.find((node) => node['@id'] === webPageId)?.dateModified : undefined
+}
+const today = zurichDate(new Date())
+
 for (const locale of config.locales) {
   const isBase = locale.code === baseLocale.code
   const own = isBase ? base : readJson('content', `${locale.code}.json`)
@@ -280,34 +342,48 @@ for (const locale of config.locales) {
   // Every node true and checkable:
   //
   //   SoftwareApplication  what this is – ONE stable @id and the canonical product URL on
-  //                        every language page, so the five pages describe one app
+  //                        every language page, so the five pages describe one app; version,
+  //                        date and release notes of the latest release; the demo as a
+  //                        ViewAction
   //   SoftwareSourceCode   where the code lives (`codeRepository` belongs here, not on the
   //                        app), linked from the app via `subjectOf`
   //   CreativeWorkSeries   KP Front and KP Rück as one family – the same @id on both sites,
   //                        so the two apps belong together without claiming to be the same
   //                        thing (hence no `sameAs` between them)
-  //   Organization         who is behind it
-  //   WebPage              this language page, with its own URL, title and language
+  //   Person               who wrote it: author, creator and copyright holder, the same @id
+  //                        on both sites
+  //   WebSite              this domain and the languages it is published in
+  //   WebPage              this language page, with its own URL, title, language and the
+  //                        day it last changed – not the release date, which is the app's
   //   FAQPage              this page's visible FAQ
   //
+  // The publisher is Feuerwehr Oberwil, referenced by the @id its own website gives it
+  // (`product.publisher`) and deliberately not described here: the full node lives on
+  // feuerwehr-oberwil.ch, and a second, slightly different copy on each product domain is
+  // exactly the contradiction a single @id is meant to prevent.
+  //
   // Two kinds of language, kept apart on purpose: `product.inLanguage` names the languages
-  // of the APP's interface, the page's own language goes on WebPage and FAQPage. A Romansh
-  // landing page is not a Romansh app.
+  // of the APP's interface, the page's own language goes on WebPage and FAQPage, and the
+  // site's five on WebSite. A Romansh landing page is not a Romansh app.
   //
   // Everything per language comes from the texts: `schema.description` and
-  // `schema.featureList` (optional – without them the meta description stands in), and the
-  // FAQPage is the visible `faq.items`, reduced to plain text – one source, so the two can
-  // never say different things. Google has shown FAQ rich results only for government and
-  // health sites since 2023; the FAQPage is there for the other search and answer engines
-  // that still read it.
+  // `schema.featureList` (optional – without them the meta description stands in),
+  // `schema.audience` and `schema.demoAction`, and the FAQPage is the visible `faq.items`,
+  // reduced to plain text – one source, so the two can never say different things. Google
+  // has shown FAQ rich results only for government and health sites since 2023; the FAQPage
+  // is there for the other search and answer engines that still read it.
   //
   // Built here rather than written into the template because JSON.stringify guarantees valid
   // JSON: the template does not escape, and one apostrophe in a description would silently
   // turn the whole block into something no crawler reads.
   const p = config.product
   const appId = `${config.origin}/#app`
+  const siteId = `${config.origin}/#website`
+  const webPageId = `${urlOf(locale)}#webpage`
+  const publisher = { '@id': p.publisher }
+  const author = { '@id': p.author.id }
   const faqItems = content.faq?.items ?? []
-  const jsonLd = JSON.stringify(
+  const jsonLd = (modified) => JSON.stringify(
     {
       '@context': 'https://schema.org',
       '@graph': [
@@ -321,6 +397,7 @@ for (const locale of config.locales) {
           applicationCategory: 'BusinessApplication',
           operatingSystem: 'Web browser',
           inLanguage: p.inLanguage,
+          ...(release && { softwareVersion: release.tag.replace(/^v/, ''), dateModified: release.date, releaseNotes: release.url }),
           license: p.license,
           sameAs: p.repo,
           subjectOf: { '@id': `${config.origin}/#source` },
@@ -328,7 +405,18 @@ for (const locale of config.locales) {
           screenshot: `${config.origin}/${p.screenshot}`,
           isAccessibleForFree: true,
           offers: { '@type': 'Offer', price: '0', priceCurrency: 'CHF' },
-          publisher: { '@id': `${config.origin}/#org` },
+          ...(content.schema?.audience && {
+            audience: content.schema.audience.map((audienceType) => ({ '@type': 'Audience', audienceType })),
+          }),
+          potentialAction: {
+            '@type': 'ViewAction',
+            name: content.schema.demoAction,
+            target: { '@type': 'EntryPoint', urlTemplate: p.demo },
+          },
+          author,
+          creator: author,
+          copyrightHolder: author,
+          publisher,
         },
         {
           '@type': 'SoftwareSourceCode',
@@ -336,27 +424,40 @@ for (const locale of config.locales) {
           name: `${p.name} source code`,
           codeRepository: p.repo,
           license: p.license,
+          author,
+          publisher,
         },
         {
           '@type': 'CreativeWorkSeries',
           '@id': p.suite.id,
           name: p.suite.name,
           hasPart: p.suite.apps.map((id) => ({ '@id': id })),
+          publisher,
         },
         {
-          '@type': 'Organization',
-          '@id': `${config.origin}/#org`,
-          name: p.org.name,
-          url: p.org.url,
-          sameAs: [p.org.github],
+          '@type': 'Person',
+          '@id': p.author.id,
+          name: p.author.name,
+          url: p.author.url,
+          sameAs: [p.author.github],
+        },
+        {
+          '@type': 'WebSite',
+          '@id': siteId,
+          url: urlOf(baseLocale),
+          name: p.name,
+          inLanguage: config.locales.map((l) => l.hreflang),
+          publisher,
         },
         {
           '@type': 'WebPage',
-          '@id': `${urlOf(locale)}#webpage`,
+          '@id': webPageId,
           url: urlOf(locale),
           name: plainText(content.meta.title),
           description: plainText(content.meta.description),
           inLanguage: locale.hreflang,
+          dateModified: modified,
+          isPartOf: { '@id': siteId },
           mainEntity: { '@id': appId },
         },
         ...(faqItems.length
@@ -383,9 +484,15 @@ for (const locale of config.locales) {
     ...content,
     lang: locale.code,
     ogLocale: locale.ogLocale,
+    ogAlternates: config.locales.filter((l) => l.code !== locale.code).map((l) => l.ogLocale),
     base: up,
     canonical: urlOf(locale),
-    jsonLd,
+    latestRelease: release && {
+      version: release.tag,
+      iso: release.date,
+      date: showDate(release.date, content.footer.release.dateFormat),
+      url: release.url,
+    },
     themeScript: read('theme.js'),
     alternates: config.locales
       .map((l) => ({ hreflang: l.hreflang, href: urlOf(l) }))
@@ -399,11 +506,21 @@ for (const locale of config.locales) {
     })),
   }
 
+  // The page is rendered with the date it already carries; only if that changes anything is it
+  // rendered again with today's. So a rebuild that alters nothing keeps the old date, and
+  // `--check` compares like with like.
   const missing = new Set()
-  const html = render(template, [page], missing).replace(/^<!doctype html>/i, `<!doctype html>\n${BANNER(locale.code)}`)
+  const htmlFor = (modified) =>
+    render(template, [{ ...page, jsonLd: jsonLd(modified) }], missing)
+      .replace(/^<!doctype html>/i, `<!doctype html>\n${BANNER(locale.code)}`)
+  const rel = `${dir}index.html`
+  const committed = existsSync(join(HERE, rel)) ? read(rel) : null
+  const kept = previousModified(committed, webPageId)
+  let html = htmlFor(kept ?? today)
+  if (!CHECK && html !== committed) html = htmlFor(today)
   if (missing.size) problems.push(`${locale.code}: ${[...missing].join(', ')}`)
 
-  put(`${dir}index.html`, html)
+  put(rel, html)
   put(join('dist', dir, 'index.html'), bundle(html))
 
   if (!isBase) {

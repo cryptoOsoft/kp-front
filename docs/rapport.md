@@ -24,10 +24,22 @@ the sheet stays open, re-reading itself (`ConfirmSpec · refresh`) — the row s
 the lead sentence and the button follow («Abschliessen» once nothing is open). «Wählen»
 (Einsatzleiter) and «Schreiben» (Kurzbericht) leave for the focused field. Anwesenheit and
 Abweichungen have no one-tap answer. An empty **Einsatzende is pre-filled with «jetzt»** on the
-deployment clock (`serverNowIso`), shown as a done row with «Ändern»; the close writes it before
+deployment clock (`serverNowIso`), shown as a done row with «Ändern» in the step's own place on
+the list; the close writes it before
 the handover, so «Einsatzende» (the step `zeiten`) is only open on a sheet that may not write the Rapport. The success
 toast carries «Wieder öffnen» for 10 s (docs/undo.md). Close and reopen stamps come off
 `lib/serverClock`, like the Rapport's own «Jetzt» buttons.
+
+**The print's «Angaben fehlen noch» is the same list (31.10.2026)**: both confirms take rows,
+order and buttons from ONE builder (`lib/abschlussOpen · abschlussSheet`); only the words around
+the list are each one's own. The print lists the Mindestangaben only – a Trupp still out and the
+pending uploads are closing questions – and pre-fills nothing: its Einsatzende row offers «Jetzt
+setzen». Answered to the last row, the title reads «Alle Angaben erfasst» and the «trotzdem» note
+goes; an answer given there is on the PDF made from that same tap (`ReportPreflight · startOutput`).
+
+The Einsatzdaten card has no pencil (31.10.2026): the card is the pointer's target, its heading
+«Aus den Einsatzdaten» the keyboard's (a `role="button"` span – a `<button>` would be disabled
+with the Rapport's fieldset while the Einsatzdaten may still be edited).
 
 ## The strip under the head – the guide and the Abschluss band (28.10.2026)
 

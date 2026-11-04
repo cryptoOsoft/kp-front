@@ -1610,10 +1610,11 @@ export function AtemschutzView({
             )}
           </div>
         ) : focusMode ? (
-          /* top-aligned: the card takes only what it needs, never stretched to fill the port
-             (`.focusCard`'s own `align-items: flex-start`) — the strip that used to sit above it
-             moved to the bottom rail below (mock 03: «status where the eyes land, actions where
-             the thumb lives»). */
+          /* the page fills the port at least, its reading on top and its tiles at the foot, right
+             over the bottom rail (TruppCard · `page`, `.pageActs`; 31.10.2026: «read at the top,
+             tap at the bottom») — the strip that used to sit above it moved to the rail below
+             (mock 03: «status where the eyes land, actions where the thumb lives»). Taller than
+             the port, the page scrolls and the tiles follow its content. */
           <div className={s.focusCard}>{cards(board.filter((t) => t.id === focusId))}</div>
         ) : phoneMode ? (
           // `.phoneBoard`: the one rule for the air above every section after the first (30.09.2026)
@@ -1743,10 +1744,9 @@ export function AtemschutzView({
               const lv = live.get(t.id)!
               const alarm = alarms.get(t.id)!
               const sev = alarm.sev
-              // the tier in a glyph and a word, not tint + border alone (UX sweep F6): the row's
-              // own mark (tierMark) — triangle = «Überfällig» / «Alarmdruck»; «Fällig» is the
-              // chip's amber and a word for the screen reader (no clock glyph since 30.10.2026)
-              const tier = tierMark(alarm, sev, true)
+              // the tier is the chip's tint and clock colour; its word («Überfällig» / «Alarmdruck» /
+              // «Fällig», tierMark) is for the screen reader only – no glyph since 30.10.2026
+              const tier = tierMark(alarm, sev)
               // the line under the name (truppCardText · tabState): «Bereit», «Rückzug 0:49», or the clock
               const st = tabState(t, lv)
               return (
@@ -1768,9 +1768,7 @@ export function AtemschutzView({
                       not say – the badge stays on the card head, the phone row and the map. */}
                   <span className={cx(s.tabName, s.tabNameWrap)}>{t.name}</span>
                   <span className={cx(s.tabClock, st.tone === 'ready' && s.tabReady, st.tone === 'rueckzug' && s.tabRueckzug)}>
-                    {/* ⚠️ the ⚠ stays on the TAB (lead call, 30.10.2026): the tab has no word
-                        «Notfall» or «Überfällig», so colour must not be its only signal */}
-                    {tier && <>{tier.crit && <Icon id="warn" className={s.tabTier} />}<span className="sr-only">{tier.text}</span></>}
+                    {tier && <span className="sr-only">{tier}</span>}
                     {st.word && <span className={s.tabWord}>{st.word}</span>}
                     {st.clock && <ClockVal val={st.clock} />}
                   </span>

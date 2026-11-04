@@ -395,12 +395,13 @@ export default function KarteApp({ einsaetze, announceReturn = false, onOpenVisi
   // the running chip (owner's pick 6A, sweep F.2): it names the first REAL Einsatz — an Übung only
   // when nothing but Übungen runs — and ONE «+N» counts every other open one, Einsätze and Übungen
   // together. The name opens that Einsatz (the whole chip is its target, chevron included); «+N»
-  // opens the menu, which lists them all. In the bar on both devices; a phone's Checkliste, whose
-  // bar holds the library's search field, keeps it as a strip under the bar.
+  // opens the menu, which lists them all. Red for an Einsatz, amber when the one it names is an
+  // Übung. In the bar on both devices; a phone's Checkliste, whose bar holds the library's search
+  // field, keeps it as a strip under the bar.
   const live = running.find((i) => !i.is_exercise) ?? running[0] ?? null
   const more = live ? running.length - 1 : 0
   const runningChip = live && (
-    <div className={cx(s.running, phone && !onLibrary && s.inBar)} data-karte-running-chip="">
+    <div className={cx(s.running, live.is_exercise && s.runningExercise, phone && !onLibrary && s.inBar)} data-karte-running-chip="">
       <button type="button" className={s.runningOpen} onClick={() => onOpenIncident(live)} aria-label={fillTemplate(C.runningOpen, { t: live.title })}>
         <span className={s.pulse} aria-hidden />
         <span className={s.runningText}><b>{live.title}</b>{live.address && <small>{live.address.split(',')[0]}</small>}</span>
@@ -721,6 +722,7 @@ export default function KarteApp({ einsaetze, announceReturn = false, onOpenVisi
             className="tool-rail"
             primary={{ id: '__none', icon: 'plus', label: '' }}
             tools={tabletTools}
+            hotkeys={false} // the viewer has no keyboard layer: no letters on Pin · Messen · ERG
             active={tool === 'layers' ? '' : tool ?? ''}
             onPick={(id) => setTool(id as Tool)}
             footer={(

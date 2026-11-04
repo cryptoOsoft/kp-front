@@ -95,6 +95,13 @@ export function objectHeadSub(o: { name: string; address: string | null; localit
   return nameSaysAddress(o) ? splitAddress(a)[1] || null : a
 }
 
+/** The second line of an object row in the Einsatz wizard's picker: its address, then the plans text
+ *  («Schlossgasse 9 · 2 Pläne»). Never a «—» for a missing address – the row then says the plans
+ *  alone – and when the name already is the address, only what the name leaves out (the place). */
+export function objectPicklistSub(o: { name: string; address: string | null; locality?: string | null }, plansText: string): string {
+  return [objectHeadSub(o), plansText].filter(Boolean).join(' · ')
+}
+
 /** The label as «street, place» — the shape the server's own addresses have. */
 export function normAddress(label: string | null | undefined): string {
   const [a, b] = splitAddress(label)

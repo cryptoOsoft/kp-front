@@ -18,32 +18,17 @@
 /* No rule under it any more: it used to be the top of ONE long «Rapportangaben» block and the
    line was what separated the read-only dispatch facts from the fields below. The block is its
    own section now, and the section's own edge is the separator. */
-.report-meta-dispatch-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 /* The same ink as every other eyebrow on this surface (.report-pre-section h3) — once it was one
    shade apart from three headings stacked in the same column. Since 28.09.2026 all of them are
    the app's ONE eyebrow (01-tokens · --eyebrow, --ink-faint). */
-.report-meta-dispatch-head > span { font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-faint); }
-/* the icon-only «Bearbeiten» — the whole card is the press target for a pointer (see
-   `.report-meta-dispatch-click` below), so this exists as the keyboard/AT target the card can
-   never be (ReportPreflight keeps the <dl> readable content rather than a button's label) and as
-   the visible cue that the card does something. Deliberately smaller than `--tap`: it is the
-   SECONDARY way in, same reasoning as the toast pill's `.toast-x` — the card around it is the
-   uncapped primary touch target, so a touch that misses this glyph still lands on the card. */
-.report-meta-dispatch-hint { width: 26px; height: 26px; flex: none; padding: 0; border: none;
-  border-radius: var(--r-sm); background: none; color: var(--ink-faint); cursor: pointer;
-  display: grid; place-items: center; }
-.report-meta-dispatch-hint .i { width: 15px; height: 15px; }
-@media (hover: hover) {
-  .report-meta-dispatch-hint:hover { background: var(--blue-12); color: var(--blue); }
-}
-.report-meta-dispatch-hint:active { background-image: linear-gradient(var(--press), var(--press)); }
-/* the whole dispatch card opens the Einsatzdaten (mirrors an Anwesenheit person row) — the
-   target grows from the small edit glyph to the full card, without the card BEING a button: see
-   the <dl> note above. The class sits on the `.report-pre-section` itself, and its states are the
-   round-up cards' beside it (13-incident · `.rp-check`, owner #32 30.10.2026): a hover lights the
-   card's own edge, a press washes the card once – no inner box, no fill. Where the sections are
-   flat (<1080px) there is no edge to light, so a hover keeps the hairline, as `.rp-check` does.
-   On a tablet there is no hover to advertise the card, so the pen glyph carries the affordance. */
+.report-meta-dispatch-head { font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-faint); }
+/* the whole dispatch card opens the Einsatzdaten (mirrors an Anwesenheit person row), without the
+   card BEING a button: see the <dl> note in ReportPreflight. The class sits on the
+   `.report-pre-section` itself, and its states are the round-up cards' beside it (13-incident ·
+   `.rp-check`, owner #32 30.10.2026): a hover lights the card's own edge, a press washes the card
+   once – no inner box, no fill. Where the sections are flat (<1080px) there is no edge to light,
+   so a hover keeps the hairline, as `.rp-check` does. No pencil in the head any more (owner,
+   31.10.2026): the card is the target, the same as Anwesenheit/Material beside it. */
 .report-meta-dispatch-click { cursor: pointer; }
 @media (hover: hover) {
   .report-meta-dispatch-click:hover { border-color: var(--ink-faint); }
@@ -52,6 +37,11 @@
   .report-preflight-body .report-meta-dispatch-click:hover { border-color: var(--glass-edge); }
 }
 .report-meta-dispatch-click:active { background-image: linear-gradient(var(--press), var(--press)); }
+/* …and its keyboard target is the eyebrow (`.report-meta-dispatch-go`): focused, the RING is the
+   card's, since the card is what a press opens – a ring round one small uppercase word would
+   point at less than the thing it works. */
+.report-meta-dispatch-go:focus-visible { outline: none; }
+.report-meta-dispatch-click:has(.report-meta-dispatch-go:focus-visible) { outline: 2px solid var(--blue); outline-offset: 2px; }
 .report-meta-readout { margin: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
 .report-meta-readout > div { display: grid; grid-template-columns: 116px 1fr; gap: 12px; align-items: baseline; }
 .report-meta-readout dt { margin: 0; font: var(--field-label); color: var(--ink-dim); }

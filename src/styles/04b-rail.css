@@ -94,3 +94,29 @@
    derselbe Entscheid übersehen hat — und er blieb ausgerechnet dort stehen, wo er am wenigsten
    nützt. Ohne die Wörter bleibt er: dann ist er der Weg, die Beschriftung zu sehen. */
 .rail.labelled .rail-grip { display: none; }
+
+/* ── The shortcut-letter badge (`.rail-key`, lib/hotkeys) – ONE look on both rails (31.10.2026).
+   The left NavRail wears a surface's letter (K · C · A …), the right ToolRail a tool's (V · L · F …).
+   One rule decides whether it is there: the device pref «Tastenkürzel anzeigen» (lib/prefs ·
+   keyHints, default ON) renders it, and this media gate shows it only on a device with hover AND
+   a fine pointer – a touch-only device has no keyboard to read it for. No modifier-held reveal any
+   more: a hint hidden until you already know the shortcut taught nothing. The phone's folded bar
+   never wears them (its tiles are doors to groups, and a bar you touch needs no letter).
+   Placement follows the tile's shape, because the badge must never sit on its glyph or its word:
+     · icon-only (default): the tile's bottom-right corner, small enough to leave the 22px glyph clear
+       (the alarm/count dot owns the top-right);
+     · words under the glyph (`.labelled`): the TOP-LEFT corner – the word occupies the bottom half
+       of the tile, the glyph only the middle of the top half, and the alarm / count / open dots
+       all hang off the right;
+     · expanded (word beside the glyph): vertically centred at the tile's far end – the left rail's
+       right end, the right rail's left end – the free side of the row. */
+.rail-key { display: none; position: absolute; right: 3px; bottom: 3px; min-width: 16px; height: 16px;
+  box-sizing: border-box; padding: 0 4px; font-family: var(--mono); font-size: var(--fs-micro); font-weight: var(--fw-bold);
+  line-height: 14px; text-align: center; border-radius: var(--r-xs); border: 1px solid var(--border);
+  background: var(--fill-soft); color: var(--ink-faint); pointer-events: none; }
+:is(.nav-item, .vrail-tool).on .rail-key { border-color: color-mix(in srgb, var(--on-accent-ink) 45%, transparent);
+  color: var(--on-accent-ink); background: transparent; }
+.rail.labelled:not(.expanded):not(.dragging) .rail-key { top: 3px; bottom: auto; right: auto; left: 4px; }
+.rail.expanded:not(.dragging) .rail-key { top: 50%; bottom: auto; margin-top: -8px; right: 10px; }
+.vrail.expanded:not(.dragging) .rail-key { right: auto; left: 10px; }
+@media (hover: hover) and (pointer: fine) { .rail:not(.folded) .rail-key { display: block; } }

@@ -1853,12 +1853,17 @@ select.cv-input { appearance: none; -webkit-appearance: none;
    edge, and the wrapped action row pushes that chip far enough right that a 358px panel opening
    leftwards began off the left of the screen, hard-clipped by the surface's `overflow: hidden`.
    The width stays viewport-relative anyway — collision handling can shift a popup back onto the
-   screen, but it cannot shrink one that is wider than the screen to begin with. */
+   screen, but it cannot shrink one that is wider than the screen to begin with.
+   The HEIGHT is the room the positioner measured below the chip (`--available-height`, already
+   less the collision padding; inherited from the Positioner, as `.ui-menu-pos` reads it): a fixed
+   46dvh scrolled a short list with half the screen free beneath it (31.10.2026). The 46dvh is the
+   fallback before the first measure. A phone's own cap, measured against the FAB (15-mobile ·
+   `--rp-control-room`), still outranks this there. */
 .rp-control { z-index: var(--z-popover);
   width: min(380px, calc(100vw - 32px)); display: flex; flex-direction: column; gap: 8px;
   padding: 12px 16px; border-radius: var(--r-ctl);
   background: var(--surface); border: 1px solid var(--glass-edge); box-shadow: var(--e4);
-  max-height: 46dvh; overflow-y: auto; }
+  max-height: var(--available-height, 46dvh); overflow-y: auto; }
 /* long personnel lists in the Einsatzstunden warning must wrap, not push the panel wider */
 .rp-control .form-warn { min-width: 0; overflow-wrap: anywhere; }
 /* «Noch offen» inside the Kontrolle popover (every width since 23.09.2026): a list of doors,
