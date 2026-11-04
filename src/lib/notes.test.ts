@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { NOTE_SIZE_SCALE, NOTE_WN, NOTE_W_PX, STACK_NOTE_MIN_EM, autoNoteBoxPx, autoNoteWN, autoNoteWPx, clampNoteWN, clampNoteWPx, noteScale, noteWN, noteWPx, stackNoteBoxPx } from './notes'
+import { NOTE_SIZE_SCALE, NOTE_WN, NOTE_W_PX, STACK_NOTE_MIN_EM, autoNoteBoxPx, autoNoteWN, autoNoteWPx, clampNoteWN, clampNoteWPx, noteScale, noteWN, noteWPx, stackNoteBoxPx, stackNoteShiftPx } from './notes'
 
 describe('note sizing', () => {
   it('treats an absent size as normal', () => {
@@ -92,5 +92,12 @@ describe('width clamps', () => {
     expect(stackNoteBoxPx(34, long, 12.5)).toBe(STACK_NOTE_MIN_EM * 12.5)
     expect(stackNoteBoxPx(34, 'Druck', 12.5)).toBe(autoNoteBoxPx('Druck', 12.5))
     expect(stackNoteBoxPx(400, long, 12.5)).toBe(400) // a stored wider box stands
+  })
+
+  // hill climb r4, 04.11.2026: a wide note near the stack's left edge ran its text under «EG»
+  it('draws a stack note no further left than the stack edge, and moves nothing else', () => {
+    expect(stackNoteShiftPx(60, 200)).toBe(40) // the phone shot: box 200 at centre 60 → starts at 0
+    expect(stackNoteShiftPx(100, 200)).toBe(0) // already clear
+    expect(stackNoteShiftPx(150, 80)).toBe(0) // fits inside the storey
   })
 })
