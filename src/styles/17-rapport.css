@@ -492,7 +492,7 @@
 /* ⚠️ No wrap trigger and no basis/indent any more: `.hist-ev` is a 4-track GRID since the
    classification column landed, and these sit on the sentence track by `grid-column` (see
    06-contextpanel.css). A flex basis here fought the grid; the 74px margin was simply the
-   wrong axis — the sentence starts at 94px. */
+   wrong axis — the sentence starts at 88px (06-contextpanel · .hist-ev). */
 .jr-transcript { min-width: 0; margin: 2px 0; display: flex; flex-direction: column; gap: var(--sp-2); }
 .jr-transcript p { margin: 0; color: var(--ink-dim); font-size: var(--fs-1); line-height: 1.45; white-space: pre-wrap; }
 /* the words as SUBTITLE lines under an audio row — the korrektur sub-line's quiet register:

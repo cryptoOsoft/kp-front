@@ -515,8 +515,10 @@
 .history-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden;
   overscroll-behavior: contain; padding: 0 2px 2px; }
 /* ⚠️ A GRID, not a wrapping flex (23.08.). Four tracks: time · disc · the sentence · everything
-   else. The point is the third one — every row's text starts at the same x (10 + 38 + 10 + 26 +
-   10 = 94px from the row's border box), and the sub-lines below are placed on that same axis, so
+   else. The point is the third one — every row's text starts at the same x (8 + 38 + 8 + 26 +
+   8 = 88px from the row's border box; 94 with 10px padding and gutters until hill climb r7,
+   04.11.2026, which gave the 6px back to the sentence on a phone), and the sub-lines below are
+   placed on that same axis, so
    reading a long Verlauf is riding one edge down the page. As a flex row this could not hold:
    six decorations were allowed in front of the sentence, all `flex: none` against the one
    shrinkable child, so the text was pushed out of the way by whatever the row happened to carry.
@@ -531,19 +533,19 @@
    overflow it — and since 27.10.2026 (#12) it holds controls only: the footnotes and state chips
    moved under the sentence (`.jr-meta`), where they no longer cost it any width.
    overflow: hidden — the connector halves below are drawn 100vh long and clipped to the row.
-   ⚠️ The 10px here and the 9px + 1px border of the Pendenzen rows below stay off the 4px grid
-   (08.10.2026, Karte chrome on the scales): they ARE that one text axis, which 10-journal and
-   18-audio line up with, so the axis moves with the Verlauf's own stylesheets, not from here.
+   ⚠️ The 8px here and the 7px + 1px border of the Pendenzen rows below are one number, not
+   two: they ARE that one text axis, which 10-journal and 18-audio line up with, so the axis
+   moves with the Verlauf's own stylesheets, not from here.
    A row is at least --tap tall (30.10.2026, was ≈42 on one line): the whole row is a target. Its
    44px controls (play, jump, thumbnails) spend the padding as negative margin – `--jr-ctl-bleed`,
    the 8px less half a 4px seam, so two of them in adjacent rows never touch – and a row carrying
    one is 48, what it was with the old 32–40px controls. */
 .hist-ev { display: grid; grid-template-columns: 38px 26px minmax(0, 1fr) fit-content(50%);
-  column-gap: 10px; row-gap: 2px; align-items: center;
-  min-height: var(--tap); padding: 8px 10px; --jr-ctl-bleed: calc(var(--sp-1) / 2 - var(--sp-2)); border-radius: var(--r-ctl); font-size: var(--fs-2); font-weight: var(--fw-medium); overflow: hidden; }
+  column-gap: var(--sp-2); row-gap: 2px; align-items: center;
+  min-height: var(--tap); padding: var(--sp-2); --jr-ctl-bleed: calc(var(--sp-1) / 2 - var(--sp-2)); border-radius: var(--r-ctl); font-size: var(--fs-2); font-weight: var(--fw-medium); overflow: hidden; }
 /* the sub-lines (transcript, its editor, the row's own correction box) take the sentence's
    column and run to the row's right edge — ONE axis with the text above them, which they missed
-   by 10px for as long as they were flex children with a hand-set margin. */
+   by a gutter for as long as they were flex children with a hand-set margin. */
 .hist-ev > .jr-subs, .hist-ev > .jr-transcript { grid-column: 3 / -1; margin-left: 0; }
 .hist-ev.clickable { cursor: pointer; }
 /* ⚠️ Rows the replay playhead has not reached yet. Dimmed, never hidden: the Verlauf stays whole
@@ -602,10 +604,12 @@
    control. It is the ONLY place an item is ticked off — the Verlauf row carried a second,
    identical control that scrolled away while this one cannot.
    ⚠️ 26px wide is under the gloved floor on its own, so the TARGET grows past the ring on a
-   pseudo-element (below): 9px into each 10px gutter and through the row's padding, 44 × the row
+   pseudo-element (below): 9px out to each side and through the row's padding, 44 × the row
    (23.09.2026 — it was 26 × 34, and «Erledigt» is the one tap here that closes something). The
-   ring and the text's axis do not move, and the 1px left in each gutter keeps it off the clock's
-   and the text's own targets. A miss still lands on the text, which opens the Meldung sheet —
+   ring and the text's axis do not move. The gutters are 8px since hill climb r7, so the pad
+   takes the last pixel of the clock's column, whose own pad stops short of it (.jr-when::before),
+   and 1px of the text's first glyph — which is the row-wide text target anyway. A miss still
+   lands on the text, which opens the Meldung sheet —
    recoverable, and its draft survives a close. */
 /* ⚠️ 26px — the same number `.hist-ev .ic` carries, because the app is `box-sizing: border-box`
    throughout and that 26 therefore INCLUDES the icon's 1px border. Measured at 28 once, against a
@@ -669,7 +673,7 @@ span.jr-rem { cursor: default; }
      plus the xs/sm/pill tier below it). This rule asked for one, which is invalid at
      computed-value time, so the block sat in the Verlauf with hard 0px corners. */
   /* the 2px matches `.history-list`'s own side padding, so the box's border and the log's rows
-     stand on one edge — and the 9px on a row plus this 1px border makes the 10px `.hist-ev` uses,
+     stand on one edge — and the 7px on a row plus this 1px border makes the 8px `.hist-ev` uses,
      which is what keeps the item text on the same x as every line in the log. */
   margin: 0 2px 8px; padding: 8px 0; border-radius: var(--r-ctl);
   border: 1px solid color-mix(in srgb, var(--amber) 30%, var(--glass-edge));
@@ -724,7 +728,7 @@ span.jr-rem { cursor: default; }
    to prevent. `top: -8px` + the matching negative margin cancel the block's top padding, so the
    heading sits flush while scrolled and keeps its air when it is not. */
 .jr-pinned-head { flex: none; position: sticky; top: -8px; z-index: 3; margin-top: -8px;
-  padding: 8px 9px 6px; background: var(--jr-pinned-bg);
+  padding: 8px 7px 6px; background: var(--jr-pinned-bg);
   display: flex; align-items: center; gap: 8px; font: var(--fw-bold) var(--fs-2) var(--body); color: var(--ink); }
 .jr-pinned-head .i { width: 16px; height: 16px; flex: none; }
 /* a row scrolling up under the heading dissolves into it rather
@@ -740,11 +744,13 @@ span.jr-rem { cursor: default; }
    ⚠️ And the metrics are the VERLAUF'S, not their own — same 14px regular text, same faint mono
    time, same rhythm. This block sits directly above the log and read as a different component
    built by somebody else: bolder, bigger, its own scale, for rows that are the same rows. */
-/* ⚠️ ONE AXIS WITH THE VERLAUF. The columns mirror `.hist-ev` exactly — 10px of row padding, a
-   38px time, a 26px icon slot, 10px gutters — so an item's text starts on the same x as every
-   line in the log below it. It was 15px to the left of them, which is the kind of near-miss that
-   reads as sloppiness before you can name it. The 9px here plus the block's own 1px border make
-   the 10px `.hist-ev` uses — no negative margins, which is what turned the block into a sideways
+/* ⚠️ ONE AXIS WITH THE VERLAUF. The columns mirror `.hist-ev` exactly — 8px of row padding, a
+   38px time, a 26px icon slot, 8px gutters (10px until hill climb r7, 04.11.2026: on a phone the
+   item text started at x109 and every item ran to three lines) — so an item's text starts on the
+   same x as every line in the log below it. It was 15px to the left of them once, which is the
+   kind of near-miss that reads as sloppiness before you can name it. The 7px here plus the
+   block's own 1px border make the 8px `.hist-ev` uses — no negative margins, which is what
+   turned the block into a sideways
    scroller. */
 /* ⚠️ `flex: none` — this is the one that bit. The block is a flex COLUMN with a `max-height`, so
    once its rows overflowed, the default `flex-shrink: 1` squeezed every one of them down to its
@@ -752,14 +758,14 @@ span.jr-rem { cursor: default; }
    painted straight over the row below it. It read as a rendering fault and was one. A row is
    never allowed to be shorter than its contents — the BOX scrolls instead, which is what its
    `overflow-y` is for. */
-.jr-pinned-row { flex: none; position: relative; display: flex; align-items: flex-start; gap: 10px;
-  min-height: var(--tap); padding: 6px 9px; border-radius: var(--r-sm); }
+.jr-pinned-row { flex: none; position: relative; display: flex; align-items: flex-start; gap: var(--sp-2);
+  min-height: var(--tap); padding: 6px 7px; border-radius: var(--r-sm); }
 /* a hairline between items — with several Meldungen hanging under one of them, «where does this
    item end» stopped being obvious from spacing alone. Not after the last one, and not on a row
    whose own tint already separates it. */
 /* A straight rule inset to the text, not a box-shadow: on the row's rounded corners the shadow
    curled up at both ends and every row read as its own outlined card (hill climb, 04.11.2026). */
-.jr-pinned-row + .jr-pinned-row::before { content: ""; position: absolute; left: 9px; right: 9px; top: 0;
+.jr-pinned-row + .jr-pinned-row::before { content: ""; position: absolute; left: 7px; right: 7px; top: 0;
   height: 1px; background: var(--amber-22); pointer-events: none; }
 /* dringend is RED, not a red hairline. A 3px edge on an amber block is a detail you find after
    you have already read the row — the point of the flag is that you read this row FIRST. So the
@@ -823,10 +829,11 @@ span.jr-pinned-text::after { display: none; }
   .jr-when:hover { color: var(--ink); }
 }
 /* 38×21 drawn; the pad fills the row's corner to a --tap square — up over the row's 6px top
-   padding, left over its 9px side, down to the 44px row floor, and right only 1px into the 10px
-   gap, whose other 9px are the ring's own pad (.jr-rem::before above). On every pointer: a mouse
-   needs 24px, and 21 drawn was under it (04.11.2026). */
-.jr-when::before { content: ''; position: absolute; inset: -6px -1px -17px -9px; }
+   padding, left over its 7px side, down to the 44px row floor, and on the right it stops 1px
+   SHORT of the column: the 8px gap and that last pixel are the ring's own pad (.jr-rem::before
+   above), so the two 44px targets meet and never overlap (hill climb r7). On every pointer: a
+   mouse needs 24px, and 21 drawn was under it (04.11.2026). */
+.jr-when::before { content: ''; position: absolute; inset: -6px 1px -17px -7px; }
 /* «meldet sich selbst» — the only mark a timed Erinnerung needs in this list. At the right end,
    where nothing competes with it: the ring moved into the icon slot at the front. */
 /* the Fälligkeit, as a clock AND the time it stands for — see Journal.tsx. `align-self` rather

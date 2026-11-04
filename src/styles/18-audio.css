@@ -132,8 +132,8 @@
 .jr-transcript textarea { width: min(420px, 100%); resize: vertical; border: 1px solid var(--border); border-radius: var(--r-xs); background: var(--surface); color: var(--ink); padding: 8px; font: inherit; font-size: var(--fs-1); }
 .jr-transcript textarea:focus { outline: none; border-color: var(--focus-edge); box-shadow: var(--focus-halo); }
 .jr-transcript-actions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-2); }
-/* ⚠️ 12px sides, not THE button's 16: the field sits in the row's text column (~258px on a 390
-   phone, ~243 on a 375 one) and at 16 the pair no longer fit side by side, «Speichern» dropped
+/* ⚠️ 12px sides, not THE button's 16: the field sits in the row's text column (~264px on a 390
+   phone, ~249 on a 375 one) and at 16 the pair no longer fit side by side, «Speichern» dropped
    under «Abbrechen» (08.10.2026). */
 .jr-transcript-actions > .ip-btn { padding-inline: var(--sp-3); }
 /* «Der ursprüngliche Wortlaut bleibt im Protokoll» — beside the buttons, because the question it

@@ -572,8 +572,9 @@
 /* ⚠️ The button STAYS 26 × 26. The disc is the anchor for the timeline connector drawn above and
    below it (`.hist-ev .ic::before/::after` in 06-contextpanel.css), so growing the element for a
    gloved finger would tear a gap in the line. The TARGET grows instead, on a pseudo-element that
-   is out of the ring's grid flow: 44 × 44 (23.09.2026, was 30 × 42), i.e. 9px into each 10px
-   column gutter and the row's height, and a miss lands on the row itself. The same trade the
+   is out of the ring's grid flow: 44 × 44 (23.09.2026, was 30 × 42), i.e. 9px out to each side –
+   the 8px column gutter and 1px past it, over the plain time span and the sentence's first
+   glyph – and the row's height, and a miss lands on the row itself. The same trade the
    pinned block's ring makes, and for the same reason. */
 .jr-ic-tick .jr-ring::before { content: ""; position: absolute; inset: -12px; border-radius: var(--r-sm); }
 /* ⚠️ No fill on hover — `--hover` is a neutral wash and the row already takes it. The RING
