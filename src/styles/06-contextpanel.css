@@ -515,9 +515,10 @@
 .history-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden;
   overscroll-behavior: contain; padding: 0 2px 2px; }
 /* ⚠️ A GRID, not a wrapping flex (23.08.). Four tracks: time · disc · the sentence · everything
-   else. The point is the third one — every row's text starts at the same x (8 + 38 + 8 + 26 +
-   8 = 88px from the row's border box; 94 with 10px padding and gutters until hill climb r7,
-   04.11.2026, which gave the 6px back to the sentence on a phone), and the sub-lines below are
+   else. The point is the third one — every row's text starts at the same x (8 + 46 + 8 + 26 +
+   8 = 96px from the row's border box; 94 with 10px padding and gutters until hill climb r7,
+   04.11.2026, which gave the 6px back to the sentence on a phone; the time column is 46 since r9,
+   when the clock grew to 12.5px and the 38 it had left it touching the disc), and the sub-lines below are
    placed on that same axis, so
    reading a long Verlauf is riding one edge down the page. As a flex row this could not hold:
    six decorations were allowed in front of the sentence, all `flex: none` against the one
@@ -540,7 +541,7 @@
    44px controls (play, jump, thumbnails) spend the padding as negative margin – `--jr-ctl-bleed`,
    the 8px less half a 4px seam, so two of them in adjacent rows never touch – and a row carrying
    one is 48, what it was with the old 32–40px controls. */
-.hist-ev { display: grid; grid-template-columns: 38px 26px minmax(0, 1fr) fit-content(50%);
+.hist-ev { display: grid; grid-template-columns: 46px 26px minmax(0, 1fr) fit-content(50%);
   column-gap: var(--sp-2); row-gap: 2px; align-items: center;
   min-height: var(--tap); padding: var(--sp-2); --jr-ctl-bleed: calc(var(--sp-1) / 2 - var(--sp-2)); border-radius: var(--r-ctl); font-size: var(--fs-2); font-weight: var(--fw-medium); overflow: hidden; }
 /* the sub-lines (transcript, its editor, the row's own correction box) take the sentence's
@@ -572,7 +573,11 @@
 @media (hover: hover) {
   .hist-ev.clickable:hover .hist-go { opacity: 1; transform: translateX(2px); }
 }
-.hist-ev .t { font-family: var(--mono); font-size: var(--fs-micro); color: var(--ink-faint); width: 38px; }
+/* the clock: the anchor a reader scans the log by, so at the 12.5px floor (hill climb r9 — at
+   `--fs-micro` 11 it stood a size under the sentence and the ruler labels), tabular, on a 15.6px
+   line, in the faint ink. Same type as the Pendenzen clock (.jr-when), same 46px column. */
+.hist-ev .t { width: 46px; font: var(--fw-regular) var(--fs-1)/1.25 var(--mono); color: var(--ink-faint);
+  font-variant-numeric: tabular-nums; }
 /* timeline node + connector */
 .hist-ev .ic { position: relative; width: 26px; height: 26px; border-radius: 50%; background: var(--surface-2);
   border: 1px solid var(--border-soft); color: var(--ink-dim); font-size: var(--fs-2); display: grid; place-items: center; flex: none; }
@@ -749,7 +754,7 @@ span.jr-rem { cursor: default; }
    time, same rhythm. This block sits directly above the log and read as a different component
    built by somebody else: bolder, bigger, its own scale, for rows that are the same rows. */
 /* ⚠️ ONE AXIS WITH THE VERLAUF. The columns mirror `.hist-ev` exactly — 8px of row padding, a
-   38px time, a 26px icon slot, 8px gutters (10px until hill climb r7, 04.11.2026: on a phone the
+   46px time (38 until r9), a 26px icon slot, 8px gutters (10px until hill climb r7, 04.11.2026: on a phone the
    item text started at x109 and every item ran to three lines) — so an item's text starts on the
    same x as every line in the log below it. It was 15px to the left of them once, which is the
    kind of near-miss that reads as sloppiness before you can name it. The 7px here plus the
@@ -818,21 +823,20 @@ span.jr-pinned-text::after { display: none; }
    timed Erinnerung has; an Auftrag has none, because nobody checks in on a Schadenplatz. Tapping
    swaps the whole column to the age — never one row at a time, a half-clock/half-age column is
    unreadable. */
-/* 38px wide: the Verlauf's own time column, to the pixel (.hist-ev .t).
-   ⚠️ The TYPE is a hair bigger than that column's, and deliberately so: this one is a `<button>`,
-   so it is bound by the 12.5px interactive floor (AGENTS · the 3am tenet) while the log's plain
-   `.hist-ev .t` span is not. 12.5px still fits «HH:MM» in 38px — five mono glyphs at 0.6em is
-   37.5px — so the column does not move and the two stay aligned.
+/* 46px wide: the Verlauf's own time column, to the pixel (.hist-ev .t), and the same type —
+   12.5px mono, tabular, on a 1.25 line. This one is a `<button>`, so 12.5 is its floor anyway
+   (AGENTS · the 3am tenet); the log's span joined it in hill climb r9. «HH:MM» is 37.5px (five
+   mono glyphs at 0.6em), so the 46 leaves the clock 8px of air before the gutter.
    ⚠️ `nowrap`. Both readings have to fit this width on ONE line — the age used to read «vor 32
    min» and wrapped to three, which made the row three times as tall for a number. The label is
    bare now (copy · ageLabel), and this is the guard that says so. */
-.jr-when { flex: none; width: 38px; padding: 6px 0 0; border: 0; background: none; cursor: pointer;
-  text-align: left; white-space: nowrap; font: var(--fw-regular) var(--fs-1) var(--mono); color: var(--ink-faint);
+.jr-when { flex: none; width: 46px; padding: 6px 0 0; border: 0; background: none; cursor: pointer;
+  text-align: left; white-space: nowrap; font: var(--fw-regular) var(--fs-1)/1.25 var(--mono); color: var(--ink-faint);
   font-variant-numeric: tabular-nums; }
 @media (hover: hover) {
   .jr-when:hover { color: var(--ink); }
 }
-/* 38×21 drawn; the pad fills the row's corner to a --tap square — up over the row's 6px top
+/* 46×22 drawn; the pad fills the row's corner to a --tap-tall target (52 wide) — up over the row's 6px top
    padding, left over its 7px side, down to the 44px row floor, and on the right it stops 1px
    SHORT of the column: the 8px gap and that last pixel are the ring's own pad (.jr-rem::before
    above), so the two 44px targets meet and never overlap (hill climb r7). On every pointer: a
