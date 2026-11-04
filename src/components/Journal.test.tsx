@@ -586,7 +586,7 @@ describe('Journal · the search in the head', () => {
     const field = screen.getByRole('textbox', { name: 'Im Verlauf suchen' })
     expect(document.activeElement).toBe(field)
     // the head is still there, and the lens in it is lit
-    expect(screen.getByText(/Verlauf · 3/)).toBeTruthy()
+    expect(document.querySelector('.journal-title')?.textContent).toBe('Verlauf · 3')
     expect(screen.getAllByRole('button', { name: 'Suche schliessen' })[0].classList.contains('on')).toBe(true)
     fireEvent.change(field, { target: { value: 'feuer' } })
     expect(rows()).toEqual(['r3'])
@@ -595,7 +595,7 @@ describe('Journal · the search in the head', () => {
     const closers = screen.getAllByRole('button', { name: 'Suche schliessen' })
     fireEvent.click(closers[closers.length - 1])
     expect(screen.queryByRole('textbox')).toBeNull()
-    expect(screen.getByText(/Verlauf · 3/)).toBeTruthy()
+    expect(document.querySelector('.journal-title')?.textContent).toBe('Verlauf · 3')
     expect(rows()).toEqual(['r3', 'r2', 'r1'])
   })
 

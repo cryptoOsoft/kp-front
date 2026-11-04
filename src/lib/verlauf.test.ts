@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { groupByDay, isHandWritten, rowGlyph, isNachtrag, rowText, rowTime, rowPhotos, rowTarget, liveTargets, swapUrl, repeatRuns, stripScale, pendenzenCut, pendenzenBelow } from './verlauf'
+import { groupByDay, isHandWritten, rowGlyph, isNachtrag, rowText, rowTime, rowPhotos, rowTarget, liveTargets, swapUrl, repeatRuns, stripScale, stripDensity, pendenzenCut, pendenzenBelow } from './verlauf'
 import type { BoardAnno, TimelineEvent } from '../types'
 
 const row = (id: string, at?: string): TimelineEvent =>
@@ -436,5 +436,21 @@ describe('pendenzenBelow', () => {
 
   it('treats a subpixel overshoot as a whole row', () => {
     expect(pendenzenBelow([86, 146, 230.4], 230)).toBe(0)
+  })
+})
+
+describe('stripDensity', () => {
+  it('merges rows that fall in one 3px column into one mark with their count', () => {
+    // a 300px track over 300 s: 1px per second, columns of 3 s
+    const ticks = [0, 1000, 2000, 150_000, 300_000]
+    expect(stripDensity(ticks, 0, 300_000, 300)).toEqual([
+      { frac: 1 / 300, n: 3 },
+      { frac: 0.5, n: 1 },
+      { frac: 1, n: 1 }, // the last moment stays in the last column, not one past it
+    ])
+  })
+
+  it('unmeasured, every row is its own mark', () => {
+    expect(stripDensity([0, 5, 10], 0, 10, 0)).toEqual([{ frac: 0, n: 1 }, { frac: 0.5, n: 1 }, { frac: 1, n: 1 }])
   })
 })

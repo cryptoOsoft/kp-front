@@ -357,10 +357,17 @@
 .journal-head { display: flex; align-items: center; gap: 8px; padding: 4px 4px var(--sp-2); }
 /* the drawer's title is its strongest anchor — `--fs-4`, the head-title size (hill climb r2,
    04.11.2026: at 14px «Verlauf · 322» stood below its own filled ▶ button in weight). On a
-   phone it steps down and drops its glyph (below): the head has no width to spare there. */
-.journal-title { display: flex; align-items: center; gap: 8px; min-width: 0; white-space: nowrap;
+   phone it steps down and drops its glyph (below): the head has no width to spare there.
+   ⚠️ The count is its own piece (`.journal-count`, r6): a caption in the secondary ink at the
+   floor size, on the title's baseline — at the title's 700 «Verlauf · 322» read as one word
+   jammed against the first button. The group may shrink (the word ellipsises, the count never)
+   but never into the buttons. */
+.journal-title { display: flex; align-items: baseline; gap: var(--sp-1); min-width: 0; white-space: nowrap;
   font: var(--fw-bold) var(--fs-4)/var(--lh-4) var(--body); color: var(--ink); }
-.journal-title .i { width: 19px; height: 19px; flex: none; }
+.journal-title .i { width: 19px; height: 19px; flex: none; align-self: center; margin-right: var(--sp-1); }
+.journal-title-txt { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.journal-count { flex: none; font: var(--fw-medium) var(--fs-1)/var(--lh-1) var(--body);
+  font-variant-numeric: tabular-nums; color: var(--ink-dim); }
 .jr-delivery { padding: var(--sp-3); margin-block: 4px 12px; border-radius: var(--r-ctl); background: color-mix(in srgb, var(--amber) 16%, var(--glass)); color: var(--ink); }
 .jr-delivery-danger { background: color-mix(in srgb, var(--red) 14%, var(--glass)); }
 .jr-delivery strong { font-size: var(--fs-2); }
@@ -489,6 +496,8 @@
   /* the title a step down and without its glyph: at 19px with it the head ran past a 390px screen */
   .journal-title { font-size: var(--fs-3); line-height: var(--lh-3); }
   .journal-title .i { display: none; }
+  /* …and the head's 4px gap plus this = the 8px that keeps the title group off the ⓘ (r6) */
+  .journal-head .journal-title { margin-right: var(--sp-1); }
   /* …and since the funnel joined it the head is SIX items: at 360px a real Einsatz's
      «Verlauf · 312» ran 1px past the edge and the ✕ was squeezed to 34px (measured 24.09.2026).
      The gaps close up to 6px — the room a four-digit count needs — and no chip may shrink: the
