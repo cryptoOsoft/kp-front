@@ -26,8 +26,8 @@ questions, and what the record keeps (`components/AtemschutzView`; the card and 
     pick B — as the facts' last chip it wrapped onto a 44px row of its own). What differs is only
     what the board has room for: on the grid every card stands open (the line is not a toggle, no
     chevron), the hand-set order keeps its ‹ › in the ⋯, and a card on a board without state heads
-    (grid, Tafel — `headed` false) says «Bereit» in its state line, which on the phone is the
-    section head. The state line never says what the card's colour already says (29.09.2026,
+    (the «Wie gesetzt» / «Name» grid, Tafel — `headed` false) says «Bereit» in its state line,
+    which on the phone and the grouped grid is the section head. The state line never says what the card's colour already says (29.09.2026,
     owner: «drop the überfällig – if the card is red it's pretty obvious»; «the draussen subtitle
     is probably not even required»): fällig / überfällig live on for a screen reader only
     (`.sr-only`), and an out Trupp's card carries no «Draussen» — it keeps the words colour cannot
@@ -76,6 +76,16 @@ questions, and what the record keeps (`components/AtemschutzView`; the card and 
     Sicherungstrupp zone included (`.phoneBoard > * + :is(.sect, .safetyZone)`, 30.09.2026:
     Sicherungstrupp and Draussen sat flush on the card above). A head keeps 12px to its first
     card. Never give a section its own top/bottom margins.
+  - *The wide grid wears the phone's state heads where its order already reads that way* (hill
+    climb r1, 04.11.2026): under «Dringlichkeit» and «Auftrag» the grid stands as Drin · Bereit ·
+    Draussen (then Weitere Trupps), each section in the order's own sequence and with the same
+    24px air (`.stateBoard`). «Wie gesetzt» stays one slot-keeping grid (a card never jumps when
+    its Trupp comes out — 17.08., 23.10.2026) and «Name» an alphabet. No Sicherungstrupp section
+    on the grid: a standing «Sichern» crew is a Bereit card with its Auftrag chip.
+  - *Out cards do not outweigh the crews inside* (04.11.2026): «Wieder in den Einsatz» is a framed
+    tile in full ink, not the filled primary («Im Einsatz» on a waiting Trupp stays filled); the
+    fact chips are quiet fields (no edge, `--ink-5` fill, 500) that still open their sheets; the
+    tiles and the head's tiles are 700, 800 is kept for Kontakt and the filled primaries.
 
 ## The Atemschutz-Link board (the handed-over phone board, `lite && compact`)
 
