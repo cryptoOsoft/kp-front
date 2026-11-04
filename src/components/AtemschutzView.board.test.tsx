@@ -617,10 +617,14 @@ describe('the Reihenfolge menu', () => {
     mount({ order: 'dringlichkeit', trupps: [out, aktivTrupp()] })
     expect(heads()).toEqual([az.phoneSectionIn, az.phoneSectionOut])
     expect(names()).toEqual(['Steiner', 'Fertig'])
+    // the clock captions (hill climb r2): under the «Draussen» head the break clock goes unnamed
+    expect(screen.queryByText(az.outFor)).toBeNull()
+    expect(screen.getByText(az.sinceContact)).toBeTruthy()
     cleanup()
     mount({ order: 'manuell', trupps: [out, aktivTrupp()] })
     expect(heads()).toEqual([])
     expect(names()).toEqual(['Fertig', 'Steiner'])
+    expect(screen.getByText(az.outFor)).toBeTruthy()
   })
 
   it('…and within one of those groups the Auftrag still orders the alphabet, with none last', () => {

@@ -86,6 +86,15 @@ questions, and what the record keeps (`components/AtemschutzView`; the card and 
     `--ink-5` fill, 500) that still open their sheets; the tiles and the head's tiles are 700, 800 is
     kept for Kontakt and the filled primaries. «Wieder in den Einsatz» stays the out card's one
     filled tile (owner, 27.09.2026).
+  - *The grid's card names its clock and is denser* (hill climb r2, 04.11.2026): on the tablet /
+    desktop grid the caption the link board's page wears stands under the clock («SEIT LETZTEM
+    KONTAKT», «DRAUSSEN SEIT», «EINSATZZEIT», «ANGEMELDET UM») on a row of its own across the head,
+    so it never squeezes the name; under the grouped orders' «Draussen» head the break clock goes
+    unnamed (`RowLine · headed`). No separate state word by the name. The phone's opened card keeps
+    the caption hidden (its section heads say it). Fact chips are compact fields everywhere (28px
+    drawn, 8px pad above/below on touch so a row is still 44px; 16px between rows on touch, 8px
+    with a mouse). On the grid, touch keeps «Druck | Kontakt» and the filled tile at 48px and sets
+    Rückzug | Raus and Notfall at 44px; a mouse gets 40px tiles and a 36px foot line.
 
 ## The Atemschutz-Link board (the handed-over phone board, `lite && compact`)
 

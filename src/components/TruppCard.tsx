@@ -163,9 +163,12 @@ function rowTone(t: Trupp, status: TruppLive['status'], sev: number): string {
  *  opened card's head (26.09.2026, owner: «keep the same UI whether the card is collapsed or
  *  not»). One drawing, so opening a Trupp never moves, resizes or recolours the line the thumb
  *  just pressed; the chevron beside it is the caller's, because it points the other way. */
-function RowLine({ t, live, color, lite, act }: { t: Trupp; live: TruppLive; color?: string; lite: boolean
+function RowLine({ t, live, color, lite, act, headed = false }: { t: Trupp; live: TruppLive; color?: string; lite: boolean
   /** what stands in the clock's place while the Trupp is still at the door (see `waiting`) */
   act?: ReactNode
+  /** the card stands under a «Draussen» head (TruppCard · `headed`): its break clock's caption
+   *  would be that head's word a second time, so it goes */
+  headed?: boolean
 }) {
   const az = appConfig.copy.atemschutz
   const words = plainWords(t, lite)
@@ -176,7 +179,11 @@ function RowLine({ t, live, color, lite, act }: { t: Trupp; live: TruppLive; col
   // doc comment), so this swap is a no-op today. It stays here so a future edit to that branch
   // cannot silently leak «Draussen seit» onto a work squad's row without also failing the app-only
   // wording test below.
-  const clockSub = clock.sub === az.outFor ? words.outFor : clock.sub
+  // The caption — what the clock counts — shows under the clock on the wide grid's card and the
+  // link board's page (hill climb r2, 04.11.2026: an out card's break clock and an inside card's
+  // contact clock stood in one place with nothing saying which is which); the phone row and its
+  // opened card hide it (CSS), their section heads say Drin / Draussen.
+  const clockSub = clock.sub === az.outFor ? (headed ? '' : words.outFor) : clock.sub
   const inNotfall = truppInNotfall(t)
   /* ⚠️ A Trupp still at the door has no clock — «–:––» was an empty time where the next act
    * belongs (owner, 30.10.2026: «for all trupps already show the next action (i.e. im einsatz)
@@ -1041,7 +1048,7 @@ export function TruppCard({
     </button>
   ) : (
     <div className={cx(s.trowHead, s.trowHeadStatic)}>
-      <RowLine t={t} live={live} color={lite ? undefined : color} lite={lite} act={pageAct} />
+      <RowLine t={t} live={live} color={lite ? undefined : color} lite={lite} act={pageAct} headed={headed} />
     </div>
   ))
   return (
