@@ -466,6 +466,15 @@ export function sanitizeWorkspace(raw: unknown): WorkspaceGate {
     // a Leitung's Ø outside the four (lib/hydraulics · HOSES) would throw in the Wassertransport's
     // plan: dropped, so the line reads as the default 75 mm
     if (r.hose != null && !(HOSE_SIZES as readonly unknown[]).includes(r.hose)) { out = out ?? { ...r }; delete out.hose; dropped++ }
+    // …and so would a relay that is no object, or whose pumps are no list: the relay resp. its
+    // pumps go, the rest of its assumptions stay
+    const relay = r.relay
+    if (relay != null && (typeof relay !== 'object' || Array.isArray(relay))) { out = out ?? { ...r }; delete out.relay; dropped++ }
+    else if (relay != null && 'pumps' in relay && relay.pumps != null && !Array.isArray(relay.pumps)) {
+      const { pumps: _bad, ...kept } = relay
+      out = { ...(out ?? r), relay: kept }
+      dropped++
+    }
     for (const k of DRAW_NUMBERS) {
       if (r[k] == null || num(r[k])) continue
       out = out ?? { ...r }

@@ -225,7 +225,8 @@ export function MapToolDocks({
           onAdopt={!tacticalLocked && measure.path.length >= (measure.mode === 'line' ? 2 : 3)
             ? () => {
               const coords = measure.path
-              const relay = measure.relay.open ? measure.relay.value : undefined
+              // (opened on its defaults it is still one: an empty `relay`, so the Leitung shows it)
+              const relay = measure.relay.open ? { ...measure.relay.value, relay: measure.relay.value.relay ?? {} } : undefined
               measure.reset()
               if (measure.mode === 'line') createLine(coords, undefined, { props: relay })
               else createArea(coords)
