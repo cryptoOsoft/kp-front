@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { PlanDocument, TimelineEvent } from '../types'
 import { linkParts, type JournalLink } from '../lib/journalLinks'
 import { Icon } from '../lib/icons'
@@ -12,7 +12,7 @@ import { openPhoto } from '../lib/ui'
 import { appConfig } from '../config/appConfig'
 import { dueClock, fillTemplate, fmtDuration, formatTime } from '../lib/format'
 import { thumbUrl } from '../lib/mediaUrl'
-import { ART_DISC, groupByDay, isHandWritten, isNachtrag, repeatRuns, rowPhotos, rowTarget, rowText, type ArtTone, type LiveTargets } from '../lib/verlauf'
+import { ART_DISC, groupByDay, isHandWritten, isNachtrag, repeatRuns, rowPhotos, rowTarget, rowText, stripScale, type ArtTone, type LiveTargets } from '../lib/verlauf'
 import { journalDisc, withoutAreaPrefix } from '../lib/report'
 import { journalQuery, matchesJournalQuery } from '../lib/journalSearch'
 import { journalCategories, journalFacets, matchesJournalCategories, showsPinnedPendenzen, type JournalCategoryKind } from '../lib/journalFilter'
@@ -333,6 +333,16 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
     const to = stripTicks[stripTicks.length - 1]
     return to > from ? { from, to } : null
   }, [stripTicks])
+  // …and its time scale: the end clocks and round times between them, labelled where they fit —
+  // which needs the track's width, so the strip is measured (lib/verlauf · stripScale).
+  const [stripTrackPx, setStripTrackPx] = useState(0)
+  const measureStrip = useCallback((el: HTMLDivElement | null) => {
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(() => setStripTrackPx(Math.max(0, el.clientWidth - STRIP_INSET * 2)))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+  const scale = useMemo(() => (stripSpan ? stripScale(stripSpan.from, stripSpan.to, stripTrackPx) : null), [stripSpan, stripTrackPx])
   /** Scroll the list to the row nearest a moment on the strip. */
   const jumpTo = (ms: number) => {
     let best: string | null = null
@@ -524,6 +534,24 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
   // …and HIDDEN while a filter is on that does not tick «Pendenz» (lib/journalFilter ·
   // showsPinnedPendenzen): the box is part of what the ticks narrow.
   const pinnedReminders = showsPinnedPendenzen(filterSel) ? openReminders ?? [] : []
+  // Whether the Pendenzen box holds more than it shows below its fold — its foot cue
+  // (`.jr-pinned[data-more]`). iOS hides an idle scrollbar, so without it a box cut between two
+  // rows reads as complete. A callback ref, because the box mounts inside the Overlay's portal
+  // after this component's own effects have run; re-read on scroll, when the box or any row
+  // resizes (capped at its max-height the box keeps its size while late fonts re-wrap the rows
+  // under it) and when rows come and go.
+  const [pinnedMore, setPinnedMore] = useState(false)
+  const watchPinned = useCallback((el: HTMLDivElement | null) => {
+    if (!el) { setPinnedMore(false); return }
+    const read = () => setPinnedMore(el.scrollHeight - el.scrollTop - el.clientHeight > 1)
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(read)
+    const watch = () => { ro?.disconnect(); for (const node of [el, ...el.children]) ro?.observe(node); read() }
+    const mo = typeof MutationObserver === 'undefined' ? null : new MutationObserver(watch)
+    mo?.observe(el, { childList: true })
+    el.addEventListener('scroll', read, { passive: true })
+    watch()
+    return () => { el.removeEventListener('scroll', read); ro?.disconnect(); mo?.disconnect() }
+  }, [])
 
   /** The funnel's menu: «Art des Eintrags», then «Bereich», each row a checkbox with the row's
    *  own disc and its count, and «Alle zeigen» last. Checkboxes keep the menu open (lib/overlays ·
@@ -629,10 +657,12 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
           {/* ⚠️ `aria-label`, because the word inside it is hidden on a phone (10-journal.css) —
               the head is one item wider since the legend button joined it, and this is the label
               that can most afford to go. */}
+          {/* THE button's framed secondary (hill climb, 04.11.2026): it was the filled primary, and
+              playing back history out-shouted the title and the open Pendenzen below it. */}
           {onReplay && (
-            <button className="journal-replay" onClick={onReplay} title={C.replayHint} aria-label={C.replay}>
-              <Icon id="play" /><span>{C.replay}</span>
-            </button>
+            <Button className="journal-replay" onClick={onReplay} title={C.replayHint} aria-label={C.replay} icon={<Icon id="play" />}>
+              <span>{C.replay}</span>
+            </Button>
           )}
           <button className="journal-x" title={appConfig.copy.closeDialog} aria-label={appConfig.copy.closeDialog} onClick={onClose}><Icon id="close" /></button>
         </div>
@@ -683,7 +713,7 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
             list, and above a narrowed one they would point at rows that are not there. */}
         {stripSpan && !searching && !filtering && (
           <div
-            className="jr-strip" role="slider" tabIndex={0}
+            className="jr-strip" role="slider" tabIndex={0} ref={measureStrip}
             aria-label={C.stripLabel}
             aria-valuemin={0} aria-valuemax={100} aria-valuenow={0}
             onPointerDown={(ev) => {
@@ -705,10 +735,22 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
                 and last tick sat on its rounded ends — half-swallowed by the corner radius and
                 the inset hairline, so the two moments that bracket the whole Einsatz were the
                 two you could not see. */}
-            <div className="jr-strip-track" style={{ insetInline: STRIP_INSET }}>
+            {/* …and on it, under the ticks, the scale: the first and last moment at the ends, round
+                times between them as taller marks, labelled where a label fits (stripScale). */}
+            <div className="jr-strip-track" style={{ insetInline: STRIP_INSET }} aria-hidden>
               {stripTicks.map((t, i) => (
                 <i key={i} style={{ left: `${((t - stripSpan.from) / (stripSpan.to - stripSpan.from)) * 100}%` }} />
               ))}
+              {scale?.marks.map((m) => (
+                <Fragment key={m.frac}>
+                  <b className="jr-strip-major" style={{ left: `${m.frac * 100}%` }} />
+                  {m.label && <span className="jr-strip-lbl" style={{ left: `${m.frac * 100}%` }}>{m.label}</span>}
+                </Fragment>
+              ))}
+              {scale && <>
+                <span className="jr-strip-lbl jr-strip-end" style={{ left: 0 }}>{scale.start}</span>
+                <span className="jr-strip-lbl jr-strip-end" style={{ right: 0 }}>{scale.end}</span>
+              </>}
             </div>
           </div>
         )}
@@ -725,7 +767,7 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
             ⚠️ No box at all when nothing is open — the log then has the whole drawer, which is
             the state most of an Einsatz is in. See `.jr-pinned` in 06-contextpanel.css. */}
         {pinnedReminders.length > 0 && (
-          <div className="jr-pinned">
+          <div className="jr-pinned" ref={watchPinned} data-more={pinnedMore || undefined}>
             <div className="jr-pinned-head">
               <Icon id="checklist" /><span>{C.openRemindersHead}</span>
               <b>{C.openCount.replace('{n}', String(pinnedReminders.length))}</b>
@@ -796,6 +838,9 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
                 </div>
               )
             })}
+            {/* the foot: a band at the box's bottom edge with a ⌄, shown while rows are below the
+                fold (`data-more`). Always in the DOM so it never moves the rows it covers. */}
+            <span className="jr-pinned-foot" aria-hidden><Icon id="chevron-down" /></span>
           </div>
         )}
         <div className="history-list" ref={listRef}>

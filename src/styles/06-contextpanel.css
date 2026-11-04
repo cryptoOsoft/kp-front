@@ -688,14 +688,23 @@ span.jr-rem { cursor: default; }
      the box scrolls SIDEWAYS, cutting the item text off mid-word. `overscroll-behavior: contain`
      so a flick that reaches this box's end stops there instead of carrying on into the log. */
   flex: none; max-height: 45%;
-  overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-gutter: stable; }
-/* «there is more below»: the foot of the box fades the row it cuts, the twin of the heading's fade
-   above. Sticky to the box's own scrollport, so it rides the bottom edge; at the end of the list it
-   lies over the box's padding only. Without it the box ended on a row sliced through its letters
-   and read as complete (hill climb, 04.11.2026). */
-.jr-pinned::after { content: ""; flex: none; position: sticky; bottom: -8px; z-index: 2;
-  height: var(--sp-5); margin-top: calc(-1 * var(--sp-5)); pointer-events: none;
-  background: linear-gradient(to bottom, color-mix(in srgb, var(--jr-pinned-bg) 0%, transparent), var(--jr-pinned-bg)); }
+  overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-gutter: stable;
+  /* its own gutter's thumb in the box's hue, a step stronger than the app's thin --ink-28 (02-base):
+     where a scrollbar does show (a mouse), it is the box's, not the log's */
+  scrollbar-color: var(--amber-45) transparent; }
+/* «there is more below» (`.jr-pinned-foot`, Journal.tsx): while rows lie below the fold
+   (`data-more`, measured on scroll) the box's foot is a 20px band of its own fill with a ⌄ and a
+   rule on top — the text above it stays fully opaque and the row it cuts is cut by a straight
+   edge that says «continues», not washed out (hill climb r2, 04.11.2026: a fade over the text
+   read as faded content). Sticky to the box's own scrollport, so it rides the bottom edge, and
+   always laid out (the negative margin cancels its height and the flex gap), so showing it moves
+   nothing. At the end of the list it is gone. iOS hides an idle scrollbar; this cue does not. */
+.jr-pinned-foot { flex: none; position: sticky; bottom: -8px; z-index: 3;
+  height: 20px; margin-top: -24px; display: grid; place-items: center; pointer-events: none;
+  background: var(--jr-pinned-bg); box-shadow: inset 0 1px 0 var(--amber-45);
+  color: var(--amber-strong); visibility: hidden; }
+.jr-pinned-foot .i { width: 16px; height: 16px; }
+.jr-pinned[data-more] .jr-pinned-foot { visibility: visible; }
 /* …and the heading stays put while the items scroll UNDER IT, inside this box: sticky is bounded
    by its own scrollport, so it rides the box and never reaches the log below. It carries the
    count, which is the one thing you need while looking for the row you want. `--jr-pinned-bg`
@@ -706,14 +715,16 @@ span.jr-rem { cursor: default; }
    heading sits flush while scrolled and keeps its air when it is not. */
 .jr-pinned-head { flex: none; position: sticky; top: -8px; z-index: 3; margin-top: -8px;
   padding: 8px 9px 6px; background: var(--jr-pinned-bg);
-  display: flex; align-items: center; gap: 8px; font: var(--fw-bold) var(--fs-1) var(--body); color: var(--ink-dim); }
-.jr-pinned-head .i { width: 14px; height: 14px; flex: none; }
-/* the mirror of the footer's fade: a row scrolling up under the heading dissolves into it rather
+  display: flex; align-items: center; gap: 8px; font: var(--fw-bold) var(--fs-2) var(--body); color: var(--ink); }
+.jr-pinned-head .i { width: 16px; height: 16px; flex: none; }
+/* a row scrolling up under the heading dissolves into it rather
    than being sliced through its letters */
 .jr-pinned-head::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 12px;
   pointer-events: none;
   background: linear-gradient(to bottom, var(--jr-pinned-bg), color-mix(in srgb, var(--jr-pinned-bg) 0%, transparent)); }
-.jr-pinned-head b { margin-left: auto; font-weight: var(--fw-bold); color: var(--ink-faint); }
+/* the count in amber, the «steht noch offen» ink of the TopBar's Verlauf badge (hill climb r2:
+   the heading is the drawer's second anchor, after its title — what is still open) */
+.jr-pinned-head b { margin-left: auto; font-weight: var(--fw-bold); color: var(--amber-strong); }
 /* ⚠️ align-items: flex-start, not center. A row carries its Meldungen underneath, and centred
    against them the time column drifted down from the text it belongs to.
    ⚠️ And the metrics are the VERLAUF'S, not their own — same 14px regular text, same faint mono
