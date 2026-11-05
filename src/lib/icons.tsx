@@ -164,6 +164,11 @@ export function IconSprite() {
           anywhere) read as the milder one. The red chip says how bad; this says WHAT. */}
       <symbol id="storage" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="2.6" /><path d="M5 6v12c0 1.45 3.1 2.6 7 2.6s7-1.15 7-2.6V6" /><path d="M5 12c0 1.45 3.1 2.6 7 2.6s7-1.15 7-2.6" /></symbol>
       <symbol id="list" viewBox="0 0 24 24"><path d="M9 6.5h11M9 12h11M9 17.5h11" /><circle cx="4.8" cy="6.5" r="1.3" fill="currentColor" stroke="none" /><circle cx="4.8" cy="12" r="1.3" fill="currentColor" stroke="none" /><circle cx="4.8" cy="17.5" r="1.3" fill="currentColor" stroke="none" /></symbol>
+      {/* «Wiedergabe starten» in the Verlauf head (hill climb r23, Sol 1): the ⓘ's own ring (r 9, the
+          sprite's stroke) around a small filled ▶ whose centroid sits on the ring's centre. On the
+          phone the button is word-less among the bare ⓘ · lens · funnel, and the bare filled #play
+          was the smallest, least recognisable mark in that row; the transport controls keep #play. */}
+      <symbol id="play-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M10 8.6 15.8 12 10 15.4z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round" /></symbol>
       <symbol id="play" viewBox="0 0 24 24"><path d="M7 4.8 19 12 7 19.2z" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" /></symbol>
       <symbol id="pause" viewBox="0 0 24 24"><path d="M8 5h2.4v14H8zM13.6 5H16v14h-2.4z" fill="currentColor" /></symbol>
       <symbol id="chevron" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></symbol>

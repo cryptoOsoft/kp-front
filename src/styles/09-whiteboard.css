@@ -137,25 +137,31 @@
    tap (PlanFactsSheet) repeats each fact's own dot with its word. Tones are decided in TS —
    planScale · planFactsTone / scaleLampTone and georefMode · georefChipTone — never here, so the
    chip and the sheet behind it can never disagree about whether a reference is good.
-   On the chip it stands RIGHT AFTER the name, 6px from the word (hill climb r21, Opus 3 + Sol 2):
+   On the chip it stands RIGHT AFTER the name, 8px from the word (hill climb r21, Opus 3 + Sol 2):
    cut into the glyph's top-right corner (r13) the ring and the building read as one odd glyph.
    Close to the word, not at the chip's trailing edge, so it reads as the name's state – a 9px ring
-   out at the edge (before r13) read as a radio button, a control. 10px with a 1.5px --ink-dim ring,
-   its middle on the name's cap-height middle (hill climb r22, Opus 2: at 8px in a hairline of
-   --ink-faint, centred on the em box, «Gebäude ○» read as a lowercase «o» or a degree sign). ⚠️ The
-   Rapport eyebrow's ring wears the same 10 / 1.5 / muted-ink spec – change them together.
-   The sheet's dot stands before its status word, 6px. */
-.wb-lamp { width: 6px; height: 6px; border-radius: 50%; flex: none; }
-/* translate: the flex row centres the 10px box on the name's line box, whose middle stands 1px under
-   its cap-height middle (Sora at --fs-1, measured) */
-.wb-scale-chip > .wb-lamp { width: 10px; height: 10px; margin-left: -2px; translate: 0 -1px; }
+   out at the edge (before r13) read as a radio button, a control.
+   ONE lamp, chip and sheet: an 8px disc when lit; UNLIT a 10px DASHED ring – 1.5px of --ink-dim,
+   eight 2px dashes with 1.5px gaps – in the chip's GLYPH colour (`.wb-scale-chip svg`), not its
+   text ink; its middle on the name's x-height middle (hill climb r23, Opus 1: r22's solid 10px /
+   1.5px ring on the cap-height middle read as a capital «O», «Gebäude O»; a solid 8px / 2px ring on
+   the x-height – tried first in r23 – was exactly the bold lowercase «o» of the word beside it.
+   No letter is dashed, so the broken ring reads as a mark: «not set yet»).
+   ⚠️ The Rapport eyebrow's ring wears the same 10 / dashed 2·1.5 / 1.5px / --ink-dim spec – change
+   them together. The sheet's dot stands before its status word, 8px (PlanFactsSheet.module.css ·
+   .status gap). */
+/* translate: the row centres the box on the name's line box, whose middle stands 1px above the
+   x-height middle (Sora at --fs-1, measured r23) */
+.wb-lamp { width: 8px; height: 8px; border-radius: 50%; flex: none; translate: 0 1px; }
 .wb-lamp[data-tone='red'] { background: var(--red); }
 /* «not yet» — no scale, no link (29.09.2026, sweep K10): grey, never red at rest. An UNLIT lamp
    (05.11.2026, hill climb r13): a filled grey disc after «Gebäude» read as a decoration with no
-   meaning; the empty ring says «nothing set yet», the sheet behind the tap says which. */
-/* an inset shadow, not a border: a 1.5px border is floored to 1px on a 1× screen, the shadow draws
-   the full 1.5px */
-.wb-lamp[data-tone='grey'] { box-shadow: inset 0 0 0 1.5px var(--ink-dim); }
+   meaning; the empty ring says «nothing set yet», the sheet behind the tap says which.
+   The dashes are a MASK over the token colour, so the ring follows the theme; `pathLength` 28 makes
+   the 2 + 1.5 pattern close on itself in exactly eight dashes. */
+.wb-lamp[data-tone='grey'] { width: 10px; height: 10px; background: var(--ink-dim);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Ccircle cx='5' cy='5' r='4.25' fill='none' stroke='black' stroke-width='1.5' pathLength='28' stroke-dasharray='2 1.5'/%3E%3C/svg%3E") center / 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Ccircle cx='5' cy='5' r='4.25' fill='none' stroke='black' stroke-width='1.5' pathLength='28' stroke-dasharray='2 1.5'/%3E%3C/svg%3E") center / 100% no-repeat; }
 .wb-lamp[data-tone='amber'] { background: var(--amber); }
 .wb-lamp[data-tone='green'] { background: var(--green); }
 /* a read-out with nowhere to go (a link-scoped viewer is bound to ONE object) is not greyed out

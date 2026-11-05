@@ -523,7 +523,9 @@
   /* …and word-less it is an icon action like ⓘ · lens · funnel beside it, so it rests BARE as they
      do (hill climb r18, Opus 7: a framed ▶ among bare glyphs was two chromes for one kind of
      button). The 44px box and the transparent edge keep its hit area and geometry; the ✕ keeps
-     its frame (settled r13). Tablet and laptop keep «▶ Wiedergabe starten» framed. */
+     its frame (settled r13). Tablet and laptop keep «▶ Wiedergabe starten» framed. Its glyph is the
+     outlined circle-play (icons · #play-circle, r23 Sol 1), the ⓘ's ring at the ⓘ's 18px and ink –
+     the bare filled ▶ was the smallest mark in the row. */
   .journal-head .journal-replay { width: var(--tap); padding: 0;
     background: none; border-color: transparent; color: var(--ink-dim); }
   .journal-head .journal-replay svg { width: 18px; height: 18px; }

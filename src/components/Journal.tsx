@@ -699,7 +699,7 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
           {/* THE button's framed secondary (hill climb, 04.11.2026): it was the filled primary, and
               playing back history out-shouted the title and the open Pendenzen below it. */}
           {onReplay && (
-            <Button className="journal-replay" onClick={onReplay} title={C.replayHint} aria-label={C.replay} icon={<Icon id="play" />}>
+            <Button className="journal-replay" onClick={onReplay} title={C.replayHint} aria-label={C.replay} icon={<Icon id="play-circle" />}>
               <span>{C.replay}</span>
             </Button>
           )}
