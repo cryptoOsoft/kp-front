@@ -42,8 +42,12 @@
    point at less than the thing it works. */
 .report-meta-dispatch-go:focus-visible { outline: none; }
 .report-meta-dispatch-click:has(.report-meta-dispatch-go:focus-visible) { outline: 2px solid var(--blue); outline-offset: 2px; }
+/* The Rapport's ONE key column (hill climb r17, 05.11.2026): «Aus den Einsatzdaten» puts its
+   values at `--rp-key` + 12px, and the Gerettete steppers (.rz-count) start on that same edge, so
+   the eye reads label → value at one distance down the whole form. */
+.report-preflight-body { --rp-key: 116px; }
 .report-meta-readout { margin: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
-.report-meta-readout > div { display: grid; grid-template-columns: 116px 1fr; gap: 12px; align-items: baseline; }
+.report-meta-readout > div { display: grid; grid-template-columns: var(--rp-key) 1fr; gap: 12px; align-items: baseline; }
 /* key / value: the key is the app's one label type (`--field-label`, 700) in the muted label ink,
    the value in full ink at the next size up – the VALUE is what is read (hill climb r16,
    05.11.2026: in --ink-dim the 700 keys outweighed their 400 values). A missing value keeps its
@@ -125,16 +129,18 @@
 .rz-none > .ip-btn, .pf-trail > .ip-btn, .report-meta-end > .ip-btn {
   min-height: var(--tap); border-radius: var(--r-ctl); }
 .rz-none .ci-input { min-height: var(--tap); }
-/* Kontaktperson: name + Telefon share the line (one person, one fact); on a narrow sheet the
-   phone half — number and dial button together — wraps whole onto a second line. */
-.rz-kontakt { flex-wrap: wrap; }
+/* Kontaktperson: name · Telefon · «Entfällt» on ONE line where the row is wide enough for all
+   three with whole placeholders (the laptop's column). Narrower (the tablet's column, the phone)
+   the name takes the full line and Telefon + «Entfällt» share the next, 8px below (hill climb
+   r17, 05.11.2026): with the name and Telefon side by side «Entfällt» wrapped alone onto a third
+   line and read detached from the pair it answers for. Keyed on the ROW's own width (a container
+   query), not the viewport, and the same whether «Entfällt» is shown or not – typing the first
+   letter of a name never moves the fields. 520px: below it the inline row would cut
+   «Eigentümer / Melder» or «Telefonnummer» short (round 4 tried three-in-a-row and was reverted
+   for exactly that). */
+.rz-kontakt { flex-wrap: wrap; container: rz-kontakt / inline-size; }
 .rz-kontakt > .ci { flex: 3 1 200px; }
-/* «Entfällt» where it has to wrap (the tablet's column: name + Telefon fill the line, hill climb
-   r14, 05.11.2026): RIGHT, under the Telefon field, the row gap (8px) below — the pair's own
-   trailing answer, like «Keine» under the steppers. Flush left on its own line it read as an
-   action of the whole section. Inline (laptop) and beside the Telefon (phone) the fields' grow
-   takes all free space first, so the auto margin is zero there. */
-.rz-kontakt > .ip-btn { margin-left: auto; }
+@container rz-kontakt (max-width: 519px) { .rz-kontakt > .ci { flex-basis: 100%; } }
 .rz-kontakt-tel { display: flex; align-items: center; gap: 8px; flex: 2 1 170px; min-width: 0; }
 .rz-kontakt-tel > .ci { flex: 1 1 auto; min-width: 0; }
 /* the dial affordance is a link wearing button clothes — same height rule as «Entfällt» */
@@ -161,10 +167,11 @@
    than at the end of their line — the control above is a pair of steppers in a two-column grid,
    and a third item on that row would have had to be a third column. The gap is the form's own
    row gap, so it reads as the next line of the same field, not as a control of its own. */
-/* …and at the RIGHT edge, under the steppers it answers for — the column every value of this
-   form ends in, like «Entfällt» at the end of its line (owner, 05.10.2026: it sat alone at the
-   left, under the labels). The answered state's dashed value still fills the row. */
-.rz-none-trail { margin-top: 8px; justify-content: flex-end; }
+/* …and on the steppers' own left edge, the key column's value edge (.rz-count, hill climb r17,
+   05.11.2026) — under the controls it answers for, never alone under the labels (owner,
+   05.10.2026). Until r17 it stood at the right edge, where the ✕ ended. The answered state's
+   dashed value fills the rest of the row from that edge. */
+.rz-none-trail { margin-top: 8px; padding-left: calc(var(--rp-key) + 12px); }
 /* Ende input takes the full row so it matches the Beginn field's width; "Jetzt" wraps below */
 /* min-width:0 on the flex CONTAINER too (not just the input) so it can shrink below the native
    datetime control's intrinsic width inside the grid column; input keeps flex-basis:100% so it
@@ -191,10 +198,14 @@
    THE form warning, amber and compact (`.form-warn`, 13-incident · 29.09.2026 — it was amber
    body text with no box); this only places it under the time field. */
 .rz-warn { margin-top: var(--sp-1); }
-/* Gerettete: two labelled ±steppers (Personen / Tiere), each a label-left / stepper-right row like
-   the details-modal count control */
+/* Gerettete: two labelled ±steppers (Personen / Tiere), key / value like «Aus den Einsatzdaten»:
+   the label in the Rapport's key column (`--rp-key`), the stepper — or a read-out's count — from
+   the value edge, its ✕ 8px after «+» (hill climb r17, 05.11.2026). With the stepper at the
+   column's right edge the label stood ~400px from its control on a laptop. The key column gives
+   way (minmax) before a narrow phone could push the ✕ off the card. */
 .rz-counts { display: flex; flex-direction: column; gap: var(--sp-2); }
-.rz-count { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); min-height: var(--tap); }
+.rz-count { display: grid; grid-template-columns: minmax(0, var(--rp-key)) 1fr; align-items: center;
+  justify-items: start; gap: var(--sp-3); min-height: var(--tap); }
 .rz-count > span { font: var(--fw-medium) var(--fs-2) var(--body); color: var(--ink-dim); }
 /* The recorded count is the row's emphasis (hill climb r13, 05.11.2026): at 14px between two 44px
    plates it was the smallest thing in the row. It stands in a 60×44 well at the value's size,
@@ -221,9 +232,10 @@
 .rz-count .step-input:focus { border-color: var(--focus-edge); box-shadow: var(--focus-halo); }
 @media (hover: hover) { .rz-count .step-val-btn:hover:not(:disabled, :active) { background-image: linear-gradient(var(--hover), var(--hover)); } }
 .rz-count .step-val.step-empty { font-weight: var(--fw-regular); }
-/* the reset ✕ stands 16px off «+» (the shared 4px + the row's 12px): at the stepper's 8px rhythm
-   it read as a fourth button of the same group (r15) */
-.rz-count .step-clear { margin-left: var(--sp-4); }
+/* the reset ✕ 8px after «+», the stepper's own gap (r17: the shared 4px margin dropped). It is
+   frameless and dim, so it does not read as a fourth key at that distance; r15's 16px only
+   mattered while the pair floated at the far edge. */
+.rz-count .step-clear { margin-left: 0; }
 /* The ± are their frame, no plate (hill climb r14, 05.11.2026). `.step-btn`'s `--surface-2` is a
    .6 white: on a white sheet it is no plate at all, but on this card it stacked into a whiter one,
    and the disabled «−» (THE disabled dim, opacity only) thinned that plate into a pale tile with
@@ -231,13 +243,9 @@
    the frame's strength and nothing else, so «−» disabled is «+» faded; the value well keeps the
    row's one fill. Hover / press still paint their plate (07-toolrail, more specific). */
 .rz-count .step-btn { background-color: transparent; }
-/* …and on every width the row ends at the column's edge, like every other field of the form: the
-   reset ✕ stands in the same --tap slot, at the same right edge, as the Einsatzleiter field's ✕
-   above it (ClearableInput · .ci-clear), and «Keine» ends where «Entfällt» does. Until r13
-   (05.11.2026) a wide screen capped the pair at 320px (B1, 07.10.2026: at 1920 the stepper stood
-   650px from «Personen»), which left a lone ✕ floating mid-column. The same sweep capped the
-   columns themselves at ~670px (13-incident · «cap + columns»), and that cap is what bounds the
-   label-to-stepper span now. */
+/* (History: until r13 a wide screen capped the pair at 320px, B1 07.10.2026; r13–r16 ran the
+   stepper to the column's right edge to line its ✕ up with the Einsatzleiter field's – which left
+   it ~400px from «Personen». The key column above replaces both.) */
 /* «Auf der Lage: 2 Personen · 1 Tier — Übernehmen». Same recipe as the Material surface's
    reconciliation strip (Mittel.module.css · .recStrip), because it is the same promise: the app
    says what it read and where, and the number only reaches the Rapport on a tap. */
