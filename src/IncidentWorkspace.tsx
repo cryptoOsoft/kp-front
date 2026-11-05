@@ -2261,7 +2261,7 @@ export function IncidentWorkspace({
   })
   const {
     deleteGroup, deleteEntity, placed, goToModule, goToTrupp, viewsApi, toggleViews, selected,
-    undockTeam, setEntityDone, focusDrawing, noteEntity, pick, pickShape, placePumpSymbols,
+    undockTeam, setEntityDone, focusDrawing, noteEntity, pick, pickShape,
   } = mapActions
   // a generic (untracked) team marker — the map twin of the plan's placeTeamChip
   const teamMarkers = useTeamMarkerActions({
@@ -3173,7 +3173,7 @@ export function IncidentWorkspace({
         selectedDrawingId, patchDrawingLabelLive, commitDrawingLabel,
         changeMapEnding, reverseDrawing, setDrawingWallRole, objects, syncLineNoToTrupp, pickablePersonnel, linkTruppLine,
         unlinkLine, setSelectedDrawingId, setMode, setPanel, setGpsRouting, revertAll, gpsEndOf, releaseHere,
-        releaseOnSite, setDrawingAttachment, focusEntity, isVisible, toggleLayer, deleteDrawing, placePumpSymbols,
+        releaseOnSite, setDrawingAttachment, focusEntity, isVisible, toggleLayer, deleteDrawing,
       }} />
 
       <MapToolDocks {...{
@@ -3182,7 +3182,7 @@ export function IncidentWorkspace({
         measure, pendingShape, setPendingShape, setRotStart, rotStart, tacticalLocked, createLine,
         createArea, replayActive, railLabels, slimMapTools, pick, panel, layersPreset, togglePanel, viewsApi,
         view, readOnly, isEl, viewsOpen, sharePick, shareParent, toggleViews, coord, mapRef, paletteOpen,
-        sym, setPaletteOpen, pickShape, teamPick, trupps, placeTruppOnMap, placeGenericTeam, placePumpSymbols,
+        sym, setPaletteOpen, pickShape, teamPick, trupps, placeTruppOnMap, placeGenericTeam,
       }} />
 
       <PlansSurface {...{

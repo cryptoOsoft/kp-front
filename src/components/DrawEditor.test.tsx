@@ -5,6 +5,7 @@ import { DrawEditor } from './DrawEditor'
 import { appConfig } from '../config/appConfig'
 import { fillTemplate } from '../lib/format'
 import { hoseCount } from '../lib/geo'
+import { HOSE_SIZES } from '../lib/hydraulics'
 
 afterEach(cleanup)
 
@@ -107,7 +108,8 @@ describe('Messung on an already drawn line', () => {
     expect(screen.queryByText('412 m')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: D.measurement }))
     expect(screen.getByText('412 m')).toBeTruthy()
-    expect(screen.getByText(String(hoseCount(412)))).toBeTruthy() // incl. the configured reserve
+    // incl. the configured reserve; the hose length rides in the value, so the label stays one line
+    expect(screen.getByText(`${hoseCount(412)} × ${appConfig.drawing.hoseLengthM} m`)).toBeTruthy()
   })
 
   it('fetches the Höhenprofil only when the group is opened (no swisstopo request on selection)', () => {
@@ -221,6 +223,25 @@ describe('the line Typ menu', () => {
     render(<DrawEditor {...base} drawing={{ kind: 'line' }} onContent={noop} />)
     expect(screen.getByRole('button', { name: `${D.content}: ${L.W}` })).toBeTruthy()
     expect(screen.queryByRole('button', { name: L.S })).toBeNull() // no chip row any more
+  })
+})
+
+// Owner 05.11.2026: five Ø chips wrapped on the iPhone («110» alone on a second row) – on a
+// phone the «Schlauch» row is the «Typ» row's menu, every Ø with its unit
+describe('the phone\'s Schlauch menu', () => {
+  const D = appConfig.copy.drawingEditor
+  const R = appConfig.copy.relay
+  afterEach(() => { Reflect.deleteProperty(window, 'matchMedia') })
+  it('names the Ø on its button and picks another from the menu', async () => {
+    window.matchMedia = ((query: string) => ({ matches: true, media: query, addEventListener: noop, removeEventListener: noop })) as unknown as typeof window.matchMedia
+    const onHose = vi.fn()
+    render(<DrawEditor {...base} drawing={{ kind: 'line', hose: '75' }} onHose={onHose} />)
+    expect(screen.queryByRole('button', { name: '110' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: `${D.hose}: ${R.hoseLabels['75']}` }))
+    const items = await screen.findAllByRole('menuitem')
+    expect(items.map((i) => i.textContent)).toEqual(HOSE_SIZES.map((h) => R.hoseLabels[h]))
+    fireEvent.click(items[4])
+    expect(onHose).toHaveBeenCalledWith('110')
   })
 })
 

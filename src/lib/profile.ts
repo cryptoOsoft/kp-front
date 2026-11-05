@@ -47,6 +47,48 @@ export async function fetchElevationProfile(coords: LngLat[], signal?: AbortSign
   return { points, min, max, gain, loss, start: points[0].alt, end: points[points.length - 1].alt }
 }
 
+// ── The shared cache ─────────────────────────────────────────────────────────────────────────
+// One profile per path, for every consumer at once: the line editor's Messung (useLineProfile),
+// the pumps a Leitung draws on the map (components/LinePumpMarkers) and the printed Kroki
+// (krokiPayload · readyLinePumps). They agree on the terrain because they read the same answer,
+// and a Leitung whose pumps stand on the map opens its Messung without a second request.
+// ⚠️ Only an ANSWER is kept: a null (offline, outside CH) is asked again next time – offline now
+// is not offline later. Bounded, oldest out: a Leitung dragged for a minute leaves a path per pause.
+
+const CACHE_MAX = 64
+const cache = new Map<string, ProfileResult>()
+const inflight = new Map<string, Promise<ProfileResult | null>>()
+
+/** The cache key of a path – its coordinates by value. */
+export const profileKey = (coords: readonly LngLat[]): string => coords.map((c) => `${c[0]},${c[1]}`).join(' ')
+
+/** The profile already fetched for exactly this path, if any (sync – the print payload reads it). */
+export const cachedProfile = (coords: readonly LngLat[]): ProfileResult | undefined => cache.get(profileKey(coords))
+
+/** The profile of a path – from the cache, a request already on its way, or a new one. Never
+ *  aborted by one consumer: another may be waiting on the same request. */
+export function loadProfile(coords: LngLat[]): Promise<ProfileResult | null> {
+  const key = profileKey(coords)
+  const hit = cache.get(key)
+  if (hit) return Promise.resolve(hit)
+  const running = inflight.get(key)
+  if (running) return running
+  const p = fetchElevationProfile(coords).then((res) => {
+    inflight.delete(key)
+    if (res) {
+      cache.set(key, res)
+      // oldest out: a Map iterates in insertion order
+      for (const old of cache.keys()) { if (cache.size <= CACHE_MAX) break; cache.delete(old) }
+    }
+    return res
+  })
+  inflight.set(key, p)
+  return p
+}
+
+/** Tests only: forget every cached profile. */
+export function resetProfileCache() { cache.clear(); inflight.clear() }
+
 /** The same profile walked from its far end (a Wassertransport whose water runs back along the
  *  drawn line, lib/useRelay): distances measured from the other end, ascent and descent swapped. */
 export function reverseProfile(p: ProfileResult): ProfileResult {

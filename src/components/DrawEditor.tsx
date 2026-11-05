@@ -15,6 +15,7 @@ import { cx } from '../lib/cx'
 import { useLineProfile } from '../lib/useLineProfile'
 import { onSiteKnown } from '../lib/gpsReturn'
 import { useCommitDraftOnUnmount } from '../lib/useCommitDraftOnUnmount'
+import { useIsPhone } from '../lib/useIsPhone'
 import { ProfileChart, ProfileStats } from './ProfileChart'
 import { Stepper } from './Stepper'
 import { Button, IconButton } from './Button'
@@ -138,9 +139,10 @@ interface Props {
   /** the «Schlauch» row: the Leitung's Ø (Lage and Plan alike). Omitted ⇒ the row is hidden. */
   onHose?: (hose: HoseSize) => void
   /** the Wassertransport section inside «Messung» — Lage only: it needs real ground and the
-   *  Höhenprofil (`profileCoords`). `onChange` absent ⇒ shown read-only. `onPlacePumps`: its
-   *  «Pumpen als Symbole setzen» (absent ⇒ hidden). Omitted ⇒ no section. */
-  waterRelay?: { onChange?: (patch: RelayValue) => void; onPlacePumps?: (coords: LngLat[]) => void }
+   *  Höhenprofil (`profileCoords`). `onChange` absent ⇒ shown read-only. `lineId`: the Leitung's
+   *  id, so its resting pumps on the map step aside while this section shows the live ones
+   *  (components/RelayPumpMarkers). Omitted ⇒ no section. */
+  waterRelay?: { onChange?: (patch: RelayValue) => void; lineId?: string }
   /** Druckleitung number + storey badge on the line (undefined clears) */
   onLineNo?: (lineNo: number | undefined) => void
   onFloorTag?: (floor: number | undefined) => void
@@ -245,8 +247,10 @@ export function DrawEditor({ drawing, pointCount, readOnly = false, areaM2, boxM
   const { profile, loading: profileLoading } = useLineProfile(profileCoords ?? [], hasProfileCoords && measureOpen)
   // Wassertransport of this Leitung (components/WaterRelay): computed from the same profile and
   // ADDED from the button under the Höhenprofil, the way Messen does it — already open on a line
-  // that has one set up. Its pumps stand on the map while it is open. Every edit is an ordinary
-  // prop edit of the line — one undo step — and a dragged pump writes once, on release (lib/useRelay).
+  // that has one set up. Its pumps stand on the map while it is open, and – with its «Pumpen auf
+  // Karte» on – as Motorspritzen whenever the line is drawn (lib/linePumps). Every edit is an
+  // ordinary prop edit of the line — one undo step — and a dragged pump writes once, on release
+  // (lib/useRelay).
   const relayOffered = isLine && hasProfileCoords && !!waterRelay
   const [relayAdded, setRelayAdded] = useState(() => !!drawing.relay)
   const relayShown = relayOffered && relayAdded
@@ -257,7 +261,9 @@ export function DrawEditor({ drawing, pointCount, readOnly = false, areaM2, boxM
     value: { hose: drawing.hose, relay: drawing.relay }, defaultHose: hoseDefaults().relay,
     onChange: !readOnly ? waterRelay?.onChange : undefined,
   })
-  usePublishRelay(relayCtrl, relayShown && measureOpen)
+  usePublishRelay(relayCtrl, relayShown && measureOpen, waterRelay?.lineId)
+  // the phone's «Schlauch» is a menu: five chips do not fit beside the label column on every phone
+  const isPhone = useIsPhone()
   // Opening «Messung» brings it to the top of the sheet's scroller: it is the LAST group, so on a
   // phone sheet the fold opened entirely below the edge and the tap seemed to do nothing
   // (20.09.2026). Again when the Höhenprofil arrives – it is most of the section's height.
@@ -280,6 +286,12 @@ export function DrawEditor({ drawing, pointCount, readOnly = false, areaM2, boxM
   )
   // the header shares the grip's drag (tap stays a tap there — see useSheetDrag)
   const sheetDrag = useSheetDrag({ onClose, tapToggles: false })
+  /** a picked Ø – through the relay where there is one: a new Ø sends its pumps moved by hand back
+   *  to automatic, in the same edit (lib/useRelay · set) */
+  const setHose = (h: HoseSize) => {
+    if (h === lineHose(drawing) || !onHose) return
+    if (relayCtrl.readOnly) onHose(h); else relayCtrl.set({ hose: h })
+  }
   /** one «Typ» menu entry: the letter as a small badge, the word, the tick on the current one */
   const contentItem = (c: LineContent) => ({
     label: <MenuPick badge={c} label={CONTENT_LABELS[c]} on={(drawing.content ?? 'W') === c} />,
@@ -611,14 +623,30 @@ export function DrawEditor({ drawing, pointCount, readOnly = false, areaM2, boxM
             {/* «Schlauch»: the Leitung's Ø, right under what it carries. It is what the Messung's
                 Wassertransport computes with (lib/hydraulics · HOSES); absent reads as the
                 station's relay default on a Leitung with a Wassertransport, else its Linie default
-                (hydraulics · lineHose). */}
+                (hydraulics · lineHose). Chips where they fit; on a PHONE the «Typ» row's menu
+                (owner 05.11.2026: «110» wrapped onto a row of its own on the iPhone) – the same
+                five values, each with its unit, the current one ticked. */}
             {onHose && (
               <div className="de-row"><span>{appConfig.copy.drawingEditor.hose}</span>
-                <Segmented ariaLabel={appConfig.copy.drawingEditor.hose} value={lineHose(drawing)}
-                  // through the relay where there is one: a new Ø sends its pumps moved by hand back
-                  // to automatic, in the same edit (lib/useRelay · set)
-                  onChange={(h) => { if (h !== lineHose(drawing)) { if (relayCtrl.readOnly) onHose(h); else relayCtrl.set({ hose: h }) } }}
-                  options={HOSE_SIZES.map((h) => ({ value: h, label: appConfig.copy.relay.hoseShort[h] }))} />
+                {isPhone ? (
+                  <Menu
+                    trigger={
+                      <button className="de-menu-trigger" aria-label={`${appConfig.copy.drawingEditor.hose}: ${appConfig.copy.relay.hoseLabels[lineHose(drawing)]}`}>
+                        <span>{appConfig.copy.relay.hoseLabels[lineHose(drawing)]}</span>
+                        <Icon id="chevron-down" className="chev" />
+                      </button>
+                    }
+                    popupClassName="de-menu-pop"
+                    itemClassName={() => 'de-menu-item'}
+                    items={HOSE_SIZES.map((h) => ({
+                      label: <MenuPick label={appConfig.copy.relay.hoseLabels[h]} on={lineHose(drawing) === h} />,
+                      onClick: () => setHose(h),
+                    }))}
+                  />
+                ) : (
+                  <Segmented ariaLabel={appConfig.copy.drawingEditor.hose} value={lineHose(drawing)} onChange={setHose}
+                    options={HOSE_SIZES.map((h) => ({ value: h, label: appConfig.copy.relay.hoseShort[h] }))} />
+                )}
               </div>
             )}
             {/* `seedOnDec`: a Leitung goes into a Keller as often as up a Treppe, so the first tap
@@ -715,8 +743,11 @@ export function DrawEditor({ drawing, pointCount, readOnly = false, areaM2, boxM
                 <div className="de-row"><span>{appConfig.copy.drawingEditor.distance}</span>
                   <b className="de-measure-v">{fmtDistance(lengthM)}</b>
                 </div>
-                <div className="de-row"><span>{appConfig.copy.measure.hoses} à {appConfig.drawing.hoseLengthM} m</span>
-                  <b className="de-measure-v">{hoseCount(lengthM, HOSES[lineHose(drawing)].lines)}</b>
+                {/* the hose length rides in the VALUE («45 × 20 m»): as «Schläuche à 20 m» the
+                    label was the one in the sheet that broke onto two lines on a phone, «20» above
+                    «m» (owner 05.11.2026: the Messung's labels looked different from the rows above) */}
+                <div className="de-row"><span>{appConfig.copy.measure.hoses}</span>
+                  <b className="de-measure-v">{hoseCount(lengthM, HOSES[lineHose(drawing)].lines)} × {appConfig.drawing.hoseLengthM} m</b>
                 </div>
               </>
             )}
@@ -754,11 +785,10 @@ export function DrawEditor({ drawing, pointCount, readOnly = false, areaM2, boxM
               </div>
             )}
             {/* a Leitung's Wassertransport chart carries the terrain itself – it stands in for the
-                Höhenprofil, in ONE column: inputs, chart and tapped pump, result and «Pumpen als
-                Symbole setzen» (mockups/wt-nov04-m4b.html, round 3 mock F-A, 04.11.2026) */}
+                Höhenprofil, in ONE column: inputs, chart and tapped pump, result and «Pumpen auf
+                Karte» (mockups/wt-nov04-m4b.html, round 3 mock F-A, 04.11.2026; the switch 05.11.) */}
             {measureOpen && relayShown && (
-              <WaterRelay ctrl={relayCtrl} onClose={() => setRelayAdded(false)}
-                onPlacePumps={readOnly ? undefined : waterRelay?.onPlacePumps} />
+              <WaterRelay ctrl={relayCtrl} onClose={() => setRelayAdded(false)} mapPumps />
             )}
             {measureOpen && hasProfileCoords && !relayShown && (
               <>
@@ -772,7 +802,9 @@ export function DrawEditor({ drawing, pointCount, readOnly = false, areaM2, boxM
                 )}
                 {/* adding writes the relay and – where no Ø was picked – the relay default in one
                     edit, so the Schlauch row reads 75 from here on (hydraulics · relayAddPatch) */}
-                {relayOffered && <AddRelayButton onClick={() => {
+                {/* the group's own gap above it (sp-4), not the 8px a stats row leaves: it is the
+                    next question, not one more number (owner 05.11.2026, «too tight») */}
+                {relayOffered && <AddRelayButton className="de-relay-add" onClick={() => {
                   setRelayAdded(true)
                   const patch = relayAddPatch(drawing)
                   if (patch && !relayCtrl.readOnly) waterRelay?.onChange?.(patch)

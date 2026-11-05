@@ -83,6 +83,30 @@ One object, two surfaces: how a tactical object is stored, anchored, projected a
   point on its own surface. ONE order everywhere (`compareReadings`, 28.10.2026): stage, measured
   before empty, fresh before stale, how far past the limit, newest reading.
 
+- **A Leitung's Wassertransport and the pumps it draws** (04./05.11.2026). One section
+  (`components/WaterRelay`) in two hosts: Messen › Strecke and a drawn Leitung's «Messung»
+  (`DrawEditor`), both driving `lib/useRelay` over the pure engine `lib/hydraulics`; the
+  assumptions live on the line (`Drawing.relay`, its Ø in `hose`), every edit an ordinary
+  `draw.edit`. **Lage only** – a plan sheet has no ground and no height profile, so there is no
+  Plan twin to keep in parity. The Leitung's switch **«Pumpen auf Karte»** (`relay.showPumps`,
+  owner 05.11.2026: «the Leitung draws its own pumps»; the row under the result reads «Auf Karte»,
+  the Messung's own word, with the full name as its accessible name) makes the line draw its calculated pumps
+  as the pack's Motorspritze (`RELAY_PUMP_SYMBOL`): ⚠️ DERIVED, never entities (`lib/linePumps`).
+  Every render plans again along the stored path on the shared height profile
+  (`lib/profile · loadProfile`, the cache the editor's Messung reads too), so the pumps move with
+  the line and every changed assumption, and there is nothing to duplicate – a second «on» is
+  still the one set. On the map `RelayPumpMarkers · LinePumpMarkers` runs the editor's own
+  controller per line; while that Leitung's Messung shows its relay the panel's live pumps stand
+  in for them (as Motorspritzen too, so the switch shows what it does). A drawn pump is DRAGGED
+  along its line and pinned there (`relay.pumps[i].atM`, the chart's own pin, one undo step on
+  release, no Verlauf row); a tap selects the Leitung. Paper prints the same pumps
+  (`krokiPayload` adds `drawnPumpEntities`; `readyDirectReportPayload` awaits the profiles first)
+  and the Rapport's Kroki preview shows them. No profile (offline, outside CH) plans on flat
+  ground, exactly as the editor then does and says («Ohne Höhenprofil gerechnet»). Messen has no
+  switch: its pumps are the panel's while it measures, and «Als Leitung auf die Karte» carries the
+  relay onto a Leitung, whose editor offers it. The one-shot «Pumpen als Symbole setzen» it
+  replaced (#536, 04.11.2026) placed ordinary Motorspritzen – those stay ordinary symbols.
+
 ## One object, two surfaces
 
 - **One object, two surfaces — there are no twins any more** (10.09.2026). A tactical

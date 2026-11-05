@@ -42,6 +42,7 @@ import type { JournalLink } from './journalLinks'
 import { TAFEL_ID, findForms, formForPdf, pageStamp, pageTitles } from './boardForm'
 import { isDrawnBoardKind } from './workspace'
 import { signatureScope, type SignatureRole, type SignatureStrokes } from './reportSignature'
+import { readyLinePumps } from './linePumps'
 
 /** Board annotations of one plan, in the server's PlanAnnoIn shape (dynamic symbol
  *  glyphs resolved to SVG strings, like the whiteboard renders them).
@@ -782,7 +783,9 @@ export function forPaper(v: unknown): unknown {
  *  The payload bakes placard glyphs (Kemler via lookupUN), so the fetched hazard datasets are
  *  awaited first: a print seconds after boot must not be missing them. */
 export async function readyDirectReportPayload(args: DirectReportArgs): Promise<Record<string, unknown>> {
-  await Promise.all([ensureUnHazard(), ensureErg()])
+  // …and so are the height profiles of the Leitungen that draw their pumps (lib/linePumps): on
+  // flat ground the printed Motorspritzen would stand elsewhere than on the screen
+  await Promise.all([ensureUnHazard(), ensureErg(), readyLinePumps(args.scene?.drawings ?? [])])
   return buildDirectReportPayload(args)
 }
 
