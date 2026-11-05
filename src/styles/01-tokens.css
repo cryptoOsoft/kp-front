@@ -438,7 +438,9 @@
   --snap: #f472b6;
   /* elevation (--shadow/--shadow-sm are --e4/--e3): black, not the day's blue-grey, and stronger —
      a dark panel on a dark map needs more shadow to lift, not less */
-  --e0: 0 1px 2px rgba(0, 0, 0, .45);
+  /* …except the contact step under map label plates: in a pile of plates (council r12) the night .45
+     stacked into a heavy fringe; the plate's hairline already separates it */
+  --e0: 0 1px 2px rgba(0, 0, 0, .3);
   --e1: 0 1px 2px rgba(0, 0, 0, .5), 0 2px 5px rgba(0, 0, 0, .4);
   --e2: 0 4px 10px rgba(0, 0, 0, .45);
   /* tightened with the day's e3/e4 (04.11.2026): the 36px black blur read as a soft heavy halo
