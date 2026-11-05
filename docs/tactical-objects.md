@@ -75,9 +75,10 @@ One object, two surfaces: how a tactical object is stored, anchored, projected a
   vehicle preset (the ones with «Fahrer»: Fahrzeug, Drehleiter, Hubretter, Grosslüfter, Boot)
   carries `Herkunft` as its second field (`appConfig.symbols.originField`); a live GPS vehicle
   keeps it in its override row (`useVehicleLayer · VehicleOverrides.herkunft`, merged per field
-  like the Fahrer). The panel row is a Combo WITH free typing over the station's ONE list
-  `fleet.origins` (`symbols · vehicleOriginOptions`, no bundled default); empty = own Feuerwehr,
-  and the box says «Eigene Feuerwehr». On the Karte and the Plan it is never the caption: it is
+  like the Fahrer). The panel row is the shared station-list control (`ContextPanel · FieldControl`:
+  the dropdown with free typing, a plain text field while the station lists nothing) over the
+  station's ONE list `fleet.origins` (`symbols · vehicleOriginOptions`, no bundled default);
+  empty = own Feuerwehr, and the box says «Eigene Feuerwehr». On the Karte and the Plan it is never the caption: it is
   a small grey last line in the caption box (`symbolOriginText`, `TacticalSymbol · origin`),
   booked by the label pass together with the caption (`symbolCaptionBoxText`), hidden with
   «Beschriftungen aus». Setting it never re-files the Fahrer (`entityEdit ·

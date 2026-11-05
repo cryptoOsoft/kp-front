@@ -36,8 +36,8 @@ const OFFICER_ROSTER_SYMBOLS = new Set<string>(appConfig.symbols.officerRosterSy
 const EL_SYMBOLS = new Set<string>(appConfig.symbols.einsatzleiterSymbols)
 const EL_NAME = 'Name'
 const EL_STV = 'Stv.'
-// a vehicle's «Herkunft» (appConfig.symbols.originField): always the dropdown WITH free typing –
-// the station's list is the fast path, a Feuerwehr it never listed is typed (owner pick 3A)
+// a vehicle's «Herkunft» (appConfig.symbols.originField) – a station-list field like any other
+// (FieldControl: the list with free typing); the key is named here for the live vehicle's own row
 const ORIGIN_FIELD = appConfig.symbols.originField
 
 function FieldControl({ fieldKey, value, kind, options, placeholder, officerFilter, rankOf, statusOf, onInput, onCommit }: {
@@ -380,6 +380,8 @@ const GRENZE_GLYPH = { left: 'grenze-v', right: 'grenze-v', up: 'grenze-up', dow
   // A live vehicle's Fahrer and Herkunft ride in its fields too (lib/useVehicleLayer – for the
   // caption and the Kroki), but here they have their own rows above: not a second time read-only.
   const ownRows = new Set([driver && 'Fahrer', origin && ORIGIN_FIELD].filter(Boolean))
+  // the live row's text while it is typed (no station list → FieldControl's free-text field)
+  const [originDraft, setOriginDraft] = useState(origin?.value ?? '')
   const seedRows = (fields: Record<string, string> | undefined): Row[] => {
     const base = toRows(fields).filter((r) => !ownRows.has(r.k))
     if (!protectedKeys?.size) return base
@@ -884,11 +886,12 @@ const GRENZE_GLYPH = { left: 'grenze-v', right: 'grenze-v', up: 'grenze-up', dow
             <div className="field"><span className="kv-key-ro">{ORIGIN_FIELD}</span><b className="kv-val-ro">{origin.value || '–'}</b></div>
           )}
           {origin?.onChange && (
-            // the SAME row as a placed vehicle's preset «Herkunft» below (originPick)
+            // the SAME control as a placed vehicle's preset «Herkunft» row below (FieldControl)
             <label className="field">
               <span className="kv-key-ro">{ORIGIN_FIELD}</span>
-              <Combo value={origin.value} options={origin.options ?? []} allowCustom
-                placeholder={valuePlaceholder(ORIGIN_FIELD)} onChange={origin.onChange} />
+              <FieldControl fieldKey={ORIGIN_FIELD} value={originDraft} options={origin.options}
+                placeholder={valuePlaceholder(ORIGIN_FIELD)}
+                onInput={setOriginDraft} onCommit={(v) => { setOriginDraft(v); if (v !== origin.value) origin.onChange?.(v) }} />
             </label>
           )}
           {/* ⚠️ `showFloorRange` belongs in this gate — it was the one stepper left out, so a
@@ -1023,7 +1026,6 @@ const GRENZE_GLYPH = { left: 'grenze-v', right: 'grenze-v', up: 'grenze-up', dow
                 // row, free text through the Gast door — and the commit resolves the UN-Nr.
                 // (fillFromUN's reverse branch), which lights the readout and the rings.
                 const stoffSearch = unCapable && normKey(r.k) === STOFF_KEY
-                const originPick = r.k.trim() === ORIGIN_FIELD
                 const control = (
                   <FieldControl fieldKey={r.k} value={r.v} kind={symbolFieldKind(entity.symbol, r.k)} options={fieldOptions?.[r.k]}
                     placeholder={valuePlaceholder(r.k)}
@@ -1037,9 +1039,6 @@ const GRENZE_GLYPH = { left: 'grenze-v', right: 'grenze-v', up: 'grenze-up', dow
                         placeholder={valuePlaceholder(r.k)}
                         searchPlaceholder={C.stoffSearch}
                         onChange={(v) => setRowValue(i, v)} />
-                    ) : originPick ? (
-                      <Combo value={r.v} options={fieldOptions?.[r.k] ?? []} allowCustom
-                        placeholder={valuePlaceholder(r.k)} onChange={(v) => setRowValue(i, v)} />
                     ) : alarmBar(entity.symbol, r.k.trim(), r.v) ? (
                       // a measured gas (the Messpunkt): the input box is the visualisation – its
                       // calm/amber/red bar right under it, following the value as it is typed
