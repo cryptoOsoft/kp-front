@@ -106,9 +106,13 @@ questions, and what the record keeps (`components/AtemschutzView`; the card and 
     Two rows 8px apart cannot both own 44px in 8px of air, so on the grid on touch the strip stands
     16px under the tiles and the first row's pad reaches 16px up; the second row (`.factsEnd`) owns
     the gap. On the grid, touch keeps «Druck | Kontakt» and the filled tile at 48px and sets
-    Rückzug | Raus and Notfall at 44px; a mouse gets 40px tiles and a 36px foot line.
+    Rückzug | Raus and Notfall at 44px; a mouse gets 36px tiles and a 32px foot line (r13 — 40/36
+    left the 1536×864 laptop's second row with its feet under the panel's edge).
     Since owner pick A1/C7 (05.11.2026) the caption is 11px caps with its tracking nearly closed
-    and stands ABOVE the time («Draussen seit 4:25:20», `RowLine` draws it first); «Kanal 11»
+    and stands ABOVE the time («Draussen seit 4:25:20», `RowLine` draws it first), on one line,
+    its cap line ~10px under the card's edge and ~2px over the digits (r13). The «KON TAKT» gaps
+    in the harness's laptop shots are headless Chromium's full hinting at DPR 1 (whole-pixel
+    glyphs), not the copy or the tracking – `--font-render-hinting=none` sets it evenly; «Kanal 11»
     (with the Ausrüstung after it) always opens the facts' last row on the grid (`.factsEnd`), so
     it stands in the same place on every card.
   - *Inside reads louder than outside* (hill climb r3, 04.11.2026): on the grid a crew inside with
@@ -118,18 +122,22 @@ questions, and what the record keeps (`components/AtemschutzView`; the card and 
     rule, red wash + red rule. A fällig clock is `--amber-strong` on every board (plain amber was
     2.2–2.4:1 by day on the washes), überfällig `--red-strong` as before.
     An out card sinks: its surface is mixed toward the canvas (it was mixed toward the ink, which
-    lit it at night), its name is the dim ink and its clock the quiet 16px. Slots never move.
+    lit it at night), its name AND its crew line are the dim ink (r13: an ink crew under a dim name
+    read louder than the Trupp) and its clock the quiet 16px. Slots never move.
     Since r11 the grid card's 5px left edge is drawn only for a tone that means something (amber
     fällig, red überfällig, blue angemeldet, green Sicherungstrupp); a calm inside card, an out
     card and a work squad have just the 1px card border — the phone rows too since owner pick C2
     (05.11.2026). An out card's foot words its finished values: «drin 29:00 min · raus mit 175
-    bar» (owner pick C18; not on a crew stood down at the door).
+    bar» (owner pick C18; not on a crew stood down at the door) — the joining words «drin» /
+    «raus mit» in the dim ink at 500, so the values read first (r13); the inside card's «Schätzung ≈»
+    keeps full ink and weight.
   - *The tablet grid shows every foot* (hill climb r4, 04.11.2026): on the 1180×820 iPad the second
     row's foot (duration, Schätzung) met the panel's bottom edge. The space came out of air, never a
-    target: the grid card's head starts 4px under the card's top and the caption row above the
-    digits is reserved on every grid card, so names still line up across a row; on touch the board starts
-    8px under the page head and the cards sit 12px apart. Tiles, chips, their pads and the foot
-    line keep their heights.
+    target: the caption row above the digits is reserved on every grid card, so names still line
+    up across a row; on touch the board starts 6px under the page head (8 until r13, when the
+    caption took 2px more air above it and the band 2px less under the crew) and the cards sit
+    12px apart (on a mouse too since r13, with 8px top air). Tiles, chips, their pads and the foot
+    line keep their heights on touch.
 
 ## The Atemschutz-Link board (the handed-over phone board, `lite && compact`)
 
