@@ -137,22 +137,18 @@
    tap (PlanFactsSheet) repeats each fact's own dot with its word. Tones are decided in TS —
    planScale · planFactsTone / scaleLampTone and georefMode · georefChipTone — never here, so the
    chip and the sheet behind it can never disagree about whether a reference is good.
-   6px, and on the chip it sits on the GLYPH's top-right corner, cut out of it by a halo in the
-   chip's own plate (hill climb r13, Opus 5): a 9px ring at the chip's trailing edge read as a
-   radio button – a control – where it is a state of the thing the glyph names. The sheet's dot
-   stands before its status word, the same 6px. */
+   On the chip it stands RIGHT AFTER the name, 8px, 6px from the word (hill climb r21, Opus 3 +
+   Sol 2): cut into the glyph's top-right corner (r13) the ring and the building read as one odd
+   glyph. Close to the word, not at the chip's trailing edge, so it reads as the name's state – a
+   9px ring out at the edge (before r13) read as a radio button, a control. The sheet's dot stands
+   before its status word, 6px. */
 .wb-lamp { width: 6px; height: 6px; border-radius: 50%; flex: none; }
-.wb-scale-chip:has(> .wb-lamp) { position: relative; --lamp-halo: var(--float-bg); }
-.wb-scale-chip.arm { --lamp-halo: color-mix(in srgb, var(--blue) 14%, var(--float-bg)); }
-/* the chip's first child is its 16px glyph at the --float-pad-x inset, centred: the dot's centre
-   lands 1px inside that box's top-right corner */
-.wb-scale-chip > .wb-lamp { position: absolute; left: calc(var(--float-pad-x) + 16px - 4px); top: calc(50% - 8px - 2px);
-  box-shadow: 0 0 0 2px var(--lamp-halo); }
+.wb-scale-chip > .wb-lamp { width: 8px; height: 8px; margin-left: -2px; }
 .wb-lamp[data-tone='red'] { background: var(--red); }
 /* «not yet» — no scale, no link (29.09.2026, sweep K10): grey, never red at rest. An UNLIT lamp
    (05.11.2026, hill climb r13): a filled grey disc after «Gebäude» read as a decoration with no
    meaning; the empty ring says «nothing set yet», the sheet behind the tap says which. */
-.wb-lamp[data-tone='grey'] { box-sizing: border-box; border: 1.5px solid var(--ink-faint); background: var(--lamp-halo, transparent); }
+.wb-lamp[data-tone='grey'] { box-sizing: border-box; border: 1.5px solid var(--ink-faint); }
 .wb-lamp[data-tone='amber'] { background: var(--amber); }
 .wb-lamp[data-tone='green'] { background: var(--green); }
 /* a read-out with nowhere to go (a link-scoped viewer is bound to ONE object) is not greyed out
@@ -376,6 +372,9 @@
 /* never wraps: on a zoomed-out stack the tile is ~330px or less and «1. OG» broke after «1.» */
 .wb-floor-name { font-weight: var(--fw-bold); flex: none; white-space: nowrap; }
 .wb-floor-svg polygon { fill: var(--blue-5); stroke: var(--ink-faint); stroke-width: 1.5; stroke-linejoin: round; }
+/* …at night 12 % of the (night) blue: 5 % on the dark board was no fill at all, the footprint a bare
+   ring where the day plate shows a pale blue area (hill climb r21, Opus 6) */
+:root[data-theme="night"] .wb-floor-svg polygon { fill: var(--blue-12); }
 /* the storey's Geschossplan page under the outline – quiet, the outline stays legible over it */
 .wb-floor-page { opacity: 1; }
 .wb-floor-noplan { font: var(--fw-medium) var(--fs-2) var(--body); fill: var(--ink-faint); }

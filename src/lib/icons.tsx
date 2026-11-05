@@ -197,11 +197,12 @@ export function IconSprite() {
       {/* an OUTLINE seen from above – OSM Umrisse, the Karte's objects and layer rows, ghost labels */}
       <symbol id="footprint" viewBox="0 0 24 24"><path d="M4 20V8h8V4h8v16z" /></symbol>
       {/* THE building, seen from the street (hill climb r20, Opus 3): the Plan's chip on the Gebäude
-          stack names the building it shows, and #footprint's stepped outline at 16px, with the
-          chip's lamp on its corner, read as a crop mark. A tall block with a low wing on the right,
-          centred in the box; the top-right stays EMPTY because the chip's lamp sits there
-          (09-whiteboard · .wb-scale-chip > .wb-lamp). */}
-      <symbol id="building" viewBox="0 0 24 24"><path d="M3.5 20.5h17M5 20.5v-17h8.5v17M13.5 10h5.5v10.5" /><path d="M8 7.5h2.5M8 11h2.5M8 14.5h2.5" /></symbol>
+          stack names the building it shows, and #footprint's stepped outline at 16px read as a crop
+          mark. A tall block with a low wing on the right on a ground line, filling the box like
+          #warn beside it (18 × 18 of 24), at the sprite's one stroke. Two windows, not three rows
+          of ticks (r21, Sol 2): at 16px six 2.5-unit ticks drew as dots, the glyph more delicate
+          than the triangle and the nav icons. */}
+      <symbol id="building" viewBox="0 0 24 24"><path d="M3 21h18M4.5 21V3h9.5v18M14 10h5.5v11" /><path d="M7.5 8h3.5M7.5 13h3.5" /></symbol>
       {/* the Grundriss preset (27.10.2026): a Wand is a thick corner */}
       <symbol id="wall" viewBox="0 0 24 24"><path d="M5 19V5h14" strokeWidth="4" strokeLinecap="square" /></symbol>
       <symbol id="bell" viewBox="0 0 24 24"><path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4z" /><path d="M9.5 19a2.5 2.5 0 0 0 5 0" /></symbol>
