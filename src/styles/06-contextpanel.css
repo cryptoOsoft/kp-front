@@ -513,9 +513,13 @@
    of one must not hand the rest of its momentum to the other or to the page behind the drawer.
    ⚠️ No padding at the top: the first row sits flush at the box's own edge, which is what says
    this box begins here. `overflow-x: hidden` because an `auto` y-axis computes the x-axis to
-   `auto` as well, and the Verlauf must line-wrap, never scroll sideways. */
+   `auto` as well, and the Verlauf must line-wrap, never scroll sideways.
+   ⚠️ 16px at the BOTTOM, and the same as `scroll-padding` (hill climb r20, 05.11.2026): scrolled
+   to the end the last row came to rest on the box's very edge, sliced through its letters a hair
+   above the drawer's rounded corner; now the list ends with air, and a row scrolled into view
+   (a jump, a search hit) stops that same 16px short of the edge. No fade (settled: none). */
 .history-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden;
-  overscroll-behavior: contain; padding: 0 2px 2px; }
+  overscroll-behavior: contain; padding: 0 2px var(--sp-4); scroll-padding-bottom: var(--sp-4); }
 /* ⚠️ A GRID, not a wrapping flex (23.08.). Four tracks: time · disc · the sentence · everything
    else. The point is the third one — every row's text starts at the same x (8 + 44 + 8 + 28 +
    8 = 96px from the row's border box; 94 with 10px padding and gutters until hill climb r7,

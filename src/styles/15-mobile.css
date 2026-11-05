@@ -739,9 +739,12 @@
      scroller, so every row was cut off at the band's top edge, the last one included. Paid by the
      scroller's last row instead (AGENTS · «the bottom inset paid by its last row»), rows scroll
      on down to the sheet's edge and the last one still comes to rest above the home indicator. */
-  .journal-drawer > .history-list { padding-bottom: calc(var(--sp-3) + env(safe-area-inset-bottom)); }
+  /* 16px of end air + the indicator, the tablet's 16 (06-contextpanel · .history-list), and the
+     scroll padding with it so a row scrolled into view also stops clear of the indicator */
+  .journal-drawer > .history-list { padding-bottom: calc(var(--sp-4) + env(safe-area-inset-bottom));
+    scroll-padding-bottom: calc(var(--sp-4) + env(safe-area-inset-bottom)); }
   /* (the keyboard covers the home indicator, so its inset is not paid twice) */
-  .journal-drawer.is-kb > .history-list { padding-bottom: var(--sp-3); }
+  .journal-drawer.is-kb > .history-list { padding-bottom: var(--sp-4); scroll-padding-bottom: var(--sp-4); }
   /* ⚠️ The Pendenzen box needs a cap this side of a PERCENTAGE. Its `max-height: 45%` resolves
      against `.journal-drawer`, and on a phone this drawer is `height: auto` (bottom-anchored,
      capped by max-height) — an indefinite height, against which a percentage max-height computes
