@@ -162,7 +162,7 @@ function rowTone(t: Trupp, status: TruppLive['status'], sev: number): string {
   return sev >= 2 ? s.trowCrit : sev === 1 ? s.trowWarn : inField ? s.trowIn : status === 'raus' ? s.trowOut : s.trowIdle
 }
 
-/** The phone row's first line — dot · name, and the clock — drawn by the collapsed row AND by the
+/** The phone row's first line — ring · name, and the clock — drawn by the collapsed row AND by the
  *  opened card's head (26.09.2026, owner: «keep the same UI whether the card is collapsed or
  *  not»). One drawing, so opening a Trupp never moves, resizes or recolours the line the thumb
  *  just pressed; the chevron beside it is the caller's, because it points the other way. */

@@ -51,8 +51,9 @@ unchanged.
 - *The Eintrag FAB is on every page, the Trupps board too* (27.10.2026, owner): the board
   runs to the phone edge like every page and its LIST ends above the FAB (28.10.2026, owner: the
   card may wrap around it) – the shared `--fab-safe` foot on `.body`, plus the opened card's
-  `data-az-fab-foot` guard on its foot row, plus the reserve at the end of every row's name/clock
-  line (Atemschutz.module). A RUNNING recording never yields — not to a dock, the armed pill, a panel or a detail sheet
+  `data-az-fab-foot` guard on its foot row (Atemschutz.module). The rows' name/clock line keeps no
+  reserve (owner pick A4/C10, 05.11.2026): clock and chevron sit at the row's right edge and the
+  FAB floats over whichever row rests under it. A RUNNING recording never yields — not to a dock, the armed pill, a panel or a detail sheet
   (it rides on the sheet's top edge). Only «Karte verknüpfen» still hides it.
 - *Karte & Objekte has ONE bar* (Karte · Messen · Gefahrgut · Ebenen, no tool bar and no «Pläne»
   tab — 17.10.2026): Messen keeps the same 8px steps, only from the nav bar (the dock where the

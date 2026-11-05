@@ -1205,7 +1205,10 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 .trowClock { text-align: right; }
 .trowClockVal { display: block; font-family: var(--mono); font-size: 28px; font-weight: var(--fw-heavy);
   line-height: 1; color: var(--green); font-variant-numeric: tabular-nums; }
-.trowWarn .trowClockVal { color: var(--amber); }
+/* fällig in the strong amber ink (05.11.2026): plain --amber measured 2.4:1 on the phone row's
+   wash and 2.2:1 on the grid's amber head band by day, under the 3:1 of large text; the strong
+   ink is 5.6:1 on the band by day, 5.2:1 at night (überfällig's --red-strong: 4.9 / 5.4) */
+.trowWarn .trowClockVal { color: var(--amber-strong); }
 .trowCrit .trowClockVal { color: var(--red-strong); }
 /* «3d 9h» (TruppCard · ClockVal, 30.09.2026): the unit is a small body-face letter against its
    number, so a day-long clock stops out-measuring the name beside it */
@@ -1771,6 +1774,16 @@ button.fact { cursor: pointer; }
 button.fact:active { background-image: linear-gradient(var(--press), var(--press)); }
 @media (hover: hover) { button.fact:hover { background: var(--ink-8); } }
 @media (pointer: coarse) { button.fact::before { content: ''; position: absolute; inset: calc(-1 * var(--sp-2)) -3px; } }
+/* ⚠️ Two chip rows 8px apart cannot both own 44px inside 8px of air above and below (8 + 28 + 8 +
+   28 + 8 = 80 < 88). On the grid the rows are known — the Auftrag & co., then `.factsEnd` (Kanal +
+   Ausrüstung) — so on touch the strip stands 16px under the tiles and the FIRST row's pad reaches
+   up into that extra 8px: row 1 owns 16 + 28, row 2 (later in the DOM, painted over the gap) owns
+   8 + 28 + 8 — 44 each, the drawn gap still 8. (A first row that itself wraps in two lines gets the
+   tall pad on both; the field data has not produced one.) */
+@media (pointer: coarse) {
+  .grid .facts { margin-top: var(--sp-4); }
+  .grid .facts > button.fact::before { top: calc(-1 * var(--sp-4)); }
+}
 /* «Kanal 11» (+ the Ausrüstung after it) — the facts' LAST row on the grid (hill climb r8,
    04.11.2026: it shared the Auftrag's row on one card and stood alone on the next, so the same
    fact moved from card to card). Same chips, same data; the row gap above it is the strip's own
