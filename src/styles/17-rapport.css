@@ -125,6 +125,12 @@
    phone half — number and dial button together — wraps whole onto a second line. */
 .rz-kontakt { flex-wrap: wrap; }
 .rz-kontakt > .ci { flex: 3 1 200px; }
+/* «Entfällt» where it has to wrap (the tablet's column: name + Telefon fill the line, hill climb
+   r14, 05.11.2026): RIGHT, under the Telefon field, the row gap (8px) below — the pair's own
+   trailing answer, like «Keine» under the steppers. Flush left on its own line it read as an
+   action of the whole section. Inline (laptop) and beside the Telefon (phone) the fields' grow
+   takes all free space first, so the auto margin is zero there. */
+.rz-kontakt > .ip-btn { margin-left: auto; }
 .rz-kontakt-tel { display: flex; align-items: center; gap: 8px; flex: 2 1 170px; min-width: 0; }
 .rz-kontakt-tel > .ci { flex: 1 1 auto; min-width: 0; }
 /* the dial affordance is a link wearing button clothes — same height rule as «Entfällt» */
@@ -195,6 +201,13 @@
 .rz-count .step-val-btn:not(.step-empty) { background-color: var(--fill-soft); }
 @media (hover: hover) { .rz-count .step-val-btn:hover:not(:disabled) { background-color: var(--hover); } }
 .rz-count .step-val.step-empty { font-weight: var(--fw-regular); }
+/* The ± are their frame, no plate (hill climb r14, 05.11.2026). `.step-btn`'s `--surface-2` is a
+   .6 white: on a white sheet it is no plate at all, but on this card it stacked into a whiter one,
+   and the disabled «−» (THE disabled dim, opacity only) thinned that plate into a pale tile with
+   no visible frame — read as a filled grey well beside the framed «+». Unfilled, dimming changes
+   the frame's strength and nothing else, so «−» disabled is «+» faded; the value well keeps the
+   row's one fill. Hover / press still paint their plate (07-toolrail, more specific). */
+.rz-count .step-btn { background-color: transparent; }
 /* …and on every width the row ends at the column's edge, like every other field of the form: the
    reset ✕ stands in the same --tap slot, at the same right edge, as the Einsatzleiter field's ✕
    above it (ClearableInput · .ci-clear), and «Keine» ends where «Entfällt» does. Until r13
