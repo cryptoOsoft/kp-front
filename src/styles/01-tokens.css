@@ -509,10 +509,12 @@
   --green-solid-hover: #46d684;
   --label-bg: rgb(20, 28, 40);
   --label-soft: rgba(20, 28, 40, .82);
-  /* the map label plates' edge a SOLID slate one step up from the fill (hill climb r23, Opus 5):
+  /* the map label plates' edge a SOLID slate a step up from the fill (hill climb r23, Opus 5):
      the day ring's 22 % of the light ink came out #424955 here, lost on the grey map, and a pile of
-     plates fused into one block. The printed Kroki re-declares the day plate (`:root, .kf-paper`). */
-  --label-plate: inset 0 0 0 1px color-mix(in srgb, var(--ink-dim) 40%, var(--label-bg)), var(--e0);
+     plates fused into one block. 55 % of the dim ink since r26 (Opus r25 7, was 40 %): beside the
+     white night symbol tiles a plate's outline sank and its caption looked detached from the tile.
+     The printed Kroki re-declares the day plate (`:root, .kf-paper`). */
+  --label-plate: inset 0 0 0 1px color-mix(in srgb, var(--ink-dim) 55%, var(--label-bg)), var(--e0);
   --surface-veil: rgba(255, 255, 255, .07);
   --ink-tint: rgba(255, 255, 255, .14);
   --ink-tint-strong: rgba(255, 255, 255, .22);
