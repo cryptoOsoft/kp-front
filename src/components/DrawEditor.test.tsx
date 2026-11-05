@@ -141,7 +141,7 @@ describe('Messung on an already drawn line', () => {
     for (const [hose, written] of [[undefined, { hose: '75', relay: {} }], ['40', { relay: {} }]] as const) {
       const onChange = vi.fn()
       render(<DrawEditor {...base} drawing={{ kind: 'line', hose }} lengthM={412} profileCoords={coords} onHose={noop} waterRelay={{ onChange }} />)
-      expect(screen.getByRole('button', { name: hose ?? '40', pressed: true })).toBeTruthy()
+      expect(screen.getByRole('button', { name: `${D.hose}: ${appConfig.copy.relay.hoseLabels[hose ?? '40']}` })).toBeTruthy()
       fireEvent.click(screen.getByRole('button', { name: D.measurement }))
       fireEvent.click(screen.getByRole('button', { name: appConfig.copy.relay.add }))
       expect(onChange).toHaveBeenCalledTimes(1)
@@ -226,14 +226,12 @@ describe('the line Typ menu', () => {
   })
 })
 
-// Owner 05.11.2026: five Ø chips wrapped on the iPhone («110» alone on a second row) – on a
-// phone the «Schlauch» row is the «Typ» row's menu, every Ø with its unit
-describe('the phone\'s Schlauch menu', () => {
+// Owner 05.11.2026: five Ø chips wrapped on the iPhone («110» alone on a second row), and in the
+// tablet's sheet too – the «Schlauch» row is the «Typ» row's menu, every Ø with its unit
+describe('the Schlauch menu', () => {
   const D = appConfig.copy.drawingEditor
   const R = appConfig.copy.relay
-  afterEach(() => { Reflect.deleteProperty(window, 'matchMedia') })
   it('names the Ø on its button and picks another from the menu', async () => {
-    window.matchMedia = ((query: string) => ({ matches: true, media: query, addEventListener: noop, removeEventListener: noop })) as unknown as typeof window.matchMedia
     const onHose = vi.fn()
     render(<DrawEditor {...base} drawing={{ kind: 'line', hose: '75' }} onHose={onHose} />)
     expect(screen.queryByRole('button', { name: '110' })).toBeNull()

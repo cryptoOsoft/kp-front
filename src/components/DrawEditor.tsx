@@ -15,7 +15,6 @@ import { cx } from '../lib/cx'
 import { useLineProfile } from '../lib/useLineProfile'
 import { onSiteKnown } from '../lib/gpsReturn'
 import { useCommitDraftOnUnmount } from '../lib/useCommitDraftOnUnmount'
-import { useIsPhone } from '../lib/useIsPhone'
 import { ProfileChart, ProfileStats } from './ProfileChart'
 import { Stepper } from './Stepper'
 import { Button, IconButton } from './Button'
@@ -262,8 +261,6 @@ export function DrawEditor({ drawing, pointCount, readOnly = false, areaM2, boxM
     onChange: !readOnly ? waterRelay?.onChange : undefined,
   })
   usePublishRelay(relayCtrl, relayShown && measureOpen, waterRelay?.lineId)
-  // the phone's «Schlauch» is a menu: five chips do not fit beside the label column on every phone
-  const isPhone = useIsPhone()
   // Opening «Messung» brings it to the top of the sheet's scroller: it is the LAST group, so on a
   // phone sheet the fold opened entirely below the edge and the tap seemed to do nothing
   // (20.09.2026). Again when the Höhenprofil arrives – it is most of the section's height.
@@ -623,30 +620,25 @@ export function DrawEditor({ drawing, pointCount, readOnly = false, areaM2, boxM
             {/* «Schlauch»: the Leitung's Ø, right under what it carries. It is what the Messung's
                 Wassertransport computes with (lib/hydraulics · HOSES); absent reads as the
                 station's relay default on a Leitung with a Wassertransport, else its Linie default
-                (hydraulics · lineHose). Chips where they fit; on a PHONE the «Typ» row's menu
-                (owner 05.11.2026: «110» wrapped onto a row of its own on the iPhone) – the same
-                five values, each with its unit, the current one ticked. */}
+                (hydraulics · lineHose). The «Typ» row's menu, every Ø with its unit, the current
+                one ticked (owner 05.11.2026: as five chips «110» wrapped onto a row of its own on
+                the iPhone – and in the tablet's 360px sheet just the same). */}
             {onHose && (
               <div className="de-row"><span>{appConfig.copy.drawingEditor.hose}</span>
-                {isPhone ? (
-                  <Menu
-                    trigger={
-                      <button className="de-menu-trigger" aria-label={`${appConfig.copy.drawingEditor.hose}: ${appConfig.copy.relay.hoseLabels[lineHose(drawing)]}`}>
-                        <span>{appConfig.copy.relay.hoseLabels[lineHose(drawing)]}</span>
-                        <Icon id="chevron-down" className="chev" />
-                      </button>
-                    }
-                    popupClassName="de-menu-pop"
-                    itemClassName={() => 'de-menu-item'}
-                    items={HOSE_SIZES.map((h) => ({
-                      label: <MenuPick label={appConfig.copy.relay.hoseLabels[h]} on={lineHose(drawing) === h} />,
-                      onClick: () => setHose(h),
-                    }))}
-                  />
-                ) : (
-                  <Segmented ariaLabel={appConfig.copy.drawingEditor.hose} value={lineHose(drawing)} onChange={setHose}
-                    options={HOSE_SIZES.map((h) => ({ value: h, label: appConfig.copy.relay.hoseShort[h] }))} />
-                )}
+                <Menu
+                  trigger={
+                    <button className="de-menu-trigger" aria-label={`${appConfig.copy.drawingEditor.hose}: ${appConfig.copy.relay.hoseLabels[lineHose(drawing)]}`}>
+                      <span>{appConfig.copy.relay.hoseLabels[lineHose(drawing)]}</span>
+                      <Icon id="chevron-down" className="chev" />
+                    </button>
+                  }
+                  popupClassName="de-menu-pop"
+                  itemClassName={() => 'de-menu-item'}
+                  items={HOSE_SIZES.map((h) => ({
+                    label: <MenuPick label={appConfig.copy.relay.hoseLabels[h]} on={lineHose(drawing) === h} />,
+                    onClick: () => setHose(h),
+                  }))}
+                />
               </div>
             )}
             {/* `seedOnDec`: a Leitung goes into a Keller as often as up a Treppe, so the first tap
