@@ -130,6 +130,9 @@ export const atemschutzCopy: Localizable<Pick<Copy, 'atemschutz' | 'lineDecor'>>
     elapsed: 'Tempo d’intervento',
     outFor: 'Fuori da',
     outForPlain: 'Senza compito da', // ⚠️ app only — see de/atemschutz.ts · outForPlain
+    // the foot words of an OUT card (de/atemschutz.ts · footInside)
+    footInside: 'dentro',
+    footOutAt: 'uscito con',
     currentPressure: 'Pressione',
     lowestPressure: 'Più bassa',
     lineField: 'Linea',

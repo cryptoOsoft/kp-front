@@ -151,6 +151,17 @@ describe('the contact times (the head of the Verlauf)', () => {
       expect(line).not.toMatch(/(^|[^≈] )240 bar/)
       expect(line).toContain(az.estimatedShort)
     })
+
+    // owner pick C18 (05.11.2026): an OUT card words its finished values — and only an out card
+    it('words an out card\'s foot «drin … · raus mit … bar»', () => {
+      mount({ trupps: [{ ...aktivTrupp(), status: 'raus', exitTime: iso(5 * 60_000) }] })
+      const words = [...document.querySelectorAll(`.${s.metaLine} i`)].map((i) => i.textContent)
+      expect(words).toEqual([az.footInside, az.footOutAt])
+      expect(document.querySelector(`.${s.metaLine}`)!.textContent).toMatch(/\d+:\d{2} min.*\d+ bar/)
+      cleanup()
+      mount()
+      expect(document.querySelector(`.${s.metaLine}`)!.textContent).not.toContain(az.footInside)
+    })
   })
 })
 
@@ -384,7 +395,8 @@ describe('an abgeschlossener Einsatz (frozenAt)', () => {
     // rules neutralise the red status edge and the green clocks
     expect(document.querySelector(`.${s.surfaceFrozen}`)).toBeTruthy()
     const css = readFileSync(`${process.cwd()}/src/components/Atemschutz.module.css`, 'utf8')
-    expect(css).toMatch(/\.surfaceFrozen \.trow \{ border-left-color: var\(--ink-faint\); background: var\(--surface\); \}/)
+    expect(css).toMatch(/\.surfaceFrozen \.trow \{ background: var\(--surface\); \}/)
+    expect(css).toMatch(/\.surfaceFrozen \.trow::before \{ content: none; \}/)
     expect(css).toMatch(/\.surfaceFrozen \.trowClockVal, \.surfaceFrozen \.tabClock \{ color: var\(--ink-dim\)/)
     // …the SICHERUNGSTRUPP head included — no amber title on a closed Tafel (r6, F3; a head since
     // the slim-down of 26.09.2026)

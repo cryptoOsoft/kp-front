@@ -315,6 +315,11 @@ export const atemschutzCopy = {
     // ⚠️ APP ONLY, same split as `actExitPlain` below – der ausgehändigte Link behält «Draussen
     // seit» für jeden Trupp, AS oder nicht.
     outForPlain: 'Ohne Auftrag seit',
+    // Die zwei Werte der Fusszeile einer DRAUSSEN-Karte (Owner-Pick C18, 05.11.2026): «drin 29:00 min ·
+    // raus mit 175 bar» – die abgeschlossene Einsatzzeit und der Druck beim Austritt. Im
+    // Wortstil der Zeile (wie «Schätzung»); die Karten drinnen behalten «… · Schätzung ≈ …».
+    footInside: 'drin',
+    footOutAt: 'raus mit',
     estimated: 'Geschätzter Druck',
     /* ⚠️ Dieselbe Zahl, kurz – für die eine Zeile, die vom Sockel stehen bleibt (09.09.). Dort
      * steht sie neben «Druck 240 bar», und «Geschätzter Druck» daneben liest sich als zweiter

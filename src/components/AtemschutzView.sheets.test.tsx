@@ -106,15 +106,18 @@ describe('the mini sheets', () => {
   })
 
   /* ③ — the opened PHONE card's facts are chips (TruppCard · facts): each a door, the ⋯ last, the
-   * missing Auftrag a dashed «+ Auftrag», and nothing for a missing Leitung. */
-  it('lays the phone card\'s facts out as chips — crew · Auftrag · Ziel · Kanal · Kürzel · ⋯ — each a door', () => {
+   * missing Auftrag a dashed «+ Auftrag», and nothing for a missing Leitung. The crew is no chip
+   * since 05.11.2026 (owner pick A3): its own line under the name, still the Trupp sheet's door. */
+  it('lays the phone card\'s facts out as chips — Auftrag · Ziel · Kanal · Kürzel · ⋯ — each a door, the crew a line', () => {
     vi.mocked(useIsPhone).mockReturnValue(true)
     const editTrupp = vi.fn()
     mount({ trupps: [{ ...withFacts(), equipment: ['wbk'] }], editTrupp })
     fireEvent.click(document.querySelector(`.${s.trow}`)!)
     const card = document.querySelector('[data-az-open]') as HTMLElement
     const chips = [...card.querySelectorAll(`.${s.facts} .${s.fact}`)]
-    expect(chips.map((c) => c.textContent)).toEqual(['Huber', 'Löschen · Test', fillTemplate(az.lineChip, { n: 1 }), `${az.funkkanalUnit} 11`, 'WBK'])
+    expect(chips.map((c) => c.textContent)).toEqual(['Löschen · Test', fillTemplate(az.lineChip, { n: 1 }), `${az.funkkanalUnit} 11`, 'WBK'])
+    const crew = card.querySelector(`.${s.crewLine}`)!
+    expect([crew.tagName, crew.textContent]).toEqual(['BUTTON', 'Huber'])
     // every chip is a button; the ⋯ is NOT a chip — it ends the foot line (29.09.2026, owner pick B)
     expect(chips.every((c) => c.tagName === 'BUTTON')).toBe(true)
     expect(card.querySelector(`.${s.vfootRow}`)!.lastElementChild!.getAttribute('aria-label')).toBe(az.cardMenu)
@@ -157,7 +160,7 @@ describe('the mini sheets', () => {
 
   /* ④ — the Trupp sheet: the form's crew picker and the Ausrüstung toggles in one short sheet,
    * saved through editTrupp with the crew and the Ausrüstung replaced and nothing else touched. */
-  it('the crew chip opens the Trupp sheet; ✕ on a member and Speichern write the smaller crew', async () => {
+  it('the crew line opens the Trupp sheet; ✕ on a member and Speichern write the smaller crew', async () => {
     vi.mocked(useIsPhone).mockReturnValue(true)
     const editTrupp = vi.fn()
     mount({ trupps: [{ ...withFacts(), equipment: ['wbk'] }], editTrupp })
