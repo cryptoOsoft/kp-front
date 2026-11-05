@@ -242,9 +242,11 @@
    the owner's «full ink, full weight» Schätzung. Only the figures stay mono. */
 .metaLine i { font-style: normal; font-weight: var(--fw-bold); color: var(--ink); }
 /* …but an OUT card's joining words, «drin» / «raus mit» (owner pick C18), step back to the line's
-   own dim ink at 500 (hill climb r13, 05.11.2026): at the values' 700 ink the words read first.
-   Set per item (TruppCard · sockelLine `quiet`), so the Schätzung's word can never wear it. */
-.metaLine i.metaWordQuiet { font-weight: var(--fw-medium); color: var(--ink-dim); }
+   own dim ink, regular (hill climb r13 → r27, 05.11.2026): at the values' 700 ink the words read
+   first, and at 500 – beside the out card's figures, dim too (.trowOut below) – words and figures
+   ran together as one grey line; the 400 / 700 mono step is the split. Set per item
+   (TruppCard · sockelLine `quiet`), so the Schätzung's word can never wear it. */
+.metaLine i.metaWordQuiet { font-weight: var(--fw-regular); color: var(--ink-dim); }
 .metaLine b { font: var(--fw-bold) var(--fs-1) var(--mono); color: var(--ink); font-variant-numeric: tabular-nums; }
 /* (`.metaEst`, the Schätzung's dimmed + lighter value, went on 29.09.2026, T2: the owner wants the
    Schätzung CLEARLY visible, so it keeps full ink and its WORD — «Schätzung ≈ 0 bar» — and the word
