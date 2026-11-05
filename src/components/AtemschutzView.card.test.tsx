@@ -620,15 +620,16 @@ describe('a collapsed row tells the same time as the open card', () => {
     expect(foot.textContent).not.toMatch(/\d d \d+ h/)
   })
 
-  // owner pick C6, 05.11.2026: the figure stays in the value's mono, only the unit word changes face
+  // owner pick C6, 05.11.2026: the figure stays in the value's mono, only the unit word changes face –
+  // and the space before it with it (hill climb r20: a mono space out-measured the gaps between items)
   it('sets the units of the foot and the Druck tile in their own span, the figures and the text as they were', () => {
     mount({ trupps: [aktivTrupp()] })
     const units = (el: Element) => [...el.querySelectorAll(`.${s.valUnit}`)].map((u) => u.textContent)
     const foot = document.querySelector(`.${s.metaLine}`)!
-    expect(units(foot)).toEqual(['min', 'bar'])
+    expect(units(foot)).toEqual([' min', ' bar'])
     expect(foot.textContent).toMatch(/\d+:\d\d min.*≈ \d+ bar$/)
     const tile = document.querySelector(`.${s.pairBar}`)!
-    expect(units(tile)).toEqual(['bar'])
+    expect(units(tile)).toEqual([' bar'])
     expect(tile.textContent).toMatch(/^\d+ bar$/)
   })
 

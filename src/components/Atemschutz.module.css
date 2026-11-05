@@ -82,17 +82,16 @@
 .overdueQuiet { color: var(--ink-dim); background: var(--surface); box-shadow: inset 0 0 0 1px var(--glass-edge); animation: none; }
 @keyframes az-pulse-tile { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
 
-/* The board's insets: 16px under the page head on every board (hill climb r16, 05.11.2026 – the
-   6/8px of r4/r13 stood the first card row tight under the head's rule while the sides kept 22 and
-   the Rapport ~17 under the same head; the room for the 1180×820 iPad's second row came out of the
-   card gap and the crew line instead – `.grid`, `.grid .crewLine`). ⚠️ `both-edges`: a classic
-   scrollbar's gutter (headless Chromium, a Windows laptop) is reserved on BOTH sides, so the visible
-   left and right insets stay equal (r16: 22 left / 32 right with `stable`); an overlay scrollbar
-   (the iPad, a phone) reserves nothing and the insets stay the head's 22. */
-.body { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-gutter: stable both-edges; padding: var(--sp-4) var(--head-pad-x); }
-/* A mouse: 12px under the last row, so the 1536×864 laptop's two rows stand without a 4px scroll
-   (and a scrollbar thumb for it). */
-@media (hover: hover) and (pointer: fine) { .body { padding-bottom: var(--sp-3); } }
+/* The board's insets – ONE rhythm with the card gap (hill climb r20, 05.11.2026): 16px at the top
+   and the sides, 12 under the last row, 12 between the cards (`.grid`). r16 had 16 on top but 22 +
+   a scrollbar gutter (~32 visible) at the sides against an 8px gap, and shadowed cards 8px apart
+   read as one slab. The 12 at the foot is what pays for the gap's +4: the 1180×820 iPad and the
+   1536×864 laptop both stand their two rows whole with no scroll (measured r20: 0px to spare).
+   ⚠️ No `scrollbar-gutter` reserve any more (r16's `stable both-edges` kept 22/22 by adding a
+   gutter to BOTH sides, so the visible inset was never the padding): a board that fits shows the
+   padding exactly; one that scrolls shows its scrollbar where a scrollbar goes. An overlay
+   scrollbar (the iPad, a phone, macOS) never reserved anything. */
+.body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: var(--sp-4) var(--sp-4) var(--sp-3); }
 
 .empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
   height: 100%; color: var(--ink-faint); text-align: center; }
@@ -110,16 +109,15 @@
 /* ⚠️ 288px, not 270. 270 was chosen to fit three cards on a landscape tablet (300 fitted only
    two). Since 29.09.2026 the card is the phone's (TruppCard): its tiles are a 2×2 grid of equal
    keys, and 288 keeps «Rückzug» and «Raus» on one line each with the glyph beside the word. */
-/* 12px between cards, the card's own side padding, on a mouse (its 16px went in r13, 05.11.2026,
-   to stand the laptop's second row whole). Touch: 8px, the app's one gap (hill climb r16 – the
-   board's 16px top inset came out of it, so the 1180×820 iPad still shows both rows whole). */
+/* 12px between cards on every wide board, the card's own side padding (hill climb r20: the iPad's
+   8px of r16 went back up to the laptop's 12 – the 4px came out of the board's foot inset, `.body`).
+   The phone's single column keeps 8 (its block below). */
 /* ⚠️ `subgrid` is GONE (04.09.) — it made every row as tall as the tallest card in it (a Draussen
    card stretched into an empty box the height of a neighbour's). Each card ends where its content
    ends; what lines up across a row is the first line — name and clock — which every card opens
    with at the same height. */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(288px, 1fr));
   gap: var(--sp-3); align-items: start; }
-@media (pointer: coarse) { .grid { gap: var(--sp-2); } }
 /* ⚠️ The «Raus»-Abschnitt this separated is GONE (17.08.) — a Trupp that came back keeps its slot
    on every screen size (see AtemschutzView · board). The rule is kept out of the sheet rather than
    left behind styling nothing. */
@@ -214,12 +212,16 @@
    so a wrapped line (the portrait iPad's «22:01 min · Schätzung ≈ 135 bar») STARTED with the
    dot. Placed in the gap, a line-leading dot falls left of the line's own box and
    `overflow-x: clip` drops it; a line break between two values shows no separator at all
-   (UI sweep 07.10.2026). Where `clip` is unknown (iOS < 16) the dot simply stays visible. */
-.metaLine { display: flex; flex-wrap: wrap; align-items: baseline; gap: 1px var(--sp-4); overflow-x: clip;
+   (UI sweep 07.10.2026). Where `clip` is unknown (iOS < 16) the dot simply stays visible.
+   20px of gap (16 until hill climb r20): ~8px clear either side of the dot, well over the ~3px
+   between a figure and its unit (TruppCard · UnitVal), so «29:00 min · raus mit 175 bar» groups
+   as two items, not as «29:00 | min · raus». */
+.metaLine { --meta-gap: calc(var(--sp-4) + var(--sp-1));
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 1px var(--meta-gap); overflow-x: clip;
   padding: var(--sp-2) var(--sp-3) 0; font: var(--fw-medium) var(--fs-1)/17px var(--body); color: var(--ink-dim); }
 .metaLine > span { display: inline-flex; align-items: baseline; gap: var(--sp-1); white-space: nowrap; }
 .metaLine > span + span { position: relative; }
-.metaLine > span + span::before { content: '·'; position: absolute; right: 100%; width: var(--sp-4); text-align: center;
+.metaLine > span + span::before { content: '·'; position: absolute; right: 100%; width: var(--meta-gap); text-align: center;
   color: var(--ink-faint); opacity: .7; }
 /* a value's WORD («Schätzung ≈», «Draussen seit») in its value's ink and 700 (hill climb r11,
    04.11.2026): at the line's 500/dim ink the word read lighter than the number it names, against
@@ -983,7 +985,7 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
      clear of the circle, and a viewer (no FAB) gets no dead space. Mid-scroll a card still passes
      under it; an opened card's foot row has the guard above (data-az-fab-foot). */
   .body { padding: var(--sp-3) var(--head-pad-x); padding-bottom: calc(var(--sp-3) + var(--fab-safe, 0px)); }
-  .grid { grid-template-columns: 1fr; }
+  .grid { grid-template-columns: 1fr; gap: var(--sp-2); }
   /* (the head's phone paddings are the shared tokens — 15-mobile · --head-pad-*) */
 }
 
@@ -1250,7 +1252,9 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 .clockGroup { margin-left: .15em; }
 /* «270 bar», «10:00 min» (TruppCard · UnitVal, owner pick C6, 05.11.2026): the figure stays in its
    value's mono so the digits line up, the unit word goes in the body face at 500 with no tracking —
-   same size and ink as its figure, on its baseline. The Schätzung's figure keeps its 700 (T2). */
+   same size and ink as its figure, on its baseline. The Schätzung's figure keeps its 700 (T2).
+   The space before the unit is the span's own, so it is a body-face space (~3–4px), not a mono
+   cell (~7.5–10px): figure–unit gap < the gap between two items (hill climb r20). */
 .valUnit { font-family: var(--body); font-weight: var(--fw-medium); letter-spacing: 0; }
 /* the clock's caption, ABOVE the time (owner pick A1/C7, 05.11.2026): 11px caps with the tracking
    nearly closed — at .05em it read as fine print, at 12.5 it out-weighed the name's line. One line,
@@ -1464,7 +1468,7 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 /* ↶ ↷ 🔔 without frames on this head (R1): three framed squares beside a two-line title read as a
    toolbar of their own. A bell that is muted or blocked keeps its tint — that state needs eyes. */
 .head.headCompact .headActs > :is(.orderBtn, .muteBtn):not(.muteOn, .muteBlocked) { background: transparent; box-shadow: none; }
-.bodyFocus { display: flex; flex-direction: column; padding: 0; overflow: hidden; scrollbar-gutter: auto; }
+.bodyFocus { display: flex; flex-direction: column; padding: 0; overflow: hidden; }
 /* the port: the body's height under the head and the Notfall strips. (Its 6–10px padding — 05.09.
    and 09.09., which kept a card's coloured edge off the head's hairline — went with the card on
    30.10.2026: the page is flat. Its layout is under «NO CARD» below.) */
