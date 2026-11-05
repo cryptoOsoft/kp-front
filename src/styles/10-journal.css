@@ -395,12 +395,20 @@
 /* …and the head's ✕ and ⓘ are --tap like the rest of the head (see .journal-replay): beside 44px
    neighbours a 36px ✕ is the «stray badge» the search row's ✕ was (below). Glyphs stay 18px. */
 .journal-head .journal-x, .journal-head .ui-info { width: var(--tap); height: var(--tap); }
+/* ⚠️ The head's ✕ wears ▶'s frame (`.ip-btn`'s plate, hill climb r13, 05.11.2026): beside the bare
+   utilities and the framed ▶ the house grey pill was a THIRD button look in one row. Two now – the
+   utilities bare, the drawer's actions framed. Only here: the search row's ✕ and every other
+   sheet's keep the grey pill (docs/ui-conventions · «The ✕ that closes a sheet»). */
+.journal-head .journal-x { background: var(--surface); border: 1px solid var(--glass-edge); color: var(--ink); }
+@media (hover: hover) {
+  .journal-head .journal-x:hover { background: var(--hover-strong); }
+}
 /* ⓘ · lens · funnel are UTILITIES, and rest as the quiet icon button does (components/Button ·
    IconButton `quiet`: no fill, `--ink-8` under a hover or a keyboard focus) — hill climb r9: three
    filled squares in a row out-weighed the title and ▶ beside them, worst across the phone's full
    head. Their ON looks stay as they were (legend/search open = the blue wash, a filter set = the
-   `--sel` fill, below), so «on» now reads against nothing instead of against a grey chip. The ✕
-   keeps the house close pill and ▶ its frame. */
+   `--sel` fill, below), so «on» now reads against nothing instead of against a grey chip. ▶ and
+   the ✕ share one frame (above). */
 .journal-head .ui-info:not(.on) { background: none; }   /* the lens and funnel rest bare in their own rule */
 .journal-head .ui-info:not(.on):focus-visible, .journal-legend-btn:not(.on, .jr-filter-on):focus-visible { background: var(--ink-8); }
 @media (hover: hover) {
@@ -858,6 +866,11 @@
    block — 500 against 400 is still findable and reads lighter. The printed journal keeps its bold
    (lib/journalLinks · the Rapport has no other emphasis to spend). */
 .jr-link { font-weight: var(--fw-medium); color: var(--ink); }
+/* a name and its role suffix wrap as ONE piece (hill climb r13, 05.11.2026): «Weber Nina» at a
+   line's end left «(AS)» alone on the next. An inline-block moves to the next line whole when it
+   does not fit, so the row still wraps between people and in the prose; capped at the line, a
+   name longer than the line wraps inside itself instead of running out of the drawer. */
+.jr-link-unit { display: inline-block; max-width: 100%; overflow-wrap: break-word; }
 /* the address in the Verlauf: a real <a>, so it carries the underline that says «this opens»
    rather than a colour that only says «this is a thing» */
 a.jr-link-url { color: var(--blue); text-decoration: underline; text-underline-offset: 2px;
