@@ -394,3 +394,40 @@ describe('colMinScale · a phone column’s minimum follows its weight', () => {
       .toEqual([1, 2, 1.25])
   })
 })
+
+// owner pick 7A, 05.11.2026: the bin at the end of the row one stands in; a checklist problem
+// wears its mark, keeps the checklist's words, and its deletion is said as an un-tick
+describe('deleting a row, and a problem from the checklist', () => {
+  const P81 = FKS.pages.find((p) => p.id === 'problem-tendenz')!
+  const view = () => {
+    const d = putRow(newFormPage(FKS, P81, {}, '2026-11-05T14:00:00.000Z'), 'probleme', 'r1', { cells: { problem: 'Bus 61 blockiert', bereich: 'ordnung' } })
+    return { ...d, values: { probleme: { rows: [...d.values.probleme.rows!, { id: 'ck~pe~f3', cells: { problem: 'Energieträger', bereich: 'front' }, src: 'checklist' as const }] } } }
+  }
+
+  it('a checklist problem is marked, its words read-only; its bin hands back the page without it, said as from the checklist', () => {
+    const onChange = vi.fn()
+    render(<TafelFormPage pageKey="fm-p" data={view()} readOnly={false} isPhone={false} onRemove={() => {}} inset={{ top: 0, left: 0, right: 0, bottom: 0 }} onChange={onChange} />)
+    const T = appConfig.copy.tafel
+    expect(screen.getAllByRole('img', { name: T.fromChecklist })).toHaveLength(1)
+    const words = screen.getByDisplayValue('Energieträger') as HTMLTextAreaElement
+    expect(words.readOnly).toBe(true)
+    expect(screen.getByDisplayValue('Bus 61 blockiert')).toHaveProperty('readOnly', false)
+    const row = words.closest('[role="row"]') as HTMLElement
+    fireEvent.click(within(row).getByRole('button', { name: T.deleteRow }))
+    expect(onChange).toHaveBeenCalledTimes(1)
+    const [next, act] = onChange.mock.calls[0]
+    expect((next as BoardFormData).values.probleme.rows!.map((r) => r.id)).toEqual(['r1'])
+    expect(act).toEqual({ removed: 'Energieträger', from: 'checklist' })
+  })
+
+  it('a typed draft in the deleted row is not written back on its way out', () => {
+    const onChange = vi.fn()
+    render(<TafelFormPage pageKey="fm-p" data={view()} readOnly={false} isPhone={false} onRemove={() => {}} inset={{ top: 0, left: 0, right: 0, bottom: 0 }} onChange={onChange} />)
+    const bus = screen.getByDisplayValue('Bus 61 blockiert') as HTMLTextAreaElement
+    act(() => { bus.focus() })
+    fireEvent.change(bus, { target: { value: 'Bus 61 und 62 blockiert' } })
+    fireEvent.click(within(bus.closest('[role="row"]') as HTMLElement).getByRole('button', { name: appConfig.copy.tafel.deleteRow }))
+    expect(onChange).toHaveBeenCalledTimes(1) // the deletion only – no commit of the draft beside it
+    expect(onChange.mock.calls[0][1]).toEqual({ removed: 'Bus 61 blockiert' })
+  })
+})

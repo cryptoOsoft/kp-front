@@ -195,3 +195,33 @@
 .phone .headRow { grid-template-columns: minmax(0, 1fr); }
 .phone .cell { min-height: 44px; }
 .phone .map { min-height: 220px; }
+
+/* ── the Einsatz's problems (lib/problemLink, 05.11.2026, owner pick 7A) ── */
+/* a checklist problem: the checklist icon in front of its (read-only) words */
+.ckMark { flex: none; display: inline-flex; align-items: center; align-self: flex-start; min-height: var(--tap); color: var(--sel); }
+.ckMark :global(.i) { width: 16px; height: 16px; }
+.tdCk { padding-left: var(--sp-2); }
+.legend { display: flex; align-items: center; gap: var(--sp-2); margin: var(--sp-3) 0 0; font-size: var(--fs-1); color: var(--ink-dim); }
+.legend :global(.i) { width: 14px; height: 14px; color: var(--sel); }
+/* a problem's Bereich: the cell IS the menu's trigger */
+.areaCell { align-items: stretch; }
+.area {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-1); flex: 1 1 auto; min-width: 0;
+  min-height: var(--tap); padding: var(--sp-2); border: none; background: transparent; color: var(--ink);
+  font: inherit; font-size: var(--fs-2); line-height: var(--lh-2); text-align: left; cursor: pointer;
+}
+.area :global(.i) { flex: none; width: 14px; height: 14px; color: var(--ink-dim); }
+.areaWord { min-width: 0; overflow-wrap: anywhere; }
+.areaEmpty .areaWord { color: var(--ink-faint); }
+.area:focus-visible { outline: none; background: var(--blue-8); box-shadow: inset 0 0 0 2px var(--accent); }
+.tdGrip .area { padding-left: calc(var(--tap) - var(--sp-4)); }
+.tdGrip.fixed { padding-left: calc(var(--tap) - var(--sp-4) + var(--sp-2)); position: relative; }
+/* the bin at the end of the row one stands in (all tables, the problem boxes): there while the row
+   holds the focus, a soft red square – hidden, not removed, so the row never reflows */
+.binCell { align-items: center; justify-content: center; }
+.bin { flex: none; width: var(--tap); min-height: var(--tap); color: var(--red-strong); visibility: hidden; }
+.tr:focus-within .bin, .line:focus-within .bin { visibility: visible; background: var(--red-12); }
+.line .bin { display: none; }
+.line:focus-within .bin { display: inline-flex; }
+.areaItem { display: inline-flex; align-items: center; gap: var(--sp-2); }
+.areaItem :global(.i) { width: 14px; height: 14px; color: var(--sel); }

@@ -124,6 +124,7 @@ the clock. Sound and system notification deliberately do **not** hang off it.
 |---|---|
 | Zeitplan / shifts | `src/lib/useShiftActions.ts` · `useShiftActions` (doc comment): *«attendance is a RECORD … a plan is not, and logging each nudge of a chip would bury the operational journal under bookkeeping»* |
 | Checklists | only milestones create a row (`src/lib/useChecklistActions.ts` · `milestoneRow`): «☑ …» on a tick, and since 23.09.2026 the appended correction «Meilenstein zurückgenommen: …» (↶ glyph, Bereich «Checkliste») on an un-tick – by tap and by ↶ alike (`describeStep`), one row per step, ☑ again on a re-tick or ↷ |
+| Problemerfassung (a `problems` checklist ↔ the Tafel, 05.11.2026) | a problem is ticked, given a Tendenz, written in a box or a row, or deleted by the bin – none of it writes a row: a problem tick is not a milestone (the doctrine above), a Tafel cell never wrote one (only a page added or removed does), and the problem stands on the Tafel and in the printed Rapport's Tafel pages anyway. Audit only: `checklist.tick` (`from: 'tafel'` for an un-tick by the bin), `checklist.trend`, `board.edit` with the cells. A ↶ / ↷ of such a step writes the usual «… rückgängig gemacht» |
 | Editing drawings (color, style, geometry) | operator action, not an event – see the doctrine note below |
 
 The doctrine lives in the AdFU workflow description: *«Der Verlauf ist keine automatische

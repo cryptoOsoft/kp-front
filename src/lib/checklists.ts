@@ -76,6 +76,10 @@ export interface Phase {
   title: string
   role?: string
   note?: string
+  /** a `problems` template: the Bereich the phase's problems land in on the Tafel – the id of a
+   *  box of the Tafel's problem quad and an option of its problem table's `area` column
+   *  (docs/CONFIGURATION.md §9f, lib/problemLink). Absent: on the problem table only. */
+  area?: string
   items: Item[]
   /** mutually-exclusive role branches (e.g. FU "ohne C-FU" vs "mit C-FU") */
   branches?: Branch[]
@@ -127,6 +131,10 @@ export interface ChecklistTemplate {
   /** rail sort order, stamped from the manifest by admin_checklists — the station's single
    *  place to reorder checklists. Absent → sorts last (then action/rapport before reference). */
   order?: number
+  /** action templates: a tick means «this is a problem» (Problemerfassung, 05.11.2026) – the row
+   *  then offers a Tendenz ➚ = ➘, and every ticked item stands on the Tafel's problem surfaces
+   *  (lib/problemLink). Absent = an ordinary task list. */
+  problems?: boolean
   /** action / rapport templates */
   phases?: Phase[]
   /** reference templates */
@@ -152,8 +160,10 @@ export interface ChecklistTemplate {
 
 // --- per-incident tick state (lives in the Saved workspace blob) ------------------
 
-/** One tick: presence in `ticks` = checked. Records when + who. */
-export interface Tick { t: string; by?: string }
+/** One tick: presence in `ticks` = checked. Records when + who. `trend`: a `problems`
+ *  template's Tendenz of the problem (the Tafel's own ➚ = ➘, lib/boardForm · FormTrend) –
+ *  written from the checklist row and from the Tafel alike, one value in one place. */
+export interface Tick { t: string; by?: string; trend?: 'up' | 'same' | 'down' }
 
 export interface TemplateState {
   /** itemId → tick. Absence = unchecked. */
@@ -257,6 +267,9 @@ export async function loadTemplates(): Promise<ChecklistTemplate[]> {
 
 /** The kinds that are ticked: everything that is neither read (reference, manual) nor a visit. */
 export const isTickable = (t: ChecklistTemplate) => t.kind === 'action' || t.kind === 'rapport'
+
+/** A template whose ticks are problems for the Tafel (`problems: true` on an action list). */
+export const isProblemTemplate = (t: ChecklistTemplate) => t.kind === 'action' && t.problems === true
 
 /** how long a warmed list is handed out before a newer one is asked for behind it */
 export const TEMPLATES_FRESH_MS = 5 * 60_000

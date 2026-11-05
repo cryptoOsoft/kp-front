@@ -1,7 +1,7 @@
 {
   "schema": "board-template/1",
   "id": "fks-erste-fuehrung",
-  "version": 1,
+  "version": 2,
   "title": { "de": "FKS – Erste Führung", "fr": "CSSP – Première Conduite", "it": "CSP – Prima coordinazione", "en": "FKS – First command" },
   "source": "FKS Plakat «Erste Führung» A3 V 1.0/10.09.2019; FKS Handbuch Führung Grossereignisse 09/2022, Kap. 8 Hilfsmittel (8.1 Problemerfassung, 8.6 Mittel, 8.8 Verbindungen, 8.9 Konzept, 8.11 Rapport)",
   "pages": [
@@ -18,6 +18,7 @@
           "title": { "de": "Problemerfassung", "fr": "Saisie du problème", "it": "Comprensione del problema", "en": "Problem assessment" },
           "height": 11,
           "trend": true,
+          "problems": true,
           "tag": false,
           "cells": [
             { "id": "front", "label": { "de": "Front", "fr": "Front", "it": "Fronte", "en": "Front" } },
@@ -104,7 +105,15 @@
           "id": "probleme",
           "type": "table",
           "height": 10,
+          "problems": true,
           "columns": [
+            { "id": "bereich", "label": { "de": "Bereich", "fr": "Domaine", "it": "Ambito", "en": "Area" }, "type": "area", "w": 1.6,
+              "options": [
+                { "id": "front", "label": { "de": "Front", "fr": "Front", "it": "Fronte", "en": "Front" } },
+                { "id": "ordnung", "label": { "de": "Ordnung", "fr": "Ordre", "it": "Ordine e sicurezza", "en": "Order" } },
+                { "id": "sanitaet", "label": { "de": "Sanität", "fr": "Service sanitaire", "it": "Servizio sanitario", "en": "Medical" } },
+                { "id": "spezial", "label": { "de": "Spezielles", "fr": "Spécial", "it": "Speciale", "en": "Special" } }
+              ] },
             { "id": "problem", "label": { "de": "Problem/Ereignis", "fr": "Problème/événement", "it": "Problema/evento", "en": "Problem/event" }, "w": 4 },
             { "id": "tendenz", "label": { "de": "Entwicklungs\u00adtendenz ➚\u00a0=\u00a0➘", "fr": "Tendance évolution ➚\u00a0=\u00a0➘", "it": "Tendenza dell’evoluzione ➚\u00a0=\u00a0➘", "en": "Trend ➚\u00a0=\u00a0➘" }, "type": "trend", "w": 1.6 },
             { "id": "reaktion", "label": { "de": "Notwendige Reaktion", "fr": "Réaction requise", "it": "Reazione necessaria", "en": "Required response" }, "w": 3.4 },
