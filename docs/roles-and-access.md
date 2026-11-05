@@ -141,12 +141,17 @@ door never widens who may create an incident; no link session, 403 in the demo).
 sends only the tutorial's id; the server sets everything else – `is_exercise` and
 `exercise_since_creation` on, `source='training'`, the German title, the seeded scene
 (`backend/app/tutorial_seed.py`) – and reuses the station's newest open Lern-Übung, renamed,
-before it creates another. The `el` may also `DELETE` an Übung since creation
-(`IncidentDeleter`), so the done card's «Übung löschen» works for it. The RBAC-audit S1
-property holds: an `el` still cannot create a real Einsatz, because a Lern-Übung cannot be
+before it creates another. The title stays German whatever the device's language: it is part
+of the Einsatz record, which every device shows alike. The `el` may also `DELETE` a Lern-Übung – an Übung since
+creation **and** `source='training'` – so the done card's «Übung löschen» works for it
+(`IncidentDeleter`); any other Übung stays the editors' to delete, as before. The RBAC-audit
+S1 property holds: an `el` still cannot create a real Einsatz, because a Lern-Übung cannot be
 marked real by it (`PATCH is_exercise: false` on a `source='training'` incident is 403 for a
 non-editor), and a real Einsatz – or one flipped to Übung later – still takes the admin door.
-An open Lern-Übung never holds a real alarm in the pool (`models · LERN_UEBUNG_SOURCE`).
+A Lern-Übung is invisible to the station machinery (`models · LERN_UEBUNG_SOURCE`): it never
+holds a real alarm in the pool, the standing links (Stations-Terminal, fixe Atemschutz-URL)
+never bind to it nor offer it in «choose», and the server sweeps (vehicle presence, vehicle
+track, weather) never write into it.
 
 ## Hardening from the RBAC audit (22.10.2026)
 

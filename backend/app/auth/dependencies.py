@@ -388,8 +388,9 @@ async def get_incident_deleter(
 ) -> User | None:
     """``get_editor_or_admin``'s answers plus the ``el`` role — the door on ``DELETE /incidents/{id}``.
     The el gets through so it can throw away the Lern-Übung it opened («Üben», 05.11.2026); the
-    handler still lets it delete only an Übung since creation, because a real Einsatz needs the
-    admin session whoever asks (api/incidents · delete_incident)."""
+    handler lets it delete only a Lern-Übung (``source='training'``, an Übung since creation),
+    because a station Übung stays the editors' and a real Einsatz needs the admin session whoever
+    asks (api/incidents · delete_incident)."""
     user = None
     if access_token:
         try:

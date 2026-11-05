@@ -47,7 +47,7 @@ previous build writes ``vp-<n>-<zone>-gps-<device>`` — an old row under that i
 swallow the server's (the journal skips a known id), and a new one is dropped at the endpoint
 (`api/journal · observed_by_server`).
 
-«Active» (`observed_incidents`): open, with a real coordinate, and started OR worked on within
+«Active» (`observed_incidents`): open, not a Lern-Übung, with a real coordinate, and started OR worked on within
 the last 24 h. «Worked on» is a human write — a journal row or an audit event that is not one of
 the observers' own — so the observers never keep an Einsatz alive by themselves. When an open
 Einsatz goes quiet for 24 h its observation ends with ONE Verlauf row (``obs-end-…``), and
@@ -386,10 +386,15 @@ async def last_activity(db: AsyncSession, incident_id: uuid.UUID, started_at: da
 
 
 async def _open_incidents(db: AsyncSession, *, with_coordinate: bool) -> list[tuple]:
-    from .models import INCIDENT_ACTIVE_STATUSES, Incident
+    """Every open Einsatz the observers watch — never a Lern-Übung (`models · LERN_UEBUNG_SOURCE`):
+    the vehicles parked at the depot would write «vor Ort» rows into a tutorial seeded at the
+    station's centre, and a drill must not consume the real presence (the `_state` baseline)."""
+    from .models import INCIDENT_ACTIVE_STATUSES, LERN_UEBUNG_SOURCE, Incident
 
     q = select(Incident.id, Incident.lat, Incident.lng, Incident.started_at).where(
-        Incident.is_archived.is_(False), Incident.status.in_(INCIDENT_ACTIVE_STATUSES)
+        Incident.is_archived.is_(False),
+        Incident.status.in_(INCIDENT_ACTIVE_STATUSES),
+        Incident.source != LERN_UEBUNG_SOURCE,
     )
     if with_coordinate:
         q = q.where(Incident.lat.is_not(None), Incident.lng.is_not(None))
@@ -404,7 +409,8 @@ async def _open_incidents(db: AsyncSession, *, with_coordinate: bool) -> list[tu
 
 async def observed_incidents(db: AsyncSession, now: datetime) -> tuple[list[ObservedIncident], list[ObservedIncident]]:
     """(active, ended): open Einsätze with a real coordinate, split by whether a human wrote
-    to them within ``ACTIVE_WINDOW``. Übungen included — the Übung is where this gets tested."""
+    to them within ``ACTIVE_WINDOW``. Übungen included — the Übung is where this gets tested;
+    Lern-Übungen not (`_open_incidents`)."""
     active: list[ObservedIncident] = []
     ended: list[ObservedIncident] = []
     for iid, lat, lng, started in await _open_incidents(db, with_coordinate=True):

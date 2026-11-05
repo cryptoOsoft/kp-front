@@ -4,8 +4,9 @@ Contract under test:
 - an editor AND an el may open one; a viewer may not; the demo answers 403;
 - it is always an Übung since creation, `source='training'`, titled «Lernen · <German title>»;
 - the newest OPEN one is reused and renamed, a closed one is not;
-- an el may delete it (and any Übung since creation) but never a real Einsatz, and may not mark a
-  Lern-Übung real — so the el still cannot make a real Einsatz (RBAC audit S1);
+- an el may delete it but no other Übung and never a real Einsatz, and may not mark a Lern-Übung
+  real — so the el still cannot make a real Einsatz (RBAC audit S1); an editor keeps deleting
+  any Übung since creation;
 - the seed: the client's schema version, ids in `newId`'s shape, the station's centre and roster,
   no board kind outside board_kinds.json, the title map in step with the client's catalogue.
 """
@@ -150,6 +151,17 @@ async def test_el_cannot_delete_a_real_einsatz(client, editor, el):
     for inc_id in (real, flipped):
         assert (await client.delete(f"/api/incidents/{inc_id}")).status_code == 403
         assert (await client.get(f"/api/incidents/{inc_id}")).status_code == 200
+
+
+async def test_el_deletes_only_a_lern_uebung_an_editor_any_uebung(client, editor, el):
+    await _login(client, editor)
+    station = (await client.post("/api/incidents", json={"title": "Übung Schulhaus", "is_exercise": True})).json()
+    await _login(client, el)
+    assert (await client.delete(f"/api/incidents/{station['id']}")).status_code == 403
+    assert (await client.get(f"/api/incidents/{station['id']}")).status_code == 200
+    # the editor's rule is unchanged: any Übung since creation
+    await _login(client, editor)
+    assert (await client.delete(f"/api/incidents/{station['id']}")).status_code == 204
 
 
 async def test_el_cannot_mark_a_lern_uebung_real(client, editor, el):

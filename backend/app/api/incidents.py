@@ -819,11 +819,13 @@ async def delete_incident(
 
     TWO doors, because they answer different questions:
 
-    · **Übungen** — any editor, any time; since 05.11.2026 an ``el`` too (it opens the Lern-Übung
-      a tutorial runs on, and the done card's «Übung löschen» is its own; ``IncidentDeleter``). An exercise is not an operational record; it exists to
-      be thrown away, and needing an admin for it would make the tidy-up cost more than the
-      exercise. That is the whole point of the flag, and a Wehr that cannot clear its own
-      practice runs stops marking them as practice runs. A viewer still cannot (403).
+    · **Übungen** — any editor, any time. An ``el`` only a Lern-Übung (``source='training'``,
+      «Üben» 05.11.2026): it opens the one a tutorial runs on, and the done card's «Übung löschen»
+      is its own (``IncidentDeleter``); a station Übung stays the editors'. An exercise is not
+      an operational record; it exists to be thrown away, and needing an admin for it would make
+      the tidy-up cost more than the exercise. That is the whole point of the flag, and a Wehr
+      that cannot clear its own practice runs stops marking them as practice runs. A viewer still
+      cannot (403).
       «Übung» here means CREATED as one and never marked real since
       (``exercise_since_creation``) — a real Einsatz someone marked Übung later is a real
       Einsatz for this door.
@@ -847,6 +849,15 @@ async def delete_incident(
     inc = await get_incident_or_404(db, incident_id)
     if await is_demo_deployment(db):
         raise HTTPException(status_code=403, detail="In der Demo können Einsätze nicht gelöscht werden.")
+    # least privilege: the el got the door for the Lern-Übung only; with the admin key it is the
+    # Verwaltung like anyone else
+    if (
+        _actor is not None
+        and _actor.role == "el"
+        and inc.source != LERN_UEBUNG_SOURCE
+        and not await _admin_session_valid(admin_session)
+    ):
+        raise HTTPException(status_code=403, detail="Die Einsatzleitung kann nur eine Lern-Übung löschen")
     # ⚠️ `exercise_since_creation`, not `is_exercise`: the flag is an Einsatzdaten field, so
     # «flip to Übung, then delete» used to hard-delete a real Einsatz without the key (RBAC audit
     # S1, 22.10.2026). A real Einsatz marked Übung later takes the admin door like any other.
