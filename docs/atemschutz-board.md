@@ -110,9 +110,11 @@ questions, and what the record keeps (`components/AtemschutzView`; the card and 
     left the 1536×864 laptop's second row with its feet under the panel's edge).
     Since owner pick A1/C7 (05.11.2026) the caption is 11px caps with its tracking nearly closed
     and stands ABOVE the time («Draussen seit 4:25:20», `RowLine` draws it first), on one line,
-    its cap line ~10px under the card's edge and ~2px over the digits (r13). The «KON TAKT» gaps
-    in the harness's laptop shots are headless Chromium's full hinting at DPR 1 (whole-pixel
-    glyphs), not the copy or the tracking – `--font-render-hinting=none` sets it evenly; «Kanal 11»
+    its cap line 10px under the card's edge and 6px over the digits' cap height (r18 – at r13's
+    ~3px the clock block looked jammed into the band's corner; the room came out of the 24px clock
+    row, the crew line's top pad, the band's foot and, on a card without the band, the air over its
+    first tile, so both iPad rows still fit). The «KON TAKT» gaps in the harness's laptop shots
+    are headless Chromium's full hinting at DPR 1 (whole-pixel glyphs), not the copy or the tracking – `--font-render-hinting=none` sets it evenly; «Kanal 11»
     (with the Ausrüstung after it) always opens the facts' last row on the grid (`.factsEnd`), so
     it stands in the same place on every card.
   - *Inside reads louder than outside* (hill climb r3, 04.11.2026): on the grid a crew inside with
@@ -120,7 +122,9 @@ questions, and what the record keeps (`components/AtemschutzView`; the card and 
     clock, closed by a 3px green rule along its foot (r5); fällig / überfällig wear the same band
     in their tone since 05.11.2026 (owner: «warnings must show there too») — amber wash + amber
     rule, red wash + red rule. A fällig clock is `--amber-strong` on every board (plain amber was
-    2.2–2.4:1 by day on the washes), überfällig `--red-strong` as before.
+    2.2–2.4:1 by day on the washes), überfällig `--red-strong` as before. Since r18 the three bands
+    wash at 22 % by day and 16 % at night (12 % read as the board's quietest block beside the out
+    cards' filled tiles), and the calm band's clock is `--green-strong` like its two siblings.
     An out card sinks: its surface is mixed toward the canvas (it was mixed toward the ink, which
     lit it at night), its name AND its crew line are the dim ink (r13: an ink crew under a dim name
     read louder than the Trupp) and its clock the quiet 16px. Since r15 its fact chips and its
@@ -142,11 +146,12 @@ questions, and what the record keeps (`components/AtemschutzView`; the card and 
     up across a row. Tiles, chips and their pads keep their heights on touch.
     Since r16 (05.11.2026) the board starts 16px under the page head on every board (it was 6px on
     touch, 8 on a mouse – tight under the head's rule beside the 22px sides). The room on the iPad
-    came from the touch grid's card gap (8px, 12 on a mouse) and its crew line (a 22px box, an 18px
-    line, its touch pad 11px so it still owns 44px); a mouse keeps the 28px crew box and ends the
-    board 12px under the last row, so the 1536×864 laptop does not scroll. The board's scroller
-    reserves a classic scrollbar's gutter on both edges (`scrollbar-gutter: stable both-edges`), so
-    its visible left and right insets are equal; an overlay scrollbar (iPad, phone) reserves none.
+    came from the touch grid's card gap (8px, 12 on a mouse) and its crew line (an 18px line in a
+    22px box; 20px since r18, with an invisible pad so it still owns 44px); a mouse has a 26px crew
+    box (28 until r18) and ends the board 13px under the last row, so the 1536×864 laptop does not
+    scroll. The board's scroller reserves a classic scrollbar's gutter on both edges
+    (`scrollbar-gutter: stable both-edges`), so its visible left and right insets are equal; an
+    overlay scrollbar (iPad, phone) reserves none.
     Since r17 the iPad's grid also ends 17px over the panel's edge (it stood on it): on touch the
     grid card's foot line is drawn 36px and owns its 44px through an invisible 8px pad under the
     card (the row gap or the board's bottom inset – air nobody owns; the chips over the foot have
