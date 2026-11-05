@@ -126,7 +126,9 @@ questions, and what the record keeps (`components/AtemschutzView`; the card and 
     read louder than the Trupp) and its clock the quiet 16px. Since r15 its fact chips and its
     foot's values wear the same dim ink (the phone row's out tone; `--done-opacity` would take the
     text under AA) – only «Wieder in den Einsatz» stays at full strength, so it reads as the card's
-    one action. Slots never move.
+    one action. Since r17 the grid's out head sinks one step further: the name at 700 (dim ink),
+    the crew in the faint ink of the «Draussen seit» caption, the clock dim 16/700; the phone's
+    Draussen row (name and time) keeps its 800. Slots never move.
     Since r11 the grid card's 5px left edge is drawn only for a tone that means something (amber
     fällig, red überfällig, blue angemeldet, green Sicherungstrupp); a calm inside card, an out
     card and a work squad have just the 1px card border — the phone rows too since owner pick C2
@@ -137,7 +139,7 @@ questions, and what the record keeps (`components/AtemschutzView`; the card and 
   - *The tablet grid shows every foot* (hill climb r4, 04.11.2026): on the 1180×820 iPad the second
     row's foot (duration, Schätzung) met the panel's bottom edge. The space came out of air, never a
     target: the caption row above the digits is reserved on every grid card, so names still line
-    up across a row. Tiles, chips, their pads and the foot line keep their heights on touch.
+    up across a row. Tiles, chips and their pads keep their heights on touch.
     Since r16 (05.11.2026) the board starts 16px under the page head on every board (it was 6px on
     touch, 8 on a mouse – tight under the head's rule beside the 22px sides). The room on the iPad
     came from the touch grid's card gap (8px, 12 on a mouse) and its crew line (a 22px box, an 18px
@@ -145,6 +147,11 @@ questions, and what the record keeps (`components/AtemschutzView`; the card and 
     board 12px under the last row, so the 1536×864 laptop does not scroll. The board's scroller
     reserves a classic scrollbar's gutter on both edges (`scrollbar-gutter: stable both-edges`), so
     its visible left and right insets are equal; an overlay scrollbar (iPad, phone) reserves none.
+    Since r17 the iPad's grid also ends 17px over the panel's edge (it stood on it): on touch the
+    grid card's foot line is drawn 36px and owns its 44px through an invisible 8px pad under the
+    card (the row gap or the board's bottom inset – air nobody owns; the chips over the foot have
+    no pixel to give). The touch grid card therefore does not clip; its head band and its foot's
+    wash round their own outer corners, and an opened Verlauf keeps the line at 44px.
 
 ## The Atemschutz-Link board (the handed-over phone board, `lite && compact`)
 

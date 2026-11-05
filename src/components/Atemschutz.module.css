@@ -1175,6 +1175,15 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
    dimmed name the crew was the louder line of the head. The head dims as ONE block, the name
    keeps its weight over the crew's 400. A crew inside keeps its ink line (owner pick A3). */
 .trowOut .crewLine { color: var(--ink-dim); }
+/* …and on the tablet / desktop grid one step further down (hill climb r17, 05.11.2026): in the dim
+   ink at 800 the out cards' names, beside the filled «Wieder in den Einsatz», still made the grid's
+   top row of spent crews its loudest. The name keeps the dim ink at 700, the crew goes to the faint
+   ink of the «DRAUSSEN SEIT» caption over it, the clock stays dim 16/700 – the head reads as one
+   sunk block. Both inks stay over AA on the out ground (faint ~5.9:1 by day, ~6.6:1 at night). The
+   filled tile and the foot are untouched (owner, 27.09.2026). The phone's Draussen row (name and
+   time only) keeps its 800: it has no crew line and no filled tile beside it. */
+.grid .trowOut .trowName { font-weight: var(--fw-bold); }
+.grid .trowOut .crewLine { color: var(--ink-faint); }
 /* …and the rest of the card's text with it (hill climb r15, 05.11.2026): the fact chips and the
    foot's values in full ink kept the grid's top row of out cards as loud as the crews inside.
    The out tone is the phone row's — the dim ink, NOT `--done-opacity` (that took the text under
@@ -1872,6 +1881,25 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
   .grid .trowCard :is(.trowPressBtn, .trowKontakt, .actBtn) { min-height: 36px; }
   .grid .trowCard .vrow { min-height: 32px; }
   .grid .trowCard .footMore { width: 32px; height: 32px; }
+}
+/* Touch: the foot line DRAWN 36px, its 44px owned by an invisible 8px pad BELOW the card (hill climb
+   r17, 05.11.2026 – on the 1180×820 iPad the second row's foot stood on the panel's edge, 1px of
+   bottom inset against the 16 on top). The chips over the foot cannot give: two 28px rows 8px apart
+   own 44 each only with the strip's 16px over them (`.grid .facts`) and the foot's 8px margin under
+   them – every pixel between the last tile and the foot's hairline is a chip's. Under the card is
+   air nobody owns: the 8px row gap, or the board's bottom inset. 8px per row, so the iPad's grid
+   ends 17px over the panel's edge. For the pad to stand outside the frame the grid card does not
+   clip on touch; the two full-bleed pieces round their own outer corners instead (the head band,
+   the foot's wash). An opened Verlauf is the foot's last piece then – the line keeps its 44px and
+   no pad, and the foot clips its panels to the corner again. */
+@media (pointer: coarse) {
+  .grid .trow.trowCard { overflow: visible; }
+  .grid .trowCard .trowHead { border-radius: var(--r-ctl) var(--r-ctl) 0 0; }
+  .grid .trowCard .vfoot { border-radius: 0 0 var(--r-ctl) var(--r-ctl); }
+  .grid .trowCard .vfoot:has(> .vopen) { overflow: hidden; }
+  .grid .trowCard .vfootRow:last-child > .vrow { position: relative; min-height: 36px; border-bottom-left-radius: var(--r-ctl); }
+  .grid .trowCard .vfootRow:last-child > .footMore { position: relative; height: 36px; }
+  .grid .trowCard .vfootRow:last-child > :is(.vrow, .footMore)::before { content: ''; position: absolute; inset: 0 0 calc(-1 * var(--sp-2)); }
 }
 
 /* the Sicherungstrupp — one place, between the crews inside and everybody else */
