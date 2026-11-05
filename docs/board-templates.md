@@ -196,7 +196,8 @@ written, and a tick on either side is the same tick.
   types · `reminder.edit`), never a mutation. ↶ appends the correction back. An emptied Was keeps
   its words.
 - **◷** at the end of «Was» opens the Verlauf on the item's row. No grip: the order is the order
-  of issue.
+  of issue. **No bin** either (unlike the other tables, above): a row here is a Verlauf record,
+  which is never deleted — what is done is ticked off, and stays on the page struck through.
 - Who may tick or write is who may write the Verlauf (editor, el); a viewer reads the page.
 - ⚠️ A build from before 05.11.2026 keeps the page as it keeps any section type it does not know
   (`isUsableSection`): the page stays, syncs and prints its title, the section is not drawn —

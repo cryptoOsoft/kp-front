@@ -32,7 +32,8 @@ import p from './TafelPendenzen.module.css'
  * - **A change** of Was / Wer / Prio. on an item is a correction row in the Verlauf; an emptied
  *   Was keeps its words (an Auftrag without words is none).
  * - **◷** at the end of Was opens the Verlauf on the item's row.
- * - No grip: the order IS the order of issue (owner pick), nothing of it lives on the page.
+ * - No grip: the order IS the order of issue (owner pick), nothing of it lives on the page. And no
+ *   bin (TafelFormPage · BinButton): an item is a Verlauf record, never deleted — it is ticked off.
  * - A session that cannot write the Verlauf (viewer, link, closed Einsatz) reads it: cells read-only,
  *   ticks as read-outs, no empty row.
  */
