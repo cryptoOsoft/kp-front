@@ -477,7 +477,10 @@ Three rules the primitives own, so no surface re-answers them (18.09.2026):
     (2) **Count badge**: 16px tall, min-width 16, 11px/800, `--r-xs`, padding 0 4px. Fill is the
     meaning: ink (`--ink-fill` + `--on-accent-ink`) = a plain count, amber = open, red =
     missing/alarm — NEVER the station `--accent`, never blue, never a round pill (`.nav-count`
-    in 05-navrail is the reference).
+    in 05-navrail is the reference). One exception, so two counts on one phone screen never wear
+    the same disc: the phone tab bar's Rapport «noch offen» count is HOLLOW – a 1.5px amber edge,
+    `--amber-strong` figures on `--surface`, like the Rapport head's outlined «4 offen» chip – and
+    the filled amber disc is the Pendenzen count's (`.tb-rem-count`; hill climb r22, 05.11.2026).
     (3) **Disabled** = `opacity: var(--disabled)` + `cursor: default` and nothing else — no
     repainted fill, no colour swap, no `not-allowed`, no inlined number (also not as a `var()`
     fallback). **Gone** (a person who left, a Trupp raus, a layer off) = `opacity:

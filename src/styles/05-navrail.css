@@ -160,8 +160,16 @@
   box-sizing: border-box; border-radius: var(--r-xs); background: var(--ink-fill); color: var(--on-accent-ink);
   font: var(--fw-heavy) var(--fs-micro) var(--body); line-height: 12px; text-align: center; }
 /* the Rapport's «noch offen» is the chip's AMBER (13-incident · .rp-state.warn): a warning,
-   not an alarm (docs/ui-conventions.md · Buttons: amber = warning, red = danger) */
-.nav-live.nav-count.nav-open { background: var(--amber); color: var(--on-amber); }
+   not an alarm (docs/ui-conventions.md · Buttons: amber = warning, red = danger) – and HOLLOW, the
+   Rapport head's outlined «4 offen» chip: a 1.5px amber edge, --amber-strong figures on the
+   surface (hill climb r22, Opus 4: filled, the phone's tab-bar «4» was the top bar's Pendenzen «6»
+   300px away – one disc counting two things). The FILLED amber disc stays the Pendenzen count's
+   (10-journal · .tb-rem-count). 16px tall like it, the edge an inset shadow (a 1.5px border is
+   floored to 1px on a 1× screen) and the white / pill ring that cuts it off the glyph a 2px shadow
+   outside it. */
+.nav-live.nav-count.nav-open { border: 0; background: var(--surface); color: var(--amber-strong); line-height: 16px;
+  box-shadow: inset 0 0 0 1.5px var(--amber), 0 0 0 2px var(--glass); }
+.nav-item.on .nav-live.nav-count.nav-open { box-shadow: inset 0 0 0 1.5px var(--amber), 0 0 0 2px var(--here-fill); }
 /* Atemschutz cross-surface alarm dot: amber when fällig, red + pulse when überfällig */
 .nav-live.nav-alarm { background: var(--amber); }
 .nav-live.nav-alarm.crit { background: var(--red); animation: nav-alarm-pulse 1.4s infinite; }
