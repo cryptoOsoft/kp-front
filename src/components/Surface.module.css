@@ -86,6 +86,11 @@
 :where(.headTitles) > :where(h2, p) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* the quiet line at 16px: 25px of title + 2 + 16 stays inside the 44px row the tiles set */
 :where(.headTitles) > :where(p, span) { line-height: 16px; }
+/* ONE title line on every page (hill climb r22, Opus 8, 05.11.2026): the quiet line is an
+   optional SECOND ROW, so a head without it keeps that row's room empty rather than centring its
+   title – «Einsatzrapport» stood 9px lower than «Trupps» over «✓ Gespeichert», one tap apart.
+   (The Rapport restates this for `.rp-head-titles`, 13-incident.) */
+:where(.headTitles:not(:has(> :is(p, span)))) { padding-bottom: calc(var(--head-sub-gap) + 16px); }
 /* the tile cluster at the right end — levelled to --tap by 20-touch-floors; one 8px gap between
    neighbours, the app's one gap (docs/ui-conventions.md · the top bar) */
 :where(.headActions) { flex: none; display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; margin-left: auto; }
