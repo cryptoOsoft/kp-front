@@ -509,8 +509,12 @@
      reminder-count badge, so the number of due reminders vanished on exactly the device most
      likely to be carrying them. */
   .tb-act:not(.tb-act-add) span:not(.tb-rem-count) { display: none; }
-  /* icon-only bar actions need a gloved 44px hit area without inflating the glyph */
+  /* icon-only bar actions need a gloved 44px hit area without inflating the button */
   .tb-act:not(.tb-act-add) { padding: 8px; min-width: var(--tap); min-height: var(--tap); justify-content: center; }
+  /* …and their glyph 18px, not the labelled bar's 15 (hill climb r28, Sol 1): with no word beside
+     it the Verlauf history glyph (its arrow, the hands) was too small to read, and the «6» badge
+     outweighed the glyph it counts for. The 44px button is unchanged. */
+  .tb-act:not(.tb-act-add) .i { width: 18px; height: 18px; }
   /* the Atemschutz chip is the last thing in the bar, so its own trailing margin is what tips it
      over the edge on a 390px phone — and the name floor that keeps it readable on a tablet is
      wider than a phone can spare. Both give here; the countdown still never truncates. */
