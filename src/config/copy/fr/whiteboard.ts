@@ -357,5 +357,13 @@ export const whiteboardCopy: Localizable<Pick<Copy, 'incidents' | 'entities' | '
     lineBreak: 'Retour à la ligne',
     reorder: 'Déplacer (glisser, ou Alt+↑ / Alt+↓)',
     cellCap: 'Un champ contient {n} caractères – pour plus, écrire une entrée dans le journal.',
+    areaPick: 'Domaine',
+    areaNone: 'Aucun domaine',
+    fromChecklist: 'de la check-list',
+    checklistLegend: 'de la check-list – supprimer y retire la coche',
+    deleteRow: 'Supprimer la ligne',
+    rowDeleted: '«{text}» supprimé',
+    rowDeletedEmpty: 'Ligne supprimée',
+    rowDeletedTick: '«{text}» supprimé – coche retirée de la check-list',
   },
 }

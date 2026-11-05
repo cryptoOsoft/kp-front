@@ -1,7 +1,7 @@
 import { LoadingStatus } from './ShellLoader'
 import { useEffect, useMemo, useState } from 'react'
 import { Icon } from '../lib/icons'
-import type { ChecklistState, ChecklistTemplate, Item, TemplateState } from '../lib/checklists'
+import type { ChecklistState, ChecklistTemplate, Item, TemplateState, Tick } from '../lib/checklists'
 import { allEntries, warmTemplates, matchEntries, searchEntries, templateProgress } from '../lib/checklists'
 import { chapterOf, isTickable, manualGroups } from '../lib/checklists'
 import { ChecklistRunner } from './ChecklistRunner'
@@ -51,10 +51,14 @@ function writePicked(k: string, patch: Picked) {
 // renders the selection: an action checklist runs as a checkable phase list; a Stichwort
 // opens its reading view (with inline diagrams). Ticking/branch are lifted to App.
 export function ChecklistsView({
-  checklists, canTick, incidentTitle, onTick, onBranch, onAction, offersAction, scrollKey = '',
+  checklists, canTick, incidentTitle, onTick, onTrend, problemsOnTafel, onBranch, onAction, offersAction, scrollKey = '',
 }: {
   checklists: ChecklistState
   canTick: boolean
+  /** a `problems` list's Tendenz under a ticked item (lib/useChecklistActions · setTrend) */
+  onTrend?: (template: ChecklistTemplate, item: Item, trend: Tick['trend']) => void
+  /** a page showing the Einsatz's problems is on the Tafel (lib/problemLink · hasProblems) */
+  problemsOnTafel?: boolean
   /** the Einsatz title (its Stichwort) – the «Passend» group's Stichworte are matched on it */
   incidentTitle?: string
   onTick: (template: ChecklistTemplate, item: Item) => void
@@ -297,6 +301,8 @@ export function ChecklistsView({
               state={checklists[activeTemplate.id] ?? EMPTY_STATE}
               canTick={canTick}
               onToggle={(item) => onTick(activeTemplate, item)}
+              onTrend={onTrend && ((item, trend) => onTrend(activeTemplate, item, trend))}
+              problemsOnTafel={problemsOnTafel}
               onBranch={(phaseId, branchId) => onBranch(activeTemplate.id, phaseId, branchId)}
               onAction={onAction}
               offersAction={offersAction}

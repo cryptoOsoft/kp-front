@@ -1,5 +1,34 @@
 {
   "$defs": {
+    "AreaOption": {
+      "additionalProperties": false,
+      "description": "One choice of an ``area`` column: a Bereich, by the id of the problem quad's box.",
+      "properties": {
+        "id": {
+          "maxLength": 64,
+          "pattern": "^[a-z0-9][a-z0-9-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/LabelSet"
+            }
+          ],
+          "title": "Label"
+        }
+      },
+      "required": [
+        "id",
+        "label"
+      ],
+      "title": "AreaOption",
+      "type": "object"
+    },
     "LabelSet": {
       "additionalProperties": false,
       "description": "A label per language — German is required and is the fallback for the others.",
@@ -293,6 +322,18 @@
           ],
           "default": null,
           "title": "Tag"
+        },
+        "problems": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Problems"
         }
       },
       "required": [
@@ -331,7 +372,8 @@
                 "time",
                 "trend",
                 "symbol",
-                "index"
+                "index",
+                "area"
               ],
               "type": "string"
             },
@@ -341,6 +383,22 @@
           ],
           "default": null,
           "title": "Type"
+        },
+        "options": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/AreaOption"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Options"
         },
         "fixed": {
           "anyOf": [
@@ -577,6 +635,18 @@
           ],
           "default": null,
           "title": "Done"
+        },
+        "problems": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Problems"
         }
       },
       "required": [

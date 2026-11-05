@@ -8,6 +8,13 @@
       "sourceNote": "KP Front Demo — synthetische Aktionscheckliste"
     },
     {
+      "id": "musterdorf-problemerfassung",
+      "kind": "action",
+      "title": "Problemerfassung",
+      "file": "checklists/musterdorf-problemerfassung.json",
+      "sourceNote": "KP Front Demo – synthetische Problemerfassung (Haken = Problem auf der Tafel)"
+    },
+    {
       "id": "musterdorf-taktik",
       "kind": "reference",
       "title": "Taktik-Stichworte",

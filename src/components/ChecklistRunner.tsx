@@ -1,6 +1,6 @@
 import { Icon } from '../lib/icons'
-import type { ChecklistTemplate, Item, Phase, TemplateState } from '../lib/checklists'
-import { phaseItems, phaseProgress, readingPoints, templateProgress } from '../lib/checklists'
+import type { ChecklistTemplate, Item, Phase, TemplateState, Tick } from '../lib/checklists'
+import { isProblemTemplate, phaseItems, phaseProgress, readingPoints, templateProgress } from '../lib/checklists'
 import { cx } from '../lib/cx'
 import { useRef, useState } from 'react'
 import { usePageHeadFit } from '../lib/pageHeadFit'
@@ -25,19 +25,50 @@ const actionIcon: Record<NonNullable<Item['action']>, string> = {
   draw: 'pen',
 }
 
+/** the Tafel's own glyphs (TafelFormPage · ARROW) */
+const TREND_GLYPH = { up: '➚', same: '=', down: '➘' } as const
+
+/**
+ * A ticked problem's Tendenz (owner pick 7A, 05.11.2026): the Tafel's ➚ = ➘ as one Segmented under
+ * the item – none picked = a problem without a trend, the picked one again clears it. The arrows
+ * wear the Tafel's colours (worse red, better green) so the two surfaces read alike.
+ */
+function TrendRow({ item, trend, canTick, onTrend }: { item: Item; trend: Tick['trend']; canTick: boolean; onTrend: (t: Tick['trend']) => void }) {
+  const CL = appConfig.copy.checklists
+  const T = appConfig.copy.tafel
+  const word = { up: T.trendUp, same: T.trendSame, down: T.trendDown }
+  return (
+    <div className={s['cl-trend']}>
+      <span className={s['cl-trend-label']}>{CL.trendLabel}</span>
+      <Segmented<NonNullable<Tick['trend']>>
+        ariaLabel={fillTemplate(CL.trendAria, { text: item.text })}
+        value={trend}
+        onChange={(v) => onTrend(v === trend ? undefined : v)}
+        options={(['up', 'same', 'down'] as const).map((v) => ({
+          value: v, title: word[v], disabled: !canTick && trend !== v,
+          label: <span className={s['cl-trend-glyph']} data-trend={v} aria-hidden="true">{TREND_GLYPH[v]}</span>,
+        }))}
+      />
+    </div>
+  )
+}
+
 function ItemRow({
-  item, checked, tickInfo, canTick, onToggle, onAction,
+  item, checked, tickInfo, canTick, onToggle, onAction, problem, onTrend,
 }: {
   item: Item
   checked: boolean
-  tickInfo?: { t: string; by?: string }
+  tickInfo?: Tick
   canTick: boolean
   onToggle: () => void
   onAction?: (a: NonNullable<Item['action']>) => void
+  /** a `problems` list: a tick is a problem on the Tafel – `onTafel` says whether a page shows it */
+  problem?: { onTafel: boolean }
+  onTrend?: (t: Tick['trend']) => void
 }) {
   const CL = appConfig.copy.checklists
   return (
-    <div className={cx(s['cl-item'], checked && s.done)}>
+    <div className={cx(s['cl-item'], checked && (problem ? s.problem : s.done))}>
       {/* box + text + meta are ONE target, the shared tick row (F7, 20.10.2026) */}
       <TickRow checked={checked} onToggle={onToggle} disabled={!canTick} aria-label={item.text} className={s['cl-tick']}>
         <span className={s['cl-item-body']}>
@@ -49,12 +80,16 @@ function ItemRow({
             {item.milestone && <span className={s['cl-milestone']} title={CL.milestoneTitle}><Icon id="flag" />{CL.milestoneTag}</span>}
             {checked && tickInfo && (
               <span className={s['cl-tickinfo']}>
-                {tickTime(tickInfo.t)}{tickInfo.by ? ` · ${tickInfo.by}` : ''}
+                {tickTime(tickInfo.t)}{tickInfo.by && !problem ? ` · ${tickInfo.by}` : ''}
               </span>
             )}
+            {/* where the tick landed: the Problemerfassung page and its box in the Erste Führung –
+                or, while neither is on the Tafel, that it waits for them */}
+            {checked && problem && <span className={s['cl-ontafel']}>{problem.onTafel ? CL.onTafel : CL.forTafel}</span>}
           </span>
         </span>
       </TickRow>
+      {checked && problem && onTrend && <TrendRow item={item} trend={tickInfo?.trend} canTick={canTick} onTrend={onTrend} />}
       {/* the deep link is its glyph alone, a --tap square at the row's right edge (27.10.2026,
           owner pick 11A: «Zeichnen ›» took a third of a phone row and broke the text into five
           lines); the word stays its name for the reader and the tooltip */}
@@ -69,11 +104,13 @@ function ItemRow({
 }
 
 function PhaseBlock({
-  phase, state, canTick, onToggle, onBranch, onAction, offersAction,
+  phase, state, canTick, onToggle, onBranch, onAction, offersAction, problem, onTrend,
 }: {
   phase: Phase
   state: TemplateState
   canTick: boolean
+  problem?: { onTafel: boolean }
+  onTrend?: (item: Item, t: Tick['trend']) => void
   onToggle: (item: Item) => void
   onBranch: (phaseId: string, branchId: string) => void
   onAction: (item: Item, a: NonNullable<Item['action']>) => void
@@ -118,6 +155,8 @@ function PhaseBlock({
             canTick={canTick}
             onToggle={() => onToggle(it)}
             onAction={it.action && offersAction?.(it.action) === false ? undefined : (a) => onAction(it, a)}
+            problem={problem}
+            onTrend={onTrend && ((t) => onTrend(it, t))}
           />
         ))}
         {!items.length && phase.branches?.length && (
@@ -129,11 +168,15 @@ function PhaseBlock({
 }
 
 export function ChecklistRunner({
-  template, state, canTick, onToggle, onBranch, onAction, offersAction,
+  template, state, canTick, onToggle, onBranch, onAction, offersAction, onTrend, problemsOnTafel = false,
 }: {
   template: ChecklistTemplate
   state: TemplateState
   canTick: boolean
+  /** a `problems` list's Tendenz under a ticked item (lib/useChecklistActions · setTrend) */
+  onTrend?: (item: Item, t: Tick['trend']) => void
+  /** a page that shows the Einsatz's problems is on the Tafel (lib/problemLink) */
+  problemsOnTafel?: boolean
   onToggle: (item: Item) => void
   onBranch: (phaseId: string, branchId: string) => void
   onAction: (item: Item, a: NonNullable<Item['action']>) => void
@@ -187,6 +230,8 @@ export function ChecklistRunner({
           onBranch={onBranch}
           onAction={onAction}
           offersAction={offersAction}
+          problem={isProblemTemplate(template) ? { onTafel: problemsOnTafel } : undefined}
+          onTrend={isProblemTemplate(template) ? onTrend : undefined}
         />
       ))}
       <footer className={s['cl-runner-foot']}>{template.source}</footer>

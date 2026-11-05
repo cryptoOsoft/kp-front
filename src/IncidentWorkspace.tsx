@@ -132,6 +132,8 @@ import { assignedPersonIds, linkTrupps, rosterIdByName as rosterIdByNameOf, trup
 import { rosterWithGuests } from './lib/guests'
 import type { Item } from './lib/checklists'
 import { warmTemplates } from './lib/checklists'
+import { TAFEL_ID, findForms } from './lib/boardForm'
+import { hasProblems, type TickWrite } from './lib/problemLink'
 import { primeKeyboard } from './lib/keyboardPrime'
 import { createPortal, flushSync } from 'react-dom'
 import type { NoteSize } from './types'
@@ -1747,6 +1749,7 @@ export function IncidentWorkspace({
 
   // the Tafel's pages (10.10.2026): the template set, the pre-fill, the live mini Karte — not for a
   // link session (bound to one object)
+  const tafelTickWrites = useRef<(w: readonly TickWrite[]) => void>(() => {})
   const tafel = useTafelPages({
     enabled: !linkScoped,
     title: incidentMeta.title, address: incidentMeta.address,
@@ -1755,6 +1758,9 @@ export function IncidentWorkspace({
     mapEntities, drawings, layers: mapLayers, isVisible, byName: sym.byName, center: incidentView.center,
     symMul: symbolScale.map, captionMode: symbolCaptions, trupps: effTrupps,
     openKarte: () => setMode('map'),
+    // the checklist problems on the Tafel (lib/problemLink); the tick writer is set below
+    checklists, writeTicks: (w) => tafelTickWrites.current(w),
+    history: { group: () => undoHist.group('plan'), top: () => undoHist.peekUndo(), undo: () => stepHistory('undo') },
   })
 
   // --- Georeferenz: which plans are tied to the ground, and how — lib/useGeorefFits -------------
@@ -2719,7 +2725,10 @@ export function IncidentWorkspace({
   // canEditRecord, not canEditIncident (07.09.): ticking is record-keeping — the el role
   // and an editor's Führungsansicht keep it; the backend enforces the same boundary.
   const canTick = canEditRecord
-  const { toggleTick, setBranch, describeStep: describeChecklistStep } = useChecklistActions({ canTick, checklists, setChecklists: checklistSet, authorName: user?.display_name, log, emit })
+  const { toggleTick, setTrend, applyTickWrites, setBranch, describeStep: describeChecklistStep } = useChecklistActions({ canTick, checklists, setChecklists: checklistSet, authorName: user?.display_name, log, emit })
+  useEffect(() => { tafelTickWrites.current = applyTickWrites })
+  // the Checkliste says whether a ticked problem already stands on a Tafel page (lib/problemLink)
+  const problemsOnTafel = findForms(board?.[TAFEL_ID] ?? []).some((a) => hasProblems(a.form))
   // in an effect, not during render: it is read only when a step is TAKEN, long after this commit
   useEffect(() => { checklistDescribeRef.current = describeChecklistStep })
   // Deep links: an item's `action` jumps to the matching surface (best-effort, reusing
@@ -3212,6 +3221,8 @@ export function IncidentWorkspace({
           canTick={canTick}
           incidentTitle={incidentMeta.title}
           onTick={toggleTick}
+          onTrend={setTrend}
+          problemsOnTafel={problemsOnTafel}
           onBranch={setBranch}
           onAction={checklistAction}
           // «Zeichnen» arms the Karte's line tool, which a locked device disarms on arrival

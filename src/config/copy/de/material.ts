@@ -138,6 +138,11 @@ export const materialCopy = {
     milestoneTag: 'wird im Verlauf notiert',
     // un-ticking a milestone — by tap or by ↶ — APPENDS this beside the ☑ row (lib/useChecklistActions)
     milestoneUndone: 'Meilenstein zurückgenommen: {text}',
+    // a `problems` list (Problemerfassung, 05.11.2026): a tick is a problem on the Tafel
+    trendLabel: 'Tendenz',
+    trendAria: 'Tendenz von «{text}»',
+    onTafel: 'auf der Tafel',
+    forTafel: 'für die Tafel vorgemerkt',
     actionLabels: { journal: 'Verlauf', plan: 'Plan', draw: 'Zeichnen' } as Record<string, string>,
     // reference reader: hazard-colour badge labels
     hazardLabels: { red: 'Brand', orange: 'Gefahren', green: 'Verkehr', yellow: 'Technik', blue: 'Wasser' } as Record<string, string>,

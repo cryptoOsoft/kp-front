@@ -512,5 +512,15 @@ export const whiteboardCopy = {
     lineBreak: 'Zeilenumbruch',
     reorder: 'Verschieben (ziehen, oder Alt+↑ / Alt+↓)',
     cellCap: 'Ein Feld fasst {n} Zeichen – für mehr einen Eintrag im Verlauf schreiben.',
+    // the Einsatz's problems on every problem section (lib/problemLink, 05.11.2026, owner pick 7A)
+    areaPick: 'Bereich',
+    areaNone: 'Kein Bereich',
+    fromChecklist: 'aus der Checkliste',
+    checklistLegend: 'aus der Checkliste – Löschen nimmt dort den Haken weg',
+    // the bin at the end of the row one stands in (all tables, the problem boxes)
+    deleteRow: 'Zeile löschen',
+    rowDeleted: '«{text}» gelöscht',
+    rowDeletedEmpty: 'Zeile gelöscht',
+    rowDeletedTick: '«{text}» gelöscht – Haken in der Checkliste entfernt',
   },
 } as const

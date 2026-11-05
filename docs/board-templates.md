@@ -77,6 +77,38 @@ replaces the bundled one.
   (`visibilitychange`, `pagehide`) and when it unmounts. On a closed Einsatz the draft is parked
   on the device (`lib/draftKeep`) instead of written.
 - **Removing a page** asks first when something is written on it. ↶ brings it back either way.
+- **Deleting a row** (05.11.2026, owner pick 7A): a bin stands at the end of the row one is in –
+  every written table row, and every line of a problem box – in a column of its own, outside the
+  ruled cells (`TafelFormPage · BinButton`, 44 px, shown while the row holds the focus; its press
+  keeps the focus, so iOS does not take the row away under the finger). One ↶ step; a toast says
+  what went, with «Rückgängig». A pre-printed row has no bin: it belongs to the template.
+
+### The Einsatz's problems (05.11.2026)
+
+The Erste Führung's Problemerfassung box, the page «Problemerfassung» and a `problems` checklist
+(CONFIGURATION.md §9f) show ONE list of problems (`lib/problemLink`, owner pick 7A):
+
+- A section takes part with `problems: true` – a `quad` (each box is a **Bereich**: its id is the
+  Bereich's id) or a `table` (its first text column is the problem, its trend column the
+  Tendenz, its `area` column the Bereich). The bundled pages: `ef › problem` and
+  `problem-tendenz › probleme`, which got a «Bereich» column (Front / Ordnung / Sanität /
+  Spezielles – the ids of the four boxes).
+- A row typed on the page stands in the box of its Bereich, a line typed in a box stands on the
+  page with its Bereich, and a ticked checklist item stands on both. Each problem lives in ONE
+  place (its tick, its line, its row); every other surface shows it in a **view** built at draw
+  time (`problemView`), so a page added later shows everything ticked or written before it, and
+  an un-tick or a deletion takes the problem off every page at once. An edit on a view is split
+  back (`splitProblemEdit`): words, Tendenz and Bereich go to the problem's home; the page's own
+  columns for it (Reaktion, Priorität, its place in the order, a box's Stichwort) stay on the
+  page as a **satellite** – a row or line stored under the problem's view id (`ck~…`, `ln~…`,
+  `rw~…`). Everything is a form cell or a tick, so it merges per cell and per tick.
+- A problem from the checklist wears the checklist icon, and its words are the checklist's
+  (read-only, like a pre-printed cell; its Bereich is its phase's). Its Tendenz writes the tick.
+  Deleting it on the Tafel un-ticks it – «„…" gelöscht – Haken in der Checkliste entfernt ·
+  Rückgängig». A problem typed on the Tafel is never matched to, nor written into, the checklist.
+  The page's legend says it: «aus der Checkliste – Löschen nimmt dort den Haken weg».
+- Printed (the page's «Drucken», the Rapport) as drawn: the view, the Bereich as its word.
+- A page added before the link (its snapshot has no `problems`) keeps showing its own entries.
 
 ### The keyboard (like a spreadsheet)
 
@@ -253,16 +285,17 @@ required and is the fallback.
 
 | `type` | What | Keys |
 |---|---|---|
-| `quad` | Boxes with one problem per line (Problemerfassung) | `cells[]` (`id`, `label`, 1–4 of them, row-major). Switches: `trend` (➚ = ➘ per line), `tag` («Stichwort» per line). |
+| `quad` | Boxes with one problem per line (Problemerfassung) | `cells[]` (`id`, `label`, 1–4 of them, row-major). Switches: `trend` (➚ = ➘ per line), `tag` («Stichwort» per line), `problems` (the Einsatz's problems, above). |
 | `map` | The Lagekarte: the live mini Karte on screen, a snapshot on paper | – |
-| `table` | Rows × columns | `columns[]` (see below), `fixedRows[]` (`id`, `cells` = the pre-printed values of the fixed columns, `hidden`), `addRows` (default: yes unless fixed rows exist), `seed: "vehicles"` (pre-fills the first typed column with the vehicles the Einsatz knows), switch `done` (an «Erledigt» tick per row). |
+| `table` | Rows × columns | `columns[]` (see below), `fixedRows[]` (`id`, `cells` = the pre-printed values of the fixed columns, `hidden`), `addRows` (default: yes unless fixed rows exist), `seed: "vehicles"` (pre-fills the first typed column with the vehicles the Einsatz knows), switches `done` (an «Erledigt» tick per row) and `problems` (the Einsatz's problems, above). |
 | `text` | Free text fields (Konzept, Antrag …) | `fields[]` (`id`, `label`, `tone`, `type`), `layout`. |
 
 **Table columns** have `id`, `label` and these optional keys:
 
 | Key | Meaning |
 |---|---|
-| `type` | `text`, `time` (Wann), `trend`, `symbol` (a printed Signatur, see below) or `index` (a numbered disc). |
+| `type` | `text`, `time` (Wann), `trend`, `symbol` (a printed Signatur, see below), `index` (a numbered disc) or `area` (a problem's Bereich: a menu of `options`). |
+| `options` | An `area` column's choices: `[{ "id", "label" }]`, the ids of the problem quad's boxes. Required with `area`, refused without. |
 | `fixed` | The value is pre-printed by the row. |
 | `w` | Relative width. On a phone it also scales a text column's minimum: by its weight over the table's narrowest text column, between 1.25× and 2.5× the width a head needs; time, trend, Signatur and index columns keep 1×. The table scrolls sideways (28.10.2026, `boardTemplate · colMinScale`). |
 | `hidden` | When true, the column is not shown. |
@@ -299,7 +332,7 @@ that is **off** — except the trend ➚ = ➘ per problem, which the owner want
 | Page | Source | Layout |
 |---|---|---|
 | Erste Führung | FKS Plakat A3 V 1.0/10.09.2019 (DE/FR/IT) | 2 × 3 boxes, as the poster |
-| 8.1 Problemerfassung | Handbuch p. 145 | landscape table: Problem/Ereignis · Entwicklungstendenz ➚ = ➘ · Notwendige Reaktion · Priorität |
+| 8.1 Problemerfassung | Handbuch p. 145 | landscape table: Bereich (ours, 05.11.2026) · Problem/Ereignis · Entwicklungstendenz ➚ = ➘ · Notwendige Reaktion · Priorität |
 | 8.6 Mittel | Handbuch p. 153 | table: Formation · Personal/Mittel · Auftrag/Wo · Wann, 23 rows |
 | 8.8 Verbindungen | Handbuch p. 155 | table: Funktion/Standort/Name · Kanal · Rufname/Telefon-Nr. · Wann |
 | 8.9 Konzept | Handbuch p. 156 | Auftrag · Eigene Mittel · Auflagen · Variante 1/2 (+ / –) · Antrag · Begründung |

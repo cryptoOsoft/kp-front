@@ -23,8 +23,9 @@ export const BOARD_TEMPLATE_SCHEMA = 'board-template/1'
 export type Label = string | { de: string; fr?: string; it?: string; en?: string }
 
 /** text = free text · time = «Wann» (1124 → 11:24) · trend = ➚ = ➘ · symbol = a printed
- *  Signatur (lib/boardSignatures, fixed only) · index = the printed number of a fixed row */
-export type ColumnType = 'text' | 'time' | 'trend' | 'symbol' | 'index'
+ *  Signatur (lib/boardSignatures, fixed only) · index = the printed number of a fixed row ·
+ *  area = one of `options` (the Bereich of a problem: Front / Ordnung / …, lib/problemLink) */
+export type ColumnType = 'text' | 'time' | 'trend' | 'symbol' | 'index' | 'area'
 
 export interface TemplateColumn {
   id: string
@@ -35,6 +36,8 @@ export interface TemplateColumn {
   /** relative width (default 1) */
   w?: number
   hidden?: boolean
+  /** an `area` column's choices, by id – the ids of the problem quad's boxes */
+  options?: { id: string; label: Label }[]
 }
 
 /** A pre-printed row (the six Absprachepunkte, the Rapport Traktanden): its fixed cells. */
@@ -71,6 +74,9 @@ export interface QuadSection extends SectionBase {
   trend?: boolean
   /** station switch: a «Stichwort» per line — off in the FKS poster */
   tag?: boolean
+  /** the Einsatz's problems (lib/problemLink): every box is a Bereich, and its lines are shown on
+   *  every other problem section too – and the ticked problems of a `problems` checklist here */
+  problems?: boolean
 }
 export interface MapSection extends SectionBase {
   type: 'map'
@@ -85,6 +91,9 @@ export interface TableSection extends SectionBase {
   seed?: 'vehicles'
   /** station switch: an «Erledigt» tick per row — off in the FKS poster */
   done?: boolean
+  /** the Einsatz's problems (lib/problemLink): the first text column is the problem, the trend
+   *  column its Tendenz, the `area` column its Bereich – shown on every other problem section */
+  problems?: boolean
 }
 export interface TextSection extends SectionBase {
   type: 'text'
@@ -152,6 +161,7 @@ function isColumn(v: unknown): v is TemplateColumn {
   return isObj(v) && isId(v.id) && isLabel(v.label) && optStr(v.type)
     && optBool(v.fixed) && optBool(v.hidden)
     && (v.w === undefined || (typeof v.w === 'number' && v.w > 0 && v.w <= 20))
+    && (v.options === undefined || (Array.isArray(v.options) && v.options.every((o) => isObj(o) && isId(o.id) && isLabel(o.label))))
 }
 
 /**
@@ -165,7 +175,7 @@ export function isUsableSection(v: unknown): v is TemplateSection {
     case 'quad':
       return Array.isArray(v.cells) && v.cells.length >= 1 && v.cells.length <= 4
         && v.cells.every((c) => isObj(c) && isId(c.id) && isLabel(c.label)) && uniqueIds(v.cells as { id: string }[])
-        && optBool(v.trend) && optBool(v.tag)
+        && optBool(v.trend) && optBool(v.tag) && optBool(v.problems)
     case 'map':
       return true
     case 'table': {
@@ -179,7 +189,7 @@ export function isUsableSection(v: unknown): v is TemplateSection {
         if (!v.fixedRows.every((r) => isObj(r) && isId(r.id) && optBool(r.hidden) && isObj(r.cells)
           && Object.entries(r.cells).every(([k, x]) => fixedIds.has(k) && isLabel(x)))) return false
       }
-      return optBool(v.addRows) && optBool(v.done) && optStr(v.seed)
+      return optBool(v.addRows) && optBool(v.done) && optStr(v.seed) && optBool(v.problems)
     }
     case 'text':
       return Array.isArray(v.fields) && v.fields.length >= 1 && v.fields.length <= 6
@@ -229,7 +239,7 @@ export const writtenColumns = (s: TableSection): TemplateColumn[] =>
  *  text column, at least 1.25× (owner, 28.10.2026: «each column a little bit wider») and at most
  *  2.5× (about two-thirds of a phone, so no one column turns the sheet into a long scroll). */
 export function colMinScale(cols: readonly TemplateColumn[]): number[] {
-  const sized = (c: TemplateColumn) => c.type != null && c.type !== 'text'
+  const sized = (c: TemplateColumn) => c.type != null && c.type !== 'text' && c.type !== 'area'
   const textW = cols.filter((c) => !sized(c)).map((c) => c.w ?? 1)
   const ref = textW.length ? Math.min(...textW) : 1
   return cols.map((c) => (sized(c) ? 1 : Math.round(Math.min(2.5, Math.max(1.25, (c.w ?? 1) / ref)) * 100) / 100))
@@ -240,3 +250,14 @@ export const tableAddsRows = (s: TableSection): boolean => s.addRows ?? !(s.fixe
 
 /** The pages one template offers under «+ Seite», in its order. */
 export const offeredPages = (t: BoardTemplate): TemplatePage[] => t.pages.filter((p) => !p.hidden)
+
+/** The columns of a `problems` table (lib/problemLink): the problem's words (the first written
+ *  text column), its Tendenz (the first trend column) and its Bereich (the first `area` column).
+ *  null for a table that is not a problem table or has no text column. */
+export function problemColumns(s: TableSection): { text: string; trend?: string; area?: string } | null {
+  if (!s.problems) return null
+  const cols = writtenColumns(s)
+  const text = cols.find((c) => (c.type ?? 'text') === 'text')?.id
+  if (!text) return null
+  return { text, trend: cols.find((c) => c.type === 'trend')?.id, area: cols.find((c) => c.type === 'area')?.id }
+}
