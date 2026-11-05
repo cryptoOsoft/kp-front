@@ -86,6 +86,8 @@ type JournalRowProps = Pick<JournalProps,
   openMap: ReadonlyMap<string, OpenReminder>
   /** how many times this row's state was re-stated in a run (lib/verlauf · repeatRuns); 1 = once */
   repeated: number
+  /** the row above it prints the same clock: this one's stamp steps back (`.t[data-same]`) */
+  sameMinute: boolean
   /** reminder id → the item's own words, and → the row that raised it (a Meldung's anchor) */
   pendenzTitles: ReadonlyMap<string, string>
   pendenzRowIds: ReadonlyMap<string, string>
@@ -110,7 +112,7 @@ type JournalRowProps = Pick<JournalProps,
 /** One Verlauf row: time, disc, the sentence, its trail of footnotes/media/controls, and the
  *  transcript lines and inline editors under it. Rendered by Journal once per shown row. */
 export function JournalRow({
-  e, plans, live, closedAt, now, replayAtMs, openMap, repeated, pendenzTitles, pendenzRowIds, audioWindows, playing,
+  e, plans, live, closedAt, now, replayAtMs, openMap, repeated, sameMinute, pendenzTitles, pendenzRowIds, audioWindows, playing,
   editTx, editRow, marked, jumpToRow, onTogglePlay, onOpenDetail, setEditTx, setEditRow, saveTranscript, saveRowText,
   onSelect, onSeekTo, onTranscript, onEditText, onOpenPlayer, onReminderDone, onReminderAgain, mediaStatusOf,
 }: JournalRowProps) {
@@ -186,7 +188,7 @@ export function JournalRow({
       onClick={onRow}
       onKeyDown={onRow ? (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); onRow() } } : undefined}
     >
-      <span className="t">{rowTime(e)}</span>
+      <span className="t" data-same={sameMinute || undefined}>{rowTime(e)}</span>
       {/* ⚠️ The ring is the tick-off, HERE as well as in the pinned block. It was taken
           off the row on the grounds that two controls did the same thing and this one
           scrolls away — but a Pendenz is met in the log at least as often as in the

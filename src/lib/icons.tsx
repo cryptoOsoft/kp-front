@@ -141,12 +141,12 @@ export function IconSprite() {
           shape, 2 units wider so the ticks have room (hill climb r17, Opus 11: the old stacked sheets
           with ticks and dashes went muddy at 20px beside the single-stroke stopwatch / people / box) */}
       <symbol id="checklist" viewBox="0 0 24 24"><path d="M8.5 4.5h-2a1 1 0 0 0-1 1V20a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V5.5a1 1 0 0 0-1-1h-2" /><rect x="8.5" y="3" width="7" height="3.5" rx="1" /><path d="M8.8 12l2 2 4.4-4.6M8.8 17.4l2 2 4.4-4.6" /></symbol>
-      {/* The Verlauf's «Pendenzen» box head (hill climb r27, Sol 1 / Opus 2): one OPEN ring – the
-          mark every Pendenz row wears – with its two lines of text, a «to do» in the shape of the
-          rows under it. It wore #checklist, the clipboard of the rail's and the phone tab's
-          Checkliste, which said «a Checkliste» about a list that is not one; and its many strokes
-          went busy at 16px beside the bold label. */}
-      <symbol id="pendenzen" viewBox="0 0 24 24"><circle cx="7" cy="12" r="5" /><path d="M15.5 8.5h6.5M15.5 15.5h4.5" /></symbol>
+      {/* The Verlauf's «Pendenzen» box head: the OPEN ring every Pendenz row wears, alone, at a
+          size under the rows' 20px (Journal · .jr-pinned-head draws it 10px across, 2px line, in
+          their amber). It wore #checklist, the rail's Checkliste clipboard, which said «a
+          Checkliste» about a list that is not one (r27); then a ring with two text bars, which at
+          16px read as a typed «o=» (r28, Opus 2) – the ring alone is the rows' own mark. */}
+      <symbol id="pendenzen" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6" /></symbol>
       {/* An Aufgaben list in the Checkliste rail and the Nachschlagen library (23.10.2026, sweep
           F.9): two EMPTY boxes with their lines – a list still to work through. It wore #check,
           which beside «0%» read as «done»; the glyph names the kind, not a state. */}

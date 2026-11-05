@@ -369,7 +369,7 @@
 .journal-head { display: flex; align-items: center; gap: 8px; padding: 4px 4px var(--sp-2); }
 /* the drawer's title is its strongest anchor — `--fs-4`, the head-title size (hill climb r2,
    04.11.2026: at 14px «Verlauf · 322» stood below its own filled ▶ button in weight). On a
-   phone it steps down and drops its glyph (below): the head has no width to spare there.
+   phone it steps down a size and keeps its glyph (below).
    ⚠️ The count is its own piece (`.journal-count`, r6): a caption in the secondary ink at the
    floor size, on the title's baseline — at the title's 700 «Verlauf · 322» read as one word
    jammed against the first button. The group may shrink (the word ellipsises, the count never)
@@ -532,9 +532,11 @@
   .journal-head .journal-replay svg { width: 18px; height: 18px; }
   @media (hover: hover) { .journal-head .journal-replay:hover { background: var(--ink-8); color: var(--ink); } }
   .journal-head .journal-replay:focus-visible { background: var(--ink-8); }
-  /* the title a step down and without its glyph: at 19px with it the head ran past a 390px screen */
+  /* the title a step down (at 19px the head ran past a 390px screen), its glyph kept at 20px as
+     on the tablet's head, the same 8px off the word (hill climb r28, Opus 6: the sheet was the one
+     Verlauf title without it) */
   .journal-title { font-size: var(--fs-3); line-height: var(--lh-3); }
-  .journal-title .i { display: none; }
+  .journal-title .i { width: 20px; height: 20px; }
   /* …and the head's 4px gap plus this = the 8px that keeps the title group off the ⓘ (r6) */
   .journal-head .journal-title { margin-right: var(--sp-1); }
   /* …and since the funnel joined it the head is SIX items: at 360px a real Einsatz's
@@ -543,6 +545,14 @@
      ✕ is the house 36px everywhere, and a squeezed target is the one thing a head cannot lose. */
   .journal-head { gap: var(--sp-1); }
   .journal-replay, .journal-x { flex: none; }
+  /* …and the title's glyph (r28) costs 28px the head did not have at 390px: the four BARE glyph
+     buttons (ⓘ · lens · funnel · ▶) close up to touching 44px pads – their glyphs keep 26px of air
+     between them – and the head drops its right padding, the ✕ still inside the strip's edge. So
+     «Verlauf · 322» stands whole at 390px with room for a fourth digit. Narrower phones (375, 360)
+     have no such room: there the glyph gives way, never the word. */
+  .journal-head { padding-right: 0; }
+  .journal-head > :is(.ui-info, .journal-legend-btn) { margin-right: calc(-1 * var(--sp-1)); }
+  @media (max-width: 389px) { .journal-title .i { display: none; } }
   /* …and the trailing group closes up, so the sentence keeps its share on the rows that carry
      more than one control (a photo row's thumbnails, an audio row's jump and play). */
   .jr-trail { gap: var(--sp-2); }

@@ -12,7 +12,7 @@ import { openPhoto } from '../lib/ui'
 import { appConfig } from '../config/appConfig'
 import { dueClock, fillTemplate, fmtDuration, formatTime } from '../lib/format'
 import { thumbUrl } from '../lib/mediaUrl'
-import { ART_DISC, groupByDay, isHandWritten, isNachtrag, pendenzenBelow, pendenzenCut, repeatRuns, rowPhotos, rowTarget, rowText, stripDensity, stripScale, type ArtTone, type LiveTargets } from '../lib/verlauf'
+import { ART_DISC, groupByDay, isHandWritten, isNachtrag, pendenzenBelow, pendenzenCut, repeatRuns, rowPhotos, rowTarget, rowText, rowTime, STRIP_INSET, stripRuns, stripScale, type ArtTone, type LiveTargets } from '../lib/verlauf'
 import { journalDisc, withoutAreaPrefix } from '../lib/report'
 import { journalQuery, matchesJournalQuery } from '../lib/journalSearch'
 import { journalCategories, journalFacets, matchesJournalCategories, showsPinnedPendenzen, type JournalCategoryKind } from '../lib/journalFilter'
@@ -51,12 +51,6 @@ function useAudioPlayer() {
   return { playing, toggle }
 }
 
-/** Breathing room, in px, at each end of the activity strip. THE source of truth for it: the
- *  track is inset by this and the tap→time maths subtracts it, so the two cannot drift apart
- *  and leave a tap landing a few minutes off what the ticks show. */
-const STRIP_INSET = 10
-/** A strip column holding this many rows or more draws a step darker (`.jr-strip i[data-busy]`). */
-const STRIP_BUSY = 3
 
 /** Rows the log mounts at first, and how many more each scroll to the tail reveals. */
 const PAGE_ROWS = 150
@@ -345,8 +339,8 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
     return () => ro.disconnect()
   }, [])
   const scale = useMemo(() => (stripSpan ? stripScale(stripSpan.from, stripSpan.to, stripTrackPx) : null), [stripSpan, stripTrackPx])
-  // …and the rows' marks merged per 3px column, so a busy stretch reads as density, not barcode
-  const density = useMemo(() => (stripSpan ? stripDensity(stripTicks, stripSpan.from, stripSpan.to, stripTrackPx) : []), [stripTicks, stripSpan, stripTrackPx])
+  // …and the rows as the ruler's floor: stretches of activity, the busy ones darker
+  const floor = useMemo(() => (stripSpan ? stripRuns(stripTicks, stripSpan.from, stripSpan.to, stripTrackPx) : null), [stripTicks, stripSpan, stripTrackPx])
   /** Scroll the list to the row nearest a moment on the strip. */
   const jumpTo = (ms: number) => {
     let best: string | null = null
@@ -770,26 +764,28 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
               if (ev.key === 'ArrowLeft') { ev.preventDefault(); jumpTo(stripSpan.from + step * --strideRef.current) }
             }}
           >
-            {/* the ticks live on an INSET track. Positioned against the strip itself, the first
-                and last tick sat on its rounded ends — half-swallowed by the corner radius and
-                the inset hairline, so the two moments that bracket the whole Einsatz were the
-                two you could not see. */}
-            {/* …and on it, under the ticks, the scale: round times as taller marks, every one
-                labelled, and the first and last moment at the ends where they do not collide with
-                one of those clocks (stripScale – the stamp gives way, never an hour). */}
+            {/* the ticks live on an INSET track (lib/verlauf · STRIP_INSET). Positioned against the
+                strip itself, the first and last moment sat on its rounded ends – half-swallowed by
+                the corner radius – and a clock on either could not centre on its mark. */}
+            {/* …and on it, as one ruler: the rows' floor (stripRuns), the divisions and the round
+                times as taller marks above it, every round time labelled and centred, and the
+                first and last moment's clocks at the ends where they do not collide with one of
+                those (stripScale – the stamp gives way, never an hour). Where the END stamp gave
+                way, a short ink tick caps the right end: the latest moment, the «now» of the strip. */}
             <div className="jr-strip-track" style={{ insetInline: STRIP_INSET }} aria-hidden>
-              {density.map((d, i) => (
-                <i key={i} data-busy={d.n >= STRIP_BUSY || undefined} style={{ left: `${d.frac * 100}%` }} />
-              ))}
+              {floor?.runs.map((r) => <i key={r.from} className="jr-strip-run" style={{ left: `${r.from * 100}%`, width: `${(r.to - r.from) * 100}%` }} />)}
+              {floor?.busy.map((r) => <i key={r.from} className="jr-strip-run jr-strip-busy" style={{ left: `${r.from * 100}%`, width: `${(r.to - r.from) * 100}%` }} />)}
+              {scale?.minor.map((m) => <b key={m.frac} className={m.mid ? 'jr-strip-div jr-strip-mid' : 'jr-strip-div'} style={{ left: `${m.frac * 100}%` }} />)}
               {scale?.marks.map((m) => (
                 <Fragment key={m.frac}>
                   <b className="jr-strip-major" style={{ left: `${m.frac * 100}%` }} />
-                  {m.label && <span className={m.edge ? 'jr-strip-lbl jr-strip-edge' : 'jr-strip-lbl'}
-                    style={m.edge === 'start' ? { left: 0 } : m.edge === 'end' ? { right: 0 } : { left: `${m.frac * 100}%` }}>{m.label}</span>}
+                  {m.label && <span className="jr-strip-lbl" style={{ left: `${m.frac * 100}%` }}>{m.label}</span>}
                 </Fragment>
               ))}
               {scale?.start && <span className="jr-strip-lbl jr-strip-end" style={{ left: 0 }}>{scale.start}</span>}
-              {scale?.end && <span className="jr-strip-lbl jr-strip-end" style={{ right: 0 }}>{scale.end}</span>}
+              {scale?.end
+                ? <span className="jr-strip-lbl jr-strip-end" style={{ left: '100%' }}>{scale.end}</span>
+                : scale && <b className="jr-strip-now" style={{ left: '100%' }} />}
             </div>
           </div>
         )}
@@ -898,10 +894,11 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
           {shown.map((g, gi) => (
             <Fragment key={g.label ?? `today-${gi}`}>
               {g.label && <div className="jr-day-sep" role="separator">{g.label}</div>}
-              {g.events.map((e) => (
+              {g.events.map((e, i) => (
                 <JournalRow
                   key={e.id} e={e} plans={plans} live={live} closedAt={closedAt} now={now} replayAtMs={replayAtMs}
                   openMap={openMap} repeated={repeats.counts.get(e.id) ?? 1}
+                  sameMinute={i > 0 && rowTime(g.events[i - 1]) === rowTime(e)}
                   pendenzTitles={pendenzTitles} pendenzRowIds={pendenzRowIds} audioWindows={audioWindows}
                   playing={audio.playing === e.id} onTogglePlay={audio.toggle}
                   editTx={editTx} editRow={editRow} setEditTx={setEditTx} setEditRow={setEditRow}
