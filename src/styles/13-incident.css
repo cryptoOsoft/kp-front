@@ -1128,10 +1128,10 @@ button.list-row:disabled { opacity: var(--disabled); cursor: default; }
 .rp-people { columns: 2 200px; column-gap: var(--sp-6); column-rule: 1px solid var(--border); width: 100%;
   margin-top: calc(-1 * var(--sp-2)); clip-path: inset(var(--sp-2) 0 0 0); }
 /* The Anwesenheit's names-only list (owner pick A, 05.11.2026 – ReportPreflight): one line per
-   person, so 3px above and below instead of 8 – a 26px pitch that keeps a whole Einsatz (40+ names)
-   in the tablet's card; the pull-up and clip shrink to the same 3px. */
-.rp-people.rp-names { margin-top: -3px; clip-path: inset(3px 0 0 0); }
-.rp-names .rp-person { padding-block: 3px; }
+   person, so 4px above and below instead of 8 – a 28px pitch that keeps a whole Einsatz (40+ names)
+   in the tablet's card; the pull-up and clip shrink to the same 4px. */
+.rp-people.rp-names { margin-top: calc(-1 * var(--sp-1)); clip-path: inset(var(--sp-1) 0 0 0); }
+.rp-names .rp-person { padding-block: var(--sp-1); }
 .rp-person { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline;
   min-width: 0; break-inside: avoid; padding-block: var(--sp-2);
   font: var(--fw-medium) var(--fs-2)/var(--lh-2) var(--body); color: var(--ink); }
