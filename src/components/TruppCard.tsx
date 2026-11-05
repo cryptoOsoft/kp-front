@@ -45,12 +45,23 @@ function plainWords(t: Trupp, lite: boolean) {
  *  the body face hard against its number, and the groups stand a third of an em apart — «3d 9h»,
  *  about two thirds the width. Every other clock passes through as it is. The card's foot draws its
  *  day-long Einsatzzeit / «Draussen seit» through here too, so one card never shows both spellings;
- *  mm:ss and «17:00 min» are untouched. */
+ *  mm:ss passes through, «17:00 min» goes to `UnitVal`. */
 export function ClockVal({ val }: { val: string }) {
   const m = /^(\d+) d (\d+) h$/.exec(val)
-  if (!m) return <>{val}</>
+  if (!m) return <UnitVal val={val} />
   // the space rides in the unit's small face, so the text (and what a screen reader reads) is «3d 9h»
   return <>{m[1]}<span className={s.clockUnit}>d </span><span className={s.clockGroup}>{m[2]}<span className={s.clockUnit}>h</span></span></>
+}
+
+/** A number with its unit, as the board draws it (owner pick C6, 05.11.2026): the figure stays in
+ *  the value's mono so the digits line up, the trailing unit («bar», «min», «h») goes in the body
+ *  face at 500 (`.valUnit`). The space stays where it was, so the text — and what a screen reader
+ *  reads — is unchanged. A value without a trailing unit («2:00», «Verlauf») passes through.
+ *  Usage: `<b className={s.pairBar}><UnitVal val={`${bar} bar`} /></b>`. */
+export function UnitVal({ val }: { val: string }) {
+  const m = /^(.*\S) (bar|min|h)$/.exec(val)
+  if (!m) return <>{val}</>
+  return <>{m[1]} <span className={s.valUnit}>{m[2]}</span></>
 }
 
 export function TruppRow({
@@ -277,7 +288,7 @@ function TruppPair({ t, live, sev, nested = false, onPressure, onContact }: {
   const low = pressureAlarm(live.currentBar, alarmBarFor(t, atemschutzDoctrine()))
   const pressCls = cx(s.kontaktBtn, s.trowPressBtn)
   const kontaktCls = cx(s.kontaktBtn, s.trowKontakt, sev === 1 && s.kontaktWarn, sev >= 2 && s.kontaktCrit)
-  const press = <><Icon id="manometer" /><b className={cx(s.pairBar, low && s.pairBarLow)}>{live.currentBar} bar</b></>
+  const press = <><Icon id="manometer" /><b className={cx(s.pairBar, low && s.pairBarLow)}><UnitVal val={`${live.currentBar} bar`} /></b></>
   // the spoken name keeps the word the tile dropped («Druck 240 bar»)
   const pressName = `${az.actPressure} ${live.currentBar} bar`
   const kontakt = <><Icon id="radio" /><span>{az.actContact}</span></>
@@ -996,14 +1007,14 @@ export function TruppCard({
                     )}
                     {lowestShown && (
                       <div className={s.zonePanelRow}>
-                        <span>{az.lowestPressure}</span><b>{live.lowestBar} bar</b>
+                        <span>{az.lowestPressure}</span><b><UnitVal val={`${live.lowestBar} bar`} /></b>
                       </div>
                     )}
                     {timingShown && (
                       <>
                         <div className={s.zonePanelRow}><span>{az.lastContactAt}</span><b>{hm(lastContactAt!)}</b></div>
                         <div className={s.zonePanelRow}><span>{az.nextContactDue}</span><b>{hm(lastContactAt! + intervalMin * 60_000)}</b></div>
-                        <div className={s.zonePanelRow}><span>{az.contactIntervalLabel}</span><b>{fillTemplate(az.contactIntervalValue, { min: intervalMin })}</b></div>
+                        <div className={s.zonePanelRow}><span>{az.contactIntervalLabel}</span><b><UnitVal val={fillTemplate(az.contactIntervalValue, { min: intervalMin })} /></b></div>
                       </>
                     )}
                   </div>
@@ -1032,7 +1043,7 @@ export function TruppCard({
                               {/* …and the same on the board: a Kontakt shows no bar, because the
                                   one it carries is the last reported value, not a fresh reading —
                                   and a Trupp without Atemschutz shows none at all (barShown) */}
-                              <span className={s.logBar}>{barShown(r) ? `${r.bar} bar` : ''}</span>
+                              <span className={s.logBar}>{barShown(r) ? <UnitVal val={`${r.bar} bar`} /> : ''}</span>
                               <span className={s.logKind}>{readingLabel(r, idx)}</span>
                             </li>
                           )

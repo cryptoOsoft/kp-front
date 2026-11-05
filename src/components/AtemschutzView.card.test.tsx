@@ -106,7 +106,10 @@ describe('the contact times (the head of the Verlauf)', () => {
     it('never states the Schätzung twice — the panel carries its provenance, not its number', () => {
       mount()
       fireEvent.click(screen.getByRole('button', { name: new RegExp(az.verlauf) }))
-      const bars = screen.queryAllByText(/≈ \d+ bar/)
+      // the innermost elements that read «≈ N bar» whole (the unit is a span of its own – UnitVal)
+      const est = /^≈ \d+ bar$/
+      const bars = [...document.body.querySelectorAll('*')]
+        .filter((el) => est.test(el.textContent ?? '') && ![...el.children].some((ch) => est.test(ch.textContent ?? '')))
       expect(bars).toHaveLength(1)
       expect(bars[0].closest(`.${s.metaLine}`)).toBeTruthy()
       // the panel's own row is labelled and explains, in the footnote voice, never in mono
@@ -615,6 +618,18 @@ describe('a collapsed row tells the same time as the open card', () => {
     const foot = document.querySelector(`.${s.metaLine}`)!
     expect(foot.textContent).toContain('3d 10h')
     expect(foot.textContent).not.toMatch(/\d d \d+ h/)
+  })
+
+  // owner pick C6, 05.11.2026: the figure stays in the value's mono, only the unit word changes face
+  it('sets the units of the foot and the Druck tile in their own span, the figures and the text as they were', () => {
+    mount({ trupps: [aktivTrupp()] })
+    const units = (el: Element) => [...el.querySelectorAll(`.${s.valUnit}`)].map((u) => u.textContent)
+    const foot = document.querySelector(`.${s.metaLine}`)!
+    expect(units(foot)).toEqual(['min', 'bar'])
+    expect(foot.textContent).toMatch(/\d+:\d\d min.*≈ \d+ bar$/)
+    const tile = document.querySelector(`.${s.pairBar}`)!
+    expect(units(tile)).toEqual(['bar'])
+    expect(tile.textContent).toMatch(/^\d+ bar$/)
   })
 
   it('shows no time at all on the closed row of an out work squad', () => {
