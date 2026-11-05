@@ -225,6 +225,36 @@ class IncidentFull(IncidentMeta):
     map_workspace_json: dict[str, Any] | None = None
 
 
+#: The tutorials that run on a seeded «Lernen · <Modul>» Übung (src/lib/tutorials/catalogue ·
+#: `sandbox: 'uebung'`; their titles: tutorial_seed · TUTORIAL_TITLES). T1 makes its own Übung
+#: through the intake, the peace-time tutorials need none.
+LernTutorial = Literal[
+    "lageZeichnen",
+    "planGebaeude",
+    "tafel",
+    "checkliste",
+    "trupps",
+    "notfall",
+    "anwesenheit",
+    "material",
+    "verlauf",
+    "rapport",
+    "wiedergabe",
+]
+
+
+class LernUebungIn(BaseModel):
+    """`POST /api/incidents/lernen` — only the tutorial's id; the server owns title and scene."""
+
+    model_config = ConfigDict(extra="forbid")
+    tutorial: LernTutorial
+
+
+class LernUebungOut(IncidentFull):
+    #: an open Lern-Übung was reused (and renamed) instead of a new one being created
+    reused: bool
+
+
 class WorkspaceOut(BaseModel):
     workspace: dict[str, Any] | None = None
     workspace_rev: int

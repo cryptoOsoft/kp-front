@@ -50,6 +50,13 @@ INCIDENT_ACTIVE_STATUSES = ("offen", "in_arbeit")
 #: The column default, for the intake paths that stamp it.
 INCIDENT_OPEN_STATUS = "offen"
 
+#: `Incident.source` of a «Lernen · <Modul>» Übung, minted only by `POST /incidents/lernen`
+#: (api/incidents · open_lern_uebung, «Üben» 05.11.2026). Reserved for alarm intake
+#: (schemas · RESERVED_ALARM_SOURCES). ⚠️ Such an Übung is never «an Einsatz running» for a real
+#: alarm: the split-dispatch guards skip it (divera · maybe_auto_open, alarms · open_pooled_alarm),
+#: or a learner practising at home would hold the next real alarm in the pool.
+LERN_UEBUNG_SOURCE = "training"
+
 
 class User(Base):
     __tablename__ = "users"

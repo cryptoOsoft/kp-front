@@ -133,6 +133,21 @@ account response must never replace a link's 403. Account clients keep their off
 caches. The station catalogue and building-point reads are always `NetworkOnly` in Workbox;
 their offline copy already lives in IndexedDB (`lib/api/stationReference`).
 
+## «Üben»: the Lern-Übung door (since 2026-11-05)
+
+A tutorial runs on a real Einsatz, «Lernen · <Modul>», that `POST /api/incidents/lernen` creates
+for an `editor` **and an `el`** (`CurrentLernOpener`, its own dependency so widening the record
+door never widens who may create an incident; no link session, 403 in the demo). The client
+sends only the tutorial's id; the server sets everything else – `is_exercise` and
+`exercise_since_creation` on, `source='training'`, the German title, the seeded scene
+(`backend/app/tutorial_seed.py`) – and reuses the station's newest open Lern-Übung, renamed,
+before it creates another. The `el` may also `DELETE` an Übung since creation
+(`IncidentDeleter`), so the done card's «Übung löschen» works for it. The RBAC-audit S1
+property holds: an `el` still cannot create a real Einsatz, because a Lern-Übung cannot be
+marked real by it (`PATCH is_exercise: false` on a `source='training'` incident is 403 for a
+non-editor), and a real Einsatz – or one flipped to Übung later – still takes the admin door.
+An open Lern-Übung never holds a real alarm in the pool (`models · LERN_UEBUNG_SOURCE`).
+
 ## Hardening from the RBAC audit (22.10.2026)
 
 - **Hard delete without the Verwaltung** needs an Übung **created as one and never marked real**

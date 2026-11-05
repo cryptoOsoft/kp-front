@@ -23,9 +23,10 @@ from ..alarms import is_demo_deployment
 from ..auth.dependencies import (
     CurrentAtemschutzWriter,
     CurrentEditor,
+    CurrentLernOpener,
     CurrentRecordWriter,
     CurrentUser,
-    EditorOrAdmin,
+    IncidentDeleter,
     UserOrAdmin,
     _admin_session_valid,
     atemschutz_link_source,
@@ -46,17 +47,20 @@ from ..incident_service import (
     resolved_lifecycle,
     workspace_revision_conflict,
 )
-from ..models import INCIDENT_ACTIVE_STATUSES, Incident, lifecycle_open
+from ..models import INCIDENT_ACTIVE_STATUSES, LERN_UEBUNG_SOURCE, Incident, lifecycle_open
 from ..schemas import (
     IncidentCreate,
     IncidentFull,
     IncidentMeta,
     IncidentPatch,
+    LernUebungIn,
+    LernUebungOut,
     TruppsPut,
     WorkspaceOut,
     WorkspacePut,
     _scrub_drawing_props,
 )
+from ..tutorial_seed import LERN_TITLE_PREFIX, lern_title, station_lern_scene
 from ..vehicle_presence import keep_server_gps
 from ..workspace_kinds import UNVERSIONED_SLICE_VERSION, keep_newer_board_kinds, schema_version_of
 
@@ -203,6 +207,91 @@ async def create_incident(body: IncidentCreate, user: CurrentEditor, db: AsyncSe
     await notify_incident_created(db, inc)
     await db.refresh(inc)
     return inc
+
+
+@router.post("/lernen", response_model=LernUebungOut)
+async def open_lern_uebung(
+    body: LernUebungIn, user: CurrentLernOpener, db: AsyncSession = Depends(get_db)
+) -> LernUebungOut:
+    """The «Lernen · <Modul>» Übung a tutorial runs on («Üben», 05.11.2026) — for an editor AND
+    an ``el``. Reuses the station's newest OPEN Lern-Übung (renamed to this tutorial, its scene
+    and whatever the learner did in it kept: owner pick O7, «Weiter mit …» goes on in the same
+    Übung); only when there is none is one created and seeded (tutorial_seed). Always
+    ``is_exercise`` + ``exercise_since_creation`` + ``source='training'``, so it is stats-excluded,
+    deletable by its learner and never a real Einsatz (an el may not mark it real, patch_incident).
+    Per station, not per account: two learners on one station share it, like any Übung.
+
+    403 in the demo, like ``POST /incidents``: the demo is ONE living incident (the client runs
+    the tutorial on it instead)."""
+    if await is_demo_deployment(db):
+        raise HTTPException(status_code=403, detail="In der Demo können keine neuen Einsätze erstellt werden.")
+    title = lern_title(body.tutorial)
+    reuse = (
+        await db.execute(
+            select(Incident)
+            .where(
+                Incident.source == LERN_UEBUNG_SOURCE,
+                Incident.is_exercise.is_(True),
+                Incident.exercise_since_creation.is_(True),
+                Incident.is_archived.is_(False),
+                Incident.status.in_(INCIDENT_ACTIVE_STATUSES),
+                Incident.title.startswith(LERN_TITLE_PREFIX),
+            )
+            .order_by(Incident.created_at.desc())
+            .limit(1)
+        )
+    ).scalar_one_or_none()
+    if reuse is not None:
+        if reuse.title != title:
+            await audit.append_event(
+                db,
+                incident_id=reuse.id,
+                op_type="meta.change",
+                source="einsatzdaten",
+                user_id=user.id,
+                payload={"fields": {"title": {"from": reuse.title, "to": title}}},
+            )
+            reuse.title = title
+            await db.flush()
+            await db.refresh(reuse)
+        return LernUebungOut.model_validate({**IncidentFull.model_validate(reuse).model_dump(), "reused": True})
+
+    scene = await station_lern_scene(db, datetime.now(UTC))
+    inc = Incident(
+        title=title,
+        type="Brand",
+        text="Zimmerbrand im 1. OG, Rauch sichtbar. Lern-Übung – nichts davon ist echt.",
+        lat=scene.lat,
+        lng=scene.lng,
+        source=LERN_UEBUNG_SOURCE,
+        status="offen",
+        is_exercise=True,
+        exercise_since_creation=True,
+        created_by=user.id,
+        # the scene's own alarm time: its Verlauf and Trupp clocks run from it, and the learner
+        # asked for this Übung — a human start, not the row's insert time
+        started_at=scene.started_at,
+        started_at_source="manual",
+        map_workspace_json=scene.workspace,
+        workspace_rev=1,
+    )
+    db.add(inc)
+    await db.flush()
+    await audit.append_event(
+        db,
+        incident_id=inc.id,
+        op_type="incident.create",
+        source="status",
+        user_id=user.id,
+        payload={"title": inc.title, "source": inc.source},
+    )
+    # No `notify_incident_created`: the station's webhooks announce Einsätze, and a tutorial is
+    # nobody's news.
+    from .journal import append_rows
+
+    await append_rows(db, inc.id, scene.journal)
+    await db.refresh(inc)
+    return LernUebungOut.model_validate({**IncidentFull.model_validate(inc).model_dump(), "reused": False})
 
 
 @router.get("/{incident_id}", response_model=IncidentFull)
@@ -549,6 +638,10 @@ async def patch_incident(
     # session no more than it tells a viewer.
     if user.role != "editor" and not set(data) <= EL_META_FIELDS:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Bearbeiter-Berechtigung erforderlich")
+    # …and a Lern-Übung stays an Übung for it. The el may create those (open_lern_uebung) and may
+    # not create a real Einsatz; marking one real would be exactly that door (RBAC audit S1).
+    if user.role != "editor" and data.get("is_exercise") is False and inc.source == LERN_UEBUNG_SOURCE:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Eine Lern-Übung bleibt eine Übung")
     # The coordinate PAIR as it would stand after this patch — the schema checked each value, only
     # the row knows the one the body left out. Half a position is no position: the same rule as
     # create, and clearing both (the panel's ✕) stays a valid patch. Only when the body touches
@@ -709,15 +802,15 @@ async def patch_incident(
 
 
 # The one accepted maintenance exception is whole-incident hard deletion through `/admin`:
-# `DELETE /api/incidents/{id}` is deployment-admin-only, and a real Einsatz must already be
-# archived (an Übung may be deleted in any state). It deliberately removes the full record and
-# its audit chain, so do not widen this to editors, individual production rows, or a mutable
-# history shortcut. Revisit external deletion evidence/retention policy before offering managed
+# `DELETE /api/incidents/{id}` of a REAL Einsatz is deployment-admin-only, and it must already be
+# archived (an Übung since creation may be deleted in any state, by an editor or an el — see the
+# docstring). It deliberately removes the full record and its audit chain, so do not widen the
+# real-Einsatz door to editors, individual production rows, or a mutable history shortcut. Revisit external deletion evidence/retention policy before offering managed
 # hosting; the current trust boundary is one station operating its own deployment.
 @router.delete("/{incident_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_incident(
     incident_id: uuid.UUID,
-    _actor: EditorOrAdmin,
+    _actor: IncidentDeleter,
     db: AsyncSession = Depends(get_db),
     admin_session: str | None = Cookie(default=None),
 ) -> None:
@@ -726,7 +819,8 @@ async def delete_incident(
 
     TWO doors, because they answer different questions:
 
-    · **Übungen** — any editor, any time. An exercise is not an operational record; it exists to
+    · **Übungen** — any editor, any time; since 05.11.2026 an ``el`` too (it opens the Lern-Übung
+      a tutorial runs on, and the done card's «Übung löschen» is its own; ``IncidentDeleter``). An exercise is not an operational record; it exists to
       be thrown away, and needing an admin for it would make the tidy-up cost more than the
       exercise. That is the whole point of the flag, and a Wehr that cannot clear its own
       practice runs stops marking them as practice runs. A viewer still cannot (403).
@@ -734,7 +828,7 @@ async def delete_incident(
       (``exercise_since_creation``) — a real Einsatz someone marked Übung later is a real
       Einsatz for this door.
 
-    ⚠️ The door is ``EditorOrAdmin``, not ``CurrentEditor``: the Verwaltung's own incident list
+    ⚠️ The door admits the admin cookie alone (``IncidentDeleter``, not ``CurrentEditor``): the Verwaltung's own incident list
       offers this button, and /admin is reached with an ADMIN cookie that need not be
       accompanied by an editor login. Requiring both made that control fail for exactly the
       person the Verwaltung exists for.

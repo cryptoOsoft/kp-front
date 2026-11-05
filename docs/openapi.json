@@ -1645,6 +1645,66 @@
         }
       }
     },
+    "/api/incidents/lernen": {
+      "post": {
+        "tags": [
+          "incidents"
+        ],
+        "summary": "Open Lern Uebung",
+        "description": "The «Lernen · <Modul>» Übung a tutorial runs on («Üben», 05.11.2026) — for an editor AND\nan ``el``. Reuses the station's newest OPEN Lern-Übung (renamed to this tutorial, its scene\nand whatever the learner did in it kept: owner pick O7, «Weiter mit …» goes on in the same\nÜbung); only when there is none is one created and seeded (tutorial_seed). Always\n``is_exercise`` + ``exercise_since_creation`` + ``source='training'``, so it is stats-excluded,\ndeletable by its learner and never a real Einsatz (an el may not mark it real, patch_incident).\nPer station, not per account: two learners on one station share it, like any Übung.\n\n403 in the demo, like ``POST /incidents``: the demo is ONE living incident (the client runs\nthe tutorial on it instead).",
+        "operationId": "open_lern_uebung_api_incidents_lernen_post",
+        "parameters": [
+          {
+            "name": "access_token",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Access Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LernUebungIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LernUebungOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/incidents/{incident_id}": {
       "get": {
         "tags": [
@@ -1775,7 +1835,7 @@
           "incidents"
         ],
         "summary": "Delete Incident",
-        "description": "Hard delete. Child rows (journal, audit chain, people, media, snapshots) go via FK CASCADE;\ntheir storage blobs are removed best-effort after the database commit.\n\nTWO doors, because they answer different questions:\n\n· **Übungen** — any editor, any time. An exercise is not an operational record; it exists to\n  be thrown away, and needing an admin for it would make the tidy-up cost more than the\n  exercise. That is the whole point of the flag, and a Wehr that cannot clear its own\n  practice runs stops marking them as practice runs. A viewer still cannot (403).\n  «Übung» here means CREATED as one and never marked real since\n  (``exercise_since_creation``) — a real Einsatz someone marked Übung later is a real\n  Einsatz for this door.\n\n⚠️ The door is ``EditorOrAdmin``, not ``CurrentEditor``: the Verwaltung's own incident list\n  offers this button, and /admin is reached with an ADMIN cookie that need not be\n  accompanied by an editor login. Requiring both made that control fail for exactly the\n  person the Verwaltung exists for.\n\n· **Real Einsätze** — an ADMIN session, and only once the Einsatz is ARCHIVED. Deleting one\n  destroys an Einsatzakte: the Verlauf, the hash-chained audit trail, the Anwesenheit, every\n  photo and voice memo. That is a legal record, so it takes the same key as the Verwaltung\n  and it cannot happen to something still running — the archive step is the operator saying\n  the Einsatz is over, and it is the only moment at which «löschen» is a decision rather than\n  an accident. (Was a flat 403 before, which left a real Einsatz — a mistaken duplicate, a\n  test alarm taken in earnest — undeletable by anybody.)\n\n⚠️ The deletion is logged at WARNING before it happens, because the audit chain that would\notherwise record it is one of the things being deleted.",
+        "description": "Hard delete. Child rows (journal, audit chain, people, media, snapshots) go via FK CASCADE;\ntheir storage blobs are removed best-effort after the database commit.\n\nTWO doors, because they answer different questions:\n\n· **Übungen** — any editor, any time; since 05.11.2026 an ``el`` too (it opens the Lern-Übung\n  a tutorial runs on, and the done card's «Übung löschen» is its own; ``IncidentDeleter``). An exercise is not an operational record; it exists to\n  be thrown away, and needing an admin for it would make the tidy-up cost more than the\n  exercise. That is the whole point of the flag, and a Wehr that cannot clear its own\n  practice runs stops marking them as practice runs. A viewer still cannot (403).\n  «Übung» here means CREATED as one and never marked real since\n  (``exercise_since_creation``) — a real Einsatz someone marked Übung later is a real\n  Einsatz for this door.\n\n⚠️ The door admits the admin cookie alone (``IncidentDeleter``, not ``CurrentEditor``): the Verwaltung's own incident list\n  offers this button, and /admin is reached with an ADMIN cookie that need not be\n  accompanied by an editor login. Requiring both made that control fail for exactly the\n  person the Verwaltung exists for.\n\n· **Real Einsätze** — an ADMIN session, and only once the Einsatz is ARCHIVED. Deleting one\n  destroys an Einsatzakte: the Verlauf, the hash-chained audit trail, the Anwesenheit, every\n  photo and voice memo. That is a legal record, so it takes the same key as the Verwaltung\n  and it cannot happen to something still running — the archive step is the operator saying\n  the Einsatz is over, and it is the only moment at which «löschen» is a decision rather than\n  an accident. (Was a flat 403 before, which left a real Einsatz — a mistaken duplicate, a\n  test alarm taken in earnest — undeletable by anybody.)\n\n⚠️ The deletion is logged at WARNING before it happens, because the audit chain that would\notherwise record it is one of the things being deleted.",
         "operationId": "delete_incident_api_incidents__incident_id__delete",
         "parameters": [
           {
@@ -19322,6 +19382,300 @@
           "latest_seq"
         ],
         "title": "JournalPage"
+      },
+      "LernUebungIn": {
+        "properties": {
+          "tutorial": {
+            "type": "string",
+            "enum": [
+              "lageZeichnen",
+              "planGebaeude",
+              "tafel",
+              "checkliste",
+              "trupps",
+              "notfall",
+              "anwesenheit",
+              "material",
+              "verlauf",
+              "rapport",
+              "wiedergabe"
+            ],
+            "title": "Tutorial"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "tutorial"
+        ],
+        "title": "LernUebungIn",
+        "description": "`POST /api/incidents/lernen` — only the tutorial's id; the server owns title and scene."
+      },
+      "LernUebungOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "divera_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Divera Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Type"
+          },
+          "priority": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Priority"
+          },
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "lat": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lat"
+          },
+          "lng": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lng"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "source_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Ref"
+          },
+          "auto_opened": {
+            "type": "boolean",
+            "title": "Auto Opened",
+            "default": false
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "closed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Closed At"
+          },
+          "last_closed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Closed At"
+          },
+          "is_archived": {
+            "type": "boolean",
+            "title": "Is Archived"
+          },
+          "is_exercise": {
+            "type": "boolean",
+            "title": "Is Exercise",
+            "default": false
+          },
+          "exercise_since_creation": {
+            "type": "boolean",
+            "title": "Exercise Since Creation",
+            "default": false
+          },
+          "report_done_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report Done At"
+          },
+          "editor_opened_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Editor Opened At"
+          },
+          "capture_writes": {
+            "type": "integer",
+            "title": "Capture Writes",
+            "default": 0
+          },
+          "capture_last_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capture Last At"
+          },
+          "workspace_rev": {
+            "type": "integer",
+            "title": "Workspace Rev"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "details_json": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details Json"
+          },
+          "map_workspace_json": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Map Workspace Json"
+          },
+          "reused": {
+            "type": "boolean",
+            "title": "Reused"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "status",
+          "source",
+          "started_at",
+          "is_archived",
+          "workspace_rev",
+          "created_at",
+          "updated_at",
+          "reused"
+        ],
+        "title": "LernUebungOut"
       },
       "LinkTokenIn": {
         "properties": {
