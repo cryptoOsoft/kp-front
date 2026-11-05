@@ -66,6 +66,26 @@ describe('«Zeigen» on a surface', () => {
     expect(onTap).not.toHaveBeenCalled()
   })
 
+  it('hands the first finger over at the second, so a pointer-counting surface can pinch', () => {
+    const { el, canvas } = surface()
+    const downs: { id: number; x: number }[] = []
+    const moves: number[] = []
+    canvas.addEventListener('pointerdown', (e) => downs.push({ id: (e as PointerEvent).pointerId, x: (e as PointerEvent).clientX }))
+    canvas.addEventListener('pointermove', (e) => moves.push((e as PointerEvent).pointerId))
+    const onTap = vi.fn()
+    renderHook(() => useZeigen(el, true, onTap, { handOver: true }))
+    canvas.dispatchEvent(pointer('pointerdown', 1, 100))
+    canvas.dispatchEvent(pointer('pointermove', 1, 104)) // within the slop: still a tap so far
+    expect(downs).toEqual([])
+    canvas.dispatchEvent(pointer('pointerdown', 2, 200))
+    // the first finger arrives where it is now, then the second
+    expect(downs).toEqual([{ id: 1, x: 104 }, { id: 2, x: 200 }])
+    canvas.dispatchEvent(pointer('pointermove', 1, 90))
+    canvas.dispatchEvent(pointer('pointermove', 2, 220))
+    expect(moves).toEqual([1, 2])
+    expect(onTap).not.toHaveBeenCalled()
+  })
+
   it('off, it is not there at all', () => {
     const { el, canvas, heard } = surface()
     const onTap = vi.fn()

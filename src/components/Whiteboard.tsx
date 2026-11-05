@@ -1459,7 +1459,7 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
     if (!n) return
     const ny = clamp01(n[1]), floor = stack ? floorAt(ny) : 0
     presentation?.onPoint({ x: clamp01(n[0]), y: stack ? clamp01(localY(ny, floor)) : ny, floor })
-  })
+  }, { handOver: true })
   useUserMoved(canvasEl, !!presentation?.onUserMove, () => presentation?.onUserMove?.())
 
   // a Verlauf row asked to revisit a plan point. Apply once per request (tracked
@@ -2184,7 +2184,7 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
             style={{ width: sW || undefined, height: sH || undefined, transform: `translate(-50%, -50%) translate(${pos.x + (side.l - side.r) / 2}px, ${pos.y + vShift}px)`, pointerEvents: previewing ? 'none' : undefined }}
           >
             {/* the Präsentationsmodus' fading rings, in plan space (z above every anno) */}
-            {presentation && <BoardRings rings={presentation.rings} presenter={presentation.presenter} mapY={mapY} />}
+            {presentation && <BoardRings rings={presentation.rings} presenter={presentation.presenter} mapY={mapY} size={{ w: sW, h: sH }} />}
             {stack && building ? (
               <>
               {/* what is folded away, as a strip where the storey belongs – «+2 · 2. OG

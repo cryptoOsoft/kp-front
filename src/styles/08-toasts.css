@@ -898,6 +898,9 @@ textarea.note-pill-input { resize: none; overflow: hidden; display: block; line-
   box-shadow: 0 0 0 2px var(--surface); }
 .present-ring-name { position: absolute; left: 28px; top: -13px; padding: 2px var(--sp-2); border-radius: var(--r-pill); background: var(--tone);
   color: var(--on-accent-ink); font-size: var(--fs-1); font-weight: var(--fw-bold); white-space: nowrap; box-shadow: var(--e1); }
+/* a ring close to another wears its tag on the left (and/or a row up or down – the inline
+   translateY): lib/presentation · placeTags keeps the tags off each other */
+.present-ring-name[data-side='left'] { left: auto; right: 28px; }
 @keyframes present-ring-life {
   0% { opacity: 0; transform: scale(.6); }
   8% { opacity: 1; transform: scale(1); }

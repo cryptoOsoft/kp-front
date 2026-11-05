@@ -29,8 +29,11 @@ Rules that span modules live here; each module's header says what it owns.
   the chip «Wieder folgen»; one tap jumps back to the presenter's current view.
 - **Zeigen**: a switch in the pill for everyone joined. On, a one-finger tap (or a click) leaves a
   named ring that fades after four seconds (`RING_MS`), and nothing under it is selected, placed
-  or drawn; two fingers still pan and zoom the Karte (on the Plan, two fingers pan; pinch needs
-  «Zeigen» off). Everyone joined sees everyone's rings; a view-link holder's name carries «· Link».
+  or drawn; two fingers still pan and zoom, on the Karte and the Plan alike (the Plan counts
+  pointers, so the first finger is handed over at the second – `useZeigen · handOver`). Everyone
+  joined sees everyone's rings; a view-link holder's name carries «· Link». Tags of rings close
+  together are kept off each other and off the other rings (`lib/presentation · placeTags`: the
+  newer ring's tag moves left, then a row down or up; the older keeps its place).
 - **A link holder's name**: asked once per device when they first tap «Folgen» (empty = «Gast»),
   kept in `localStorage` (`kp-front-present-name`, a device flag). On the public demo the server
   replaces every link holder's name by «Gast».
@@ -98,7 +101,7 @@ needs no new infrastructure on the proxy, the service worker or the tests.
 | --- | --- | --- | --- | --- |
 | editor | ✓ | ✓ | ✓ | the presenter's own client only |
 | `el`, viewer account | – | ✓ | ✓ | – |
-| view link (`vk`), alarm link | – | ✓ | ✓ | – (refused for any link session) |
+| view link (`vk`), alarm, terminal and Atemschutz links | – | ✓ | ✓ | – (refused for any link session) |
 
 The view link's allowance is deliberate and narrow – see [`roles-and-access.md`](roles-and-access.md).
 `backend/tests/test_presentation.py` proves that a view link may follow and point and still writes

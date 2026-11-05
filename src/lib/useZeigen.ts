@@ -5,9 +5,13 @@
 // How: window-level CAPTURE listeners, the first thing to see any event. They stop the first
 // pointer's events (pointer*, mouse*, touch* with one finger, click) for a target inside
 // `el`; React's root listener and MapLibre's own never hear them. A second finger is let
-// through: from its touchstart on, the event lists both touches, which MapLibre's two-finger
-// handlers start from, and the Whiteboard's gestures follow the second pointer (a two-finger
-// drag pans; a pinch there needs «Zeigen» off – the hint says so).
+// through, so two fingers pan and pinch on both surfaces alike:
+//   · the Karte: from its touchstart on, the event lists both touches, which MapLibre's
+//     two-finger handlers start from;
+//   · the Plan (`handOver`): its gestures count POINTERS, and the first one was never seen – so
+//     at the second finger the first is handed over, a replayed `pointerdown` where it stands
+//     now, and its later events pass. Without it the board panned under the second finger alone
+//     and a pinch did nothing.
 //
 // `useUserMoved` is the follower's other half: a pan, pinch or wheel on `el` by hand is what
 // detaches a follower («Wieder folgen»); a programmatic move (the follow itself) is no event.
@@ -19,31 +23,59 @@ const TAP_SLOP = 10
 /** …and lasts at most this long (ms). */
 const TAP_MS = 700
 
-export function useZeigen(el: HTMLElement | null | undefined, enabled: boolean, onTap: (clientX: number, clientY: number) => void) {
+export function useZeigen(
+  el: HTMLElement | null | undefined,
+  enabled: boolean,
+  onTap: (clientX: number, clientY: number) => void,
+  { handOver = false }: { handOver?: boolean } = {},
+) {
   const tapRef = useRef(onTap)
   useEffect(() => { tapRef.current = onTap }, [onTap])
   useEffect(() => {
     if (!el || !enabled) return
     const inside = (e: Event) => e.target instanceof Node && el.contains(e.target)
     /** the one pointer this mode owns, while it is down */
-    let owned: { id: number; x: number; y: number; t: number; moved: boolean } | null = null
+    let owned: {
+      id: number; x: number; y: number; t: number; moved: boolean
+      /** handed over to the surface (`handOver`): its events pass from now on */
+      handed: boolean; target: EventTarget | null; type: string; lx: number; ly: number
+    } | null = null
+    /** our own replayed event is passing through */
+    let replaying = false
     /** a two-finger gesture is running: everything passes until the last finger is up */
     let multi = false
     const block = (e: Event) => { e.stopPropagation(); if (e.cancelable && e.type !== 'touchstart') e.preventDefault() }
 
+    const handOverFirst = (o: NonNullable<typeof owned>) => {
+      o.handed = true
+      if (!o.target) return
+      const init = { bubbles: true, cancelable: true, composed: true, clientX: o.lx, clientY: o.ly, button: 0, buttons: 1 }
+      const down = typeof PointerEvent === 'function'
+        ? new PointerEvent('pointerdown', { ...init, pointerId: o.id, pointerType: o.type, isPrimary: true })
+        : Object.assign(new MouseEvent('pointerdown', init), { pointerId: o.id, pointerType: o.type })
+      replaying = true
+      try { o.target.dispatchEvent(down) } finally { replaying = false }
+    }
     const onPointerDown = (e: PointerEvent) => {
-      if (!inside(e)) return
-      if (owned && owned.id !== e.pointerId) { owned.moved = true; return } // a second finger: let it through
-      owned = { id: e.pointerId, x: e.clientX, y: e.clientY, t: performance.now(), moved: false }
+      if (replaying || !inside(e)) return
+      if (owned && owned.id !== e.pointerId) { // a second finger: let it through
+        owned.moved = true
+        if (handOver && !owned.handed) handOverFirst(owned)
+        return
+      }
+      owned = { id: e.pointerId, x: e.clientX, y: e.clientY, t: performance.now(), moved: false, handed: false, target: e.target, type: e.pointerType, lx: e.clientX, ly: e.clientY }
       block(e)
     }
     const onPointerMove = (e: PointerEvent) => {
-      if (!owned || owned.id !== e.pointerId) return
+      if (!owned || owned.id !== e.pointerId || owned.handed) return
+      owned.lx = e.clientX
+      owned.ly = e.clientY
       if (Math.hypot(e.clientX - owned.x, e.clientY - owned.y) > TAP_SLOP) owned.moved = true
       block(e)
     }
     const onPointerUp = (e: PointerEvent) => {
       if (!owned || owned.id !== e.pointerId) return
+      if (owned.handed) { owned = null; return }
       const tap = !owned.moved && e.type === 'pointerup' && performance.now() - owned.t <= TAP_MS
       owned = null
       block(e)

@@ -14,7 +14,7 @@ import { createPortal } from 'react-dom'
 import type { MapRef } from 'react-map-gl/maplibre'
 import { appConfig } from '../config/appConfig'
 import { Icon } from '../lib/icons'
-import { initials, personTone, type Ring } from '../lib/presentation'
+import { initials, personTone, placeTags, type Ring, type TagPlace } from '../lib/presentation'
 import { PresentationContext, storedPresentName, type Presentation } from '../workspace/usePresentation'
 import { Chip } from './Chip'
 
@@ -107,13 +107,22 @@ export function PresentationPill({ p }: { p: Presentation }) {
   )
 }
 
-function RingMark({ r, presenter, style }: { r: Ring; presenter: string | null; style: CSSProperties }) {
+function RingMark({ r, presenter, style, tag }: { r: Ring; presenter: string | null; style: CSSProperties; tag?: TagPlace }) {
   return (
     <span className="present-ring" data-tone={personTone(r.client, presenter)} style={style}>
       <span className="present-ring-dot" />
-      <span className="present-ring-name">{ringLabel(r)}</span>
+      <span className="present-ring-name" data-side={tag?.side} style={tag?.dy ? { transform: `translateY(${tag.dy}px)` } : undefined}>{ringLabel(r)}</span>
     </span>
   )
+}
+
+/** The rings' tags, kept off each other (lib/presentation · placeTags), from screen positions. */
+function tagsFor(rings: Ring[], at: (r: Ring) => { x: number; y: number } | null): Record<string, TagPlace> {
+  const placed = rings.flatMap((r) => {
+    const pt = at(r)
+    return pt ? [{ key: r.key, ...pt, label: ringLabel(r) }] : []
+  })
+  return placeTags(placed)
 }
 
 /** The rings on the Karte, drawn inside MapLibre's own container so they sit on the map. The
@@ -137,12 +146,13 @@ export function MapRings({ mapRef, rings, presenter }: { mapRef: React.RefObject
     map.on('resize', project)
     return () => { cancelAnimationFrame(raf); map.off('move', project); map.off('resize', project) }
   }, [mapRef, rings])
+  const tags = tagsFor(rings, (r) => drawn?.at[r.key] ?? null)
   if (!drawn || !rings.length) return null
   return createPortal(
     <div className="present-rings" aria-hidden>
       {rings.map((r) => {
         const pt = drawn.at[r.key]
-        return pt ? <RingMark key={r.key} r={r} presenter={presenter} style={{ left: pt.x, top: pt.y }} /> : null
+        return pt ? <RingMark key={r.key} r={r} presenter={presenter} tag={tags[r.key]} style={{ left: pt.x, top: pt.y }} /> : null
       })}
     </div>,
     drawn.host,
@@ -150,12 +160,20 @@ export function MapRings({ mapRef, rings, presenter }: { mapRef: React.RefObject
 }
 
 /** The rings on a plan: children of the board, placed in plan space (`mapY` stacks storeys). */
-export function BoardRings({ rings, presenter, mapY }: { rings: Ring[]; presenter: string | null; mapY: (floor: number | undefined, y: number) => number }) {
+export function BoardRings({ rings, presenter, mapY, size }: {
+  rings: Ring[]
+  presenter: string | null
+  mapY: (floor: number | undefined, y: number) => number
+  /** the board's drawn size (px), so the tags can be kept apart on screen */
+  size: { w: number; h: number }
+}) {
+  const at = (r: Ring) => (r.at.x == null || r.at.y == null ? null : { x: r.at.x * size.w, y: mapY(r.at.floor ?? 0, r.at.y) * size.h })
+  const tags = tagsFor(rings, at)
   if (!rings.length) return null
   return (
     <div className="present-rings" aria-hidden>
       {rings.map((r) => r.at.x == null || r.at.y == null ? null : (
-        <RingMark key={r.key} r={r} presenter={presenter}
+        <RingMark key={r.key} r={r} presenter={presenter} tag={tags[r.key]}
           style={{ left: `${r.at.x * 100}%`, top: `${mapY(r.at.floor ?? 0, r.at.y) * 100}%` }} />
       ))}
     </div>

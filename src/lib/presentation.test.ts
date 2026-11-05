@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { addRing, initials, liveRings, nextFollow, NOT_PRESENTING, personTone, RING_MS, ringsOn, throttle, type Follow, type PointerAt, type Ring } from './presentation'
+import { addRing, initials, liveRings, nextFollow, NOT_PRESENTING, personTone, placeTags, RING_MS, ringsOn, tagBox, throttle, type Follow, type PointerAt, type Ring } from './presentation'
 
 const run = (events: Parameters<typeof nextFollow>[1][], from: Follow = NOT_PRESENTING) => events.reduce(nextFollow, from)
 const server = (id: string | null, mine = false) => ({ type: 'server' as const, id, mine })
@@ -68,6 +68,35 @@ describe('pointer rings', () => {
     expect(ringsOn(rings, { surface: 'plan', planId: 'plan-1' }).map((r) => r.key)).toEqual(['p'])
     expect(ringsOn(rings, { surface: 'plan', planId: 'tafel', page: 'skizze' }).map((r) => r.key)).toEqual(['t'])
     expect(ringsOn(rings, { surface: 'plan', planId: 'tafel', page: 'fm-1' })).toEqual([])
+  })
+})
+
+describe('name tags of rings close together', () => {
+  const overlap = (a: ReturnType<typeof tagBox>, b: ReturnType<typeof tagBox>) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1
+
+  it('far apart, every tag stands on the right', () => {
+    const tags = placeTags([{ key: 'a', x: 100, y: 100, label: 'Bastian' }, { key: 'b', x: 600, y: 400, label: 'Sandra Meier · Link' }])
+    expect(tags).toEqual({ a: { side: 'right', dy: 0 }, b: { side: 'right', dy: 0 } })
+  })
+
+  it('the newer of two neighbours moves, and no tag covers another or a ring (the 05.11. shots)', () => {
+    // «Führungsunterstützung» at the presenter's tap, «Sandra Meier · Link» a finger to the left and below
+    const rings = [
+      { key: 'fu', x: 640, y: 300, label: 'Führungsunterstützung' },
+      { key: 'sm', x: 595, y: 318, label: 'Sandra Meier · Link' },
+      { key: 'x', x: 610, y: 290, label: 'Gast · Link' },
+    ]
+    const tags = placeTags(rings)
+    expect(tags.fu).toEqual({ side: 'right', dy: 0 }) // the oldest keeps its place
+    const boxes = rings.map((r) => tagBox(r, tags[r.key]))
+    for (let i = 0; i < boxes.length; i++) {
+      for (let j = i + 1; j < boxes.length; j++) expect(overlap(boxes[i], boxes[j])).toBe(false)
+      for (let j = 0; j < rings.length; j++) {
+        if (j === i) continue
+        const c = { x0: rings[j].x - 22, y0: rings[j].y - 22, x1: rings[j].x + 22, y1: rings[j].y + 22 }
+        expect(overlap(boxes[i], c)).toBe(false)
+      }
+    }
   })
 })
 

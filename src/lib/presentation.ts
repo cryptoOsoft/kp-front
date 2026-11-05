@@ -94,6 +94,54 @@ export function ringsOn(rings: readonly Ring[], where: { surface: 'map' } | { su
     || (r.at.plan_id === where.planId && (r.at.page == null || where.page == null || r.at.page === where.page))))
 }
 
+/** Where a ring's name tag stands: beside it on the right (the default) or left, lifted by `dy` px. */
+export interface TagPlace { side: 'right' | 'left'; dy: number }
+
+/** The geometry of a ring and its tag (components/Presentation, 08-toasts.css · .present-ring*):
+ *  the circle's radius, the gap from the centre to the tag, the tag's height and an estimate of
+ *  its width per character of 12.5px bold – generous, so an estimate never lets two tags touch. */
+const RING_R = 22
+const TAG_OFFSET = 28
+const TAG_H = 24
+const TAG_CHAR = 7.4
+const TAG_PAD = 18
+/** right, left, then a row down / up on either side, then further out */
+const CANDIDATES: TagPlace[] = [0, 1, -1, 2, -2, 3, -3].flatMap((n) => [
+  { side: 'right' as const, dy: n * (TAG_H + 2) }, { side: 'left' as const, dy: n * (TAG_H + 2) },
+])
+
+interface Box { x0: number; y0: number; x1: number; y1: number }
+const hits = (a: Box, b: Box) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1
+
+/** The box a tag takes at `place` for a ring at (x, y) – exported for the test. */
+export function tagBox(r: { x: number; y: number; label: string }, place: TagPlace): Box {
+  const w = r.label.length * TAG_CHAR + TAG_PAD
+  const y0 = r.y - TAG_H / 2 + place.dy
+  return place.side === 'right'
+    ? { x0: r.x + TAG_OFFSET, y0, x1: r.x + TAG_OFFSET + w, y1: y0 + TAG_H }
+    : { x0: r.x - TAG_OFFSET - w, y0, x1: r.x - TAG_OFFSET, y1: y0 + TAG_H }
+}
+
+/**
+ * Name tags that do not cover each other, nor another ring: two people pointing at the same
+ * window put their rings a finger apart, and the second tag sat on the first («Sandra Meier ·
+ * Link» half under «Führungsunterstützung»). Rings in screen px, OLDEST first: a ring keeps its
+ * place when a newer one arrives – the newer one moves (right, left, a row down or up …).
+ * When nothing is free, the default (right) stands.
+ */
+export function placeTags(rings: readonly { key: string; x: number; y: number; label: string }[]): Record<string, TagPlace> {
+  const circles: Box[] = rings.map((r) => ({ x0: r.x - RING_R, y0: r.y - RING_R, x1: r.x + RING_R, y1: r.y + RING_R }))
+  const taken: Box[] = []
+  const out: Record<string, TagPlace> = {}
+  rings.forEach((r, i) => {
+    const free = (b: Box) => !taken.some((t) => hits(t, b)) && !circles.some((c, j) => j !== i && hits(c, b))
+    const place = CANDIDATES.find((p) => free(tagBox(r, p))) ?? CANDIDATES[0]
+    out[r.key] = place
+    taken.push(tagBox(r, place))
+  })
+  return out
+}
+
 // --- sending -----------------------------------------------------------------------------
 
 /**
