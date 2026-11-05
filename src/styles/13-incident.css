@@ -1057,28 +1057,26 @@ button.list-row:disabled { opacity: var(--disabled); cursor: default; }
 .rp-check-extra .ci-clear { position: absolute; }
 /* same white-on-white as the partner box above — the ring of an unfinished step was invisible
    in light mode, so the checklist read as a list of labels with no state at all */
-/* 16px since the head became an eyebrow (r20), 10px since r22 (below): a 24px ring stood half again as tall
-   as the label's line beside 11px caps.
+/* 16px since the head became an eyebrow (r20), 10px in r22, 8px since r23 (below): a 24px ring stood half
+   again as tall as the label's line beside 11px caps.
    AFTER the label since hill climb r21 (ReportCheckRow): in front of it, it pushed «ANWESENHEIT»
    24px right of «AUS DEN EINSATZDATEN» on the card across the page – two text edges for one kind
    of head. Now every eyebrow's text starts at the card's 16 and the ring is the eyebrow's mark,
    as the Trupps heads carry their count («DRIN 3»). (Hung in the 16px padding instead, a 16px ring
    plus its gap would have stood on the card's own edge.)
-   THE eyebrow ring (hill climb r22, Opus 2, 05.11.2026 – the Plan chips' ring wears the same):
-   10px across, a 1.5px stroke in --ink-dim (the Plan chips' ring ink), drawn as an inset shadow –
-   a 1.5px BORDER snaps to 1px on a 1× screen –, 6px after the label (the row's 8px gap less 2), its
-   middle on the caps' middle – the row centres it, and the 11px caps' middle is the line box's
-   (measured: caps 193–200, ring 192–201 on the laptop). At 16 it stood taller than the caps and
-   read as a second, louder word. The glyph is 8px (the tick and dash ~5px wide, ~0.8px): at the
-   ring's own 10 the tick touched the ring and the mark read as a blot. */
-.rp-check-dot { flex: none; display: grid; place-items: center; width: 10px; height: 10px; margin-left: -2px; border-radius: 50%;
-  box-shadow: inset 0 0 0 1.5px var(--ink-dim); color: var(--ink-faint); }
-/* done is the ORDINARY state and reads by its shape — a tick where there was a dash. It was blue,
-   which put four blue rings down a column that also carries one per partner organisation. Ink,
-   not hue: this dot is a section's STATUS, not a tick (the partner ticks are TickRow's). One ring
-   for both states since r22; the glyph and its ink (the tick in --ink) carry the difference. */
-.rp-check-dot.done { color: var(--ink); }
-.rp-check-dot svg { width: 8px; height: 8px; stroke-width: 2.6; }
+   THE eyebrow MARK (hill climb r23, Opus 1, 05.11.2026 – the Plan chips' lamp wears the same spec):
+   8px across, a 2px stroke in the muted icon ink (--ink-faint, the row's own › wears it), 8px after
+   the label (the row's gap), its middle on the label's x-height middle – the row centres it on the
+   caps' middle, the 1px nudge takes it down to the x-height's. r22's 10px / 1.5px ring in --ink-dim
+   on the caps' middle read as a capital «O» after the word («ANWESENHEIT O»).
+   The state is the FILL, not a glyph: a 2px stroke leaves a 4px hole, where r22's tick and dash
+   could not be drawn legibly. Open is the hollow ring, done the filled disc – the Plan chip lamp's
+   language (an unlit ring is «nothing yet», 09-whiteboard · .wb-lamp). Ink, not hue: this mark is
+   a section's STATUS – four blue ticks down a column that also carries one per partner
+   organisation was the reason it went grey. */
+.rp-check-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; translate: 0 1px;
+  box-shadow: inset 0 0 0 2px var(--ink-faint); }
+.rp-check-dot.done { background: var(--ink-faint); }
 .rp-check-label { font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-faint); flex: none; }
 .rp-check-sub { font: var(--fw-medium) var(--fs-1)/1.3 var(--body); color: var(--ink-faint); flex: 1; min-width: 0;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
@@ -1744,16 +1742,19 @@ select.cv-input { appearance: none; -webkit-appearance: none;
    (lib/pageHeadFit · ReportPreflight `RP_FOLD`); a second row (`data-fit-wrap`) is the last
    resort. The squeeze the old wrap answered is now the ladder's: a cut <h2> or chip count is
    «does not fit», so the words go before the title is ever squeezed. */
-.rp-head { flex: none; display: flex; align-items: center; gap: var(--head-gap); flex-wrap: nowrap;
+.rp-head { flex: none; display: flex; align-items: flex-start; gap: var(--head-gap); flex-wrap: nowrap;
   padding: var(--head-pad-y) var(--page-x, var(--head-pad-x)); min-height: calc(var(--tap) + 2 * var(--head-pad-y));
   background: var(--surface); box-shadow: inset 0 -1px 0 var(--glass-edge); }
 /* …and on a phone, like the shared head, it is no band: the page has no card there to band
    (Surface.module.css · the phone block, sweep 30.10.2026 #12) */
 @media (--phone) { .rp-head { background: none; box-shadow: none; } }
 .rp-head-titles { flex: 1 1 auto; min-width: 0; }
-/* the title on the Trupps head's line, the verdict an optional second row – without it the row's
-   room stays empty instead of the title centring (Surface.module.css · ONE title line, r22) */
-.rp-head-titles:not(:has(> .rp-head-sum)) { padding-bottom: calc(var(--head-sub-gap) + 16px); }
+/* ROW 1 · the title and the tiles on ONE centre line, the verdict hangs under the title when it
+   stands, the head closes up when it does not (Surface.module.css · ROW 1, hill climb r23): the
+   title's box padded to --tap, the head stacked from the top */
+.rp-head-titles h2 { padding-top: calc((var(--tap) - 1.3em) / 2); }
+.rp-head-titles h2:last-child { padding-bottom: calc((var(--tap) - 1.3em) / 2); }
+.rp-head:not([data-fit-wrap]) > .rp-head-titles:has(> h2:not(:last-child)) { margin-bottom: calc(var(--sp-1) - var(--head-pad-y)); }
 /* The second row (the ladder's last step — a phone with something open, since the Kontrolle chip
    keeps its words, council round 3): the TITLE and the chip share the first row (what this is,
    what is wrong), the actions take the second, splitting its width — «Abschliessen» and «PDF ▾»,
@@ -1768,6 +1769,10 @@ select.cv-input { appearance: none; -webkit-appearance: none;
 .rp-head[data-fit-wrap] .rp-state { flex: 0 1 auto; }
 .rp-head[data-fit-wrap] .rp-head-actions > :not(.rp-state) { order: 2; flex: 1 1 0; margin-top: var(--sp-2); }
 .rp-head[data-fit-wrap] .rp-split-main { flex: 1 1 auto; justify-content: center; }
+/* …and on that row of their own the worded tiles have the room for their glyph again: «Abschliessen»
+   with its archive box, «PDF» with its document, 16px at the tiles' 8px gap like the tablet's (hill
+   climb r23, Opus 8: they were text-only on the phone only). Measured to fit at 360 and 390. */
+.rp-head[data-fit-wrap] .head-tile[data-folded]:has(.fold-short) > svg.fold-long { display: block; }
 /* it truncates, exactly as the line under it always did — an <h2> that does not is an <h2> that
    paints over whatever is beside it */
 .rp-head-titles h2 { margin: 0; font: var(--head-title); color: var(--ink);
