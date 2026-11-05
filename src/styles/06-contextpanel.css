@@ -24,9 +24,9 @@
    `.ip-sheet` already answers in 13-incident.css; without one it falls back to 0px and this is
    the rule it always was. Stays at this specificity on purpose: the phone bottom-sheet override
    in 15-mobile.css replaces the max-height wholesale and must keep winning. */
-.ctx { position: absolute; right: calc(var(--vrail-w, 60px) + 26px); top: 88px; width: 360px; background: var(--glass);
+.ctx { position: absolute; right: calc(var(--vrail-w, 60px) + 26px); top: var(--rail-top); width: 360px; background: var(--glass);
   backdrop-filter: blur(14px) saturate(1.4); border: 1px solid var(--glass-line); border-radius: var(--r-hero); z-index: var(--z-chrome);
-  box-shadow: var(--e4); max-height: calc(100dvh - 104px - env(safe-area-inset-bottom) - var(--kb-inset, 0px));
+  box-shadow: var(--e4); max-height: calc(100dvh - var(--rail-top) - 16px - env(safe-area-inset-bottom) - var(--kb-inset, 0px));
   display: flex; flex-direction: column; overflow: hidden; }
 /* A Plan's Ebenen list describes the projections in the selected object's detail panel, so both
    stay visible on tablet/desktop. Put Ebenen in the lane immediately left of `.ctx`; the map keeps
