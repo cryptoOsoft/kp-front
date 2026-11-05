@@ -716,6 +716,11 @@ export const adminCopy: Localizable<Pick<Copy, 'admin'>> = {
       groupObject: 'Object plans',
       nearbyObjectWarnM: 'Warn «not the incident address» from (m)',
       nearbyObjectWarnMTip: 'The Plan shows the nearest object with plans on its own. If it does not match the incident address and lies farther away than this many metres, the Plan warns «not the incident address». 0 = warn at any distance.',
+      groupHose: 'Hoses',
+      defaultLineHose: 'Line (hose Ø)',
+      defaultLineHoseTip: 'The hose a line computes with while none is chosen in the line editor. With a water relay it computes with the relay hose (below). Empty = {n}.',
+      defaultRelayHose: 'Water relay (hose Ø)',
+      defaultRelayHoseTip: 'The hose a water relay under Measure starts on. A line adopted from it keeps it. 40 mm is an attack line and cannot be chosen here. Empty = {n}.',
 
       groupFunk: 'Radio',
       groupPressure: 'SCBA — pressure',

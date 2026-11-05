@@ -4,7 +4,7 @@ import { useChartReadout } from '../lib/chartCursor'
 import { cx } from '../lib/cx'
 import { fillTemplate } from '../lib/format'
 import { fmtDistance, pointAlongPath } from '../lib/geo'
-import { HOSE_SIZES, HOSES, RELAY, type RelayPlan } from '../lib/hydraulics'
+import { HOSES, RELAY, RELAY_HOSE_SIZES, type RelayPlan } from '../lib/hydraulics'
 import { Icon } from '../lib/icons'
 import { Popover } from '../lib/overlays'
 import { useIsPhone } from '../lib/useIsPhone'
@@ -86,7 +86,7 @@ export function WaterRelay({ ctrl, showHose = false, wide = false, onClose, onAd
           <div className="field"><span>{R.hoseDiameter}</span>
             {readOnly ? <b>{R.hoseLabels[input.hose]}</b> : (
               <Segmented ariaLabel={R.hoseDiameter} value={input.hose} onChange={(hose) => ctrl.set({ hose })}
-                options={HOSE_SIZES.map((h) => ({ value: h, label: hoseLabels[h] }))} />
+                options={RELAY_HOSE_SIZES.map((h) => ({ value: h, label: hoseLabels[h] }))} />
             )}
           </div>
         )}
@@ -146,9 +146,10 @@ function RelayMessages({ ctrl, plan }: { ctrl: RelayController; plan: RelayPlan 
   const R = appConfig.copy.relay
   const { input } = ctrl
   const n = plan.pumps.length
-  // what the other hoses would need, so «too many» comes with its way out
+  // what the other hoses would need, so «too many» comes with its way out – the relay Ø only: a
+  // 40 mm Druckleitung is never the way out of a long Wassertransport
   const others = n > RELAY.manyPumps
-    ? HOSE_SIZES.filter((h) => h !== input.hose).map((h) => {
+    ? RELAY_HOSE_SIZES.filter((h) => h !== input.hose).map((h) => {
       const p = ctrl.planWith({ hose: h })
       return p ? `${R.hoseLabels[h]}: ${pumpsText(p.pumps.length)}` : ''
     }).filter(Boolean).join(' · ')

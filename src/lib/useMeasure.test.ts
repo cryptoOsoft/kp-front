@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { measureLabels } from './useMeasure'
+import { adoptedRelay, measureLabels } from './useMeasure'
 import type { LngLat } from '../types'
 
 // Pure geometry/labelling of the measurement tool (no React). Coords are a Swiss
@@ -38,5 +38,21 @@ describe('measureLabels — area mode', () => {
 
   it('needs at least 3 points for an area', () => {
     expect(measureLabels('area', [A, B])).toEqual([])
+  })
+})
+
+// «Als Linie übernehmen» from an opened Wassertransport: the Leitung keeps the relay's Ø, written
+// out – absent, it would read as the Linie default (40) instead of the 75 it was computed on
+describe('adoptedRelay — what a Strecke carries onto its Leitung', () => {
+  it('nothing while the Wassertransport was never opened', () => {
+    expect(adoptedRelay({ open: false, value: { hose: '110', relay: { flow: 600 } } })).toBeUndefined()
+  })
+
+  it('opened on its defaults: the relay Ø explicitly, and an empty relay', () => {
+    expect(adoptedRelay({ open: true, value: {} })).toEqual({ hose: '75', relay: {} })
+  })
+
+  it('keeps a Ø and assumptions picked in Messen', () => {
+    expect(adoptedRelay({ open: true, value: { hose: '2x75', relay: { flow: 1600 } } })).toEqual({ hose: '2x75', relay: { flow: 1600 } })
   })
 })

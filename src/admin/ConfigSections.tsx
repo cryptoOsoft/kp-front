@@ -23,6 +23,7 @@ import { allAuftragTypes, appConfig } from '../config/appConfig'
 import { fillTemplate, compareText } from '../lib/format'
 import { DEFAULT_HOURS_ROUNDING, fmtHours, roundedMinutes } from '../lib/attendanceHours'
 import { DEFAULT_ATTENDANCE_MERGE_GAP_MIN } from '../lib/attendanceIntervals'
+import { HOSE_SIZES, RELAY_HOSE_SIZES, SHIPPED_HOSE } from '../lib/hydraulics'
 import {
   isOpenableUrl, linkTokenValues, resolveLinkUrl, REPORT_LINK_TOKENS,
   type ReportLink, type ReportLinkFacts,
@@ -1009,6 +1010,26 @@ export function DoctrineSection() {
       {numberField({
         path: ['doctrine', 'nearbyObjectWarnM'], label: C.nearbyObjectWarnM, tip: C.nearbyObjectWarnMTip,
         guard: { kind: 'int', min: 0, max: 500 }, fallback: appConfig.defaults.nearbyObjectWarnM,
+      })}
+
+      {/* The hose Ø a plain Linie without one reads as, and the one a Wassertransport (in Messen,
+          or on a Leitung without a picked Ø) starts on (lib/hydraulics · lineHose, 05.11.2026). Unset shows the shipped Ø as chosen,
+          like the name order, and writes nothing until a pick. The relay list has no 40 mm. */}
+      <SettingsGroup title={C.groupHose} />
+      {([
+        ['defaultLineHose', HOSE_SIZES, SHIPPED_HOSE.line, C.defaultLineHose, C.defaultLineHoseTip],
+        ['defaultRelayHose', RELAY_HOSE_SIZES, SHIPPED_HOSE.relay, C.defaultRelayHose, C.defaultRelayHoseTip],
+      ] as const).map(([key, sizes, shipped, label, tip]) => {
+        const labels = appConfig.copy.relay.hoseLabels
+        const stored = getPath<string>(draft, ['doctrine', key])
+        const value = sizes.find((h) => h === stored) ?? shipped
+        return (
+          <SettingRow key={key} label={label} tip={fillTemplate(tip, { n: labels[shipped] })}
+            standard={standardNote(stored == null ? null : labels[value], labels[shipped])}>
+            <Select value={value} ariaLabel={label} onChange={(v) => set(['doctrine', key], v)}
+              options={sizes.map((h) => ({ value: h, label: labels[h] }))} />
+          </SettingRow>
+        )
       })}
 
       {/* Optional station colour per Auftrag. Empty = the default behaviour, where a Trupp's

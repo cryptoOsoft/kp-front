@@ -22,7 +22,7 @@ import { MenuPick } from './MenuPick'
 import { Menu } from '../lib/overlays'
 import { OnOff, Segmented } from './Segmented'
 import { AddRelayButton, WaterRelay } from './WaterRelay'
-import { HOSE_SIZES, HOSES, RELAY } from '../lib/hydraulics'
+import { HOSE_SIZES, HOSES, hoseDefaults, lineHose, relayAddPatch } from '../lib/hydraulics'
 import { usePublishRelay, useRelay, type RelayValue } from '../lib/useRelay'
 import type { HoseSize, LineAttachment, LineContent, LineEndpoint, LngLat, LineRoutingMode, RelaySettings } from '../types'
 
@@ -252,7 +252,9 @@ export function DrawEditor({ drawing, pointCount, readOnly = false, areaM2, boxM
   const relayShown = relayOffered && relayAdded
   const relayCtrl = useRelay({
     coords: profileCoords ?? [], profile, profileLoading,
-    value: { hose: drawing.hose, relay: drawing.relay },
+    // shown, the section IS a Wassertransport: an absent Ø reads as the relay default, as it does
+    // once the relay is stored (lib/hydraulics · lineHose) – a viewer who opens one sees the same
+    value: { hose: drawing.hose, relay: drawing.relay }, defaultHose: hoseDefaults().relay,
     onChange: !readOnly ? waterRelay?.onChange : undefined,
   })
   usePublishRelay(relayCtrl, relayShown && measureOpen)
@@ -607,13 +609,15 @@ export function DrawEditor({ drawing, pointCount, readOnly = false, areaM2, boxM
               </div>
             )}
             {/* «Schlauch»: the Leitung's Ø, right under what it carries. It is what the Messung's
-                Wassertransport computes with (lib/hydraulics · HOSES); absent reads as 75. */}
+                Wassertransport computes with (lib/hydraulics · HOSES); absent reads as the
+                station's relay default on a Leitung with a Wassertransport, else its Linie default
+                (hydraulics · lineHose). */}
             {onHose && (
               <div className="de-row"><span>{appConfig.copy.drawingEditor.hose}</span>
-                <Segmented ariaLabel={appConfig.copy.drawingEditor.hose} value={drawing.hose ?? RELAY.defaultHose}
+                <Segmented ariaLabel={appConfig.copy.drawingEditor.hose} value={lineHose(drawing)}
                   // through the relay where there is one: a new Ø sends its pumps moved by hand back
                   // to automatic, in the same edit (lib/useRelay · set)
-                  onChange={(h) => { if (h !== (drawing.hose ?? RELAY.defaultHose)) { if (relayCtrl.readOnly) onHose(h); else relayCtrl.set({ hose: h }) } }}
+                  onChange={(h) => { if (h !== lineHose(drawing)) { if (relayCtrl.readOnly) onHose(h); else relayCtrl.set({ hose: h }) } }}
                   options={HOSE_SIZES.map((h) => ({ value: h, label: appConfig.copy.relay.hoseShort[h] }))} />
               </div>
             )}
@@ -712,7 +716,7 @@ export function DrawEditor({ drawing, pointCount, readOnly = false, areaM2, boxM
                   <b className="de-measure-v">{fmtDistance(lengthM)}</b>
                 </div>
                 <div className="de-row"><span>{appConfig.copy.measure.hoses} à {appConfig.drawing.hoseLengthM} m</span>
-                  <b className="de-measure-v">{hoseCount(lengthM, HOSES[drawing.hose ?? RELAY.defaultHose].lines)}</b>
+                  <b className="de-measure-v">{hoseCount(lengthM, HOSES[lineHose(drawing)].lines)}</b>
                 </div>
               </>
             )}
@@ -766,7 +770,13 @@ export function DrawEditor({ drawing, pointCount, readOnly = false, areaM2, boxM
                 ) : (
                   <div className="de-prof-msg">{appConfig.copy.measure.profileNone}</div>
                 )}
-                {relayOffered && <AddRelayButton onClick={() => setRelayAdded(true)} />}
+                {/* adding writes the relay and – where no Ø was picked – the relay default in one
+                    edit, so the Schlauch row reads 75 from here on (hydraulics · relayAddPatch) */}
+                {relayOffered && <AddRelayButton onClick={() => {
+                  setRelayAdded(true)
+                  const patch = relayAddPatch(drawing)
+                  if (patch && !relayCtrl.readOnly) waterRelay?.onChange?.(patch)
+                }} />}
               </>
             )}
           </div>
