@@ -1027,7 +1027,7 @@ export function TafelFormPage({ pageKey, title, data, readOnly, isPhone, onChang
               style={{ gridColumn: cols > 1 && sec.span === 2 ? '1 / -1' : undefined }}>
               {sec.type !== 'text' && heading(labelText(sec.title), labelText(sec.subtitle))}
               {sec.type === 'quad' ? quad(sec) : sec.type === 'table' ? table(sec) : sec.type === 'text' ? text(sec)
-                : sec.type === 'live' ? <TafelPendenzen sec={sec} port={pendenzen} isPhone={isPhone} pageTitle={title ?? labelText(page.title)} /> : map(sec)}
+                : sec.type === 'live' ? <TafelPendenzen Cell={Cell} sec={sec} port={pendenzen} isPhone={isPhone} pageTitle={title ?? labelText(page.title)} /> : map(sec)}
             </section>
           ))}
         </div>

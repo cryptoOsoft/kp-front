@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { TafelPendenzen } from './TafelPendenzen'
+import { Cell } from './TafelFormPage'
 import { BUNDLED_TEMPLATES } from '../lib/boardTemplates'
 import type { LiveSection } from '../lib/boardTemplate'
 import type { PendenzenPort } from '../lib/pendenzenPage'
@@ -26,7 +27,7 @@ const key = (k: string) => act(() => { fireEvent.keyDown(active(), { key: k }) }
 describe('the «Aufträge / Pendenzen» page', () => {
   it('a row typed on it becomes ONE Pendenz with Was and Wer, when the row is left', () => {
     const p = port()
-    render(<TafelPendenzen sec={SEC} port={p} isPhone={false} pageTitle="Aufträge / Pendenzen" />)
+    render(<TafelPendenzen Cell={Cell} sec={SEC} port={p} isPhone={false} pageTitle="Aufträge / Pendenzen" />)
     act(() => { screen.getByPlaceholderText('Neue Pendenz …').focus() })
     type('Gemeinde informieren'); key('Tab')
     expect(p.create).not.toHaveBeenCalled() // still in the row: Wer is next
@@ -39,7 +40,7 @@ describe('the «Aufträge / Pendenzen» page', () => {
 
   it('a done item stays, struck through; un-ticking its «Erledigt» takes it back', () => {
     const p = port()
-    render(<TafelPendenzen sec={SEC} port={p} isPhone={false} pageTitle="P" />)
+    render(<TafelPendenzen Cell={Cell} sec={SEC} port={p} isPhone={false} pageTitle="P" />)
     const tick = screen.getAllByRole('checkbox', { name: /Erledigt/ })[0]
     expect(tick.getAttribute('aria-checked')).toBe('true')
     fireEvent.click(tick)
@@ -47,7 +48,7 @@ describe('the «Aufträge / Pendenzen» page', () => {
   })
 
   it('a session that cannot write the Verlauf reads it: no empty row, ticks as read-outs', () => {
-    render(<TafelPendenzen sec={SEC} port={port({ canWrite: false })} isPhone={false} pageTitle="P" />)
+    render(<TafelPendenzen Cell={Cell} sec={SEC} port={port({ canWrite: false })} isPhone={false} pageTitle="P" />)
     expect(screen.queryByPlaceholderText('Neue Pendenz …')).toBeNull()
     for (const t of screen.getAllByRole('checkbox')) expect((t as HTMLButtonElement).disabled).toBe(true)
   })

@@ -10,7 +10,8 @@ import { pendenzLedger, type PendenzItem } from '../lib/reminders'
 import { isOverdue, liveColumns, type PendenzColumn, type PendenzDraft, type PendenzenPort } from '../lib/pendenzenPage'
 import { IconButton } from './Button'
 import { TickRow } from './TickRow'
-import { Cell } from './TafelFormPage'
+// a TYPE import only: the page hands its Cell in (`Cell` prop), so the two modules form no ring
+import type { Cell as TafelCell } from './TafelFormPage'
 import s from './TafelFormPage.module.css'
 import p from './TafelPendenzen.module.css'
 
@@ -53,6 +54,8 @@ function useNow(ms = 30_000): number {
 }
 
 interface Props {
+  /** the Tafel's own cell (TafelFormPage · Cell): same keys, same commit-once rule */
+  Cell: typeof TafelCell
   sec: LiveSection
   port?: PendenzenPort
   isPhone: boolean
@@ -60,7 +63,7 @@ interface Props {
   pageTitle: string
 }
 
-export function TafelPendenzen({ sec, port, isPhone, pageTitle }: Props) {
+export function TafelPendenzen({ Cell, sec, port, isPhone, pageTitle }: Props) {
   const w = C()
   const cols = liveColumns(sec)
   const timeline = port?.timeline
