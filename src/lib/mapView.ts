@@ -48,8 +48,10 @@ export const lineLabelAction = (truppId: string | undefined, tone: LineTone | un
 // A Trupp marker is a STRIP — [dot][gap][name] — so where the strip is anchored decides what the
 // coordinate MEANS. Both halves of the map have to agree on it: MapMarkers anchors the marker,
 // MapView's label pass measures the same boxes without a DOM.
-/** `.team-dot i` — the dot IS the position, so it is what sits on the coordinate. */
-export const TEAM_DOT_PX = 13
+/** `.team-dot i` — the dot IS the position, so it is what sits on the coordinate. 16px: an inside
+ *  Trupp's dot fills it, an out Trupp's 13px dot sits centred in the same box (09-whiteboard ·
+ *  .team-dot.raus i), so coming out moves neither the point nor the name. */
+export const TEAM_DOT_PX = 16
 /** `.team-dot` gap — the distance the name hangs off the dot. */
 export const TEAM_DOT_GAP = 8
 /** The selected pill's accent cap, centre-to-left-edge: 1px border + 8px padding + half of the

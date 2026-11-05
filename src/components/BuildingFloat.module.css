@@ -3,8 +3,11 @@
 /* never the one that gives way: a hazard is glyph + WORD, so on a phone's one-line plan row the
    Objekt chip beside it truncates its name instead (09-whiteboard · .wb-botleft) */
 .anchor { position: relative; display: inline-flex; flex: none; max-width: 100%; }
-/* a hazard: the warn glyph in amber AND the words — the tone is never the only carrier */
+/* a hazard: the 16px warn glyph AND the words after the dot in --amber-strong, the words at 800 –
+   the tone is never the only carrier, and the plate and its edge stay the family's neutral glass
+   (no fill: a known hazard is a fact, not an alarm). */
 .hazard svg:first-child { color: var(--amber-strong); }
+.words { color: var(--amber-strong); font-weight: var(--fw-heavy); }
 .measures { display: inline-flex; align-items: center; gap: var(--sp-1); padding-left: var(--sp-2);
   border-left: 1px solid var(--glass-line); color: var(--ink-dim); }
 .measures svg { width: 14px; height: 14px; }

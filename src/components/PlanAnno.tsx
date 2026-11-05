@@ -302,10 +302,10 @@ export function PlanAnno({ a, selected, grouped, networked, editing, trailShown,
         if (!selected) {
           return (
             <span className={`team-dot ${isRaus ? 'raus' : ''}`} style={{ '--team': teamCol } as React.CSSProperties}>
-              <i /><b>{a.text}</b>
+              <i /><b><span>{a.text}</span></b>
               {/* the storey, at rest as well as selected (18.09.2026): on a stack the
                   tile says it only to whoever is already looking at that tile */}
-              {stack && <span className="team-floor" title={floorLabel(a.floor ?? 0)}>{floorBadge(a.floor ?? 0)}</span>}
+              {stack && <span className="team-floor" title={floorLabel(a.floor ?? 0)}><span>{floorBadge(a.floor ?? 0)}</span></span>}
             </span>
           )
         }

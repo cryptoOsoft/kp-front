@@ -145,7 +145,7 @@ describe('the storey badge', () => {
     expect(eg.container.querySelector('.team-floor')?.textContent).toBe('0')
     cleanup()
     const ug = render(<TwinTeamPill name="Müller" color="#c00" raus={false} floor={-1} trailCount={0} trailShown={false} trupps={TRUPPS} />)
-    expect(ug.container.querySelector('.team-floor')?.textContent).toBe('-1')
+    expect(ug.container.querySelector('.team-floor')?.textContent).toBe('−1')
   })
 
   it('says nothing for a Trupp that is on no storey — a «0» would assert an EG nobody stated', () => {
