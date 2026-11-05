@@ -11,7 +11,7 @@ import { Button, IconButton } from './Button'
 import { MapHelpCard } from './DockInfo'
 import { AddRelayButton, WaterRelay } from './WaterRelay'
 import { usePublishRelay, useRelay, type RelayValue } from '../lib/useRelay'
-import { HOSES } from '../lib/hydraulics'
+import { HOSES, hoseDefaults } from '../lib/hydraulics'
 import type { MeasureRelay } from '../lib/useMeasure'
 import s from './MeasurePanel.module.css'
 
@@ -105,7 +105,8 @@ export function MeasurePanel({ mode, coords, profile, profileLoading, metrics, s
   // folded readout — a plain distance measurement stays exactly as it was.
   const hasRelay = !!relay && mode === 'line'
   const relayOpen = hasRelay && relay.open
-  const ctrl = useRelay({ coords, profile, profileLoading, value: relay?.value ?? NO_RELAY, onChange: relay?.onChange })
+  // a Strecke is no Leitung yet: it starts on the station's relay Ø (75 mm shipped), not the Linie's
+  const ctrl = useRelay({ coords, profile, profileLoading, value: relay?.value ?? NO_RELAY, defaultHose: hoseDefaults().relay, onChange: relay?.onChange })
   usePublishRelay(ctrl, readout && relayOpen)
   const folds = readout && (hasProfile || !!calibration || hasRelay)
   const open = folds && profileOpen

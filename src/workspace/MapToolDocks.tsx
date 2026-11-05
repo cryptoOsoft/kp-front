@@ -22,7 +22,7 @@ import { Overlay } from '../lib/overlays'
 import type { PlacedTrupp } from '../lib/placedTrupps'
 import { ShapeGlyph, SHAPE_DEFS, SHAPE_TWO_POINT } from '../lib/shapes'
 import type { useCoordPicker } from '../lib/useCoordPicker'
-import type { useMeasure } from '../lib/useMeasure'
+import { adoptedRelay, type useMeasure } from '../lib/useMeasure'
 import type { useSymbols } from '../lib/useSymbols'
 import type { LngLat, MapTool, ShapeKind, LineAttachment, Drawing, Trupp, GeoTrailPoint } from '../types'
 import type { RailLabels } from '../lib/prefs'
@@ -225,8 +225,7 @@ export function MapToolDocks({
           onAdopt={!tacticalLocked && measure.path.length >= (measure.mode === 'line' ? 2 : 3)
             ? () => {
               const coords = measure.path
-              // (opened on its defaults it is still one: an empty `relay`, so the Leitung shows it)
-              const relay = measure.relay.open ? { ...measure.relay.value, relay: measure.relay.value.relay ?? {} } : undefined
+              const relay = adoptedRelay(measure.relay)
               measure.reset()
               if (measure.mode === 'line') createLine(coords, undefined, { props: relay })
               else createArea(coords)

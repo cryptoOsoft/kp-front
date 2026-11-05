@@ -729,6 +729,11 @@ export const adminCopy: Localizable<Pick<Copy, 'admin'>> = {
       groupObject: 'Piani d\'oggetto',
       nearbyObjectWarnM: 'Avvisare «non l’indirizzo dell’intervento» da (m)',
       nearbyObjectWarnMTip: 'Il piano mostra da sé l\'oggetto più vicino con piani. Se non corrisponde all’indirizzo dell’intervento e si trova a più di questi metri, il piano avvisa «non l’indirizzo dell’intervento». 0 = avvisare a qualsiasi distanza.',
+      groupHose: 'Tubi',
+      defaultLineHose: 'Linea (Ø del tubo)',
+      defaultLineHoseTip: 'Il tubo con cui calcola una linea finché nell’editor della linea non ne è scelto uno – numero di tubi e trasporto d’acqua. Senza valore: {n}.',
+      defaultRelayHose: 'Trasporto d’acqua (Ø del tubo)',
+      defaultRelayHoseTip: 'Il tubo con cui inizia un trasporto d’acqua in Misurare. Una condotta ripresa da lì lo mantiene. 40 mm è una condotta d’attacco e qui non è selezionabile. Senza valore: {n}.',
     },
     setup: {
       ackDo: 'Spunta',

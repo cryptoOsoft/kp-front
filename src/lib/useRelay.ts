@@ -61,23 +61,26 @@ const compact = ({ flow, source, startBar, pumps, reverse }: RelaySettings): Rel
 })
 
 /**
- * One relay along `coords`. `value` is the stored pair (absent fields = defaults); every edit
+ * One relay along `coords`. `value` is the stored pair (absent fields = defaults; an absent hose
+ * = the host's `defaultHose`, lib/hydraulics · hoseDefaults: a Leitung's Linie default, Messen's
+ * relay default); every edit
  * hands `onChange` the changed keys only — a whole `relay` object each time, never `undefined`,
  * so a replayed `draw.edit` replaces it rather than keeping the old one. A drag previews locally
  * and writes once, on release (one undo step, never a stream).
  */
-export function useRelay({ coords: drawn, profile: drawnProfile, profileLoading, value, onChange, readOnly = false }: {
+export function useRelay({ coords: drawn, profile: drawnProfile, profileLoading, value, defaultHose, onChange, readOnly = false }: {
   coords: LngLat[]
   profile: ProfileResult | null
   profileLoading: boolean
   value: RelayValue
+  defaultHose: HoseSize
   onChange?: (patch: RelayValue) => void
   readOnly?: boolean
 }): RelayController {
   const [pick, setPick] = useState<{ i: number; from: PumpOrigin } | null>(null)
   const setSelected = (i: number | null, from: PumpOrigin = 'chart') => setPick(i == null ? null : { i, from })
   const [preview, setPreview] = useState<{ i: number; atM: number } | null>(null)
-  const stored = resolveRelay(value.hose, value.relay)
+  const stored = resolveRelay(value.hose, value.relay, defaultHose)
   const input: RelayInput = preview
     ? { ...stored, pumps: withPumpOverride(stored.pumps, preview.i, { atM: preview.atM }) ?? [] }
     : stored

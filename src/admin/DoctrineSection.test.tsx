@@ -396,3 +396,29 @@ describe('Objekt-Warnung ab — the distance behind «nicht die Einsatzadresse»
     expect(apiPut).not.toHaveBeenCalled()
   })
 })
+
+// owner 05.11.2026: a plain Linie is a 40 mm Druckleitung, a Wassertransport a 75 mm
+// Transportleitung – the station's call, both (lib/hydraulics · hoseDefaults)
+describe('Schläuche — the Ø a Linie and a Wassertransport start on', () => {
+  const C = appConfig.copy.admin.doctrine
+  const picker = (label: string) => screen.getByRole('button', { name: label })
+
+  it('shows the shipped 40 / 75 mm without writing them, and stores a pick', async () => {
+    await open()
+    expect(picker(C.defaultLineHose).textContent).toContain('40 mm')
+    expect(picker(C.defaultRelayHose).textContent).toContain('75 mm')
+    await click(picker(C.defaultLineHose))
+    await click(screen.getByRole('option', { name: '55 mm' }))
+    await settle()
+    expect(sent()?.doctrine).toMatchObject({ defaultLineHose: '55' })
+    expect(sent()?.doctrine?.defaultRelayHose).toBeUndefined()
+    expectAccepted(sent())
+  })
+
+  it('offers no 40 mm for the Wassertransport', async () => {
+    await open()
+    await click(picker(C.defaultRelayHose))
+    expect(screen.queryByRole('option', { name: '40 mm' })).toBeNull()
+    expect(screen.getByRole('option', { name: '2× 75' })).toBeTruthy()
+  })
+})

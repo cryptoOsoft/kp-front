@@ -29,6 +29,7 @@ config JSON: [§1](#1-deployment-config-the-json-the-deployment-owner-edits).
   - [`doctrine.alarmBarRueckzug` – the quieter line on Rückzug](#doctrinealarmbarrueckzug--the-quieter-line-for-a-trupp-on-rückzug)
   - [`doctrine.entryPressureMin` – the one question about a low Eingangsdruck](#doctrineentrypressuremin--the-one-question-about-a-low-eingangsdruck)
   - [`doctrine.nearbyObjectWarnM` – when the nearest object is «nicht die Einsatzadresse»](#doctrinenearbyobjectwarnm--when-the-nearest-object-is-nicht-die-einsatzadresse)
+  - [`doctrine.defaultLineHose` / `defaultRelayHose` – the Ø a Linie and a Wassertransport start on](#doctrinedefaultlinehose--defaultrelayhose--the-ø-a-linie-and-a-wassertransport-start-on)
 - [2. Reference / Werkleitungs layers – station-supplied](#2-reference--werkleitungs-layers--station-supplied-nothing-bundled)
   - [2a. Raster layer (WMS / WMTS)](#2a-raster-layer-wms--wmts--paste-a-url-template) ·
     [2b. Vector layer (GeoJSON)](#2b-vector-layer-geojson--for-pointslines-you-own)
@@ -355,6 +356,8 @@ both now have browser pages – §9e and §9f.
                                                   // its own colour (overridable per Trupp)
     "nearbyObjectWarnM": 25,                      // Modul-Pläne: warn «nicht die Einsatzadresse»
                                                   // only beyond this many metres – see below
+    "defaultLineHose": "40",                      // the Ø a Leitung without one reads as, and the
+    "defaultRelayHose": "75",                     // one a Messen Wassertransport starts on – see below
     "equipment": [                                // Ausrüstung a Trupp can take in – short labels,
       { "id": "retthaube", "label": "Retthaube" }, // printed on the card and the Rapport. Absent /
       { "id": "wbk", "label": "WBK" },             // empty = these three shipped defaults. Ids are
@@ -559,6 +562,26 @@ E.6, 23.10.2026).
 
 Set it on **Station › Doktrin** or in the config file. A stored value outside the range is served
 as `25` and logged, the rest of the document stays.
+
+### `doctrine.defaultLineHose` / `defaultRelayHose` – the Ø a Linie and a Wassertransport start on
+
+A Leitung's «Schlauch» row (line editor) stores its Ø only once somebody picks one. Until then the
+line reads as **`defaultLineHose`** – its hose count and its Wassertransport compute with it. A
+Wassertransport under **Messen › Strecke** is no Leitung yet and starts on **`defaultRelayHose`**;
+«Als Leitung auf die Karte» (or «Als Linie übernehmen» with it open) writes that Ø onto the new
+Leitung, so it keeps it whatever the Linie default is. Owner pick 05.11.2026: a plain Linie is a
+40 mm Druckleitung, a Wassertransport a 75 mm Transportleitung.
+
+| | |
+| --- | --- |
+| Values | `"40"`, `"55"`, `"75"`, `"2x75"` (the identical double line), `"110"` – the frontend's `HoseSize` |
+| `defaultRelayHose` | every value but `"40"`: the 40 mm friction table (GVB Behelf TLF/MS) ends at 500 l/min, below a relay's usual flows. A Leitung that IS 40 mm still computes as one |
+| Unset in the config | `defaultLineHose` `40`, `defaultRelayHose` `75` (`lib/hydraulics · SHIPPED_HOSE`) |
+
+Set it on **Station › Doktrin › Schläuche** or in the config file; read through `hoseDefaults()`
+(`src/lib/hydraulics.ts`). A value this build does not know falls back to the shipped Ø. ⚠️ Changing
+`defaultLineHose` re-reads every Leitung that never had a Ø picked, in open Einsätze too – a planning
+number, not a record (no Verlauf row), but a relay on such a line re-plans its pumps.
 
 ### ⚠️ `alarms.groups[].color` is not a colour
 

@@ -1,18 +1,29 @@
 import type { HoseSize, RelayPumpOverride, RelaySettings, RelaySource } from '../types'
+import { getDeploymentConfig } from './deploymentConfig'
 import type { ProfilePoint } from './profile'
 
-// Wassertransport — the pressure along a hose relay and where its pumps go. Pure, no React, no
-// copy: Messen › Strecke and the Leitung editor both drive it through lib/useRelay, and the
-// validated click prototype (proto/wassertransport-prototype.html, 03.11.2026) is its origin.
+// Wassertransport — the pressure along a hose relay and where its pumps go. No React, no copy:
+// Messen › Strecke and the Leitung editor both drive it through lib/useRelay, and the validated
+// click prototype (proto/wassertransport-prototype.html, 03.11.2026) is its origin. Pure but for
+// ONE read: `hoseDefaults()`, the station's doctrine for the Ø a Leitung or a Messen relay
+// starts on (deployment config `doctrine.defaultLineHose` / `defaultRelayHose`).
 //
 // ⚠️ The numbers are doctrine, not tuning. Friction: AGV Kantonale Beilage Basiswissen KB 06.06
 // (55 mm), 06.07 (75 mm), 06.08 (110 mm), «Druckverlust in bar» per 100 m by the flow in ONE line.
-// Height: 1 bar per 10 m (FKS Reglement 06.29). A pump needs at least 2 bar at its inlet
-// (FKS 06.42) — which is where an automatic pump is placed. It is a PLANUNGSHILFE: the surfaces
-// say so and name these sources (components/WaterRelay).
+// The AGV set has no 40 mm table; that one is GVB «Behelf für den Einsatz von TLF und MS» (2023),
+// «Wassertransport · Tabellen», the ø 40 table's 100 m column — its ø 55 and ø 75 tables are the
+// AGV values row for row, so it is the same doctrine. Height: 1 bar per 10 m (FKS Reglement 06.29). A pump needs
+// at least 2 bar at its inlet (FKS 06.42) — which is where an automatic pump is placed. It is a
+// PLANUNGSHILFE: the surfaces say so and name these sources (components/WaterRelay).
+
+/** A hose's inner diameter (mm) — what the friction table is keyed by. */
+type HoseDiameter = 40 | 55 | 75 | 110
 
 /** bar per 100 m of ONE line, by flow in that line (l/min) — [flow, bar] rows */
-const AGV: Record<55 | 75 | 110, readonly (readonly [number, number])[]> = {
+const AGV: Record<HoseDiameter, readonly (readonly [number, number])[]> = {
+  // GVB Behelf TLF/MS (see above). The table ends at 500 l/min: a 40 mm line is a Druckleitung to
+  // one Strahlrohr, never a Transportleitung, so beyond that the loss is extrapolated and flagged.
+  40: [[100, .32], [150, .75], [200, 1.35], [250, 2.25], [300, 3.35], [350, 4.70], [400, 6.15], [450, 7.90], [500, 10.00]],
   55: [[100, .13], [150, .25], [200, .40], [250, .60], [300, .82], [350, 1.10], [400, 1.40], [450, 1.70], [500, 2.10], [600, 2.90], [700, 3.85], [800, 5.05], [900, 6.40], [1000, 7.85]],
   75: [[200, .07], [250, .11], [300, .16], [350, .22], [400, .28], [450, .35], [500, .42], [600, .58], [700, .77], [800, .98], [900, 1.25], [1000, 1.50], [1100, 1.75], [1200, 2.05], [1300, 2.35], [1400, 2.68], [1500, 3.05], [1600, 3.45], [1700, 3.85], [1800, 4.25], [1900, 4.70], [2000, 5.20]],
   110: [[600, .11], [700, .14], [800, .17], [900, .21], [1000, .25], [1100, .29], [1200, .33], [1300, .38], [1400, .44], [1500, .49], [1600, .55], [1700, .61], [1800, .67], [1900, .73], [2000, .80], [2100, .87], [2200, .94], [2300, 1.02], [2400, 1.09], [2500, 1.18], [2600, 1.26], [2700, 1.34], [2800, 1.43], [2900, 1.53], [3000, 1.63]],
@@ -33,7 +44,6 @@ export const RELAY = {
   manyPumps: 3,
   /** a moved pump keeps this far from its neighbours and the line's end (m) */
   pinGapM: 5,
-  defaultHose: '75' as HoseSize,
   defaultFlow: 800,
   defaultSource: 'hydrant' as RelaySource,
   defaultHydrantBar: 6,
@@ -54,13 +64,39 @@ export const RELAY = {
 export const RELAY_PUMP_SYMBOL = 'VKF Pumpe Typ2'
 
 /** What each hose choice is: its diameter, and how many identical lines share the flow. */
-export const HOSES: Record<HoseSize, { d: 55 | 75 | 110; lines: 1 | 2 }> = {
+export const HOSES: Record<HoseSize, { d: HoseDiameter; lines: 1 | 2 }> = {
+  '40': { d: 40, lines: 1 },
   '55': { d: 55, lines: 1 },
   '75': { d: 75, lines: 1 },
   '2x75': { d: 75, lines: 2 },
   '110': { d: 110, lines: 1 },
 }
-export const HOSE_SIZES = ['55', '75', '2x75', '110'] as const satisfies readonly HoseSize[]
+/** Every Ø a Leitung can carry — the line editor's «Schlauch» row and the load gate. */
+export const HOSE_SIZES = ['40', '55', '75', '2x75', '110'] as const satisfies readonly HoseSize[]
+/** The Ø a Wassertransport is OFFERED on (Messen's Schlauch-Ø row, the «what the other hoses
+ *  would need» hint, the station's relay default): every one but 40 mm, a Druckleitung whose
+ *  table ends below the relay's usual flows. A Leitung that IS 40 mm still computes as one. */
+export const RELAY_HOSE_SIZES = ['55', '75', '2x75', '110'] as const satisfies readonly HoseSize[]
+
+/** The shipped Ø: a plain Linie is a 40 mm Druckleitung, a Wassertransport a 75 mm
+ *  Transportleitung (owner 05.11.2026). A station overrides both (`hoseDefaults`). */
+export const SHIPPED_HOSE = { line: '40', relay: '75' } as const satisfies Record<string, HoseSize>
+
+const isOneOf = <T extends string>(list: readonly T[], v: unknown): v is T => (list as readonly unknown[]).includes(v)
+
+/** The Ø a Leitung that stores none reads as (`line`), and the one a Wassertransport in Messen
+ *  starts on (`relay`) — the station's doctrine, else `SHIPPED_HOSE`. A value this build does not
+ *  know falls back too. Call at use, never at module level (the config resolves at boot). */
+export function hoseDefaults(): { line: HoseSize; relay: HoseSize } {
+  const { defaultLineHose: line, defaultRelayHose: relay } = getDeploymentConfig().doctrine ?? {}
+  return {
+    line: isOneOf(HOSE_SIZES, line) ? line : SHIPPED_HOSE.line,
+    relay: isOneOf(RELAY_HOSE_SIZES, relay) ? relay : SHIPPED_HOSE.relay,
+  }
+}
+
+/** The Ø a Leitung computes and shows with: its own, else the station's Linie default. */
+export const lineHose = (hose: HoseSize | undefined): HoseSize => hose ?? hoseDefaults().line
 
 export interface Loss {
   /** bar per 100 m of one line */
@@ -76,7 +112,7 @@ export interface Loss {
  * the table quadratic in flow from the nearest row (FKS: doppelte Menge = vierfacher Verlust).
  * Only ABOVE the table is flagged: below it the loss is tiny and the estimate harmless.
  */
-export function lossPer100m(d: 55 | 75 | 110, q: number): Loss {
+export function lossPer100m(d: HoseDiameter, q: number): Loss {
   const t = AGV[d]
   const [q0, b0] = t[0]
   if (q <= q0) return { bar: b0 * (q / q0) ** 2, inTable: q === q0, above: false }
@@ -205,7 +241,7 @@ export function pumpRange(plan: RelayPlan, pins: readonly (number | null | undef
 }
 
 /** How many lines a Leitung's hose lays side by side (a «2× 75» is two) – the hose count's factor. */
-export const hoseLines = (hose: HoseSize | undefined): number => HOSES[hose ?? RELAY.defaultHose].lines
+export const hoseLines = (hose: HoseSize | undefined): number => HOSES[lineHose(hose)].lines
 
 /** A Leitung's relay once its points are turned round (Richtung umkehren): the water keeps its
  *  physical source, so the calculation flips with the points – and the pumps, measured from that
@@ -226,11 +262,12 @@ export interface RelayInput {
 export const defaultStartBar = (source: RelaySource): number =>
   source === 'pumpe' ? RELAY.defaultPumpBar : source === 'weier' ? 0 : RELAY.defaultHydrantBar
 
-/** Fill in the defaults of a stored (or ephemeral) hose + relay pair. */
-export function resolveRelay(hose: HoseSize | undefined, relay: RelaySettings | undefined): RelayInput {
+/** Fill in the defaults of a stored (or ephemeral) hose + relay pair. `defaultHose` is the
+ *  host's: a Leitung's is the station's Linie default, Messen's the relay default (`hoseDefaults`). */
+export function resolveRelay(hose: HoseSize | undefined, relay: RelaySettings | undefined, defaultHose: HoseSize): RelayInput {
   const source = relay?.source ?? RELAY.defaultSource
   return {
-    hose: hose ?? RELAY.defaultHose,
+    hose: hose ?? defaultHose,
     flow: relay?.flow ?? RELAY.defaultFlow,
     source,
     startBar: relay?.startBar ?? defaultStartBar(source),
