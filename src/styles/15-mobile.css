@@ -473,25 +473,31 @@
      below stays the last resort for a bar that is fuller still. */
   .topbar .ip-switch-btn { padding: 6px 7px; gap: 4px; }
   /* ── «name over the clock» (07.10.2026, UI sweep · owner pick B3 D) ──
-     The pill is the Stichwort (--fs-2/700, ellipsis; 13.5 off the scale until 23.10.2026) over the Einsatzuhr (mono 12.5, its mode's
-     glyph): panels/IncidentSwitcher · twoLine. The bar's own clock button is not rendered here
+     The pill is the Stichwort (--fs-2/700, ellipsis; 13.5 off the scale until 23.10.2026) over the Einsatzuhr (mono --fs-2/700
+     in full ink, its mode's glyph): panels/IncidentSwitcher · twoLine. The bar's own clock button is not rendered here
      any more (TopBar), so the pill may take the width the clock had; it is still the bar's
      yielder, and only the title ellipsises. The quiet «gespeichert» ✓ comes back beside it — a
      fixed 16px slot, so a save never shifts the line — because the pill now has the room. */
   .topbar .ip-switch-two { max-width: 100%; gap: 6px; padding-block: 4px; }
   .ip-switch-lines { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; flex: 0 1 auto;
-    line-height: 1.15; text-align: left; }
+    line-height: 1.1; text-align: left; }
   /* ⚠️ also past the bar's ladder: its title step (fit-9) is the TABLET's last resort and hides
      `.ip-switch-title`; here the title is half of what the pill says and never goes */
   .ip-switch-two .ip-switch-title, .topbar.fit-9 .ip-switch-two .ip-switch-title {
     display: block; max-width: 100%; font-size: var(--fs-2); font-weight: var(--fw-bold); }
+  /* ⚠️ the clock is a FIGURE you read at a glance, not a caption (hill climb r18, Opus 4): at mono
+     --fs-1 in --ink-dim it was the smallest, faintest text in the bar, where the tablet's and the
+     laptop's bar clock is the boldest. Now --fs-2/700 mono in full ink – the title's size, mono's
+     wider glyphs make it read a step larger – and the 2px it gains come out of the two lines'
+     leading (1.15 → 1.1, the clock's own line 1), so the pill and the bar keep their height. */
   .ip-switch-clock { display: inline-flex; align-items: center; gap: var(--sp-1); white-space: nowrap;
-    font: var(--fw-bold) var(--fs-1)/1.1 var(--mono); color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+    font: var(--fw-bold) var(--fs-2)/1 var(--mono); color: var(--ink); font-variant-numeric: tabular-nums; }
   /* the time is a <b> inside this bold line: the UA's `bolder` would make it 900, off the scale */
   .ip-switch-clock b { font-weight: inherit; }
   /* the glyph as tall as the figure's line and at full ink: at 12px and .8 opacity the hourglass
-     was a hairline beside the bold mono time (hill climb r11) */
-  .ip-switch-btn .ip-switch-clock svg { width: 14px; height: 14px; }
+     was a hairline beside the bold mono time (hill climb r11); the heavier stroke keeps it level
+     with the 700 figures beside it (r18) */
+  .ip-switch-btn .ip-switch-clock svg { width: 14px; height: 14px; stroke-width: 2.2; }
   .topbar .ip-switch-two .ip-status { display: inline-flex; }
   /* the Übung marker in this pill is ONE letter («Ü», copy.exerciseInitial) in an amber square
      (08.10.2026, owner): the word ellipsised to «ÜBU…» and cost the street its last letters. A

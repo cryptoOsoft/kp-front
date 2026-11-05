@@ -2,15 +2,15 @@
    Tool rail — right edge (Lage map). Shares the .vrail look with the
    whiteboard tool rail (.wb-tools) so tools sit in the same place in both modes.
    ============================================================ */
-/* top-anchored to mirror the left NavRail (same top, same max-height); the inner
-   .vrail-scroll handles overflow so the pinned map-nav footer never scrolls away */
-/* content-height, packed at the same compact spacing as the left NavRail (a matched pair).
-   top/bottom both set + margin-block:auto centres it vertically WHEN there's room, but lets it
-   grow downward (toward the bottom edge) to fit a long list before it has to scroll. The top
-   stays at 80px (clear of the top bar); only a list taller than the full height scrolls. */
+/* top-anchored to mirror the left NavRail: the same top (--rail-top · 04b-rail.css, the top bar's
+   bottom + 16px) and the same band; the inner .vrail-scroll handles overflow so the pinned map-nav
+   footer never scrolls away. Content-height, packed at the same compact spacing as the left rail:
+   `margin-block: 0 auto` hangs it from the top and lets it end where its content ends; only a list
+   taller than the band scrolls. (Centred – `margin-block: auto` – each rail sat on its own height
+   and their tops never lined up: hill climb r18, Opus 1.) */
 /* right-edge safe area — see the note on .navrail's `left` (05-navrail.css) */
-.tool-rail { position: absolute; right: max(16px, env(safe-area-inset-right)); top: 88px; bottom: 16px; height: max-content; margin-block: auto;
-  z-index: var(--z-dock); max-height: calc(100dvh - 104px); }
+.tool-rail { position: absolute; right: max(16px, env(safe-area-inset-right)); top: var(--rail-top); bottom: 16px; height: max-content; margin-block: 0 auto;
+  z-index: var(--z-dock); max-height: calc(100dvh - var(--rail-top) - 16px); }
 /* The shell, the scroller, its "scroll for more" chevrons, the expand toggle and the drag grip
    are the SHARED rail base (.rail-* · 04b-rail.css), which the left NavRail wears too. What is
    left here is this rail's own half: it is anchored to the RIGHT edge, so it opens leftward, its

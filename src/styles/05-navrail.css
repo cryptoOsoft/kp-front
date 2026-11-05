@@ -9,11 +9,11 @@
    43 of this rail's 60px under the sensor housing, leaving 17px of tappable rail. The phone
    blocks now cover landscape too, so the inset reaches them; this stays unconditional because it
    is a no-op wherever there is no inset. */
-.navrail { position: absolute; left: max(16px, env(safe-area-inset-left)); top: 88px; bottom: 16px; height: max-content; margin-block: auto;
+.navrail { position: absolute; left: max(16px, env(safe-area-inset-left)); top: var(--rail-top); bottom: 16px; height: max-content; margin-block: 0 auto;
   z-index: var(--z-chrome);
-  /* vertically centred in the same band as the right .tool-rail (top 88 → bottom 16), so the two
-     side rails read as a matched pair instead of the left one hanging from the top. */
-  max-height: calc(100dvh - 104px);
+  /* hangs from the SAME top as the right .tool-rail (--rail-top · 04b-rail.css) and ends where its
+     content ends; a list taller than the band (top → 16px off the bottom) scrolls. */
+  max-height: calc(100dvh - var(--rail-top) - 16px);
   width: var(--rail-w); }
 /* the press wash is the LEFT rail's alone: its chevron pages a list of surfaces, which is a
    navigation act — the right rail's pages a tool list and has never carried one */
@@ -174,9 +174,9 @@
    It covers the rail's padding and reaches out over the map, never over the tiles: at -7px it
    took the outer 6px of every tile, so a tap on a tile's edge started a resize (04.11.2026). */
 .nav-grip { right: -13px; justify-content: flex-start; padding-left: 2px; }
-/* The rail is TOP-anchored (top:88px) in every mode so it sits in the same place whatever
-   surface is active — previously non-plan modes vertically centred it (margin-block:auto),
-   which made the rail jump up/down between e.g. Plan and Checkliste. */
+/* The rail is TOP-anchored (--rail-top) in every mode so it sits in the same place whatever
+   surface is active — centred (margin-block:auto) it jumped up/down between surfaces and never
+   lined up with the right rail. */
 
 /* Behind the Anwesenheit / Atemschutz / Checkliste surfaces, cover the live map with a solid
    app background: it shouldn't show through the inset card's margins, and a half-visible map
@@ -212,9 +212,9 @@ html.rail-dragging .layers-card { transition: none; }
 .layers-card { position: fixed; right: calc(var(--vrail-w, 60px) + 26px);
   /* hung under the top bar, never over it (owner 20.10.2026: centred, the tall card ran up over
      the bar's title and buttons); a long list scrolls in .lc-body instead */
-  top: calc(88px + env(safe-area-inset-top));
+  top: var(--rail-top);
   /* 320 (owner 20.10.: 264 felt tight next to Gefahrgut's 300) – the Karte's Gefahrgut card wears it too */
-  width: 320px; max-width: calc(100vw - 16px); max-height: calc(100dvh - 104px - env(safe-area-inset-top));
+  width: 320px; max-width: calc(100vw - 16px); max-height: calc(100dvh - var(--rail-top) - 16px);
   /* a column: the head stands, the body (.lc-body) scrolls — see .lc-title */
   display: flex; flex-direction: column; overflow: hidden;
   background: var(--float-bg); backdrop-filter: var(--float-blur); box-shadow: var(--float-edge);
