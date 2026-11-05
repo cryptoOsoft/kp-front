@@ -3275,10 +3275,10 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
       {/* the Tafel's pages: «which sheet», in the row where a plan says «which place» (owner).
           R1 (owner, 27.10.2026): the Objekt shares ONE glass with its Gebäude-Info, each half its
           own tap. Calibrating, the chip gives its place to the instrument (`calibrateChip`). */}
-      {strip}
-      {calibrateChip ?? <>
       {/* on the stack the building chip stands where the Objekt chip does (that one is dropped
           there), sharing the glass with its Gebäude-Info */}
+      {strip}
+      {calibrateChip ?? <>
       <span className="wb-join">{objectChip}{stack && buildingChip}{buildingFloat}</span>
       {!stack && buildingChip}
       </>}
