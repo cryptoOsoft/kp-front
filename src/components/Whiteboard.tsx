@@ -66,7 +66,7 @@ import { ShapeEditor } from './ShapeEditor'
 import { LockChip } from './LockChip'
 import { Chip } from './Chip'
 import { ShapeGlyph, SHAPE_DEFS, SHAPE_MAX_N, SHAPE_MIN_N, SHAPE_TWO_POINT, rotationBoundsN, rotationBox, rotationRun } from '../lib/shapes'
-import { TEAM_DOT_PX, TEAM_PILL_CAP_PX } from '../lib/mapView'
+import { SYM_MIN, TEAM_DOT_PX, TEAM_PILL_CAP_PX } from '../lib/mapView'
 import { noteScale, autoNoteWN, noteWN, stackNoteBoxPx, stackNoteShiftPx } from '../lib/notes'
 import { isAtemschutzTrupp } from '../lib/atemschutz'
 import { dismissNearbyBanner, nearbyBannerDismissed, nearbyBannerKey } from '../lib/nearbyBanner'
@@ -996,7 +996,11 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
   // single page but went gigantic on a tall multi-page stitch (where the board is narrow); this keeps
   // a symbol ~the same fraction of a page whether the plan is 1 page or 6. The Gebäude floor-stack
   // keeps its own tuned sizes. (~0.085·fit.w ≈ 42 on a typical single A4 portrait.)
-  const symBase = (stack ? 28 : Math.max(16, Math.min(52, fit.w * 0.085))) * symMul
+  // ⚠️ The stack never draws a symbol under the Lage's floor (lib/mapView · SYM_MIN, 28 px): the
+  // board slider's 0.7 default is sized for Modul sheets and took the stack's glyphs to ~20 px,
+  // smaller than their own caption plates (hill climb r19, Opus 1). The slider still grows them;
+  // below 1 it has nothing left to shrink here. Draw size only – nothing stored changes.
+  const symBase = stack ? SYM_MIN * Math.max(1, symMul) : Math.max(16, Math.min(52, fit.w * 0.085)) * symMul
   // …but a stack NOTE's text is the Lage note's --fs-1 (12.5), and its box never wraps narrower
   // than the Lage's either (lib/notes · stackNoteBoxPx): at 10 px it sat under the app's floor
   const txtBase = stack ? 12.5 : Math.max(7, Math.min(16, fit.w * 0.026))
@@ -2834,7 +2838,9 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
               )}
               {/* zoom ±: desktop only (.vrail-zoom is hidden under 1024px) — the plan pinches
                   on every touch form factor, and «Einpassen» above covers the one state that
-                  matters. «+» on top, like the Karte's (owner pick C9, 05.11.2026). */}
+                  matters. «+» on top, like the Karte's (owner pick C9, 05.11.2026). Its own group
+                  behind the rails' one hairline (owner pick C12), hidden with the buttons. */}
+              <span className="vrail-sep rail-sep vrail-zoom" aria-hidden />
               <button className="vrail-nbtn vrail-zoom" title={appConfig.copy.nav.zoomIn} aria-label={appConfig.copy.nav.zoomIn} disabled={scale >= maxScale} onClick={() => zoom(1.3)}><span className="vrail-glyph"><Icon id="plus" /></span><span className="vrail-label">{appConfig.copy.nav.zoomIn}</span></button>
               <button className="vrail-nbtn vrail-zoom" title={appConfig.copy.nav.zoomOut} aria-label={appConfig.copy.nav.zoomOut} disabled={scale <= MIN_SCALE} onClick={() => zoom(1 / 1.3)}><span className="vrail-glyph"><Icon id="minus" /></span><span className="vrail-label">{appConfig.copy.nav.zoomOut}</span></button>
 

@@ -101,8 +101,9 @@ export const teamStripPx = (label: string): number =>
 // slightly when zooming out, so a cluster doesn't clump together.
 const SIZE_M: Record<string, number> = { vehicle: 11, command: 10, hydrant: 6, symbol: 8, area: 8 }
 // the band (px). `mul` is the global S/M/L factor (lib/prefs · symbolMul); it
-// scales the whole band, so the ceiling/floor grow along with it.
-const SYM_MIN = 28
+// scales the whole band, so the ceiling/floor grow along with it. The Gebäude stack draws its
+// symbols on this floor too (components/Whiteboard · symBase), so a symbol reads the same size there.
+export const SYM_MIN = 28
 // …except a VEHICLE, which has a higher floor of its own. A vehicle is the only kind whose NAME
 // is baked into the glyph body (lib/useVehiclePositions · vehicleSymbolSvg), so the name can only
 // grow with the glyph. At the owner's tablet zoom every GPS vehicle at the Magazin sits exactly
