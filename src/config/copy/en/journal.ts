@@ -97,10 +97,10 @@ export const journalCopy: Localizable<Pick<Copy, 'journal' | 'errors'>> = {
     transcriptEdit: 'Edit transcript',
     transcriptAdd: 'Add transcript',
     nachtrag: 'Addendum',
-    corrected: 'corrected {t}',
+    corrected: 'Corrected {t}',
     // ⚠️ the TOTAL number of occurrences, the same number the Rapport prints as «N×» — see the
     // German base for why «repeated 2×» was two readings of one number
-    repeated: 'in total {n}×',
+    repeated: 'In total {n}×',
     repeatedTitle: 'How often this message stands in the record in total – every one of them is kept.',
     correctHint: 'The original wording stays in the record.',
     viaAtemschutzLink: 'SCBA link',
@@ -114,7 +114,7 @@ export const journalCopy: Localizable<Pick<Copy, 'journal' | 'errors'>> = {
     detailCorrected: 'Corrected',
     detailCorrectedFirst: 'first: {text}',
     detailRepeated: 'Repeated',
-    detailRepeatedN: 'in total {n}× until {t}',
+    detailRepeatedN: 'In total {n}× until {t}',
     detailNachtrag: 'Late entry',
     detailNachtragHint: 'written after the incident closed',
     attendanceConflict: 'Attendance {name}: {what} – please review.',

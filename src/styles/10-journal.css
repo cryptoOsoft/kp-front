@@ -454,10 +454,10 @@
   font: var(--fw-medium) var(--fs-1) var(--body); color: var(--ink-dim); }
 /* the discs here are the row's discs, at the row's size — a legend drawn smaller than the thing
    it explains is a second shape to recognise */
-:is(.jr-legend, .jr-filter-menu) .ic { width: 28px; height: 28px; border-radius: 50%; flex: none;
+:is(.jr-legend, .jr-filter-menu) .ic { width: 24px; height: 24px; border-radius: 50%; flex: none;
   display: grid; place-items: center; background: var(--surface-2);
   border: 1px solid var(--border); color: var(--ink-dim); }
-:is(.jr-legend, .jr-filter-menu) .ic > .i { width: 16px; height: 16px; }
+:is(.jr-legend, .jr-filter-menu) .ic > .i { width: 12px; height: 12px; }
 :is(.jr-legend, .jr-filter-menu) .ic.jr-ic-map { background: var(--blue-12);
   border-color: var(--blue-22); color: var(--blue-strong); }
 :is(.jr-legend, .jr-filter-menu) .ic.jr-ic-plan { background: var(--green-16);
@@ -523,7 +523,7 @@
 }
 
 /* ── Verlauf row: the classification column ────────────────────────────────────────────────
-   The 28px disc IS the Bereich (`.hist-ev .ic` sizes it in 06-contextpanel.css; the grid that
+   The 24px disc IS the Bereich (`.hist-ev .ic` sizes it in 06-contextpanel.css; the grid that
    places it is there too). There used to be a chip printing the same word in front of the
    sentence — and on a Pendenz a second chip printing «Pendenz» beside a text that already read
    «Pendenz erledigt: …». Both are gone, together with the Nachtrag/korrigiert/«6×» chips, which
@@ -582,8 +582,8 @@
    and find it again» is not how an Auftrag gets closed at 3am. */
 .hist-ev button.ic.jr-ic-tick { padding: 0; font: inherit; -webkit-appearance: none; appearance: none;
   cursor: pointer; }
-/* ⚠️ The button STAYS the disc's 28 × 28 (26 until r11). The disc is the anchor for the timeline
-   connector drawn above and below it (`.hist-ev .ic::before/::after` in 06-contextpanel.css), so
+/* ⚠️ The button STAYS the disc's 24 × 24 (26 until r11, 28 in r11). The disc is the anchor for
+   the timeline connector drawn above and below it (`.hist-ev .ic::before/::after` in 06-contextpanel.css), so
    growing the element for a gloved finger would tear a gap in the line. The TARGET grows instead,
    on a pseudo-element that is out of the ring's grid flow: 44 × 44 (23.09.2026, was 30 × 42), i.e.
    8px out to each side – the 8px column gutters, up to the plain time span and the sentence's
@@ -606,19 +606,22 @@
 .jr-ic-tick:active .jr-ring { color: var(--green); border-color: var(--green); }
 .jr-ic-tick:active .jr-ring .i { opacity: 1; }
 /* ── the footnotes, under the sentence (`.jr-meta`) ──
-   «Nachtrag» · «korrigiert HH:MM» · «6×». Facts ABOUT the row, in the register of a footnote:
+   «Nachtrag» · «Korrigiert HH:MM» · «Insgesamt 6×». Facts ABOUT the row, in the register of a footnote:
    they were chips in front of the text, where they pushed it off its axis and read as warnings.
    Only «Nachtrag» keeps a colour — a line appended after the Einsatzende is the one of the three
    with legal weight. */
-/* ⚠️ `flex-wrap: wrap`, not `nowrap` (05.09. fix): two footnotes on one row («insgesamt 2×» +
+/* ⚠️ `flex-wrap: wrap`, not `nowrap` (05.09. fix): two footnotes on one row («Insgesamt 2×» +
    «Atemschutz-Link») used to force this whole group onto one unbreakable line, which is what
    made `.jr-trail`'s `fit-content(50%)` cap toothless — the badges just overflowed it sideways
    into the sentence column. Individual badges stay `white-space: nowrap` (a footnote word never
    splits mid-token); it is the GROUP that now stacks them instead. */
+/* ⚠️ SENTENCE CASE in the secondary ink at regular weight (hill climb C13, 05.11.2026, owner): it
+   was the eyebrow type – bold, tracked, uppercase – and «INSGESAMT 4×» inside a row read as a
+   section head standing in the middle of the log. The copy carries the capital («Insgesamt {n}×»). */
 .jr-foot { flex: none; display: inline-flex; flex-wrap: wrap; align-items: baseline;
   gap: var(--sp-1) var(--sp-2);
-  font: var(--fw-bold) var(--fs-micro)/1.3 var(--body); letter-spacing: .04em; text-transform: uppercase;
-  color: var(--ink-faint); }
+  font: var(--fw-regular) var(--fs-micro)/1.3 var(--body);
+  color: var(--ink-dim); }
 .jr-foot > * { white-space: nowrap; }
 .jr-foot-nachtrag { color: var(--red-strong); font-weight: var(--fw-bold); }
 .jr-foot-rep { font-variant-numeric: tabular-nums; }
@@ -674,7 +677,7 @@
    last line would run into the line below it */
 .hist-ev:has(> .jr-subs, > .jr-transcript) > .jr-main { margin-bottom: 0; }
 /* ⚠️ Regular weight and --lh-2 (≈20px) (hill climb r3, 04.11.2026): the row's prose is the quiet
-   layer under its marks (.jr-link below) — at the row's medium, with every name bold on top, a
+   layer under its marks (.jr-link below) — at the row's medium, with every name heavier on top, a
    wrapped crew line on a phone was one dark block with nothing in it to find. */
 .jr-text { min-width: 0; max-width: 100%; font-weight: var(--fw-regular); line-height: var(--lh-2); overflow-wrap: anywhere; }
 /* the facts ABOUT the row, under its sentence (27.10.2026, sweep #12): the footnotes, then the
@@ -853,11 +856,13 @@
 }
 
 /* …and in the Verlauf, where there is real text: every mention — vehicle, partner, Trupp, person,
-   material, group — is bold INK, one look for «one of the Einsatz's own words» (29.09.2026, owner
-   pick A – no kind gets a look of its own). The prose around them is regular since the hill climb
-   (r3, 04.11.2026), so the marked words stand off the sentence instead of the whole wrapped row
-   reading as one dark block. */
-.jr-link { font-weight: var(--fw-bold); color: var(--ink); }
+   material, group — is MEDIUM (500) INK, one look for «one of the Einsatz's own words» (29.09.2026,
+   owner pick A – no kind gets a look of its own). The prose around them is regular since the hill
+   climb (r3, 04.11.2026), so the marked words stand off the sentence; medium rather than bold since
+   05.11.2026 (owner pick A5): on a crew row that is nothing but names, bold made the row one heavy
+   block — 500 against 400 is still findable and reads lighter. The printed journal keeps its bold
+   (lib/journalLinks · the Rapport has no other emphasis to spend). */
+.jr-link { font-weight: var(--fw-medium); color: var(--ink); }
 /* the address in the Verlauf: a real <a>, so it carries the underline that says «this opens»
    rather than a colour that only says «this is a thing» */
 a.jr-link-url { color: var(--blue); text-decoration: underline; text-underline-offset: 2px;

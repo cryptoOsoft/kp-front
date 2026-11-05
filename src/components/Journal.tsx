@@ -134,7 +134,7 @@ export type JournalProps = {
   /** correct a HAND-WRITTEN row's text — append-only `textEdit` patch, same pattern as the
    *  transcript edit. Offered on everything a person typed (composer entries, Meldungen,
    *  Nachdokumentation in the player) and on nothing the app wrote about an action; the
-   *  corrected line is marked «korrigiert HH:MM». See lib/verlauf · isHandWritten. */
+   *  corrected line is marked «Korrigiert HH:MM». See lib/verlauf · isHandWritten. */
   onEditText?: (id: string, text: string) => void
   /** where picture `i` of a row was taken, and what it can do on the Karte (lib/photoGeo ·
    *  photoPlacement). `null` for a picture without a position — the sheet then says nothing. */

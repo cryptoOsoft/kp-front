@@ -123,8 +123,9 @@ export const journalCopy = {
     mediaFailed: 'Nicht geladen',
     // rows appended after the Einsatzende (archive → reopen, the correction path)
     nachtrag: 'Nachtrag',
-    // a hand-written line corrected later (append-only patch — both wordings stay in the record)
-    corrected: 'korrigiert {t}',
+    // a hand-written line corrected later (append-only patch — both wordings stay in the record).
+    // The row's footnotes are sentence case (hill climb C13, 05.11.2026) — no uppercase eyebrow.
+    corrected: 'Korrigiert {t}',
     /**
      * Eine Zeile, die die App wiederholt hat, während sich nichts änderte — zusammengefasst auf
      * die erste, mit ihrer Zahl (lib/verlauf · repeatRuns).
@@ -134,7 +135,7 @@ export const journalCopy = {
      * dem Rapport steht für dieselbe Zeile «2×». Ein Wort für eine Zahl: hier wie dort ist es,
      * wie oft die Meldung insgesamt im Protokoll steht.
      */
-    repeated: 'insgesamt {n}×',
+    repeated: 'Insgesamt {n}×',
     repeatedTitle: 'So oft steht diese Meldung insgesamt im Protokoll – jede einzelne bleibt erhalten.',
     correctHint: 'Der ursprüngliche Wortlaut bleibt im Protokoll.',
     // die Zeile kam über den Atemschutz-Link herein — von einem Handy, das nur die Tafel
@@ -159,7 +160,7 @@ export const journalCopy = {
     // the FIRST wording, kept by the append-only patch chain (lib/journalStore · display)
     detailCorrectedFirst: 'zuerst: {text}',
     detailRepeated: 'Wiederholt',
-    detailRepeatedN: 'insgesamt {n}× bis {t}',
+    detailRepeatedN: 'Insgesamt {n}× bis {t}',
     detailNachtrag: 'Nachtrag',
     detailNachtragHint: 'nach Einsatzende erfasst',
     // system row appended when a three-way sync merge saw BOTH sides (KP tablet and
