@@ -44,6 +44,8 @@ import { materialCopy } from './it/material'
 import { objectVisitsCopy } from './it/objectVisits'
 import { karteCopy } from './it/karte'
 import { adminCopy } from './it/admin'
+import { tutorialsCopy } from './it/tutorials'
+import { tutorialRunCopy } from './it/tutorialRun'
 
 export const it: Localizable<Copy> = {
   ...shellCopy,
@@ -69,4 +71,6 @@ export const it: Localizable<Copy> = {
   ...objectVisitsCopy,
   ...karteCopy,
   ...adminCopy,
+  ...tutorialsCopy,
+  ...tutorialRunCopy,
 }

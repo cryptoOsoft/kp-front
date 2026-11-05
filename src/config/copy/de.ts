@@ -38,6 +38,8 @@ import { materialCopy } from './de/material'
 import { objectVisitsCopy } from './de/objectVisits'
 import { karteCopy } from './de/karte'
 import { adminCopy } from './de/admin'
+import { tutorialsCopy } from './de/tutorials'
+import { tutorialRunCopy } from './de/tutorialRun'
 
 export type { HelpOnly } from './de/help'
 
@@ -65,6 +67,8 @@ export const de = {
   ...objectVisitsCopy,
   ...karteCopy,
   ...adminCopy,
+  ...tutorialsCopy,
+  ...tutorialRunCopy,
 } as const
 
 export type Copy = typeof de
