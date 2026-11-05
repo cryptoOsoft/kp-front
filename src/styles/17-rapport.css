@@ -212,9 +212,10 @@
    bold, tabular – a FIELD between two keys, not a third key (r15 framed it 44×44 like «−» / «+»
    and the row read as three buttons; r16): wider than tall (60px), SUNKEN – a recessed tone
    (--ink 5% into --surface; at night toward the canvas), the 1px --border, a 1px inner shade
-   along the top and no drop shadow, where the ± stay framed keys. Filled or EMPTY (r15): the
-   empty count's faint dash stands in the field as an empty value, «nicht erfasst», never «0» (`.step-empty`,
-   07-toolrail: faint, regular – r11). Typing a count changes the ink, never the geometry; the
+   along the top and no drop shadow, where the ± stay framed keys. Filled or EMPTY (r15): an
+   empty count is the well left BLANK, «nicht erfasst», never «0» (r18: the stepper's faint «–»
+   in the well beside the dimmed «−» read as two minus signs; ReportPreflight passes the stepper
+   an empty placeholder). Typing a count changes the ink, never the geometry; the
    typed-value field takes the well's box for the same reason. Rapport only: the shared stepper
    elsewhere (Geschoss, Mittel) and the app's inputs keep their own look. */
 .rz-count :is(.step-val-btn, .step-input) { width: 60px; height: var(--tap); padding: 0;
@@ -231,7 +232,6 @@
    does) – a translucent --hover in place of the fill would show the card through it */
 .rz-count .step-input:focus { border-color: var(--focus-edge); box-shadow: var(--focus-halo); }
 @media (hover: hover) { .rz-count .step-val-btn:hover:not(:disabled, :active) { background-image: linear-gradient(var(--hover), var(--hover)); } }
-.rz-count .step-val.step-empty { font-weight: var(--fw-regular); }
 /* the reset ✕ 8px after «+», the stepper's own gap (r17: the shared 4px margin dropped). It is
    frameless and dim, so it does not read as a fourth key at that distance; r15's 16px only
    mattered while the pair floated at the far edge. */
