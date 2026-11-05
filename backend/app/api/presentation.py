@@ -21,6 +21,7 @@ authorisation, which is the part to read twice:
 """
 
 import re
+import unicodedata
 import uuid
 from typing import Annotated, Literal
 
@@ -161,7 +162,10 @@ async def _display_name(db: AsyncSession, user: User, wanted: str | None) -> tup
         return (user.display_name or user.username), False
     if await is_demo_deployment(db):
         return GUEST_NAME, True
-    name = " ".join(_CONTROL.sub(" ", wanted or "").split())[:40]
+    # control characters out, and the invisible format ones too (a right-to-left override would
+    # let a name read as somebody else's)
+    clean = "".join(" " if _CONTROL.match(c) else c for c in (wanted or "") if unicodedata.category(c) != "Cf")
+    name = " ".join(clean.split())[:40]
     return (name or GUEST_NAME), True
 
 

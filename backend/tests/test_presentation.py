@@ -235,7 +235,7 @@ async def test_the_view_link_follows_and_points_under_its_own_flagged_name(clien
 
     state = (await second.get(f"/api/incidents/{inc}/presentation?client={LINKER}")).json()
     assert state["active"] and state["id"] == pid
-    r = await _signal(second, inc, pid, LINKER, "join", name="  Sandra\x00 Meier  ")
+    r = await _signal(second, inc, pid, LINKER, "join", name="  Sandra\x00 Meier\u202e  ")
     assert r.status_code == 204, r.text
     assert (await _signal(second, inc, pid, LINKER, "pointer", at=POINT)).status_code == 204
 

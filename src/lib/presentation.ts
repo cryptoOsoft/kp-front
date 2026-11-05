@@ -11,8 +11,6 @@ import type { Out } from './api/wire'
 export type PresentationState = Out<'PresentationState'>
 export type PresentedView = Out<'PresentationView'>
 export type PointerAt = Out<'PresentationPointerAt'>
-export type PointerMessage = Out<'PresentationPointerMessage'>
-export type PresentationMessage = PresentationState['messages'][number]
 
 // --- following ---------------------------------------------------------------------------
 
@@ -61,12 +59,6 @@ export function nextFollow(f: Follow, ev: FollowEvent): Follow {
 
 /** Joined the room (sends pointers, is counted, sees the others' rings). */
 export const isJoined = (f: Follow) => f.kind === 'presenting' || f.kind === 'following' || f.kind === 'detached'
-
-/** The surface a view names, as the workspace holds it – what a follower compares its own
- *  surface against to notice that it was switched by hand. */
-export function surfaceKey(view: { mode: string; planId?: string | null; page?: string | null }): string {
-  return view.mode === 'plans' ? `plans:${view.planId ?? ''}:${view.page ?? ''}` : view.mode
-}
 
 // --- pointer rings -----------------------------------------------------------------------
 
