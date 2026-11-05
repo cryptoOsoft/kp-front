@@ -1986,8 +1986,14 @@ select.cv-input { appearance: none; -webkit-appearance: none;
 /* Content padding matches the head's 22px, so the cards line up with the title above them
    (`.ip-body`'s own 6px/20px is a dialog's, and left the first card glued to the head border).
    The bottom clears the FAB the way Anwesenheit, Mittel, Atemschutz, Checklists and Zeitplan all
-   already do — `--fab-safe` is 0px when no FAB is on screen, so this is inert on a tablet. */
-.report-preflight-surface > .ip-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-gutter: stable;
+   already do — `--fab-safe` is 0px when no FAB is on screen, so this is inert on a tablet.
+   The lane is reserved on BOTH edges (hill climb r16, 05.11.2026): `stable` alone kept the ~10px
+   scrollbar lane on the right inside the visible inset, so the cards stood 22px from the left
+   wall and 32px from the right. Dropping the reservation does not help – the thin bar still
+   takes its lane once the page scrolls, and the Rapport always does. Both edges cost the
+   classic-scrollbar desktop 10px of alignment with the head's title below 1181px (above it the
+   columns are centred anyway); overlay scrollbars (iPad, phone, macOS) reserve nothing. */
+.report-preflight-surface > .ip-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-gutter: stable both-edges;
   padding: 16px var(--head-pad-x) calc(24px + var(--fab-safe, 0px)); }
 /* The actions live in the HEAD with the other surfaces' controls, and the readiness chip rides
    with them — a warning about the record has to be in the same glance as the button that makes

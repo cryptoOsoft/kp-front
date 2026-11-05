@@ -44,7 +44,11 @@
 .report-meta-dispatch-click:has(.report-meta-dispatch-go:focus-visible) { outline: 2px solid var(--blue); outline-offset: 2px; }
 .report-meta-readout { margin: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
 .report-meta-readout > div { display: grid; grid-template-columns: 116px 1fr; gap: 12px; align-items: baseline; }
-.report-meta-readout dt { margin: 0; font: var(--field-label); color: var(--ink-dim); }
+/* key / value: the key is the app's one label type (`--field-label`, 700) in the muted label ink,
+   the value in full ink at the next size up – the VALUE is what is read (hill climb r16,
+   05.11.2026: in --ink-dim the 700 keys outweighed their 400 values). A missing value keeps its
+   warning tone (.report-meta-missing). */
+.report-meta-readout dt { margin: 0; font: var(--field-label); color: var(--ink-faint); }
 .report-meta-readout dd, .rp-readout { margin: 0; font-size: var(--fs-2); line-height: 1.45; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; }
 .report-meta-empty { color: var(--ink-faint); }
 /* …and a REQUIRED dispatch fact that is missing (ReportPreflight · MissingFact, owner C1
@@ -193,21 +197,28 @@
 .rz-count { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); min-height: var(--tap); }
 .rz-count > span { font: var(--fw-medium) var(--fs-2) var(--body); color: var(--ink-dim); }
 /* The recorded count is the row's emphasis (hill climb r13, 05.11.2026): at 14px between two 44px
-   plates it was the smallest thing in the row. It stands in a --tap square well at the value's
-   size, bold, tabular. The well is framed like an input – 1px --border, the one corner, --surface
-   fill – filled or EMPTY (hill climb r15, 05.11.2026): unframed, the empty count's faint dash
-   stood between «−» and «+» at their size and spacing and read as a second minus. In the field
-   it reads as an empty value, «nicht erfasst», never «0» (`.step-empty`, 07-toolrail: faint,
-   regular – r11). Typing a count changes the ink, never the geometry; the typed-value field
-   takes the well's box for the same reason. Rapport only: the shared stepper elsewhere
-   (Geschoss, Mittel) keeps its compact value. */
-.rz-count :is(.step-val-btn, .step-input) { width: var(--tap); height: var(--tap); padding: 0;
-  border: 1px solid var(--border); border-radius: var(--r-ctl); background-color: var(--surface);
+   plates it was the smallest thing in the row. It stands in a 60×44 well at the value's size,
+   bold, tabular – a FIELD between two keys, not a third key (r15 framed it 44×44 like «−» / «+»
+   and the row read as three buttons; r16): wider than tall (60px), SUNKEN – a recessed tone
+   (--ink 5% into --surface; at night toward the canvas), the 1px --border, a 1px inner shade
+   along the top and no drop shadow, where the ± stay framed keys. Filled or EMPTY (r15): the
+   empty count's faint dash stands in the field as an empty value, «nicht erfasst», never «0» (`.step-empty`,
+   07-toolrail: faint, regular – r11). Typing a count changes the ink, never the geometry; the
+   typed-value field takes the well's box for the same reason. Rapport only: the shared stepper
+   elsewhere (Geschoss, Mittel) and the app's inputs keep their own look. */
+.rz-count :is(.step-val-btn, .step-input) { width: 60px; height: var(--tap); padding: 0;
+  border: 1px solid var(--border); border-radius: var(--r-ctl);
+  background-color: color-mix(in srgb, var(--ink) 5%, var(--surface)); box-shadow: inset 0 1px 0 var(--ink-8);
   font: var(--fw-bold) var(--fs-3) var(--body); font-variant-numeric: tabular-nums; text-align: center; }
-/* the frame above outranks `.step-input:focus` (07-toolrail), so the field focus is restated; hover
-   tints OVER the solid well (an overlay, as the press does) – a translucent --hover in place of
-   the fill would show the card through it */
-.rz-count .step-input:focus { border-color: var(--focus-edge); }
+/* night: --ink is light there, so the same mix would RAISE the well; it sinks toward the canvas
+   instead – below the inputs' --surface, still a fill where the ± are frame only – and the top
+   shade is the canvas ink, softened so it shows on the dark fill */
+[data-theme="night"] .rz-count :is(.step-val-btn, .step-input) {
+  background-color: color-mix(in srgb, var(--canvas-bg) 40%, var(--surface)); box-shadow: inset 0 1px 2px var(--canvas-bg); }
+/* the frame above outranks `.step-input:focus` (07-toolrail), so the field focus is restated (the
+   one halo replaces the inner shade); hover tints OVER the solid well (an overlay, as the press
+   does) – a translucent --hover in place of the fill would show the card through it */
+.rz-count .step-input:focus { border-color: var(--focus-edge); box-shadow: var(--focus-halo); }
 @media (hover: hover) { .rz-count .step-val-btn:hover:not(:disabled, :active) { background-image: linear-gradient(var(--hover), var(--hover)); } }
 .rz-count .step-val.step-empty { font-weight: var(--fw-regular); }
 /* the reset ✕ stands 16px off «+» (the shared 4px + the row's 12px): at the stepper's 8px rhythm
