@@ -11,6 +11,7 @@ import { useIsPhone } from '../../lib/useIsPhone'
 import { CLOCK_ICON, useEinsatzuhr } from '../../lib/einsatzuhr'
 import { EinsatzuhrChoices } from '../Einsatzuhr'
 import { AppMenuRows } from './AppMenuRows'
+import { tut } from '../../lib/tutorials/anchors'
 
 // HH:MM for the positive "gespeichert" trust signal next to the sync badge.
 function fmtClock(ms: number): string {
@@ -273,7 +274,7 @@ export function IncidentSwitcher({
   )
   return (
     <div className="ip-switch" ref={ref}>
-      <button ref={triggerRef} className={`ip-switch-btn${twoLine ? ' ip-switch-two' : ''}`} onClick={() => { setClockOpen(false); setClosedOpen(false); setOpen((v) => !v) }}
+      <button ref={triggerRef} {...tut('menu.einsatz')} className={`ip-switch-btn${twoLine ? ' ip-switch-two' : ''}`} onClick={() => { setClockOpen(false); setClosedOpen(false); setOpen((v) => !v) }}
         aria-label={twoLine
           ? [street, active.title, active.is_exercise ? appConfig.copy.exerciseBadge : '', closed ? C.title : '', uhr.text ? `${uhr.label[uhr.mode]} ${uhr.text}` : ''].filter(Boolean).join(', ')
           : active ? [active.title, closed ? C.title : ''].filter(Boolean).join(', ') : cp.noIncident}
