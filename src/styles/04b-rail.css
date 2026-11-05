@@ -135,12 +135,14 @@
        right end, the right rail's left end – the free side of the row. */
 /* A bare letter, no keycap (04.11.2026, hill climb: the framed chip on every tile's corner added a
    second small object exactly where the glyph has to be recognised at a glance). It is a hint for
-   whoever looks for it, so it is the quietest text in the rail. */
-.rail-key { display: none; position: absolute; right: 4px; bottom: 2px; min-width: 10px;
+   whoever looks for it, so it is the quietest text in the rail. ⚠️ Inset so the letter's ink stays
+   ≥4px clear of the tile's curved corner (05.11.2026, hill climb r13: at 4/2px it ran into the
+   selected pill's radius); on the ink pill it takes the pill's own text colour. */
+.rail-key { display: none; position: absolute; right: 6px; bottom: 4px; min-width: 10px;
   font-family: var(--mono); font-size: var(--fs-micro); font-weight: var(--fw-medium);
   line-height: 14px; text-align: center; color: var(--ink-faint); pointer-events: none; }
 :is(.nav-item, .vrail-tool).on .rail-key { color: var(--on-accent-ink); }
-.rail.labelled:not(.expanded):not(.dragging) .rail-key { top: 3px; bottom: auto; right: auto; left: 4px; }
+.rail.labelled:not(.expanded):not(.dragging) .rail-key { top: 4px; bottom: auto; right: auto; left: 6px; }
 .rail.expanded:not(.dragging) .rail-key { top: 50%; bottom: auto; margin-top: -8px; right: 10px; }
 .vrail.expanded:not(.dragging) .rail-key { right: auto; left: 10px; }
 @media (hover: hover) and (pointer: fine) { .rail:not(.folded) .rail-key { display: block; } }

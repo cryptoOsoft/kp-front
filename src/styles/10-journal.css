@@ -970,13 +970,23 @@ a.jr-link-url { color: var(--blue); text-decoration: underline; text-underline-o
    state this rule exists for (open Pendenzen, drawer open, 3am). `.tb-act.on` above uses the right
    token; this one is simply matching it. */
 .tb-act.has-rem.on { color: var(--on-accent-ink); background: var(--ink-fill); }
+/* ⚠️ NIGHT: the ink pill lifted through the scrim (05.11.2026, hill climb r13). `.on` only exists
+   while the drawer is open, i.e. always UNDER `.journal-scrim` (rgba(12,18,28,.48), which covers
+   the bar too). By day the dark pill survives the veil; at night --ink-fill on the dark glass came
+   out a flat #1c2431 on #111720 — the open state read weaker than the amber closed one, the reverse
+   of the day. Mixed toward its own ink just enough that, seen through the scrim, it lands where the
+   rails' unveiled night pill (#2b3545 on the bar) stands: the same ink pill, as strong as by day. */
+:root[data-theme="night"] .tb-act.on { background: color-mix(in srgb, var(--ink-fill), var(--on-accent-ink) 20%); color: var(--on-accent-ink); }
 
 /* open-reminders count badge on the Verlauf button */
 .tb-rem-count { z-index: 2; }
-/* the ONE count badge (05-navrail · .nav-count, 28.09.2026): 16px, 11/800, --r-xs; amber = open */
-.tb-rem-count { position: absolute; top: -5px; right: -5px; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box;
+/* the ONE count badge (05-navrail · .nav-count, 28.09.2026): 16px, 11/800, --r-xs; amber = open.
+   ⚠️ Inside the bar's plate (05.11.2026, hill climb r13): at -5px it stood 2px under the bar's top
+   edge, where the bar's corner seemed to clip it; at -1px it sits 6px in, and a 2px ring in the
+   bar's own glass cuts it off the button's corner instead of the bar's edge (day and night). */
+.tb-rem-count { position: absolute; top: -1px; right: -1px; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box;
   border-radius: var(--r-xs); background: var(--amber); color: var(--on-amber); line-height: 16px; text-align: center;
-  font: var(--fw-heavy) var(--fs-micro) var(--body); }
+  font: var(--fw-heavy) var(--fs-micro) var(--body); box-shadow: 0 0 0 2px var(--glass); }
 
 /* ⚠️ TOMBSTONE, 23.08. — the whole banner layer that stood here is gone.
    Removed: `.reminder-banner` + 9 `rb-*` rules (the due Wiedervorlage, a 440px card at z-45 that

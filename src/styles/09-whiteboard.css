@@ -139,8 +139,10 @@
    chip and the sheet behind it can never disagree about whether a reference is good. */
 .wb-lamp { width: 9px; height: 9px; border-radius: 50%; flex: none; }
 .wb-lamp[data-tone='red'] { background: var(--red); }
-/* «not yet» — no scale, no link (29.09.2026, sweep K10): grey, never red at rest */
-.wb-lamp[data-tone='grey'] { background: var(--ink-faint); }
+/* «not yet» — no scale, no link (29.09.2026, sweep K10): grey, never red at rest. An UNLIT lamp
+   (05.11.2026, hill climb r13): a filled grey disc after «Gebäude» read as a decoration with no
+   meaning; the empty ring says «nothing set yet», the sheet behind the tap says which. */
+.wb-lamp[data-tone='grey'] { box-sizing: border-box; border: 1.5px solid var(--ink-faint); }
 .wb-lamp[data-tone='amber'] { background: var(--amber); }
 .wb-lamp[data-tone='green'] { background: var(--green); }
 /* a read-out with nowhere to go (a link-scoped viewer is bound to ONE object) is not greyed out
@@ -573,11 +575,11 @@ textarea.wb-text-input { resize: none; overflow: hidden; display: block; font-si
   background: var(--team); border-radius: var(--r-xs); padding: 2px var(--sp-2); }
 /* selection now reads as a coloured ring (in the team's own colour) + lift */
 .wb-anno.sel .wb-resource-pill { box-shadow: 0 0 0 2px var(--team), var(--e2); }
-/* a Trupp marked «raus» (Atemschutz board): dim the chip + strike the name, and show a
-   small grey raus tag so the plan reflects that the team is out. «raus» is GONE, not disabled:
-   the ONE done dim (01-tokens · --done-opacity, 28.09.2026 — it was .5 plus a greyed name) */
+/* a Trupp marked «raus» (Atemschutz board): dim the chip and show a small grey raus tag so the
+   plan reflects that the team is out. «raus» is GONE, not disabled: the ONE done dim (01-tokens ·
+   --done-opacity, 28.09.2026 — it was .5 plus a greyed name), and nothing on top of it — the
+   struck-through name went 05.11.2026 (hill climb r13: a second «gone» mark over the dim) */
 .wb-resource-pill.raus { opacity: var(--done-opacity); }
-.wb-resource-pill.raus b { text-decoration: line-through; }
 .wb-resource-raus { font-size: var(--fs-micro); font-weight: var(--fw-bold); letter-spacing: .04em; text-transform: uppercase;
   color: var(--ink-dim); background: var(--fill-soft); border-radius: var(--r-xs); padding: 2px var(--sp-1); }
 
@@ -722,8 +724,11 @@ span.wb-ghost-label { cursor: default; }
   border: 2px solid #fff; box-shadow: var(--e1); flex: none; }
 .team-dot b { font-size: var(--fs-1); font-weight: var(--fw-bold); line-height: 1.25; color: var(--ink); background: var(--label-bg);
   border-radius: var(--r-xs); padding: 2px var(--sp-2); white-space: nowrap; box-shadow: var(--label-plate); }
+/* out: THE done dim, and the map's grayscale (01-tokens · --done-filter, as a done symbol's
+   `.ts-done`) on the dot – the colour carrier. Not on the name: the night filter's brightness
+   lifts the dark plate and the name read LESS gone. No strike-through — see .wb-resource-pill.raus */
 .team-dot.raus { opacity: var(--done-opacity); }
-.team-dot.raus b { text-decoration: line-through; }
+.team-dot.raus i { filter: var(--done-filter); }
 .wb-resource-input { border: none; outline: none; background: var(--blue-8); border-radius: var(--r-xs); font-family: var(--body);
   font-size: var(--fs-1); font-weight: var(--fw-bold); color: var(--ink); width: 76px; padding: 2px var(--sp-1); }
 /* the ✕ that empties the name field — pill-sized (the form's 44px ClearableInput would be
@@ -1025,10 +1030,9 @@ span.wb-ghost-label { cursor: default; }
 .line-end-tag.tone-warn { background: color-mix(in srgb, var(--amber) 14%, var(--on-accent-ink)); }
 .line-end-tag.tone-crit { background: color-mix(in srgb, var(--red) 16%, var(--on-accent-ink)); }
 /* The Trupp is out. The tag stays (it is the record of who worked this Leitung until the next
-   Trupp takes it) but steps back to the same read as that Trupp's marker on the map: dashed box,
-   dimmed, name struck through. */
-.line-end-tag.tone-muted { border-style: dashed; opacity: .55; }
-.line-end-tag.tone-muted .line-end-trupp { text-decoration: line-through; }
+   Trupp takes it) but steps back to the same read as that Trupp's marker on the map: THE done dim
+   (01-tokens · --done-opacity), and a dashed box. No strike-through (05.11.2026, as the marker). */
+.line-end-tag.tone-muted { border-style: dashed; opacity: var(--done-opacity); }
 
 /* Plan-Maßstab + Messen overlays — match the Lage map's measure tool exactly: a dashed blue
    path (#1f6feb), 10 % blue fill, and white nodes with a 3 px blue ring. */

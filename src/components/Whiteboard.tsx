@@ -1908,7 +1908,10 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
   // stack is the one plan that IS the building, and its row said «Gebäude •» while the Karte said
   // «⚠ Gebäude-Info · Gas» – the hazard was gone exactly where the crew looks at the storeys. Not
   // on the outline picker (no building chosen yet). BuildingFloat renders nothing without content.
-  const buildingFloat = !isPhone && (stack || (!objectChipHidden && (objectName || objectAddress)))
+  // ⚠️ The stack keeps it on a PHONE as well (hill climb r13): the 09.10. rule above protects the
+  // Objekt chip's name, and the stack drops that chip – the building chip beside it is the read-out
+  // that truncates (09-whiteboard · .wb-building-named), so nothing there loses its answer.
+  const buildingFloat = (stack || (!isPhone && !objectChipHidden && (objectName || objectAddress)))
     ? <BuildingFloat info={buildingInfo ?? null} compact />
     : null
 
