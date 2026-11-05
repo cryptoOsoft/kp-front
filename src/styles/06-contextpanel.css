@@ -943,8 +943,9 @@ span.jr-pinned-text::after { display: none; }
    the way past a cap on a block that could not scroll itself; the box scrolls now, so a second
    way to see the same rows would be exactly that — a second way to see the same rows. */
 
-/* the job printed after a linked name («Widmer Céline (EL)»). Regular weight in the secondary
-   ink, under the medium name: it explains the name, it is not part of it — and every second row
-   of a busy Verlauf carries one, so it has to stay quiet. */
-.jr-link-role { font-style: normal; font-weight: var(--fw-regular); color: var(--ink-dim); }
+/* the job printed after a linked name («Widmer Céline (EL)»). Regular weight, one step smaller
+   (--fs-1) and in the faint ink, under the medium name (owner pick C4, 05.11.2026 – it was the
+   row's size in the secondary ink): it explains the name, it is not part of it — and every second
+   row of a busy Verlauf carries one, so it has to stay quiet. The brackets stay, as on paper. */
+.jr-link-role { font-style: normal; font-weight: var(--fw-regular); font-size: var(--fs-1); color: var(--ink-faint); }
 /* (.ctx-span-open — a bare blue «Geschosse angeben» word — removed 28.09.2026: no caller left) */
