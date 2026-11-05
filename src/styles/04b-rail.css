@@ -136,12 +136,12 @@
    more: a hint hidden until you already know the shortcut taught nothing. The phone's folded bar
    never wears them (its tiles are doors to groups, and a bar you touch needs no letter).
    Placement follows the tile's shape, because the badge must never sit on its glyph or its word:
-     · icon-only (default): glyph and letter are ONE horizontal group – the letter 4px right of the
-       glyph's ink, its cap height centred on the glyph's middle, and the pair centred in the tile:
-       the glyph steps 5px left to make room (hill climb r21, Sol 1: with its foot on the glyph's
-       foot line, r20, «K» and «V» still read as subscripts in the pill's lower-right corner). Only a
-       tile that HAS a letter moves its glyph (`:has(> .rail-key)`); the alarm/count dot keeps the
-       top-right;
+     · icon-only (default): the glyph stays on the tile's centre, the ONE icon axis of the rail,
+       and the letter HANGS beside it – 4px right of the glyph's ink, its cap height centred on the
+       glyph's middle (hill climb r21, Sol 1: with its foot on the glyph's foot line, r20, «K» and
+       «V» read as subscripts). ⚠️ The letter never moves its glyph (hill climb r22, Opus 1: r21
+       stepped lettered glyphs 5px left to centre the pair, and the icon column zig-zagged between
+       lettered and unlettered rows); the alarm/count dot keeps the top-right;
      · words under the glyph (`.labelled`): the TOP-LEFT corner – the word occupies the bottom half
        of the tile, the glyph only the middle of the top half, and the alarm / count / open dots
        all hang off the right;
@@ -155,8 +155,10 @@
    The body face at 11/500, not the mono (hill climb r20, Opus 5): the mono's narrow caps rendered
    ~8px and thin; Sora's are the bar's own letters, wide enough to read at a glance.
    `text-box: trim-both cap alphabetic` makes the letter's box its cap height, so «top: 50% −50%»
-   centres the visible capital on the tile's middle, not the em box with its descender room. */
-.rail-key { display: none; position: absolute; left: calc(50% + 8px); top: 50%; translate: 0 -50%;
+   centres the visible capital on the tile's middle, not the em box with its descender room;
+   `left: 50% + 13px` = the centred 22px glyph box's right edge (50% + 11px), whose ink sits ≈ 1.8px
+   inside it, + 4px of air. */
+.rail-key { display: none; position: absolute; left: calc(50% + 13px); top: 50%; translate: 0 -50%;
   font-family: var(--body); font-size: var(--fs-micro); font-weight: var(--fw-medium);
   font-variant-numeric: tabular-nums; line-height: 1; text-box: trim-both cap alphabetic;
   color: var(--ink-faint); pointer-events: none; }
@@ -166,8 +168,4 @@
 .vrail.expanded:not(.dragging) .rail-key { right: auto; left: 10px; }
 @media (hover: hover) and (pointer: fine) {
   .rail:not(.folded) .rail-key { display: block; }
-  /* the icon-only group: the 22px glyph box (ink ≈ 1.8px inside it) steps 5px left, so ink-left
-     ≈ 50% − 14px and the letter's right ≈ 50% + 15px – centred in the 46px tile */
-  :is(.rail:not(.labelled):not(.expanded), .rail.dragging):not(.folded)
-    :is(.nav-item, .vrail-tool):has(> .rail-key) > :is(.nav-glyph, .vrail-glyph) > .i { translate: -5px 0; }
 }

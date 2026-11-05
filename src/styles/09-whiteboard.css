@@ -137,18 +137,25 @@
    tap (PlanFactsSheet) repeats each fact's own dot with its word. Tones are decided in TS —
    planScale · planFactsTone / scaleLampTone and georefMode · georefChipTone — never here, so the
    chip and the sheet behind it can never disagree about whether a reference is good.
-   On the chip it stands RIGHT AFTER the name, 8px, 6px from the word (hill climb r21, Opus 3 +
-   Sol 2): cut into the glyph's top-right corner (r13) the ring and the building read as one odd
-   glyph. Close to the word, not at the chip's trailing edge, so it reads as the name's state – a
-   9px ring out at the edge (before r13) read as a radio button, a control. The sheet's dot stands
-   before its status word, 6px. */
+   On the chip it stands RIGHT AFTER the name, 6px from the word (hill climb r21, Opus 3 + Sol 2):
+   cut into the glyph's top-right corner (r13) the ring and the building read as one odd glyph.
+   Close to the word, not at the chip's trailing edge, so it reads as the name's state – a 9px ring
+   out at the edge (before r13) read as a radio button, a control. 10px with a 1.5px --ink-dim ring,
+   its middle on the name's cap-height middle (hill climb r22, Opus 2: at 8px in a hairline of
+   --ink-faint, centred on the em box, «Gebäude ○» read as a lowercase «o» or a degree sign). ⚠️ The
+   Rapport eyebrow's ring wears the same 10 / 1.5 / muted-ink spec – change them together.
+   The sheet's dot stands before its status word, 6px. */
 .wb-lamp { width: 6px; height: 6px; border-radius: 50%; flex: none; }
-.wb-scale-chip > .wb-lamp { width: 8px; height: 8px; margin-left: -2px; }
+/* translate: the flex row centres the 10px box on the name's line box, whose middle stands 1px under
+   its cap-height middle (Sora at --fs-1, measured) */
+.wb-scale-chip > .wb-lamp { width: 10px; height: 10px; margin-left: -2px; translate: 0 -1px; }
 .wb-lamp[data-tone='red'] { background: var(--red); }
 /* «not yet» — no scale, no link (29.09.2026, sweep K10): grey, never red at rest. An UNLIT lamp
    (05.11.2026, hill climb r13): a filled grey disc after «Gebäude» read as a decoration with no
    meaning; the empty ring says «nothing set yet», the sheet behind the tap says which. */
-.wb-lamp[data-tone='grey'] { box-sizing: border-box; border: 1.5px solid var(--ink-faint); }
+/* an inset shadow, not a border: a 1.5px border is floored to 1px on a 1× screen, the shadow draws
+   the full 1.5px */
+.wb-lamp[data-tone='grey'] { box-shadow: inset 0 0 0 1.5px var(--ink-dim); }
 .wb-lamp[data-tone='amber'] { background: var(--amber); }
 .wb-lamp[data-tone='green'] { background: var(--green); }
 /* a read-out with nowhere to go (a link-scoped viewer is bound to ONE object) is not greyed out
@@ -408,7 +415,15 @@
 .wb-floor-menu { border: none; cursor: pointer; }
 .wb-stage:has(.wb-ink) .wb-floor-menu { z-index: 6; }
 .wb-floor-menu::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: var(--tap); transform: translateY(-50%); }
-.wb-floor-menu > .i { width: 12px; height: 12px; stroke-width: 2.2; margin-left: -2px; color: var(--ink-faint); }
+/* the ⌄ at the top bar's «5:00 ⌄» size (18-audio · .tb-einsatzuhr .i, a 16px box) at a 1.75px stroke
+   (2.625 of the glyph's 24 units), in --ink-dim (hill climb r22, Opus 7: a 12px box at 1.1px of
+   --ink-faint drew an 8px hairline beside the 15/700 name, noise on the night plate). The chevron
+   ink fills the box's middle half, so -4px either side puts the ink 4px after the name and keeps
+   «3. OG ⌄» inside the plate's 72px (--wb-floor-plate-w). `translate` (no layout, so the plate's
+   width stays) moves the ink the last 1px to the 4px gap and 1.5px down onto the name's cap-height
+   middle: `align-items: center` puts it on the 1-high line box's middle, which at --fs-2 Sora
+   stands 1.5px above the caps' (measured). */
+.wb-floor-menu > .i { width: 16px; height: 16px; stroke-width: 2.625; margin-inline: -4px; translate: 1px 1.5px; color: var(--ink-dim); }
 @media (hover: hover) {
   .wb-floor-menu:hover { color: var(--ink); }
 }
@@ -1072,28 +1087,22 @@ span.wb-ghost-label { cursor: default; }
 
 /* FKS hose-line decorations — shared by the Lage map (in a Marker) and the Plan (wb-line-deco) */
 .line-fork { display: block; }
-/* The border is the LINE's own colour (`--tag-ink`, set inline by lib/lineDecor · EndTag), the text
-   that hue taken 30 % toward black, on the near-white plate the tactical-symbol chip uses
-   (.ts-rot.white) – so the line keeps its identity colour instead of being flattened to `--ink`.
+/* The end tag is a MAP LABEL PLATE like «Roth Anna» or «Dach» – the plates' --label-bg (white by
+   day, slate at night), --ink text at their --fs-1/700 – and only its EDGE is the line's own colour
+   (`--tag-ink`, set inline by lib/lineDecor · EndTag), 1.5px in place of --label-plate's neutral
+   hairline, so it still says which line it belongs to (hill climb r22, Opus 3: blue letters in a
+   thin blue pill read as the smallest, faintest type on the map – a second label kind). The paper
+   crop (.kf-paper) pins the day tokens itself (17-rapport), so the tag prints as paper.
    ⚠️ held to lib/mapView · END_TAG_LABEL_STYLE and lib/endTagSpots · tagSize (mapView.labelCss.test.ts):
-   the label plates' type – --fs-1/700, the names' and readouts' – and their small-label corner
-   (--r-xs); 2px/4px + the 1.5px ring = a ~20px plate with ~6px of side room (hill climb r17, Sol 2 /
-   Opus 8: at 800 on 1px/4px and a 4px corner it was the most cramped text on the map; r13 had
-   taken it off --fs-micro, the printed Kroki draws it at 12px).
-   Its ring is its plate edge – the line's colour, in place of --label-plate's neutral one – under
-   the plates' one contact step (--e0, hill climb r16 Sol 2). Where it stands: lib/endTagSpots ·
-   endTagOffset, short of the line's end so the arrowhead stays visible (r16, Opus 4). */
-.line-end-tag { --tag-plate: var(--on-accent-ink); --tag-text: color-mix(in srgb, var(--tag-ink) 70%, #000);
+   the label plates' type and their small-label corner (--r-xs); 2px/4px + the 1.5px edge = a ~20px
+   plate with ~6px of side room (hill climb r17, Sol 2 / Opus 8: at 800 on 1px/4px and a 4px corner it
+   was the most cramped text on the map; r13 had taken it off --fs-micro, the printed Kroki draws it
+   at 12px). Under the plates' one contact step (--e0, hill climb r16 Sol 2). Where it stands:
+   lib/endTagSpots · endTagOffset, short of the line's end so the arrowhead stays visible (r16, Opus 4). */
+.line-end-tag { --tag-plate: var(--label-bg);
   display: inline-grid; place-items: center; padding: 2px var(--sp-1); border: 1.5px solid var(--tag-ink);
-  border-radius: var(--r-xs); background: var(--tag-plate); color: var(--tag-text); font: var(--fw-bold) var(--fs-1)/1 var(--body); white-space: nowrap;
+  border-radius: var(--r-xs); background: var(--tag-plate); color: var(--ink); font: var(--fw-bold) var(--fs-1)/1 var(--body); white-space: nowrap;
   box-shadow: var(--e0); }
-/* NIGHT: the map plate (--label-bg) like every other label – the near-white tag was the brightest
-   thing on a dark map. The text then takes the hue 55 % toward the night --ink, never the plain hue:
-   the palette holds a near-black line (#1b2330) and a dark blue, either of which would vanish on the
-   dark plate (31.08.: «a blue «S» on the dark surface was unreadable»); mixed, every swatch is ≥ 5:1.
-   Not on the printed crop (.kf-paper), which stays paper. */
-:root[data-theme="night"] .line-end-tag:not(.kf-paper .line-end-tag) {
-  --tag-plate: var(--label-bg); --tag-text: color-mix(in srgb, var(--tag-ink) 45%, var(--ink)); }
 /* ⚠️ `inline-grid` gives every text run its own ROW, so «1 · +2 ·» and the Trupp name stack —
    compact over a live hose, and not what the sheet does: kroki.py joins every part with « · »
    on one line. The print crop asks for the paper's shape. */
