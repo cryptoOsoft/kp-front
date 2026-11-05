@@ -708,19 +708,21 @@ export function MapMarkers({ entities, byName, isVisible, selectedId, groupSelec
         )
       })}
       {/* team trail breadcrumbs (recorded via «Position markieren») — same dot + timestamp
-          look as the plan board; pointer-transparent so they never block a map tap */}
-      {entities.filter((e) => e.kind === 'team' && isVisible(effectiveLayer(e)) && Array.isArray(e.coord) && e.trail?.length && !hiddenTrails?.has(e.id)).flatMap((e) =>
-        (e.trail ?? []).map((p, i) => (
+          look as the plan board; pointer-transparent so they never block a map tap. An out
+          Trupp's track wears its marker's done dim (`.raus`, as EntityMarker decides it) */}
+      {entities.filter((e) => e.kind === 'team' && isVisible(effectiveLayer(e)) && Array.isArray(e.coord) && e.trail?.length && !hiddenTrails?.has(e.id)).flatMap((e) => {
+        const raus = !!e.truppId && !!trupps?.some((t) => t.id === e.truppId && t.status === 'raus')
+        return (e.trail ?? []).map((p, i) => (
           // style on the Marker itself: the WRAPPER div must be pointer-transparent too,
           // or a dot lying under the pill (marked without moving) swallows the pill's tap
           <Marker key={`${e.id}-trail-${i}`} longitude={p.coord[0]} latitude={p.coord[1]} anchor="center" draggable={false} style={{ pointerEvents: 'none' }}>
-            <div className="map-trail-dot">
+            <div className={raus ? 'map-trail-dot raus' : 'map-trail-dot'}>
               <span className="wb-trail-mark" style={{ background: e.color || appConfig.drawing.teamColors[0] }} />
               {!suppressedLabels?.has(`crumb:${e.id}:${i}`) && <i>{p.t}</i>}
             </div>
           </Marker>
-        )),
-      )}
+        ))
+      })}
     </>
   )
 }

@@ -70,7 +70,8 @@ import { attachInsetPx, lineJoints, boundaryPoint, DETACH_SHOW_PROGRESS, dwellFo
 /** The ink a ghost «Spur» is drawn in — neutral grey, not the Trupp's colour: colour means
  *  IDENTITY on this map (lib/teamColors), and a trail whose marker is gone must not claim that a
  *  Trupp is standing somewhere. A frozen value rather than a token because MapLibre's paint
- *  cannot read a CSS custom property; it is deliberately mid-grey, so it reads on both themes. */
+ *  cannot read a CSS custom property; it is deliberately mid-grey, so it reads on both themes.
+ *  An OUT Trupp's trail line wears it too (dimmed): its colour has stopped meaning «here». */
 const GHOST_TRAIL_INK = '#8a8f98'
 /** The open draft's marching dashes (27.10.2026): MapLibre cannot animate a dash offset, so the
  *  dash pattern itself steps through one period — MapLibre's own «animate a line» recipe. */
@@ -1157,10 +1158,16 @@ export const MapView = forwardRef<MapRef, MapViewProps>(function MapView(props, 
   }
   const fhFC = useMemo(() => fc(fhPath && fhPath.length >= 2 ? [lineFeat(fhPath)] : []), [fhPath])
   // team trails: the dashed line through a Trupp's RECORDED positions (parity with the plan
-  // board's ink polyline — the breadcrumb dots + timestamps stay DOM markers in MapMarkers)
+  // board's ink polyline — the breadcrumb dots + timestamps stay DOM markers in MapMarkers).
+  // An OUT Trupp's line wears its marker's done dim (`done`: the neutral grey at --done-opacity,
+  // the paint's stand-in for `.raus`'s grayscale + opacity), so the whole group recedes together.
   const trailFC = useMemo(() => fc(entities
     .filter((e) => e.kind === 'team' && isVisible(effectiveLayer(e)) && (e.trail?.length ?? 0) >= 2 && !hiddenTrails.has(e.id))
-    .map((e) => lineFeat((e.trail ?? []).map((p) => p.coord), { color: e.color || appConfig.drawing.teamColors[0] }))), [entities, isVisible, hiddenTrails])
+    .map((e) => lineFeat((e.trail ?? []).map((p) => p.coord), {
+      color: e.color || appConfig.drawing.teamColors[0],
+      done: !!e.truppId && !!trupps?.some((t) => t.id === e.truppId && t.status === 'raus'),
+    }))), [entities, isVisible, hiddenTrails, trupps])
+  const doneOpacity = Number(themeToken('--done-opacity', '.5')) || 0.5
   // …and the same dashed line for a ghost trail, in the neutral ink: the marker is gone, so the
   // Trupp's own colour would claim a Trupp that is not standing anywhere (lib/truppTrails).
   const ghostTrailFC = useMemo(() => fc((ghostTrails ?? [])
@@ -1400,7 +1407,8 @@ export const MapView = forwardRef<MapRef, MapViewProps>(function MapView(props, 
           a dashed breadcrumb reads exactly like a landmark-worthy path during calibration. */}
       <Source id="s-team-trails" type="geojson" data={trailFC}>
         <Layer id="l-team-trails" type="line" layout={{ 'line-join': 'round', ...vis(!georefOn) }}
-          paint={{ 'line-color': ['get', 'color'], 'line-width': 2, 'line-dasharray': [2.5, 2.5], 'line-opacity': 0.85 }} />
+          paint={{ 'line-color': ['case', ['get', 'done'], GHOST_TRAIL_INK, ['get', 'color']], 'line-width': 2, 'line-dasharray': [2.5, 2.5],
+            'line-opacity': ['case', ['get', 'done'], 0.85 * doneOpacity, 0.85] }} />
       </Source>
       {/* …and the ghost trails behind them: the same dashed path, in the neutral ink, because the
           Trupp that walked it is no longer standing anywhere (lib/truppTrails). */}

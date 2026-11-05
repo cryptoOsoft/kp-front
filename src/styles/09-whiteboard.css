@@ -131,18 +131,28 @@
 /* the pill goes somewhere — a small, quiet chevron, never the pill's own weight */
 .wb-scale-chip .wb-chip-chev { width: 12px; height: 12px; flex: none; color: var(--ink-faint); margin-left: -2px; }
 /* ── The pill row's lamp ───────────────────────────────────────────────────────────────────────
-   The Objekt chip (on the Gebäude: the building chip) carries ONE 9px Ampel dot since sweep
+   The Objekt chip (on the Gebäude: the building chip) carries ONE Ampel dot since sweep
    28.10.2026 (#8) – the worse of Karte link and Massstab – in the SAME three tones the
    georeference's own lamp uses (GeorefMode.module.css · .dot / .sdot); the Plan sheet behind the
    tap (PlanFactsSheet) repeats each fact's own dot with its word. Tones are decided in TS —
    planScale · planFactsTone / scaleLampTone and georefMode · georefChipTone — never here, so the
-   chip and the sheet behind it can never disagree about whether a reference is good. */
-.wb-lamp { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+   chip and the sheet behind it can never disagree about whether a reference is good.
+   6px, and on the chip it sits on the GLYPH's top-right corner, cut out of it by a halo in the
+   chip's own plate (hill climb r13, Opus 5): a 9px ring at the chip's trailing edge read as a
+   radio button – a control – where it is a state of the thing the glyph names. The sheet's dot
+   stands before its status word, the same 6px. */
+.wb-lamp { width: 6px; height: 6px; border-radius: 50%; flex: none; }
+.wb-scale-chip:has(> .wb-lamp) { position: relative; --lamp-halo: var(--float-bg); }
+.wb-scale-chip.arm { --lamp-halo: color-mix(in srgb, var(--blue) 14%, var(--float-bg)); }
+/* the chip's first child is its 16px glyph at the --float-pad-x inset, centred: the dot's centre
+   lands 1px inside that box's top-right corner */
+.wb-scale-chip > .wb-lamp { position: absolute; left: calc(var(--float-pad-x) + 16px - 4px); top: calc(50% - 8px - 2px);
+  box-shadow: 0 0 0 2px var(--lamp-halo); }
 .wb-lamp[data-tone='red'] { background: var(--red); }
 /* «not yet» — no scale, no link (29.09.2026, sweep K10): grey, never red at rest. An UNLIT lamp
    (05.11.2026, hill climb r13): a filled grey disc after «Gebäude» read as a decoration with no
    meaning; the empty ring says «nothing set yet», the sheet behind the tap says which. */
-.wb-lamp[data-tone='grey'] { box-sizing: border-box; border: 1.5px solid var(--ink-faint); }
+.wb-lamp[data-tone='grey'] { box-sizing: border-box; border: 1.5px solid var(--ink-faint); background: var(--lamp-halo, transparent); }
 .wb-lamp[data-tone='amber'] { background: var(--amber); }
 .wb-lamp[data-tone='green'] { background: var(--green); }
 /* a read-out with nowhere to go (a link-scoped viewer is bound to ONE object) is not greyed out
@@ -704,24 +714,40 @@ span.wb-ghost-label { cursor: default; }
 /* team trail breadcrumbs — counter-scaled dot centred on the point, with the
    timestamp floated beside it (absolute, so it doesn't shift the dot off-point) */
 .wb-trail-dot { position: absolute; left: 0; top: 0; transform-origin: 0 0; z-index: 2; pointer-events: none; }
-.wb-trail-mark { display: block; width: 9px; height: 9px; border-radius: 50%; border: 2px solid #fff; box-shadow: var(--e1); }
+/* the dot's shadow is the plates' contact step (--e0): in a cluster the e1 spread ran into a fringe
+   (hill climb r13, Sol 2 – ONE plate treatment for every map/plan label) */
+.wb-trail-mark { display: block; width: 9px; height: 9px; border-radius: 50%; border: 2px solid #fff; box-shadow: var(--e0); }
+/* a breadcrumb's time is a record, one step under the Trupp's name: secondary ink, medium weight,
+   the plate's hairline without the contact shadow (hill climb r13, Opus 2 – it was full ink + e1,
+   the loudest thing near the marker). Same read as the Lage's .map-trail-dot i below. */
 .wb-trail-dot i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-family: var(--mono); font-style: normal;
-  font-size: var(--fs-micro); font-weight: var(--fw-bold); color: var(--ink); background: var(--label-bg); border-radius: var(--r-xs); padding: 1px var(--sp-1);
-  white-space: nowrap; box-shadow: var(--e1); }
+  font-size: var(--fs-micro); font-weight: var(--fw-medium); color: var(--ink-dim); background: var(--label-bg); border-radius: var(--r-xs); padding: 1px var(--sp-1);
+  white-space: nowrap; box-shadow: inset 0 0 0 1px var(--ink-16); }
+/* an OUT Trupp's track: THE done dim on the whole group – dots and times – like its marker
+   (.wb-resource-pill.raus / .team-dot.raus), grayscale on the colour carrier (the dot) */
+.wb-trail-dot.raus, .map-trail-dot.raus { opacity: var(--done-opacity); }
+:is(.wb-trail-dot, .map-trail-dot).raus .wb-trail-mark { filter: var(--done-filter); }
+/* …and its polyline (WbControls · WbInkLayer; the Lage's l-team-trails paints the same in GL):
+   grey for the grayscale, the dim on top of the line's own .85 */
+.wb-trail-line.raus { stroke: var(--ink-faint); opacity: calc(.85 * var(--done-opacity)); }
 /* the same breadcrumbs on the Lage map — the MapLibre Marker centres the dot on the coord,
    so only the floating timestamp needs positioning (shares .wb-trail-mark for the dot) */
 .map-trail-dot { position: relative; pointer-events: none; }
 /* ⚠️ held to lib/mapView · CRUMB_LABEL_STYLE (the label pass books this box before it is drawn,
-   and drops the time when it would cover another label – mapView.labelCss.test.ts) */
+   and drops the time when it would cover another label – mapView.labelCss.test.ts)
+   One step under the names (hill climb r13, Opus 2): the names' size, but medium weight, secondary
+   ink and the plate's hairline without its contact shadow – a time is a record, the name the Trupp. */
 .map-trail-dot i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-family: var(--mono); font-style: normal;
-  font-size: var(--fs-1); font-weight: var(--fw-bold); line-height: 1.25; color: var(--ink); background: var(--label-bg); border-radius: var(--r-xs); padding: 2px var(--sp-2);
-  white-space: nowrap; box-shadow: var(--label-plate); }
+  font-size: var(--fs-1); font-weight: var(--fw-medium); line-height: 1.25; color: var(--ink-dim); background: var(--label-bg); border-radius: var(--r-xs); padding: 2px var(--sp-2);
+  white-space: nowrap; box-shadow: inset 0 0 0 1px var(--ink-16); }
 /* a selected team marker on the map rings its pill like the plan board's selection */
 .marker.sel .wb-resource-pill { box-shadow: 0 0 0 2px var(--team), var(--e2); }
 /* resting team marker — compact team-coloured dot + name; the full pill only on selection */
 .team-dot { display: inline-flex; align-items: center; gap: var(--sp-2); }
+/* the dot's shadow is the plates' contact step (--e0, hill climb r13 Sol 2: with e1 a cluster of
+   markers ran into one dark fringe) */
 .team-dot i { width: 13px; height: 13px; border-radius: 50%; background: var(--team);
-  border: 2px solid #fff; box-shadow: var(--e1); flex: none; }
+  border: 2px solid #fff; box-shadow: var(--e0); flex: none; }
 .team-dot b { font-size: var(--fs-1); font-weight: var(--fw-bold); line-height: 1.25; color: var(--ink); background: var(--label-bg);
   border-radius: var(--r-xs); padding: 2px var(--sp-2); white-space: nowrap; box-shadow: var(--label-plate); }
 /* out: THE done dim, and the map's grayscale (01-tokens · --done-filter, as a done symbol's
@@ -729,6 +755,8 @@ span.wb-ghost-label { cursor: default; }
    lifts the dark plate and the name read LESS gone. No strike-through — see .wb-resource-pill.raus */
 .team-dot.raus { opacity: var(--done-opacity); }
 .team-dot.raus i { filter: var(--done-filter); }
+/* …and its track wears the same (.map-trail-dot.raus, with the Plan's breadcrumbs above): the whole
+   out-Trupp group recedes together, not a dim marker beside a live-looking «15:15» */
 .wb-resource-input { border: none; outline: none; background: var(--blue-8); border-radius: var(--r-xs); font-family: var(--body);
   font-size: var(--fs-1); font-weight: var(--fw-bold); color: var(--ink); width: 76px; padding: 2px var(--sp-1); }
 /* the ✕ that empties the name field — pill-sized (the form's 44px ClearableInput would be
@@ -986,7 +1014,7 @@ span.wb-ghost-label { cursor: default; }
    draggable (labelDx/labelDy) to nudge it off the ink */
 .wb-line-label { position: absolute; padding: 2px var(--sp-2); border-radius: var(--r-xs); font-size: var(--fs-micro); font-weight: var(--fw-bold);
   text-align: center; line-height: 1.25; white-space: nowrap; background: var(--surface); color: var(--ink);
-  box-shadow: var(--e1); touch-action: none; }
+  box-shadow: var(--label-plate); touch-action: none; }
 /* area (Sektor/Abschnitt) label — sits at the polygon centroid; may wrap, unlike a line label */
 .wb-area-label { white-space: normal; max-width: 42%; }
 /* plan-side wrapper for FKS line decorations (fork / content chip / number badge) in board px */
@@ -1012,13 +1040,22 @@ span.wb-ghost-label { cursor: default; }
 
 /* FKS hose-line decorations — shared by the Lage map (in a Marker) and the Plan (wb-line-deco) */
 .line-fork { display: block; }
-/* ⚠️ `--on-accent-ink`, NOT `--surface` (31.08.): text and border are the LINE's own colour, which
-   is chosen to read on a map, not against a night-mode panel — a blue «S» on the dark `--surface`
-   was unreadable at night, on the one tag that says which Leitung this is. The plate is the same
-   near-white the tactical-symbol chip uses (.ts-rot.white), so glyph and tag read alike in both
-   themes and the line keeps its identity colour instead of being flattened to `--ink`. */
-.line-end-tag { display: inline-grid; place-items: center; padding: 2px var(--sp-1); border: 1.5px solid currentColor;
-  border-radius: 4px; background: var(--on-accent-ink); font: var(--fw-heavy) var(--fs-micro)/1 var(--body); white-space: nowrap; }
+/* The border is the LINE's own colour (`--tag-ink`, set inline by lib/lineDecor · EndTag), the text
+   that hue taken 30 % toward black, on the near-white plate the tactical-symbol chip uses
+   (.ts-rot.white) – so the line keeps its identity colour instead of being flattened to `--ink`.
+   ⚠️ held to lib/mapView · END_TAG_LABEL_STYLE and lib/endTagSpots · tagSize (mapView.labelCss.test.ts):
+   --fs-1/800, 1px/4px + the 1.5px ring = a ~18px plate (hill climb r13, Opus 7: at --fs-micro it was
+   the smallest type on the map; the printed Kroki draws it at 12px). */
+.line-end-tag { --tag-plate: var(--on-accent-ink); --tag-text: color-mix(in srgb, var(--tag-ink) 70%, #000);
+  display: inline-grid; place-items: center; padding: 1px var(--sp-1); border: 1.5px solid var(--tag-ink);
+  border-radius: 4px; background: var(--tag-plate); color: var(--tag-text); font: var(--fw-heavy) var(--fs-1)/1 var(--body); white-space: nowrap; }
+/* NIGHT: the map plate (--label-bg) like every other label – the near-white tag was the brightest
+   thing on a dark map. The text then takes the hue 55 % toward the night --ink, never the plain hue:
+   the palette holds a near-black line (#1b2330) and a dark blue, either of which would vanish on the
+   dark plate (31.08.: «a blue «S» on the dark surface was unreadable»); mixed, every swatch is ≥ 5:1.
+   Not on the printed crop (.kf-paper), which stays paper. */
+:root[data-theme="night"] .line-end-tag:not(.kf-paper .line-end-tag) {
+  --tag-plate: var(--label-bg); --tag-text: color-mix(in srgb, var(--tag-ink) 45%, var(--ink)); }
 /* ⚠️ `inline-grid` gives every text run its own ROW, so «1 · +2 ·» and the Trupp name stack —
    compact over a live hose, and not what the sheet does: kroki.py joins every part with « · »
    on one line. The print crop asks for the paper's shape. */
@@ -1027,8 +1064,8 @@ span.wb-ghost-label { cursor: default; }
    the box filled a little, so the state reads without decoding the colour of a thin line. NO
    animation — a pulsing hose was tried and rejected: the Atemschutz board is the surface that
    raises the alarm, this is the picture telling you WHERE those people are. */
-.line-end-tag.tone-warn { background: color-mix(in srgb, var(--amber) 14%, var(--on-accent-ink)); }
-.line-end-tag.tone-crit { background: color-mix(in srgb, var(--red) 16%, var(--on-accent-ink)); }
+.line-end-tag.tone-warn { background: color-mix(in srgb, var(--amber) 14%, var(--tag-plate)); }
+.line-end-tag.tone-crit { background: color-mix(in srgb, var(--red) 16%, var(--tag-plate)); }
 /* The Trupp is out. The tag stays (it is the record of who worked this Leitung until the next
    Trupp takes it) but steps back to the same read as that Trupp's marker on the map: THE done dim
    (01-tokens · --done-opacity), and a dashed box. No strike-through (05.11.2026, as the marker). */

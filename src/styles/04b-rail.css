@@ -141,7 +141,7 @@
 .rail-key { display: none; position: absolute; right: 6px; bottom: 4px; min-width: 10px;
   font-family: var(--mono); font-size: var(--fs-micro); font-weight: var(--fw-medium);
   line-height: 14px; text-align: center; color: var(--ink-faint); pointer-events: none; }
-:is(.nav-item, .vrail-tool).on .rail-key { color: var(--on-accent-ink); }
+:is(.nav-item, .vrail-tool).on .rail-key { color: var(--on-here); }
 .rail.labelled:not(.expanded):not(.dragging) .rail-key { top: 4px; bottom: auto; right: auto; left: 6px; }
 .rail.expanded:not(.dragging) .rail-key { top: 50%; bottom: auto; margin-top: -8px; right: 10px; }
 .vrail.expanded:not(.dragging) .rail-key { right: auto; left: 10px; }
