@@ -63,7 +63,7 @@ import { CaptureUsageChip, type CaptureUsage } from './CaptureUsageChip'
 import { DateTimeField, TimeField } from './TimeField'
 import { Stepper } from './Stepper'
 import { Menu, Popover } from '../lib/overlays'
-import { CheckRow } from './ReportCheckRow'
+import { CheckRow, StatusMark } from './ReportCheckRow'
 import { dirtyFormMeta, formToMeta, geretteteMeta, numOrU, partnerFilled, partnersMeta, remoteForm, rueckMeta, type ReportForm } from './reportForm'
 import { normCount, normDtLocal, normList, normPartners, normText, useBlurTick, useSyncedField } from './useSyncedField'
 import { ReportSignatures } from './ReportSignatures'
@@ -1128,6 +1128,14 @@ export function ReportPreflight({
   // are warnings, they live beside the buttons they must be read before, and a header that also
   // mentioned them would be the second place to look for the same thing.
   const missing = missingSteps(facts)
+  /* Each form section's own open/done state, for the status mark after its eyebrow (StatusMark,
+   * hill climb r24): the same mark the round-up's CheckRows carry, read off the same `missing` list
+   * the head's «n offen» counts – a section is open while one of its Mindestangaben is. The
+   * Einsatzdaten card is open while a fact it draws as «Nicht erfasst» (MissingFact) is missing.
+   * «Zeiten» holds no Mindestangabe (Einsatzende is the Nachbearbeitung's), so it has no state and
+   * no mark. */
+  const sectionDone = (steps: readonly AbschlussStep[]) => !steps.some((st) => missing.includes(st))
+  const dispatchDone = !!incident.title && !!incident.address && !!alarmiert
   /* What is still open rides inside the ONE Kontrolle chip, at every width (23.09.2026, option B
    * of the UX review). It was a strip of 18px chips under the title on a wide head — the smallest
    * targets in the product, 5–7px apart — and this same popover only below 860px. Raising the
@@ -1520,9 +1528,12 @@ export function ReportPreflight({
         )}
         {/* PHONE ONLY — `display: none` from 601px up, so tablet and desktop are byte-identical
             to what they were. Outside the scrolling body on purpose: it is a flex item of the
-            surface, like the head, so it cannot scroll away from under the thumb. The dot marks
-            a tab holding a Mindestangabe that is still open — the same amber the head's chips
-            use, so «noch offen» means one thing on this page. */}
+            surface, like the head, so it cannot scroll away from under the thumb. A tab holding a
+            Mindestangabe that is still open carries the page's OPEN mark after its word – the
+            dashed ring its section heads wear (StatusMark, hill climb r24; an amber corner dot
+            until then read as a notification badge, a second language for «offen»). The amber
+            stays the head's «n offen» chip's, the count. A done tab carries nothing: a tab is a
+            way to a page, not a section, and discs on two of three tabs read as bullets. */}
         <PhoneTabBar<PhoneTab>
           ariaLabel={P.tabsLabel}
           value={phoneTab}
@@ -1533,7 +1544,7 @@ export function ReportPreflight({
             return {
               value: t,
               title: open ? `${P.tabs[t]} – ${P.headStillOpen}` : P.tabs[t],
-              label: <>{P.tabs[t]}{open && <span className="rp-tab-dot" aria-hidden />}</>,
+              label: <>{P.tabs[t]}{open && <StatusMark done={false} />}</>,
             }
           })}
         />
@@ -1590,9 +1601,9 @@ export function ReportPreflight({
                     e.preventDefault()
                     onEditDispatch()
                   }}>
-                  {P.fromDispatch}
+                  {P.fromDispatch}<StatusMark done={dispatchDone} />
                 </span>
-              ) : <span className="report-meta-dispatch-head">{P.fromDispatch}</span>}
+              ) : <span className="report-meta-dispatch-head">{P.fromDispatch}<StatusMark done={dispatchDone} /></span>}
               <dl className="report-meta-readout">
                 {/* Stichwort, Art and Ort first (owner, 18.09.2026): the block is what the Rapport
                     was opened FOR, and with the three pages behind one tile the reader must see
@@ -1638,7 +1649,7 @@ export function ReportPreflight({
               sections now, each named after the question it answers, in exactly the order they
               were already in (that order is the printed rapport's). */}
           <section className="report-pre-section report-pre-meta" data-tab="bericht">
-            <h3>{P.sectionBericht}</h3>
+            <h3 className="rp-marked">{P.sectionBericht}<StatusMark done={sectionDone(['kurzbericht', 'einsatzleiter', 'kontaktperson'])} /></h3>
             {/* after-arrival — editable inline (replaces the old Bearbeiten modal).
                 ⚠️ `data-sync` marks which Rapportangabe the caret is in, so a value arriving
                 from another device is never yanked out from under somebody typing here — it is
@@ -1962,7 +1973,7 @@ export function ReportPreflight({
           </section>
 
           <section className="report-pre-section report-pre-meta" data-tab="bericht">
-            <h3>{P.sectionNachbearbeitung}</h3>
+            <h3 className="rp-marked">{P.sectionNachbearbeitung}<StatusMark done={sectionDone(['zeiten', 'rueckmeldung'])} /></h3>
             <label className="ip-field" data-sync="remarks">
               <span>{P.remarksLabel}</span>
               {canEdit ? (

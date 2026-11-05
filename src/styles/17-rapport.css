@@ -22,6 +22,11 @@
    shade apart from three headings stacked in the same column. Since 28.09.2026 all of them are
    the app's ONE eyebrow (01-tokens · --eyebrow, --ink-faint). */
 .report-meta-dispatch-head { font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-faint); }
+/* A form section's eyebrow with an open/done state carries THE status mark after its word, 8px
+   off – the round-up's CheckRow head (13-incident · .rp-check-main), so «Aus den Einsatzdaten»,
+   «Bericht & Beteiligte» and «Nachbearbeitung» say open/done in the language «Anwesenheit» does
+   across the page (ReportPreflight · StatusMark, hill climb r24). «Zeiten» has no state, no mark. */
+.report-meta-dispatch-head, .report-pre-section h3.rp-marked { display: flex; align-items: center; gap: var(--sp-2); }
 /* the whole dispatch card opens the Einsatzdaten (mirrors an Anwesenheit person row), without the
    card BEING a button: see the <dl> note in ReportPreflight. The class sits on the
    `.report-pre-section` itself, and its states are the round-up cards' beside it (13-incident ·

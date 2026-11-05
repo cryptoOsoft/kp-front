@@ -2137,9 +2137,13 @@ select.cv-input { appearance: none; -webkit-appearance: none;
   /* (the strip itself — shown, docked above the nav bar, its segments — is ONE phone block in
      15-mobile.css · .rp-tabs, which owns its box) */
 
-  /* the same amber the head's «noch offen» chips carry — one page, one meaning for «offen» */
-  .rp-tab-dot { position: absolute; top: 7px; right: 8px; width: 7px; height: 7px; border-radius: 50%;
-    background: var(--amber); }
+  /* a tab still holding an open Mindestangabe: the page's OPEN mark after its word (ReportPreflight ·
+     StatusMark, hill climb r24 – an amber corner dot until then, a badge's language), in the
+     segment's own ink so it holds on the «where you are» pill as on the quiet tabs */
+  .rp-tabs .useg-btn .rp-check-dot { background: currentColor; }
+  /* …and a strip carrying one shares its width by content: at 390px «Personal & Mittel» fills its
+     equal third to the padding, and its mark pushed the word 6px over the segment's edges */
+  .rp-tabs > .useg:has(.rp-check-dot) > .useg-btn { flex: 1 1 auto; }
 
   /* One rule per tab: everything carrying a DIFFERENT tab is off screen. Blocks with no
      `data-tab` at all (the fieldset, the columns) are structure and are not addressed here —
