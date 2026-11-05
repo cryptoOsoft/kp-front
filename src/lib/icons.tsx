@@ -218,6 +218,12 @@ export function IconSprite() {
       {/* «Überwachung abgeben» / «Weitergeben»: the QR itself is the handover gesture in an
           Einsatz — a tablet held out, not an address dictated. Three finder squares and a
           fragment of data, which is what a QR reads as at 18px. */}
+      {/* Präsentationsmodus (05.11.2026): «Präsentieren» is a screen on its stand (also the
+          Verlauf's «Präsentation gestartet/beendet» rows, backend app/presentation); «Zeigen» a
+          fingertip with its tap ring; «Beenden» the stop square. */}
+      <symbol id="present" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="1.5" /><path d="M12 16v4M8 20h8M9 10l2 2 4-4" /></symbol>
+      <symbol id="tap" viewBox="0 0 24 24"><path d="M10 13V6.5a1.5 1.5 0 0 1 3 0V12l3.3.8a2 2 0 0 1 1.5 2.3l-.8 4.4a1.8 1.8 0 0 1-1.8 1.5H11a2 2 0 0 1-1.6-.8L6.6 16.6a1.4 1.4 0 0 1 2-2z" /><path d="M7.2 7.2a4.5 4.5 0 0 1 8.6 0" /></symbol>
+      <symbol id="stop" viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="1.5" /></symbol>
       <symbol id="qr" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><path d="M14 14h3v3h-3zM20 14v3M17 20h4M14 20h1" /></symbol>
       <symbol id="share-ios" viewBox="0 0 24 24"><path d="M8 8.5H6.5A1.8 1.8 0 0 0 4.7 10.3v8.4a1.8 1.8 0 0 0 1.8 1.8h11a1.8 1.8 0 0 0 1.8-1.8v-8.4a1.8 1.8 0 0 0-1.8-1.8H16" /><path d="M12 14V3M8.5 6.5 12 3l3.5 3.5" /></symbol>
       {/* the Kontaktperson's number: tap to dial (Rapport + Erfassung) */}

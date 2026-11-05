@@ -25,7 +25,10 @@ legally on the record, but invisible to anyone reading the Verlauf.
 On top of that there is a third, small source: the server writes lifecycle rows itself
 (`backend/app/api/journal.py` · `append_system_row`) – incident closed, reopened,
 Nachalarm, automatic archival (untouched, stale, and an Übung idle for `alarms.exerciseAutoCloseHours`:
-«Automatisch abgeschlossen (Übung)»).
+«Automatisch abgeschlossen (Übung)») – and, since 05.11.2026, «Präsentation gestartet / beendet
+(<Name>)» from the Präsentationsmodus (`backend/app/presentation.py`, derived `syspr…` ids). Those
+two rows are ALL the Verlauf learns of a presentation: its pointers and views are never recorded
+([`presentation.md`](presentation.md)).
 
 ## What the server observes (since 24.09.2026)
 

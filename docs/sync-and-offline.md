@@ -153,6 +153,14 @@ the module they concern (`lib/connectivity`, `lib/eventScope`, `lib/jsonEqual`,
   ([`ARCHITECTURE.md`](ARCHITECTURE.md#the-server-observes-devices-never-write-observations)).
   What the devices still observe gets a derived id (below).
 
+## Live but never synced: the Präsentationsmodus (05.11.2026)
+
+A presentation is a way of LOOKING at the Einsatz together, so it has none of the machinery above:
+no synced field, no `MERGE_POLICY` row, no IndexedDB, no outbox – offline it is simply not there.
+It rides a third long poll beside the workspace and the Verlauf (`live_wait` topic
+`presentation`), held in the server's memory, and the record gets exactly two server rows,
+«Präsentation gestartet / beendet». The rules: [`presentation.md`](presentation.md).
+
 ## Review regression contracts (02.10.2026)
 
 - Journal lifecycle boundaries and the `sys` id namespace belong to the server. Neither a

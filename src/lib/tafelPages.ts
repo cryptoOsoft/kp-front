@@ -22,6 +22,20 @@ export const SKIZZE = 'skizze'
  */
 const memory = new Map<string, string>()
 const idbKey = (incidentId: string) => `kp-front-tafel-page:${incidentId}`
+/** every mounted `useTafelPage`, so a page set from outside the Whiteboard (`setTafelPage`, the
+ *  Präsentationsmodus following the presenter's page) shows at once */
+const listeners = new Set<(key: string) => void>()
+
+/** Put this device on `page` of the Tafel – what the page strip does, from elsewhere. */
+export function setTafelPage(incidentId: string, page: string) {
+  memory.set(incidentId, page)
+  void idbSet(idbKey(incidentId), page)
+  for (const l of listeners) l(incidentId)
+}
+
+/** The page this device picked on the Tafel, or null when it never picked one (it then sees the
+ *  hook's fallback – see `useTafelPage`). */
+export const pickedTafelPage = (incidentId: string): string | null => memory.get(incidentId) ?? null
 
 export function useTafelPage(incidentId: string | undefined, fallback: string = SKIZZE): [string, (page: string) => void] {
   const key = incidentId ?? ''
@@ -41,10 +55,14 @@ export function useTafelPage(incidentId: string | undefined, fallback: string = 
     }).catch(() => {})
     return () => { live = false }
   }, [key])
+  useEffect(() => {
+    const hear = (k: string) => { if (k === key) setPageState(memory.get(k) ?? null) }
+    listeners.add(hear)
+    return () => { listeners.delete(hear) }
+  }, [key])
   const setPage = useCallback((p: string) => {
-    memory.set(key, p)
-    setPageState(p)
-    if (key) void idbSet(idbKey(key), p)
+    if (key) setTafelPage(key, p)
+    else { memory.set(key, p); setPageState(p) }
   }, [key])
   return [page ?? fallback, setPage]
 }

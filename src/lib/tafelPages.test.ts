@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest'
 import { act, renderHook, waitFor } from '@testing-library/react'
-import { SKIZZE, resetTafelPageMemory, stepPage, useTafelPage } from './tafelPages'
+import { SKIZZE, pickedTafelPage, resetTafelPageMemory, setTafelPage, stepPage, useTafelPage } from './tafelPages'
 import { readFileSync } from 'node:fs'
 
 describe('which Tafel page this device has open', () => {
@@ -33,6 +33,16 @@ describe('which Tafel page this device has open', () => {
     resetTafelPageMemory()
     const b = renderHook(() => useTafelPage('inc-demo', 'fm-demo-ef'))
     await waitFor(() => expect(b.result.current[0]).toBe(SKIZZE))
+  })
+  it('a page set from outside the strip (a presenter followed) shows on every mounted board', () => {
+    resetTafelPageMemory()
+    const a = renderHook(() => useTafelPage('inc-3'))
+    const b = renderHook(() => useTafelPage('inc-3'))
+    expect(pickedTafelPage('inc-3')).toBeNull()
+    act(() => setTafelPage('inc-3', 'fm-ef'))
+    expect([a.result.current[0], b.result.current[0], pickedTafelPage('inc-3')]).toEqual(['fm-ef', 'fm-ef', 'fm-ef'])
+    act(() => a.result.current[1]('fm-2'))
+    expect(b.result.current[0]).toBe('fm-2')
   })
   it('PageUp / PageDown stop at the ends', () => {
     expect([stepPage(['s', 'a', 'b'], 'a', 1), stepPage(['s', 'a', 'b'], 'b', 1), stepPage(['s', 'a'], 's', -1)]).toEqual(['b', 'b', 's'])
