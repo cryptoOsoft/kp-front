@@ -211,6 +211,7 @@ export const journalCopy: Localizable<Pick<Copy, 'journal' | 'tafelPendenzen' | 
     ageToggle: 'Basculer heure / ancienneté',
     openState: 'ouvert',
     openReminderGo: 'Aller à l\'entrée',
+    pinnedWer: 'Qui : {wer}',
     fromTafel: 'depuis le tableau',
     fromTafelTitle: 'Saisi au tableau – toucher ouvre la page',
   },

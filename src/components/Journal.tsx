@@ -776,6 +776,17 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
                         onClick={() => onReminderNote(r)}
                       >{r.text}</button>
                     ) : <span className="jr-pinned-text">{r.text}</span>}
+                    {/* who it is for, and — typed on the Tafel's «Aufträge / Pendenzen» page — that
+                        it came from there, a tap opening that page (mock 6A, Verlauf side) */}
+                    {(r.assignee || r.origin === 'tafel') && (
+                      <span className="jr-pinned-meta">
+                        {r.assignee && <span className="jr-pinned-wer">{fillTemplate(C.pinnedWer, { wer: r.assignee })}</span>}
+                        {r.assignee && r.origin === 'tafel' && <span aria-hidden="true">·</span>}
+                        {r.origin === 'tafel' && (onOpenTafel
+                          ? <button type="button" className="jr-pinned-from" title={C.fromTafelTitle} onClick={onOpenTafel}><Icon id="easel" />{C.fromTafel}</button>
+                          : <span className="jr-pinned-from"><Icon id="easel" />{C.fromTafel}</span>)}
+                      </span>
+                    )}
                     {/* ⚠️ EVERY Meldung, not the latest one. They stand scattered through the
                         Verlauf where they happened, so this is the only place the thread reads
                         as a thread — and showing one of three looked like the whole story. */}
@@ -784,11 +795,6 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
                         <b>{rowClock(n.at)}</b>{n.text}
                       </span>
                     ))}
-                    {/* typed on the Tafel's «Aufträge / Pendenzen» page (mock 6A): it says so, and
-                        a tap opens that page */}
-                    {r.origin === 'tafel' && (onOpenTafel
-                      ? <button type="button" className="jr-pinned-from" title={C.fromTafelTitle} onClick={onOpenTafel}><Icon id="easel" />{C.fromTafel}</button>
-                      : <span className="jr-pinned-from"><Icon id="easel" />{C.fromTafel}</span>)}
                   </div>
                   {/* ⚠️ …and it says WHEN, not just that there is a when. The bare clock glyph
                       answered «meldet sich selbst» and left the one thing to act on — «um wie

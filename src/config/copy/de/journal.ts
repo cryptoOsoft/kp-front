@@ -352,8 +352,9 @@ export const journalCopy = {
     ageLabelHours: '{n} h',
     ageToggle: 'Zeit / Alter umschalten',
     openState: 'offen',
-    // the Pendenzen block's mark on an item typed on the Tafel's «Aufträge / Pendenzen» page;
-    // a tap opens that page
+    // the Pendenzen block's line under an item: who it is for (its assignee), and the mark of an
+    // item typed on the Tafel's «Aufträge / Pendenzen» page — a tap opens that page
+    pinnedWer: 'Wer: {wer}',
     fromTafel: 'von der Tafel',
     fromTafelTitle: 'Auf der Tafel eingetragen – tippen öffnet die Seite',
   },
