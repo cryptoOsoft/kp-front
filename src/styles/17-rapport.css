@@ -182,12 +182,26 @@
 .rz-counts { display: flex; flex-direction: column; gap: var(--sp-2); }
 .rz-count { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); min-height: var(--tap); }
 .rz-count > span { font: var(--fw-medium) var(--fs-2) var(--body); color: var(--ink-dim); }
-/* …and on a wide screen the pair stays a PAIR (B1, 07.10.2026): the stepper sits at the right end
-   of a 320px row, not of the column — at 1920 it stood 650px from «Personen». «Keine» keeps its
-   place at the end of the line (05.10.2026), which is now the end of the same 320px. */
-@media (min-width: 1181px) {
-  .rz-counts, .rz-none-trail { max-width: 320px; }
-}
+/* The recorded count is the row's emphasis (hill climb r13, 05.11.2026): at 14px between two 44px
+   plates it was the smallest thing in the row. It stands in a --tap square well at the value's
+   size, bold, tabular. An EMPTY count keeps the faint regular dash (`.step-empty`, 07-toolrail:
+   «nicht erfasst», never «0» – r11) at the same size in the same box, with no fill: the faint
+   dash on the well's tint fell under 4.5:1 on the phone's ground, and an empty well says «nothing
+   recorded» as plainly. Typing a count changes the ink, never the geometry; the typed-value field
+   takes the well's box for the same reason. Rapport only: the shared stepper elsewhere (Geschoss,
+   Mittel) keeps its compact value. */
+.rz-count :is(.step-val-btn, .step-input) { width: var(--tap); height: var(--tap); padding: 0;
+  font: var(--fw-bold) var(--fs-3) var(--body); font-variant-numeric: tabular-nums; text-align: center; }
+.rz-count .step-val-btn:not(.step-empty) { background-color: var(--fill-soft); }
+@media (hover: hover) { .rz-count .step-val-btn:hover:not(:disabled) { background-color: var(--hover); } }
+.rz-count .step-val.step-empty { font-weight: var(--fw-regular); }
+/* …and on every width the row ends at the column's edge, like every other field of the form: the
+   reset ✕ stands in the same --tap slot, at the same right edge, as the Einsatzleiter field's ✕
+   above it (ClearableInput · .ci-clear), and «Keine» ends where «Entfällt» does. Until r13
+   (05.11.2026) a wide screen capped the pair at 320px (B1, 07.10.2026: at 1920 the stepper stood
+   650px from «Personen»), which left a lone ✕ floating mid-column. The same sweep capped the
+   columns themselves at ~670px (13-incident · «cap + columns»), and that cap is what bounds the
+   label-to-stepper span now. */
 /* «Auf der Lage: 2 Personen · 1 Tier — Übernehmen». Same recipe as the Material surface's
    reconciliation strip (Mittel.module.css · .recStrip), because it is the same promise: the app
    says what it read and where, and the number only reaches the Rapport on a tap. */
