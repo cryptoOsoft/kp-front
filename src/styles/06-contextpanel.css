@@ -601,12 +601,17 @@
   color: var(--ink-faint); font-variant-numeric: tabular-nums; }
 /* timeline node + connector. 24px with a 12px glyph and the --border hairline (owner pick A6,
    05.11.2026: round 11 had grown it to 28/16, and the size was never what told two rows apart —
-   the kind colour carries the difference). The --border hairline stays from r11 (at --border-soft
+   the kind colour carries the difference). A ring, not a bare fill, since r11 (at --border-soft
    a people glyph read as a pale smudge on the white drawer by day). Centred in its 28px band
-   column. The kind tints (10-journal · .jr-ic-*) keep their colours. */
+   column. The kind tints (10-journal · .jr-ic-*) keep their colours.
+   The Bereiche WITHOUT a hue (Anwesenheit – «Unter AS: …» –, Atemschutz, Mittel, Rapport, Info)
+   wear INK as their kind colour, the same three steps as the tinted kinds (fill · ring · glyph,
+   cf. --blue-12 / --blue-22 / --blue-strong): hill climb r24, Opus 5 – a --surface-2 disc with
+   a --border hairline and an --ink-dim glyph was white on the white drawer and all but vanished
+   by day. Same base in the legend and the filter menu (10-journal). */
 .hist-ev .ic { position: relative; width: var(--jr-disc); height: var(--jr-disc); justify-self: center;
-  margin-top: calc((var(--jr-band) - var(--jr-disc)) / 2); border-radius: 50%; background: var(--surface-2);
-  border: 1px solid var(--border); color: var(--ink-dim); font-size: var(--fs-2); display: grid; place-items: center; flex: none; }
+  margin-top: calc((var(--jr-band) - var(--jr-disc)) / 2); border-radius: 50%; background: var(--ink-8);
+  border: 1px solid var(--ink-16); color: var(--ink); font-size: var(--fs-2); display: grid; place-items: center; flex: none; }
 .hist-ev .ic > .i { width: 12px; height: 12px; }
 /* ⚠️ Each row draws its OWN HALF of the connector — top edge → node, node → bottom edge — and
    the row clips them (overflow above). The old line was a fixed 16px stub hanging off the node,

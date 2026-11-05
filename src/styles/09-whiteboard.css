@@ -141,14 +141,15 @@
    cut into the glyph's top-right corner (r13) the ring and the building read as one odd glyph.
    Close to the word, not at the chip's trailing edge, so it reads as the name's state – a 9px ring
    out at the edge (before r13) read as a radio button, a control.
-   ONE lamp, chip and sheet: an 8px disc when lit; UNLIT a 10px DASHED ring – 1.5px of --ink-dim,
-   eight 2px dashes with 1.5px gaps – in the chip's GLYPH colour (`.wb-scale-chip svg`), not its
+   ONE lamp, chip and sheet: an 8px disc when lit; UNLIT a 10px BROKEN ring – 1.5px of --ink-dim,
+   four long arcs with ~2.3px gaps on the diagonals – in the chip's GLYPH colour (`.wb-scale-chip svg`), not its
    text ink; its middle on the name's x-height middle (hill climb r23, Opus 1: r22's solid 10px /
    1.5px ring on the cap-height middle read as a capital «O», «Gebäude O»; a solid 8px / 2px ring on
    the x-height – tried first in r23 – was exactly the bold lowercase «o» of the word beside it.
-   No letter is dashed, so the broken ring reads as a mark: «not set yet»).
-   ⚠️ The Rapport eyebrow's ring wears the same 10 / dashed 2·1.5 / 1.5px / --ink-dim spec – change
-   them together. The sheet's dot stands before its status word, 8px (PlanFactsSheet.module.css ·
+   No letter is dashed, so the broken ring reads as a mark: «not set yet». Four arcs since r24, Opus
+   4: r23's eight 2px dashes read as a loading spinner; four arcs read as an outline with gaps).
+   ⚠️ The Rapport eyebrow's ring wears the same 10 / four arcs / 1.5px spec (in its own --ink-faint)
+   – change them together. The sheet's dot stands before its status word, 8px (PlanFactsSheet.module.css ·
    .status gap). */
 /* translate: the row centres the box on the name's line box, whose middle stands 1px above the
    x-height middle (Sora at --fs-1, measured r23) */
@@ -157,11 +158,13 @@
 /* «not yet» — no scale, no link (29.09.2026, sweep K10): grey, never red at rest. An UNLIT lamp
    (05.11.2026, hill climb r13): a filled grey disc after «Gebäude» read as a decoration with no
    meaning; the empty ring says «nothing set yet», the sheet behind the tap says which.
-   The dashes are a MASK over the token colour, so the ring follows the theme; `pathLength` 28 makes
-   the 2 + 1.5 pattern close on itself in exactly eight dashes. */
+   The arcs are a MASK over the token colour, so the ring follows the theme; `pathLength` 26.8 (the
+   r 4.25 circumference, 26.7) makes the 4.4 + 2.3 pattern close on itself in exactly four arcs, butt
+   caps; the 2.2 offset centres each gap on a diagonal (45°), so none sits at 12 o'clock. Gaps of 2
+   blurred shut at 1x on the diagonal pixels; at 2.5 the arcs read as four dashes of a square. */
 .wb-lamp[data-tone='grey'] { width: 10px; height: 10px; background: var(--ink-dim);
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Ccircle cx='5' cy='5' r='4.25' fill='none' stroke='black' stroke-width='1.5' pathLength='28' stroke-dasharray='2 1.5'/%3E%3C/svg%3E") center / 100% no-repeat;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Ccircle cx='5' cy='5' r='4.25' fill='none' stroke='black' stroke-width='1.5' pathLength='28' stroke-dasharray='2 1.5'/%3E%3C/svg%3E") center / 100% no-repeat; }
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Ccircle cx='5' cy='5' r='4.25' fill='none' stroke='black' stroke-width='1.5' pathLength='26.8' stroke-dasharray='4.4 2.3' stroke-dashoffset='2.2'/%3E%3C/svg%3E") center / 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Ccircle cx='5' cy='5' r='4.25' fill='none' stroke='black' stroke-width='1.5' pathLength='26.8' stroke-dasharray='4.4 2.3' stroke-dashoffset='2.2'/%3E%3C/svg%3E") center / 100% no-repeat; }
 .wb-lamp[data-tone='amber'] { background: var(--amber); }
 .wb-lamp[data-tone='green'] { background: var(--green); }
 /* a read-out with nowhere to go (a link-scoped viewer is bound to ONE object) is not greyed out
@@ -353,9 +356,11 @@
    `--wb-floor-plate-w`: ONE width for every storey plate, the widest standard name's («3. OG ⌄»,
    ~70px) on the 4px grid – sized from their text, «EG» stood narrower and the column's edge
    zig-zagged (hill climb r15, Opus 8). The lane is that plate + its 8px gap (80, was 72: «3. OG ⌄»
-   already reached 5px past it). A longer custom name still grows further left. Label + chevron
-   stand CENTRED in it (r16, Opus 8: right-aligned, «EG ⌄» left ~24px of its plate empty) – both
-   edges still line up as one ruler, the free room splits to the two sides. */
+   already reached 5px past it). A longer custom name still grows further left. Inside it the
+   label stands LEFT at the 8px padding and the ⌄ is pinned 8px from the plate's RIGHT edge
+   (.wb-floor-menu > .i), the free room between them (hill climb r24, Opus 6): centred as a group
+   (r16) the chevrons wandered – «EG ⌄» ~8px left of «3. OG ⌄» – and the column was ragged; now
+   names start on one line and the chevrons form one. */
 .wb-board { --wb-floor-inset: 12px; --wb-floor-plate-pad: var(--sp-2); --wb-floor-plate-w: 72px; --wb-label-lane: 80px; }
 /* `container-type: inline-size` makes the tile the query container for its own header: the board
    is zoomed by LAYOUT (the tile's width is set in rendered px), so the tile's inline size IS the
@@ -404,7 +409,7 @@
    wide note ran its text under «EG»). z 4: above a resting anno (z 3) that still hangs out into it –
    a symbol's caption at the stack's edge – so the storey's name always wins; under a selected one
    (z 6), which is being moved. */
-.wb-floor-label { position: absolute; top: 50%; translate: 0 -50%; right: calc(100% + var(--sp-2)); display: flex; align-items: center; justify-content: center; gap: var(--sp-1); z-index: 4;
+.wb-floor-label { position: absolute; top: 50%; translate: 0 -50%; right: calc(100% + var(--sp-2)); display: flex; align-items: center; justify-content: flex-start; gap: var(--sp-1); z-index: 4;
   min-width: var(--wb-floor-plate-w); flex-wrap: nowrap; white-space: nowrap;
   font-family: var(--body); font-weight: var(--fw-bold); font-size: var(--fs-2); line-height: 1; color: var(--ink);
   background: var(--surface); box-shadow: inset 0 0 0 1px var(--border); border-radius: var(--r-xs);
@@ -424,12 +429,16 @@
 /* the ⌄ at the top bar's «5:00 ⌄» size (18-audio · .tb-einsatzuhr .i, a 16px box) at a 1.75px stroke
    (2.625 of the glyph's 24 units), in --ink-dim (hill climb r22, Opus 7: a 12px box at 1.1px of
    --ink-faint drew an 8px hairline beside the 15/700 name, noise on the night plate). The chevron
-   ink fills the box's middle half, so -4px either side puts the ink 4px after the name and keeps
-   «3. OG ⌄» inside the plate's 72px (--wb-floor-plate-w). `translate` (no layout, so the plate's
-   width stays) moves the ink the last 1px to the 4px gap and 1.5px down onto the name's cap-height
-   middle: `align-items: center` puts it on the 1-high line box's middle, which at --fs-2 Sora
-   stands 1.5px above the caps' (measured). */
-.wb-floor-menu > .i { width: 16px; height: 16px; stroke-width: 2.625; margin-inline: -4px; translate: 1px 1.5px; color: var(--ink-dim); }
+   ink fills the box's middle half, so -4px either side keeps «3. OG ⌄» inside the plate's 72px
+   (--wb-floor-plate-w). The NAME's `margin-right: auto` pushes the ⌄ to the plate's right edge
+   (r24, Opus 6 – a margin on the name, not on the glyph: an auto margin on the glyph would drop its
+   -4px and grow the widest plate past 72). `translate` (no layout, so the plate's width stays)
+   moves the ink -1px to stand 8px from the plate's edge (its round-capped stroke reaches ~0.9px
+   past the box's middle half) and 1.5px down onto the name's cap-height middle: `align-items:
+   center` puts it on the 1-high line box's middle, which at --fs-2 Sora stands 1.5px above the
+   caps' (measured). */
+.wb-floor-menu > .wb-floor-name { margin-right: auto; }
+.wb-floor-menu > .i { width: 16px; height: 16px; stroke-width: 2.625; margin-inline: -4px; translate: -1px 1.5px; color: var(--ink-dim); }
 @media (hover: hover) {
   .wb-floor-menu:hover { color: var(--ink); }
 }
