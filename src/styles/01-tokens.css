@@ -110,7 +110,11 @@
   /* ---- Semantic surface tokens (theme-flippable) ----
      Day values mirror the literals they replace, so day mode is byte-for-byte
      unchanged. The night block below re-declares only these + the core glass/ink. */
-  --app-bg: radial-gradient(120% 90% at 50% -10%, #eef3f7 0%, #dfe6ec 45%, #d3dce4 100%);
+  /* the page ground: a radial wash from the top. Its fall-off was halved (hill climb r22, Sol 2,
+     05.11.2026): every stop now stands halfway between #eef3f7 and the old #dfe6ec / #d3dce4, so
+     the lower page no longer turns heavy blue-grey behind the Trupps cards and the phone Rapport.
+     Twin in index.html's boot splash – keep the two equal. */
+  --app-bg: radial-gradient(120% 90% at 50% -10%, #eef3f7 0%, #e7edf2 45%, #e1e8ee 100%);
   --canvas-bg: #eef1f4;        /* whiteboard stage backdrop */
   --map-bg: #e9eef0;          /* Lage map fallback fill (under tiles) */
   --board-bg: #fff;            /* the plan "paper" itself */

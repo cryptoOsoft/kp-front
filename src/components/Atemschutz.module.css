@@ -317,7 +317,8 @@
   font: var(--fw-bold) var(--fs-1) var(--body); color: var(--ink-dim); -webkit-tap-highlight-color: transparent; }
 .vrow:active { background-image: linear-gradient(var(--press), var(--press)); }
 .vrow :global(.i) { width: 14px; height: 14px; flex: none; }
-.logChev { color: var(--ink-faint); }
+/* the foot's disclosure: the row chevron's glyph (`.trowChevron` · THE card disclosure glyph) */
+.vrow .logChev { width: 28px; height: 28px; stroke-width: 1.5; color: var(--ink-dim); }
 /* An OPENED card on the phone list is parked at the top of the port (AtemschutzView · the
    `--az-open-pad` effect), and a card about a port tall comes to rest with this row in the FAB's
    corner: the circle sat on the chevron (field checks 24.09.2026). The effect measures where the
@@ -1286,8 +1287,13 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
    Trupp leaving a hole here is what pulled every other column out of line */
 .trowAct { justify-self: stretch; }
 .trowKontakt { width: 100%; padding: 0 12px; min-height: 48px; border-radius: var(--r-ctl); font-size: var(--fs-2); }
-.trowChevron { width: var(--tap); height: var(--tap); display: grid; place-items: center; color: var(--ink-faint); }
-.trowChevron :global(.i) { width: 18px; height: 18px; }
+/* THE card disclosure glyph (hill climb r22, Sol 1, 05.11.2026) – this row chevron and the card
+   foot's `.logChev` share it: a ~14px visible glyph (the 24-unit chevron in a 28px box, the path
+   spans half of it) at a 1.75px stroke (1.5 units × 28/24), in the secondary ink. It was a 15–18px
+   box at the icon's 1.8 units – a 7–9px, 1.1px hairline in --ink-faint beside the bold names and
+   clocks. Only the glyph grew: it stays centred in its track, the tap target is the row. */
+.trowChevron { width: var(--tap); height: var(--tap); display: grid; place-items: center; color: var(--ink-dim); }
+.trowChevron :global(.i) { width: 28px; height: 28px; stroke-width: 1.5; }
 
 /* Each step drops the least operational thing left, so the NAME and the CLOCK survive to the
    narrowest width. What goes, in order: the caption · the pressure · the state word. Nothing
@@ -1315,9 +1321,8 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
   .trowKontakt { padding: 0; min-height: var(--tap); }
   .trowKontakt span { display: none; }
   /* every remaining pixel goes to the name: the clock needs 4 mono characters, the chevron is only
-     a hint (the whole row is the button), and 15.5px still clears the 12.5px floor comfortably */
+     a hint (the whole row is the button) – its 24px track still holds the 14px glyph */
   .trowChevron { width: 24px; }
-  .trowChevron :global(.i) { width: 15px; height: 15px; }
   .trowName { gap: var(--sp-2); }
 }
 
@@ -1397,6 +1402,9 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
    real border, as on `.bottomRail`, hence the inset hairline of the wide head goes. */
 .head.headCompact { background: var(--surface); box-shadow: none; border-bottom: 1px solid var(--glass-edge); }
 .headTitlesCompact { display: flex; flex-direction: column; min-width: 0; }
+/* the link board's one-row title is its own line, no quiet row to keep room for (Surface.module.css
+   · ONE title line holds for the page heads) */
+.headTitlesCompact { padding-bottom: 0; }
 /* the ONLY `h2` inside `.headRow` is the repurposed Einsatz title (no kicker survives beside
    it) — «orientation, not information» (maintainer review, 03.09.): a modest weight, not the
    tablet's hero size, and EXPLICITLY not-uppercase/not-tracked — `.surfaceLite .headTitles h2`
@@ -1730,7 +1738,7 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
    line without the toggle and its chevron track (TruppCard · `head`) */
 .trowHeadStatic { grid-template-columns: minmax(0, 1fr) auto; cursor: auto; }
 /* (No FAB column on the phone list since owner pick A4/C10, 05.11.2026: clock and chevron stand at
-   the row's right edge, the chevron's glyph 16px in. The recording FAB floats over content and
+   the row's right edge, the chevron's glyph 17px in. The recording FAB floats over content and
    what it covers is reachable by scrolling — settled, sweep16 #10.) */
 /* The phone's opened card keeps the caption hidden — its section heads say Drin / Draussen (owner
    24.09.2026: «just the time») — but the wide grid's card names its clock (below). */
