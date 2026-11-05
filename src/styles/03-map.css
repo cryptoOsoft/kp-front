@@ -125,12 +125,14 @@
    map plates' ONE edge – the --label-plate hairline + --e0 contact, or --e0 alone on a filled chip –
    never e1: in a cluster its 5px spread ran every plate's shadow into one fringe (hill climb r13,
    Sol 2). */
-/* storey badge — signed floor (+2, -1) at the icon's top-right corner. Ink on the surface
+/* storey badge — signed floor (+2, −1) at the icon's top-right corner. Ink on the surface
    colour, so it reads on any glyph and in both themes: tinting it with the symbol's own colour
-   (the white chip was meant to carry that) made a yellow symbol's storey yellow on white. */
+   (the white chip was meant to carry that) made a yellow symbol's storey yellow on white.
+   Tabular figures and the true minus (lib/symbolRender · floorBadge): «+1» and «−1» are one width,
+   a hyphen made the minus badge the narrower one (hill climb r15, Opus 7). */
 .sym-floor { position: absolute; top: calc(var(--badge-out, 7px) * -1); right: -9px; z-index: 6; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box;
   border-radius: var(--r-xs); background: var(--surface); color: var(--ink); line-height: 16px; text-align: center; font-size: var(--fs-micro); font-weight: var(--fw-heavy); letter-spacing: -.2px;
-  box-shadow: var(--label-plate); pointer-events: none; }
+  font-variant-numeric: tabular-nums; box-shadow: var(--label-plate); pointer-events: none; }
 /* quantity badge — bottom-right counterpart to the floor badge; an ink chip so it
    reads as a count distinct from the (white, symbol-coloured) floor badge. The ONE count badge
    (05-navrail · .nav-count, 28.09.2026): --r-xs at 16px, like every other chip that size. */

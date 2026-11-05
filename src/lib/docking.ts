@@ -64,12 +64,13 @@ export function isDockable(e: Entity | undefined): boolean {
 // is also the only arrangement the label pass can book without measuring text it never renders
 // (components/useLabelPass · mapLabelDecisions).
 
-/** The vertical pitch of the stack: one dot (13px) plus air, so two names never touch. */
+/** The vertical pitch of the stack: one name plate (~19.6px; the dot's 16px box fits inside it),
+ *  so the plates meet and the dots keep 3px of air. */
 export const DOCK_SLOT_STEP_PX = 19
 
 /** The strip's dot (lib/mapView · TEAM_DOT_PX – not imported: mapView imports this file) and
  *  the air between the tile's bottom edge and the first strip. */
-const DOT_PX = 13
+const DOT_PX = 16
 const DOCK_GAP_PX = 5
 
 /** Where a docked Trupp marker's DOT is drawn, in screen px from the HOST glyph's centre: the

@@ -320,6 +320,10 @@
   /* an ink hairline INSIDE the edge: the e3 ring is black, and at night a black ring on the dark
      stage left the sheet with no edge at all (04.11.2026) */
   box-shadow: inset 0 0 0 1px var(--ink-16), var(--e3); }
+/* …a Gebäude stack's outline is its storey dividers' line by day (.wb-floor below, hill climb r15);
+   the night edge stays the hairline above */
+.wb-board-stack { box-shadow: inset 0 0 0 1.5px var(--ink-45), var(--e3); }
+:root[data-theme="night"] .wb-board-stack { box-shadow: inset 0 0 0 1px var(--ink-16), var(--e3); }
 /* (.wb-pdf-base / .wb-pdf-refine migrated → PdfViewport.module.css) */
 
 /* floor-stack ("Gebäude" doc) — a vertical stack of footprint sheets. Each tile
@@ -335,16 +339,23 @@
 /* plate pad 8px all round (hill climb r7 + owner pick A8, 05.11.2026): at 4px the plate was 22px tall
    and read as an annotation beside the 44px «+ OG» buttons; 30px now says «control». The sides grew
    from 4px to 8px too (on a phone «3. OG ⌄» touched its own edge), so the gutter grew 64 → 72px to
-   keep «3. OG ⌄» inside it and the stack moved 8px right. */
-.wb-board { --wb-floor-inset: 12px; --wb-floor-plate-pad: var(--sp-2); --wb-label-lane: 72px; }
+   keep «3. OG ⌄» inside it and the stack moved 8px right.
+   `--wb-floor-plate-w`: ONE width for every storey plate, the widest standard name's («3. OG ⌄»,
+   ~70px) on the 4px grid – sized from their text, «EG» stood narrower and the column's edge
+   zig-zagged (hill climb r15, Opus 8). The lane is that plate + its 8px gap (80, was 72: «3. OG ⌄»
+   already reached 5px past it). A longer custom name still grows further left. */
+.wb-board { --wb-floor-inset: 12px; --wb-floor-plate-pad: var(--sp-2); --wb-floor-plate-w: 72px; --wb-label-lane: 80px; }
 /* `container-type: inline-size` makes the tile the query container for its own header: the board
    is zoomed by LAYOUT (the tile's width is set in rendered px), so the tile's inline size IS the
    rendered width — nothing is counter-scaled and no viewport media query could see it. */
 .wb-floor { position: absolute; left: 0; display: flex; align-items: center; justify-content: center;
   container-type: inline-size;
-  border-bottom: 1px solid var(--ink-22); }
-/* night: 2px and a step brighter – on the dark board the 1px rule was still the faintest line on the
-   sheet, fainter than the drawings inside a storey (hill climb r5, 04.11.2026) */
+  border-bottom: 1.5px solid var(--ink-45); }
+/* day: 1.5px --ink-45 (there is no --border-strong; this is the strong hairline tier) – at 1px
+   --ink-22 the white storeys ran together in sunlight (hill climb r15, Opus 10); the stack's outline
+   wears the same (.wb-board-stack). Night: 2px and a step brighter – on the dark board the 1px rule
+   was still the faintest line on the sheet, fainter than the drawings inside a storey (hill climb
+   r5, 04.11.2026) */
 :root[data-theme="night"] .wb-floor { border-bottom: 2px solid var(--ink-28); }
 /* the storey a dragged selection would land on (useWbBodyDrag / useWbSelectionBar · setDropFloor) */
 .wb-floor-drop { background: var(--sel-wash); box-shadow: inset 0 0 0 2px var(--sel); }
@@ -376,8 +387,8 @@
    wide note ran its text under «EG»). z 4: above a resting anno (z 3) that still hangs out into it –
    a symbol's caption at the stack's edge – so the storey's name always wins; under a selected one
    (z 6), which is being moved. */
-.wb-floor-label { position: absolute; top: var(--sp-2); right: calc(100% + var(--sp-2)); display: flex; align-items: center; gap: var(--sp-1); z-index: 4;
-  flex-wrap: nowrap; white-space: nowrap;
+.wb-floor-label { position: absolute; top: var(--sp-2); right: calc(100% + var(--sp-2)); display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-1); z-index: 4;
+  min-width: var(--wb-floor-plate-w); flex-wrap: nowrap; white-space: nowrap;
   font-family: var(--body); font-weight: var(--fw-bold); font-size: var(--fs-2); line-height: 1; color: var(--ink);
   background: var(--surface); box-shadow: inset 0 0 0 1px var(--border); border-radius: var(--r-xs);
   padding: var(--wb-floor-plate-pad); user-select: none; -webkit-user-select: none; }
@@ -588,8 +599,12 @@ textarea.wb-text-input { resize: none; overflow: hidden; display: block; font-si
 /* a Trupp marked «raus» (Atemschutz board): dim the chip and show a small grey raus tag so the
    plan reflects that the team is out. «raus» is GONE, not disabled: the ONE done dim (01-tokens ·
    --done-opacity, 28.09.2026 — it was .5 plus a greyed name), and nothing on top of it — the
-   struck-through name went 05.11.2026 (hill climb r13: a second «gone» mark over the dim) */
-.wb-resource-pill.raus { opacity: var(--done-opacity); }
+   struck-through name went 05.11.2026 (hill climb r13: a second «gone» mark over the dim).
+   ⚠️ The dim is on what the pill CARRIES, never on the pill itself (hill climb r15, Opus 1): on the
+   whole pill it made the plate see-through, and a line under it crossed the name. The plate stays
+   the opaque surface underlay; cap, name, raus tag and time recede on it – every map/plan plate of
+   an out Trupp follows this (.team-dot.raus, the trail times below). */
+.wb-resource-pill.raus > * { opacity: var(--done-opacity); }
 .wb-resource-raus { font-size: var(--fs-micro); font-weight: var(--fw-bold); letter-spacing: .04em; text-transform: uppercase;
   color: var(--ink-dim); background: var(--fill-soft); border-radius: var(--r-xs); padding: 2px var(--sp-1); }
 
@@ -723,9 +738,11 @@ span.wb-ghost-label { cursor: default; }
 .wb-trail-dot i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-family: var(--mono); font-style: normal;
   font-size: var(--fs-micro); font-weight: var(--fw-medium); color: var(--ink-dim); background: var(--label-bg); border-radius: var(--r-xs); padding: 1px var(--sp-1);
   white-space: nowrap; box-shadow: inset 0 0 0 1px var(--ink-16); }
-/* an OUT Trupp's track: THE done dim on the whole group – dots and times – like its marker
-   (.wb-resource-pill.raus / .team-dot.raus), grayscale on the colour carrier (the dot) */
-.wb-trail-dot.raus, .map-trail-dot.raus { opacity: var(--done-opacity); }
+/* an OUT Trupp's track: THE done dim on dots and times – like its marker (.wb-resource-pill.raus /
+   .team-dot.raus) – grayscale on the colour carrier (the dot). The time's PLATE stays opaque: the
+   dim sits on its ink (the inner span, MapMarkers / Whiteboard), or a line under «12:25» crossed
+   the digits (hill climb r15, Opus 1). */
+:is(.wb-trail-dot, .map-trail-dot).raus :is(.wb-trail-mark, i > span) { opacity: var(--done-opacity); }
 :is(.wb-trail-dot, .map-trail-dot).raus .wb-trail-mark { filter: var(--done-filter); }
 /* …and its polyline (WbControls · WbInkLayer; the Lage's l-team-trails paints the same in GL):
    grey for the grayscale, the dim on top of the line's own .85 */
@@ -744,17 +761,23 @@ span.wb-ghost-label { cursor: default; }
 .marker.sel .wb-resource-pill { box-shadow: 0 0 0 2px var(--team), var(--e2); }
 /* resting team marker — compact team-coloured dot + name; the full pill only on selection */
 .team-dot { display: inline-flex; align-items: center; gap: var(--sp-2); }
-/* the dot's shadow is the plates' contact step (--e0, hill climb r13 Sol 2: with e1 a cluster of
-   markers ran into one dark fringe) */
-.team-dot i { width: 13px; height: 13px; border-radius: 50%; background: var(--team);
-  border: 2px solid #fff; box-shadow: var(--e0); flex: none; }
+/* ⚠️ held to lib/mapView · TEAM_DOT_PX (16): the dot's BOX is what sits on the coordinate and what
+   the label pass books. An INSIDE Trupp's dot fills it – 16px with a 2px halo (white by day, the
+   surface tone at night) and the plates' contact step (--e0, hill climb r13 Sol 2: with e1 a cluster
+   ran into one dark fringe). At 13px it was the smallest object on the map (hill climb r15, Opus 4). */
+.team-dot i { width: 16px; height: 16px; border-radius: 50%; background: var(--team);
+  border: 2px solid var(--surface); box-shadow: var(--e0); flex: none; }
 .team-dot b { font-size: var(--fs-1); font-weight: var(--fw-bold); line-height: 1.25; color: var(--ink); background: var(--label-bg);
   border-radius: var(--r-xs); padding: 2px var(--sp-2); white-space: nowrap; box-shadow: var(--label-plate); }
 /* out: THE done dim, and the map's grayscale (01-tokens · --done-filter, as a done symbol's
    `.ts-done`) on the dot – the colour carrier. Not on the name: the night filter's brightness
-   lifts the dark plate and the name read LESS gone. No strike-through — see .wb-resource-pill.raus */
-.team-dot.raus { opacity: var(--done-opacity); }
-.team-dot.raus i { filter: var(--done-filter); }
+   lifts the dark plate and the name read LESS gone. No strike-through — see .wb-resource-pill.raus.
+   The dim sits on the dot and on the INK of the plates (the inner spans, EntityMarker / PlanAnno),
+   never on a plate: the plates stay opaque, nothing under them shows through (r15, Opus 1).
+   The out dot keeps its 13px look – in vs out reads by size too – drawn scaled inside the same 16px
+   box, so the coordinate and the name's place do not move when a Trupp comes out. */
+.team-dot.raus i { scale: calc(13 / 16); opacity: var(--done-opacity); filter: var(--done-filter); }
+.team-dot.raus :is(b, .team-floor) > span { opacity: var(--done-opacity); }
 /* …and its track wears the same (.map-trail-dot.raus, with the Plan's breadcrumbs above): the whole
    out-Trupp group recedes together, not a dim marker beside a live-looking «15:15» */
 .wb-resource-input { border: none; outline: none; background: var(--blue-8); border-radius: var(--r-xs); font-family: var(--body);

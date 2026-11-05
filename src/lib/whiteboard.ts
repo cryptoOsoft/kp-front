@@ -51,8 +51,9 @@ export const STACK_READINGS_LANE = 268
  *  storey's «3. OG ⌄» stands in this lane LEFT of the stack, so nothing drawn on a storey can cover
  *  it (hill climb r3, 04.11.2026 – a note hid «EG»). The fit keeps it free; the board's coordinate
  *  space does not move, the lane is outside it. 72 since the plate's 8px side padding (owner pick
- *  A8, 05.11.2026 – it was 64 with 4px sides). */
-export const STACK_LABEL_LANE = 72
+ *  A8, 05.11.2026 – it was 64 with 4px sides); 80 since every plate is one 72px width
+ *  (`--wb-floor-plate-w`, hill climb r15) plus its 8px gap. */
+export const STACK_LABEL_LANE = 80
 export const SIDE_INSET_R = 92
 /**
  * No side rails on a phone — they are the two stacked bottom bars there.

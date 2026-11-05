@@ -2173,7 +2173,7 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
         >
           <div
             ref={boardRef}
-            className={`wb-board ${blank ? 'wb-board-blank' : ''}`}
+            className={cx('wb-board', blank && 'wb-board-blank', stack && 'wb-board-stack')}
             // the reserved lanes are not symmetric (the rails differ), so the centre shifts by half
             // their difference — exactly what `vShift` does for the top bar (and the Gebäude's
             // chip row below). While the orientation preview stands, nothing on it takes a press:
@@ -2581,7 +2581,8 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
 
             {/* trail breadcrumbs — a constant-size dot + timestamp at each RECORDED
                 position, so the trail reads as a time-stamped log at a glance; an out Trupp's
-                track wears its chip's done dim (`.raus`, as PlanAnno decides it) */}
+                track wears its chip's done dim (`.raus`, as PlanAnno decides it) – on the dot and
+                the time's inner span, so its plate stays opaque over a line */}
             {shownAnnos.filter((a) => a.kind === 'resource' && !hiddenTrails.has(a.id)).flatMap((a) =>
               (a.trail ?? []).map((p, i) => (
                 <div
@@ -2590,7 +2591,7 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
                   style={{ transform: `translate(${p.x * sW}px, ${mapY(p.floor ?? a.floor, p.y) * sH}px) translate(-50%, -50%)` }}
                 >
                   <span className="wb-trail-mark" style={{ background: a.color || COLORS[0] }} />
-                  <i>{p.t}</i>
+                  <i><span>{p.t}</span></i>
                 </div>
               )),
             )}

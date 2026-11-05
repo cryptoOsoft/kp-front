@@ -62,7 +62,6 @@ export function BuildingFloat({ info, compact = false, autoOpen = false, onRead 
   // compact (a phone, where the floating row is one line beside the FAB, and the plan's row, where
   // it shares a glass with the Objekt / building chip) sheds only the «Sofortmassn.» word below –
   // the chip's own word and the hazards stay
-  const text = summary.hazard ? `${C.chipTitle} · ${summary.words.join(' · ')}` : C.chipTitle
   return (
     <span className={s.anchor}>
       <button
@@ -76,7 +75,10 @@ export function BuildingFloat({ info, compact = false, autoOpen = false, onRead 
         onClick={() => (open ? close() : setOpen(true))}
       >
         <Icon id={summary.hazard ? 'warn' : 'info'} />
-        <span>{text}</span>
+        {/* a KNOWN hazard is the words after the dot, in the hazard tone (hill climb r15, Opus 5):
+            in ink the chip read as one more neutral control. The plate stays neutral – no fill,
+            this is a fact to read, not an alarm. */}
+        <span>{C.chipTitle}{summary.hazard && <> · <b className={s.words}>{summary.words.join(' · ')}</b></>}</span>
         {/* the Objekt's Sofortmassnahmen are inside — a word on a tablet, the glyph alone on a phone */}
         {summary.measures && <span className={s.measures}><Icon id="checklist" />{!compact && C.measuresShort}</span>}
       </button>
