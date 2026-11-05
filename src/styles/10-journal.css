@@ -399,7 +399,8 @@
 .journal-head .journal-x, .journal-head .ui-info { width: var(--tap); height: var(--tap); }
 /* ⚠️ The head's ✕ wears ▶'s frame (`.ip-btn`'s plate, hill climb r13, 05.11.2026): beside the bare
    utilities and the framed ▶ the house grey pill was a THIRD button look in one row. Two now – the
-   utilities bare, the drawer's actions framed. Only here: the search row's ✕ and every other
+   utilities bare, the drawer's actions framed (on the phone ▶ is word-less and rests bare with the
+   utilities, r18 – below). Only here: the search row's ✕ and every other
    sheet's keep the grey pill (docs/ui-conventions · «The ✕ that closes a sheet»). */
 .journal-head .journal-x { background: var(--surface); border: 1px solid var(--glass-edge); color: var(--ink); }
 @media (hover: hover) {
@@ -510,7 +511,15 @@
    above. The button keeps its `aria-label` (Journal.tsx), so nothing is lost but the letters. */
 @media (--phone) {
   .journal-replay span { display: none; }
-  .journal-head .journal-replay { width: var(--tap); padding: 0; }
+  /* …and word-less it is an icon action like ⓘ · lens · funnel beside it, so it rests BARE as they
+     do (hill climb r18, Opus 7: a framed ▶ among bare glyphs was two chromes for one kind of
+     button). The 44px box and the transparent edge keep its hit area and geometry; the ✕ keeps
+     its frame (settled r13). Tablet and laptop keep «▶ Wiedergabe starten» framed. */
+  .journal-head .journal-replay { width: var(--tap); padding: 0;
+    background: none; border-color: transparent; color: var(--ink-dim); }
+  .journal-head .journal-replay svg { width: 18px; height: 18px; }
+  @media (hover: hover) { .journal-head .journal-replay:hover { background: var(--ink-8); color: var(--ink); } }
+  .journal-head .journal-replay:focus-visible { background: var(--ink-8); }
   /* the title a step down and without its glyph: at 19px with it the head ran past a 390px screen */
   .journal-title { font-size: var(--fs-3); line-height: var(--lh-3); }
   .journal-title .i { display: none; }

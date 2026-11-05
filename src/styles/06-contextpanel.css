@@ -139,8 +139,10 @@
 .useg-btn.on { background: var(--sel); color: var(--on-sel); box-shadow: var(--sel-shadow); }
 /* …but a Segmented whose options are PAGES (`tabs`: the phone's docked strip, the Anwesenheit's
    readings) marks «where you are» with the nav's ink pill — two bars 8px apart said the same thing
-   in two looks (sweep 3 · E2, 28.09.2026) */
-.useg-tabs > .useg-btn.on { background: var(--ink-fill); color: var(--on-accent-ink); box-shadow: none; }
+   in two looks (sweep 3 · E2, 28.09.2026). The nav's TOKEN, not its day value: --ink-fill is the
+   same by day, but the night block lifts «where you are» to --here-fill, and the Rapport's docked
+   «Bericht» stood quieter than the «Einsatz» pill 8px below it (hill climb r18, 05.11.2026) */
+.useg-tabs > .useg-btn.on { background: var(--here-fill); color: var(--on-here); box-shadow: none; }
 .useg-btn:disabled { opacity: var(--disabled); cursor: default; }
 /* ⚠️ FIVE OR MORE OPTIONS STOP BEING A TRACK. A segmented control is a track with a pill sliding
    in it, and that reading only survives while the options fit on one line. At six — «Überdruck ·

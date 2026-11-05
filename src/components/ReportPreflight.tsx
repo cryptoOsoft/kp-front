@@ -1769,17 +1769,19 @@ export function ReportPreflight({
                       <div className="rz-count"><span>{P.geretteteTiere}</span><b>{numOrU(geretteteT) ?? '–'}</b></div>
                     </div>
                   ))) : (
+                // an empty count is a BLANK well, not the stepper's «–» beside its «−» (two minus
+                // signs, hill climb r18) — «nicht erfasst», never «0» (17-rapport · .rz-count)
                 <div className="rz-counts">
                   <div className="rz-count" data-sync="geretteteP">
                     <span>{P.gerettetePersonen}</span>
-                    <Stepper value={numOrU(geretteteP) ?? null} min={0} max={999} seed={1} ariaLabel={P.gerettetePersonen}
+                    <Stepper value={numOrU(geretteteP) ?? null} min={0} max={999} seed={1} placeholder="" ariaLabel={P.gerettetePersonen}
                       readOnly={meta.geretteteNone}
                       onChange={(v) => { setGeretteteP(String(v)); persist(geretteteMeta(String(v), geretteteT)) }}
                       onClear={() => { setGeretteteP(''); persist(geretteteMeta('', geretteteT)) }} canClear={geretteteP !== ''} />
                   </div>
                   <div className="rz-count" data-sync="geretteteT">
                     <span>{P.geretteteTiere}</span>
-                    <Stepper value={numOrU(geretteteT) ?? null} min={0} max={999} seed={1} ariaLabel={P.geretteteTiere}
+                    <Stepper value={numOrU(geretteteT) ?? null} min={0} max={999} seed={1} placeholder="" ariaLabel={P.geretteteTiere}
                       readOnly={meta.geretteteNone}
                       onChange={(v) => { setGeretteteT(String(v)); persist(geretteteMeta(geretteteP, String(v))) }}
                       onClear={() => { setGeretteteT(''); persist(geretteteMeta(geretteteP, '')) }} canClear={geretteteT !== ''} />
