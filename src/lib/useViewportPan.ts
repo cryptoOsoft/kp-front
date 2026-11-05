@@ -13,7 +13,7 @@
  * reserve less the pan — they ride down behind the keys) and the keyboard (`--vv-foot`); its TOP
  * stays put and slides under the pinned top bar, whose `::before` covers the strip above it as
  * tall as the pan. Never translate the box that holds the caret. The Eintrag FAB is hidden while
- * `data-kb` (a running recording excepted). On the phone Verlauf the home-indicator inset + 10px
+ * `data-kb` (a running recording excepted). On the phone Verlauf the home-indicator inset + 16px
  * is `.history-list`'s padding, not the drawer's, so rows scroll to the sheet's edge («there is
  * a gap at the bottom where things don't scroll down below»).
  */

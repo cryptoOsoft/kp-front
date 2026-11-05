@@ -344,10 +344,15 @@
    themes but lets nothing through. Translucent, the map's selected rail tiles showed as grey
    blocks behind the clock column, and a busy Lage would do the same behind the log's prose — a
    sheet you READ, unlike the floating chips and menus that keep the see-through glass. Scoped to
-   the Verlauf drawer (tablet, laptop and the phone's bottom sheet); no blur, nothing to blur. */
+   the Verlauf drawer (tablet, laptop and the phone's bottom sheet); no blur, nothing to blur.
+   ⚠️ 16px at the foot, 12 elsewhere (hill climb r20, 05.11.2026): the log's scrollport ends
+   here, so a row half under the fold is cut on that line — at 12 the cut ran 13px above the
+   border, exactly where the 12px corner stops curving, and the sliced row read as broken against
+   the radius. 16 sets the cut in a padded band of its own. (The phone's sheet is flush with the
+   screen and pays its inset on the list instead, 15-mobile.) */
 .journal-drawer { position: fixed; top: 88px; right: 92px; bottom: 16px; width: 612px; max-width: calc(100vw - 108px); z-index: var(--z-drawer);
   display: flex; flex-direction: column; background: linear-gradient(var(--glass), var(--glass)) var(--surface);
-  border: 1px solid var(--glass-line); border-radius: var(--r-surface); box-shadow: var(--e4); padding: var(--sp-3);
+  border: 1px solid var(--glass-line); border-radius: var(--r-surface); box-shadow: var(--e4); padding: var(--sp-3) var(--sp-3) var(--sp-4);
   animation: drawerIn .18s var(--ease); }
 @keyframes drawerIn { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
 /* keyboard up (the Verlauf search) on a tablet: the Overlay stands the foot on the keys

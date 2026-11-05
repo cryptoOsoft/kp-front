@@ -1030,7 +1030,13 @@ button.list-row:disabled { opacity: var(--disabled); cursor: default; }
    button, so a second wash on `.rp-check-main:active` painted the header row twice — pressed
    cards showed a darker title band over a lighter body. */
 .rp-check:has(.rp-check-main:not(:disabled)):active { background-image: linear-gradient(var(--press), var(--press)); }
-.rp-check-main { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 12px 16px;
+/* THE HEAD is an eyebrow (hill climb r20, 05.11.2026 · settled «section heads share ONE type»):
+   it was a 14/700 title in ink, so «Anwesenheit» stood a level above «Aus den Einsatzdaten» on
+   the peer card across the page. Now the same 11px caps; 16px down to the eyebrow's line (the
+   row is 16 tall, the sub's 1.3 leading — so the label sits where `.report-pre-section h3` does)
+   and 12 to the body, as on the form's cards. 16 + 16 + 12 = 44: the head is still a full touch
+   row, and the whole card is the target anyway (::after below). */
+.rp-check-main { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: var(--sp-4) var(--sp-4) var(--sp-3);
   border: none; background: none; text-align: left; color: var(--ink); cursor: pointer; width: 100%; }
 .rp-check-main:disabled { cursor: default; }
 /* THE WHOLE CARD OPENS IT, not the title row alone. The names under «Anwesenheit» are the reason
@@ -1051,23 +1057,25 @@ button.list-row:disabled { opacity: var(--disabled); cursor: default; }
 .rp-check-extra .ci-clear { position: absolute; }
 /* same white-on-white as the partner box above — the ring of an unfinished step was invisible
    in light mode, so the checklist read as a list of labels with no state at all */
-.rp-check-dot { flex: none; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
+/* 16px since the head became an eyebrow (r20): a 24px ring stood half again as tall as the label's line beside
+   11px caps; at 16 it is the line's own height, the glyph 10 */
+.rp-check-dot { flex: none; display: grid; place-items: center; width: 16px; height: 16px; border-radius: 50%;
   border: 1.5px solid color-mix(in srgb, var(--ink-faint) 55%, transparent); color: var(--ink-faint); }
 /* done is the ORDINARY state and reads by its shape — a tick where there was a dash. It was blue,
    which put four blue rings down a column that also carries one per partner organisation. Ink,
    not hue: this dot is a section's STATUS, not a tick (the partner ticks are TickRow's). */
 .rp-check-dot.done { border-color: color-mix(in srgb, var(--ink-faint) 80%, transparent); color: var(--ink); }
-.rp-check-dot svg { width: 14px; height: 14px; }
-.rp-check-label { font: var(--fw-bold) var(--fs-2) var(--body); flex: none; }
-.rp-check-sub { font: var(--fw-medium) var(--fs-1) var(--body); color: var(--ink-faint); flex: 1; min-width: 0;
+.rp-check-dot svg { width: 10px; height: 10px; }
+.rp-check-label { font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-faint); flex: none; }
+.rp-check-sub { font: var(--fw-medium) var(--fs-1)/1.3 var(--body); color: var(--ink-faint); flex: 1; min-width: 0;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
 .rp-check-go { flex: none; width: 15px; height: 15px; color: var(--ink-faint); }
-/* the body starts under the LABEL, not under the dot: 16 (card pad) + 24 (dot) + 8 (gap) */
+/* the body starts under the LABEL, not under the dot: 16 (card pad) + 16 (dot) + 8 (gap) */
 /* right inset 16, the title row's own: the right-aligned «bis 15:50» ends under the row's ›
    (it was 8 while 190px columns needed every pixel; entries wrap now, council 04.11.2026) */
-.rp-check-extra { padding: 0 var(--sp-4) 16px 48px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.rp-check-extra { padding: 0 var(--sp-4) 16px calc(var(--sp-4) + 16px + var(--sp-2)); display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
 /* …except a list of people/material/partners (hill climb r8, 04.11.2026): two columns of names under
-   the label's 48px left a dead strip under the check dot and wrapped the details; a list starts at
+   the label's indent (then 48px) left a dead strip under the check dot and wrapped the details; a list starts at
    the card's own 16px, the row's title keeps its dot + label above it */
 .rp-check-extra:has(> .rp-people) { padding-left: var(--sp-4); }
 /* quick double-check lists (Anwesenheit names + Mittel lines): read-only chips, early
