@@ -191,6 +191,15 @@
    `resize: vertical` for a mouse; under a finger the grip is a corner nobody can drag, drawn over
    the text (hill climb r15, 05.11.2026). Rapport only – the intake's textareas are not touched. */
 @media (pointer: coarse) { .report-preflight-body .ip-textarea { resize: none; } }
+/* …and where it does resize (a mouse), the grip is OURS (hill climb r23, Opus 7, 05.11.2026): the
+   browser's hatch was the one unstyled control on the page – a grey triangle on the night field.
+   The same corner and drag, drawn as two short strokes in the muted icon ink, 10px, clear of the
+   field's rounded corner. `::-webkit-resizer` is Chromium's and Safari's; Firefox keeps its own
+   (quieter) grip. */
+.report-preflight-body .ip-textarea::-webkit-resizer {
+  background: linear-gradient(135deg, transparent 0 50%, var(--ink-faint) 50% 60%, transparent 60% 75%, var(--ink-faint) 75% 85%, transparent 85%)
+    0 0 / 10px 10px no-repeat;
+}
 /* Alarmierungs-/Ausrückzeiten grid (config-driven rows: Gruppen + Fahrzeuge) */
 .rz-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--sp-2) var(--sp-3); }
 .rz-row { display: flex; align-items: center; gap: 8px; min-height: 44px; }
