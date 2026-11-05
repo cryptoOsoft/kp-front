@@ -311,7 +311,8 @@ both now have browser pages – §9e and §9f.
     "vehicles": [],                               // e.g. { "id": "tlf", "label": "TLF", "winfapAlias": "TLF" }
     // Data-driven Auswahl-Vorschläge: each entry attaches a suggestion list to one symbol
     // field. `field` is "title" (the symbol's title combobox) or a detail-row key (e.g. "Typ",
-    // "Einheit"). Free typing in the Lage always stays possible – these only prefill. Edit on
+    // "Einheit"). However short the list, the field is a dropdown that also takes free typing
+    // (Karte and Plan alike) – these only prefill. Edit on
     // the «Symbolfelder» sheet of the Arbeitsmappe (§9h) or in the config JSON via CLI.
     // ⚠️ Verwaltung › Fahrzeuge & Symbole only SHOWS them – that table has no editor.
     "attributeLists": [
