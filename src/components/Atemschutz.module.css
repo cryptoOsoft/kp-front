@@ -1173,6 +1173,13 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
    dimmed name the crew was the louder line of the head. The head dims as ONE block, the name
    keeps its weight over the crew's 400. A crew inside keeps its ink line (owner pick A3). */
 .trowOut .crewLine { color: var(--ink-dim); }
+/* …and the rest of the card's text with it (hill climb r15, 05.11.2026): the fact chips and the
+   foot's values in full ink kept the grid's top row of out cards as loud as the crews inside.
+   The out tone is the phone row's — the dim ink, NOT `--done-opacity` (that took the text under
+   AA, see above). The dashed amber «+ Auftrag» keeps its tone (a gap is a gap), a red low Druck
+   keeps its red (`.metaAlarm`), and «Wieder in den Einsatz» stays the card's one full-strength
+   filled tile (owner, 27.09.2026). No Schätzung ever stands on an out card (TruppCard · estimate). */
+.trowOut .fact:not(.factDash), .trowOut .metaLine b { color: var(--ink-dim); }
 /* ⚠️ …and SMALL, not merely grey (04.09., the card's `.bandQuiet` read once more on the row). A
    row that is out has no contact clock, so the cell holds «–:––» — 25px of mono nothing, in the
    size the board reserves for the crews it is watching. Grey alone did not take it out of the
