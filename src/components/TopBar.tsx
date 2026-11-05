@@ -215,14 +215,17 @@ export function TopBar({ incident, startedAt, endedAt, recording, recStartedAt, 
           <button className="tb-act icon" title={mapNav.action.label} aria-label={mapNav.action.label} onClick={mapNav.action.onClick}><Icon id={mapNav.action.icon} /></button>
         )}
         {showHistory && (
-          <>
+          // ONE pair (hill climb r20, Opus 8): ↶ ↷ stand 4px apart inside the bar's 8px, so the bar
+          // reads title → time → log → weather instead of two loose 52px slots (10-journal ·
+          // .tb-history; a phone keeps its own spacing, 15-mobile)
+          <span className="tb-history">
             {/* tb-act-history: a name the stylesheet can aim at. On a phone with an
                 überfällig chip in the bar these two are what steps aside — see app.css. Positional
                 selectors would have picked the wrong buttons, because the mapNav action ahead of
                 them is a .tb-act.icon too and comes and goes with the surface. */}
             <button className="tb-act icon tb-act-history" title={undoWord} aria-label={undoWord} disabled={!canUndo} onClick={onUndo}><Icon id="undo" /></button>
             <button className="tb-act icon tb-act-history tb-act-redo" title={redoWord} aria-label={redoWord} disabled={!canRedo} onClick={onRedo}><Icon id="redo" /></button>
-          </>
+          </span>
         )}
         {/* ⚠️ `has-rem` tints the BUTTON, not just its corner. The count badge alone is 17px of amber
             hanging off a 44px icon — and on a phone the next thing in the bar is the Atemschutz

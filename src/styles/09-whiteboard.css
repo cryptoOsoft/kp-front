@@ -459,15 +459,19 @@
 .wb-floor-add { position: absolute; left: 50%; transform: translateX(-50%); z-index: 8;
   /* a full --tap tall (3am test r3, 25.09.2026: they were 34px); still straddling the edge, by half.
      28.09.2026: the ONE «add» look (13-incident `.cv-btn-add`) — framed «+ word», the one corner
-     (it was the last --r-pill add), ink, 12.5/700 compact; it keeps the glass because it floats
-     over the plan. */
+     (it was the last --r-pill add), ink, 12.5/700 compact.
+     FLAT on the storey plates' level (hill climb r20, Opus 7): the plate's surface and its 1px
+     --border, no shadow – a raised glass tile with a drop shadow outweighed the «3. OG ⌄» plates
+     it stands beside, and adding a storey is the rarest act on this stack. Its 12.5px word under
+     the plates' 14px keeps it a step below them; the hit area stays --tap. */
   display: inline-flex; align-items: center; gap: 4px; min-height: var(--tap); padding: 0 var(--sp-4) 0 var(--sp-3); border-radius: var(--r-sm);
-  border: 1px solid var(--glass-line); background: var(--glass); box-shadow: var(--e3);
+  border: 1px solid var(--border); background: var(--surface); box-shadow: none;
   color: var(--ink); font: var(--fw-bold) var(--fs-1) var(--body); line-height: 1; cursor: pointer;
   user-select: none; -webkit-user-select: none; }
 @media (hover: hover) {
-  .wb-floor-add:hover { background: var(--surface); color: var(--ink); }
+  .wb-floor-add:hover { background-image: linear-gradient(var(--hover), var(--hover)); }
 }
+.wb-floor-add:active { background-image: linear-gradient(var(--press), var(--press)); }
 .wb-floor-add .i { width: 13px; height: 13px; stroke-width: 2.4; }
 .wb-floor-add-up { bottom: calc(100% + var(--sp-3) + var(--folded-h, 0px)); }
 .wb-floor-add-down { top: calc(100% + var(--sp-3) + var(--folded-h, 0px)); }

@@ -470,8 +470,10 @@ Three rules the primitives own, so no surface re-answers them (18.09.2026):
     tall, the one corner — the `.cv-btn-add` look (13-incident). Dashed means «missing», never
     «add»; the ONE dashed add is «Foto hinzufügen» (`.cv-beilagen-add`, `.report-att-add`,
     decision D6 — it is the placeholder for a file). Icon-only where a column has no room (the
-    Schichten ＋), still a framed --tap square. Floating over a plan it keeps the glass, not the
-    shape (`.wb-floor-add`). Never a grey disc, a pill or a sub-44 tile.
+    Schichten ＋), still a framed --tap square. On the Plan's storey stack (`.wb-floor-add`) it
+    stands flat at the storey plates' level – their `--surface` and 1px `--border`, no shadow
+    (hill climb r20, 05.11.2026: the glass tile outweighed the plates). Never a grey disc, a pill or
+    a sub-44 tile.
     (2) **Count badge**: 16px tall, min-width 16, 11px/800, `--r-xs`, padding 0 4px. Fill is the
     meaning: ink (`--ink-fill` + `--on-accent-ink`) = a plain count, amber = open, red =
     missing/alarm — NEVER the station `--accent`, never blue, never a round pill (`.nav-count`
