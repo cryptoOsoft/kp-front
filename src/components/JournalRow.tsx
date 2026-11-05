@@ -223,7 +223,7 @@ export function JournalRow({
         <span className={`jr-text ${remDone ? 'jr-rem-struck' : ''}`}>{marked(rowText(e), e.subjectId)}</span>
         {hasMeta && (
           <span className="jr-meta">
-            {/* Footnotes ABOUT the row — «Nachtrag», «korrigiert HH:MM», «6×». They say
+            {/* Footnotes ABOUT the row — «Nachtrag», «Korrigiert HH:MM», «Insgesamt 6×». They say
                 that the append-only record holds more than the row shows, which is worth
                 keeping and worth reading last: a footnote belongs after the thing it
                 annotates, not in front of it. */}
@@ -361,7 +361,7 @@ export function JournalRow({
         {/* ── Der Stift ist von der Zeile gezogen (29.08., Variante 2) ──
             Correcting a hand-written line stays exactly what it was — an appended
             `textEdit` patch, both wordings in the record and in the hash chain, the
-            line says «korrigiert HH:MM» — but the pen now lives in the row's detail
+            line says «Korrigiert HH:MM» — but the pen now lives in the row's detail
             sheet (tap the row), not as an inline icon. It is paperwork, not a 3am
             action. Still NEVER on system rows («Trupp 2 eingerückt» is the app
             reporting an action), and NOT on audio rows (their words live in the

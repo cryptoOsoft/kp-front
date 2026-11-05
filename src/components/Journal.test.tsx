@@ -370,7 +370,7 @@ describe('Journal · the classification column', () => {
     expect(document.querySelector('[data-ev="n1"] .ic use')?.getAttribute('href')).toBe('#type')
   })
 
-  // «Nachtrag» / «korrigiert HH:MM» / «6×» are footnotes on the row: they belong UNDER the
+  // «Nachtrag» / «Korrigiert HH:MM» / «Insgesamt 6×» are footnotes on the row: they belong UNDER the
   // sentence – in front of it they pushed the text off its axis, beside it (in the trail) they
   // took half a phone row and broke «Audionotiz» mid-word (27.10.2026, #12).
   it('puts the footnotes under the sentence, not in the trail', () => {
@@ -378,7 +378,7 @@ describe('Journal · the classification column', () => {
     setup({ events: [{ ...events[0], correctedAt: at }, ...events.slice(1)] })
     const row = document.querySelector('[data-ev="r3"]')!
     const foot = row.querySelector('.jr-foot')!
-    expect(foot.textContent).toMatch(/^korrigiert \d{1,2}:\d{2}$/)
+    expect(foot.textContent).toMatch(/^Korrigiert \d{1,2}:\d{2}$/)
     expect(foot.closest('.jr-main')).toBeTruthy()
     expect(foot.closest('.jr-trail')).toBeNull()
     expect(row.querySelector('.jr-text')!.compareDocumentPosition(foot) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
@@ -434,7 +434,7 @@ describe('Journal · correcting a line (append-only)', () => {
   it('marks a corrected line with the time of the correction', () => {
     const at = new Date(1_060_000).toISOString()
     setup({ events: [{ ...events[0], correctedAt: at }, ...events.slice(1)] })
-    expect(screen.getByText(/^korrigiert \d{1,2}:\d{2}$/)).toBeTruthy()
+    expect(screen.getByText(/^Korrigiert \d{1,2}:\d{2}$/)).toBeTruthy()
   })
 })
 

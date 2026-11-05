@@ -556,11 +556,12 @@ Three rules the primitives own, so no surface re-answers them (18.09.2026):
     to a question (the Trupp's Ausrüstung) is a `Chip`, not a tick.
     `controlDebt.test.ts` is the ratchet for raw toggles, selects and search fields.
   - *Colour of a mention is not a state* (29.09.2026, owner pick A): every recognised word in the
-    Verlauf – vehicle, partner, Trupp, person, material, group – is **bold `--ink`**
-    (`.jr-link`), and in the composer one blue wash / one blue suggestion tint
-    (`.jc-text-marks mark`, `.jc-phrase-link`). Red and amber are for alarms and warnings only; a
-    routine «Ausrücken TLF» in the station red read as the loudest row on a page that carries real
-    Atemschutz alarms. The composer's phrase chips wear the one corner (`--r-sm`), never a pill.
+    Verlauf – vehicle, partner, Trupp, person, material, group – is **medium (500) `--ink`**
+    (`.jr-link`; bold until 05.11.2026, owner pick A5), prose regular, and in the composer one
+    blue wash / one blue suggestion tint (`.jc-text-marks mark`, `.jc-phrase-link`). Red and amber
+    are for alarms and warnings only; a routine «Ausrücken TLF» in the station red read as the
+    loudest row on a page that carries real Atemschutz alarms. The composer's phrase chips wear
+    the one corner (`--r-sm`), never a pill.
   - *One green per surface that means «saved / alive»* (29.09.2026): the Einsatz menu card's green
     is its «✓ Gespeichert» pill – no green stripe, no green fill, the other Einsätze' ages
     `--ink-dim`.
