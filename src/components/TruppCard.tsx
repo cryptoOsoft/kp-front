@@ -55,13 +55,16 @@ export function ClockVal({ val }: { val: string }) {
 
 /** A number with its unit, as the board draws it (owner pick C6, 05.11.2026): the figure stays in
  *  the value's mono so the digits line up, the trailing unit («bar», «min», «h») goes in the body
- *  face at 500 (`.valUnit`). The space stays where it was, so the text — and what a screen reader
- *  reads — is unchanged. A value without a trailing unit («2:00», «Verlauf») passes through.
+ *  face at 500 (`.valUnit`). The space rides INSIDE the unit's span (hill climb r20): in the mono it
+ *  was a full mono cell (~7.5px at 12.5), wider than the «·» gaps between the foot's items, so
+ *  «29:00 | min · raus» grouped wrongly; in the body face it is ~3px, under half of that, and the gap
+ *  stays clearly under the item gap. The text — and what a screen reader reads — is unchanged,
+ *  «29:00 min». A value without a trailing unit («2:00», «Verlauf») passes through.
  *  Usage: `<b className={s.pairBar}><UnitVal val={`${bar} bar`} /></b>`. */
 export function UnitVal({ val }: { val: string }) {
   const m = /^(.*\S) (bar|min|h)$/.exec(val)
   if (!m) return <>{val}</>
-  return <>{m[1]} <span className={s.valUnit}>{m[2]}</span></>
+  return <>{m[1]}<span className={s.valUnit}> {m[2]}</span></>
 }
 
 export function TruppRow({
