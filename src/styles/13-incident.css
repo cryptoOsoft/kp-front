@@ -1065,8 +1065,9 @@ button.list-row:disabled { opacity: var(--disabled); cursor: default; }
    as the Trupps heads carry their count («DRIN 3»). (Hung in the 16px padding instead, a 16px ring
    plus its gap would have stood on the card's own edge.)
    THE eyebrow MARK (hill climb r23, Opus 1, 05.11.2026 – the Plan chips' lamp wears the same spec,
-   09-whiteboard · .wb-lamp; change them together): OPEN is a 10px DASHED ring – 1.5px, eight 2px
-   dashes with 1.5px gaps, drawn as a mask so it takes the eyebrow's muted ink (--ink-faint, the
+   09-whiteboard · .wb-lamp; change them together): OPEN is a 10px BROKEN ring – 1.5px, four long
+   arcs with ~2.3px gaps on the diagonals (r24, Opus 4: r23's eight 2px dashes read as a loading
+   spinner), drawn as a mask so it takes the eyebrow's muted ink (--ink-faint, the
    row's own › wears it); DONE an 8px filled disc. 8px after the label (the row's gap), its middle
    on the label's x-height middle – the row centres it on the caps' middle, the 1px nudge takes it
    down. A solid ring of either size read as a letter after the word: r22's 10px / 1.5px as a
@@ -1075,8 +1076,8 @@ button.list-row:disabled { opacity: var(--disabled); cursor: default; }
    a section's STATUS – four blue ticks down a column that also carries one per partner
    organisation was the reason it went grey. */
 .rp-check-dot { flex: none; width: 10px; height: 10px; translate: 0 1px; background: var(--ink-faint);
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Ccircle cx='5' cy='5' r='4.25' fill='none' stroke='black' stroke-width='1.5' pathLength='28' stroke-dasharray='2 1.5'/%3E%3C/svg%3E") center / 100% no-repeat;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Ccircle cx='5' cy='5' r='4.25' fill='none' stroke='black' stroke-width='1.5' pathLength='28' stroke-dasharray='2 1.5'/%3E%3C/svg%3E") center / 100% no-repeat; }
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Ccircle cx='5' cy='5' r='4.25' fill='none' stroke='black' stroke-width='1.5' pathLength='26.8' stroke-dasharray='4.4 2.3' stroke-dashoffset='2.2'/%3E%3C/svg%3E") center / 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Ccircle cx='5' cy='5' r='4.25' fill='none' stroke='black' stroke-width='1.5' pathLength='26.8' stroke-dasharray='4.4 2.3' stroke-dashoffset='2.2'/%3E%3C/svg%3E") center / 100% no-repeat; }
 .rp-check-dot.done { width: 8px; height: 8px; border-radius: 50%; -webkit-mask: none; mask: none; }
 .rp-check-label { font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-faint); flex: none; }
 .rp-check-sub { font: var(--fw-medium) var(--fs-1)/1.3 var(--body); color: var(--ink-faint); flex: 1; min-width: 0;

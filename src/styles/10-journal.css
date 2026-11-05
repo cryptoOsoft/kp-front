@@ -468,10 +468,11 @@
 .jr-legend-item { display: flex; align-items: center; gap: 8px; min-width: 0;
   font: var(--fw-medium) var(--fs-1) var(--body); color: var(--ink-dim); }
 /* the discs here are the row's discs, at the row's size — a legend drawn smaller than the thing
-   it explains is a second shape to recognise */
+   it explains is a second shape to recognise – and in the row's colours, the hue-less Bereiche in
+   ink (06-contextpanel · .hist-ev .ic) */
 :is(.jr-legend, .jr-filter-menu) .ic { width: 24px; height: 24px; border-radius: 50%; flex: none;
-  display: grid; place-items: center; background: var(--surface-2);
-  border: 1px solid var(--border); color: var(--ink-dim); }
+  display: grid; place-items: center; background: var(--ink-8);
+  border: 1px solid var(--ink-16); color: var(--ink); }
 :is(.jr-legend, .jr-filter-menu) .ic > .i { width: 12px; height: 12px; }
 :is(.jr-legend, .jr-filter-menu) .ic.jr-ic-map { background: var(--blue-12);
   border-color: var(--blue-22); color: var(--blue-strong); }
