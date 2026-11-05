@@ -109,7 +109,7 @@ export function useZeigen(
       for (const t of mouse) window.removeEventListener(t, onMouse, opts)
       for (const t of touch) window.removeEventListener(t, onTouch, opts)
     }
-  }, [el, enabled])
+  }, [el, enabled, handOver])
 }
 
 /** Calls `onMoved` when the user pans (a drag past the tap slop), pinches or wheels on `el`. */
