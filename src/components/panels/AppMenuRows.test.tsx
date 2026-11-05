@@ -72,6 +72,18 @@ describe('AppMenuRows · home (no card)', () => {
     expect(screen.queryByRole('button', { name: ci.titleNew })).toBeNull()
   })
 
+  it('draws «Üben» right above the Hilfe when handed, and not without', () => {
+    const onUeben = vi.fn()
+    renderHome({ onUeben })
+    const row = screen.getByRole('button', { name: appConfig.copy.tutorials.menu })
+    expect(row.nextElementSibling?.textContent).toBe(appConfig.copy.help.menu)
+    fireEvent.click(row)
+    expect(onUeben).toHaveBeenCalledTimes(1)
+    cleanup()
+    renderHome()
+    expect(screen.queryByRole('button', { name: appConfig.copy.tutorials.menu })).toBeNull()
+  })
+
   it('draws the offline row it is handed, in the App group', () => {
     const onOpen = vi.fn()
     renderHome({ offline: { label: appConfig.copy.karte.device.title, onOpen } })

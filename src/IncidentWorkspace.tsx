@@ -233,6 +233,8 @@ interface WorkspaceProps {
   onOpenObjectVisits?: (objectId?: string | null) => void
   /** opens «Karte & Objekte» over this Einsatz (App · enterKarte); undefined = a link session */
   onOpenKarte?: () => void
+  /** opens App's «Üben» sheet over this Einsatz (landingSheet 'ueben'); undefined = a link session */
+  onOpenUeben?: () => void
   /** another surface («Karte & Objekte», the Objektbesuche) is in front of this Einsatz: it stays
    *  MOUNTED — its state, sync and live poll, and above all its Atemschutz alarm — but renders
    *  only the headless hosts and the alarm rows (see the `covered` return below) */
@@ -274,7 +276,7 @@ interface WorkspaceProps {
 
 export function IncidentWorkspace({
   incidentMeta, incidents, workspace, sync, forceReadOnly, tabLockLost, onTakeOverTab, onCompleteRapport,
-  onSwitchIncident, onOpenHistory, onOpenObjectVisits, onOpenKarte, onOpenDivera, onOpenDatenquellen, onReactivateActive, onBackFromArchive,
+  onSwitchIncident, onOpenHistory, onOpenObjectVisits, onOpenKarte, onOpenUeben, onOpenDivera, onOpenDatenquellen, onReactivateActive, onBackFromArchive,
   covered = false, onUncover, needsReview, onReviewDone, reviewedLocallyAt, onEditMeta, lifecycleElsewhere, openCover, onOpenCoverDone,
 }: WorkspaceProps) {
   const { user, logout, asLink, isEl, linkRefused, roleReadOnly, isEditor, linkScoped } = useSessionRole(incidentMeta)
@@ -3098,7 +3100,7 @@ export function IncidentWorkspace({
         setPanel, setTruppFocus, mapUI, replayActive, gpsStale, gpsAgeMs, share, onShareChangeName,
         onBackFromArchive, onReactivateActive, isPhone, phoneTools, planFit, incidents, syncStatus, journal,
         auditDelivery, closedRefusedUnexported, baseSyncStatus, lastSyncedAt, user, setSettingsOpen,
-        onSwitchIncident, onOpenHistory, onOpenObjectVisits, onOpenKarte, activeObjectId, canEditMeta, onEditMeta,
+        onSwitchIncident, onOpenHistory, onOpenObjectVisits, onOpenKarte, onOpenUeben, activeObjectId, canEditMeta, onEditMeta,
         onOpenDivera, onOpenDatenquellen, confirmAndComplete, abschlussMissing, canShareLink, setShareLink,
         setHelpOpen, setInstallGuideOpen, setOfflineReadyOpen, syncNow, media, logout, settingsOpen,
         helpOpen, installGuideOpen, offlineReadyOpen, shareLink,
@@ -3302,7 +3304,7 @@ export function IncidentWorkspace({
         setSettingsOpen, symbolScale, setSymbolScale, symbolCaptions, setSymbolCaptions, railLabels,
         setRailLabels, offlineRadiusM, setOfflineRadiusM, offlineAuto, setOfflineAuto, keepScreenOn,
         setKeepScreenOn, linkScoped, setFeedbackParent, setFeedbackOpen, share, setShareParent, setSharePick,
-        feedbackParent, canWriteRecord, photoPosition, setPhotoPosition,
+        feedbackParent, canWriteRecord, photoPosition, setPhotoPosition, role: user?.role,
       }} />
 
       {/* phone field-capture: a editor can't draw tactical symbols on a phone, but can

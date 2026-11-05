@@ -84,6 +84,8 @@ export interface WorkspaceTopBarProps {
   onOpenHistory: () => void
   onOpenObjectVisits: ((objectId?: string | null) => void) | undefined
   onOpenKarte: (() => void) | undefined
+  /** «Üben» – App's tutorials sheet (landingSheet 'ueben'); undefined = a link session */
+  onOpenUeben: (() => void) | undefined
   activeObjectId: string | undefined
   canEditMeta: boolean
   onEditMeta: () => void
@@ -116,7 +118,7 @@ export function WorkspaceTopBar({
   setPanel, setTruppFocus, mapUI, replayActive, gpsStale, gpsAgeMs, share, onShareChangeName,
   onBackFromArchive, onReactivateActive, isPhone, phoneTools, planFit, incidents, syncStatus, journal,
   auditDelivery, closedRefusedUnexported, baseSyncStatus, lastSyncedAt, user, setSettingsOpen,
-  onSwitchIncident, onOpenHistory, onOpenObjectVisits, onOpenKarte, activeObjectId, canEditMeta, onEditMeta,
+  onSwitchIncident, onOpenHistory, onOpenObjectVisits, onOpenKarte, onOpenUeben, activeObjectId, canEditMeta, onEditMeta,
   onOpenDivera, onOpenDatenquellen, confirmAndComplete, abschlussMissing, canShareLink, setShareLink,
   setHelpOpen, setInstallGuideOpen, setOfflineReadyOpen, syncNow, media, logout, settingsOpen,
   helpOpen, installGuideOpen, offlineReadyOpen, shareLink,
@@ -248,6 +250,7 @@ export function WorkspaceTopBar({
             // handed to somebody. Same gate as every minting door (`canShareLink`): editors,
             // never a viewer, a read-only surface or a link session.
             onShare={canShareLink ? () => setShareLink('view') : undefined}
+            onUeben={linkScoped ? undefined : onOpenUeben}
             onHelp={() => setHelpOpen(true)}
             onInstall={isStandalone() || !installOffered(getInstallPlatform()) ? undefined : () => setInstallGuideOpen(true)}
             onOfflineReadiness={() => setOfflineReadyOpen(true)}

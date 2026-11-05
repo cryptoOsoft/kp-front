@@ -52,6 +52,8 @@ import { pickTrouble, readTrouble, recordTrouble, type TroubleEvent } from './li
 import { onStorageDegraded } from './lib/idb'
 import { loadRoster } from './lib/usePersonnel'
 import { HelpOverlay } from './components/HelpOverlay'
+import { UebenSheet } from './components/tutorial/UebenSheet'
+import { offeredTutorials } from './lib/tutorials/offer'
 import { installHoldTooltip } from './lib/holdTooltip'
 
 // Objektbesuche (/besuche…, docs/object-visits.md): its own lazy chunk — precached with the field
@@ -263,8 +265,12 @@ export default function App() {
     const p = window.location.pathname
     if (isOvPath(p) || isKartePath(p)) leaveAppEntries('/')
   }, [])
-  // landing-card utilities (no incident open): device settings / help / install guide
-  const [landingSheet, setLandingSheet] = useState<null | 'settings' | 'help' | 'install'>(null)
+  // landing-card utilities (no incident open): device settings / help / install guide — and
+  // «Üben», the one of them the Einsatz menu opens too (over the Einsatz, which stays mounted)
+  const [landingSheet, setLandingSheet] = useState<null | 'settings' | 'help' | 'install' | 'ueben'>(null)
+  // what this session may practise (none on a link: the «Üben» row is not drawn then)
+  const tutorials = offeredTutorials({ role: user?.role, linkScoped })
+  const openUeben = tutorials.length > 0 ? () => setLandingSheet('ueben') : undefined
   // Rückmeldung: something went wrong recently and the cooldown has passed → ask on the
   // LAUNCHER, never inside an incident. Read once at mount; the log only grows during an
   // incident, and by then this branch isn't rendered anyway.
@@ -769,6 +775,7 @@ export default function App() {
     onCreate: () => setOverlay('create'),
     onObjectVisits: objectVisitsConfig().enabled ? () => enterObjectVisits() : undefined,
     onSettings: () => setLandingSheet('settings'),
+    onUeben: openUeben,
     onHelp: () => setLandingSheet('help'),
     onInstall: !isStandalone() && installOffered(getInstallPlatform()) ? () => setLandingSheet('install') : undefined,
     onLogout: () => void askLogout(),
@@ -837,6 +844,7 @@ export default function App() {
           // «Karte & Objekte» from the Einsatz menu's «App» group: the viewer over this Einsatz,
           // which stays open behind it — never for a link session (docs/karte-objekte.md)
           onOpenKarte={linkScoped ? undefined : enterKarte}
+          onOpenUeben={openUeben}
           covered={screen !== 'einsatz'}
           onUncover={uncoverEinsatz}
           // «Einsatz eröffnen» goes straight to the manual wizard — the pool sheet is gone
@@ -907,7 +915,9 @@ export default function App() {
           onFeedback={linkScoped ? undefined : () => setFeedbackFor('plain')}
         />
       )}
-      {screen !== 'einsatz' && landingSheet === 'help' && <HelpOverlay onClose={() => setLandingSheet(null)} />}
+      {screen !== 'einsatz' && landingSheet === 'help' && <HelpOverlay tutorials={tutorials} onClose={() => setLandingSheet(null)} />}
+      {/* on every screen: the Einsatz menu opens it too, and a tap starts the tutorial there */}
+      {landingSheet === 'ueben' && <UebenSheet tutorials={tutorials} onClose={() => setLandingSheet(null)} />}
       {screen !== 'einsatz' && landingSheet === 'install' && <InstallGuide onClose={() => setLandingSheet(null)} />}
       {screen !== 'einsatz' && feedbackFor && (
         <FeedbackSheet

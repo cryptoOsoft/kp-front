@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Icon } from '../lib/icons'
 import { SearchField } from './SearchField'
+import { Button } from './Button'
 import { Overlay } from '../lib/overlays'
 import { scrollBehavior } from '../lib/reducedMotion'
 import { appConfig } from '../config/appConfig'
@@ -10,12 +11,17 @@ import { DEFAULT_HOURS_ROUNDING } from '../lib/attendanceHours'
 import { useIsPhone, useMediaQuery } from '../lib/useIsPhone'
 import { helpShows } from '../lib/helpDevice'
 import { pickActiveSection } from '../lib/scrollSpy'
+import type { TutorialMeta } from '../lib/tutorials/catalogue'
+import { helpTutorials, startOrResume } from '../lib/tutorials/offer'
 
 // In-app capabilities/help overlay reached from the incident menu ("Funktionen &
 // Hilfe"). One scrollable column of feature sections with a sticky TOC + scroll-spy
 // (lib/scrollSpy: the TOC follows the reading position both ways and keeps its entry in view).
 // Content is authored as data in appConfig.copy.help.sections (no markdown dependency)
 // so it bundles offline; inline markup is **bold** + [[key]] keyboard chips.
+// A section that maps to a tutorial carries «▶ Ausprobieren · <Titel> · n Min.» under its title
+// (owner pick H = A, 05.11.2026; the map is lib/tutorials/offer · helpTutorials): a tap closes
+// the help and starts the tutorial, resuming where an earlier run stopped.
 
 /**
  * Wrap every occurrence of `q` in a plain string with <mark>. Case-insensitive and
@@ -104,7 +110,29 @@ function sectionHaystack(s: HelpSection, intro: string): string {
   return parts.join(' ').replace(/\*\*|\[\[|\]\]|\u00AD/g, '').toLowerCase()
 }
 
-export function HelpOverlay({ onClose }: { onClose: () => void }) {
+/** «▶ Ausprobieren · Trupps · 6 Min. ›» – one per tutorial the section maps to, none otherwise */
+function TryButtons({ sectionId, offered, onClose }: { sectionId: string; offered: readonly TutorialMeta[]; onClose: () => void }) {
+  const C = appConfig.copy.tutorials
+  const list = helpTutorials(sectionId, offered)
+  if (!list.length) return null
+  return (
+    <div className="help-try">
+      {list.map((t) => (
+        <Button key={t.id} icon={<Icon id="play" />} onClick={() => { onClose(); startOrResume(t.id) }}>
+          <b>{C.help.try}</b>
+          <span className="help-try-what">{fillTemplate(C.help.what, { title: C.titles[t.id], minutes: fillTemplate(C.minutes, { n: t.minutes }) })}</span>
+          <Icon id="chevron" className="help-try-chev" />
+        </Button>
+      ))}
+    </div>
+  )
+}
+
+export function HelpOverlay({ onClose, tutorials = [] }: {
+  onClose: () => void
+  /** what this session may practise (lib/tutorials/offer · offeredTutorials); none = no «Ausprobieren» */
+  tutorials?: readonly TutorialMeta[]
+}) {
   const C = appConfig.copy.help
   const phone = useIsPhone()
   // a finger and nothing else = no keyboard to speak of. ⚠️ Two plain queries rather than one
@@ -239,6 +267,7 @@ export function HelpOverlay({ onClose }: { onClose: () => void }) {
             {sections.map((s) => (
               <section key={s.id} id={`help-${s.id}`} className="help-sec">
                 <h3><Icon id={s.icon} />{mark(s.title, q, 'h')}</h3>
+                <TryButtons sectionId={s.id} offered={tutorials} onClose={onClose} />
                 {s.blocks.map((b, i) => {
                   switch (b.kind) {
                     case 'intro':
