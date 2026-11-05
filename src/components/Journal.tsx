@@ -407,8 +407,10 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
           target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>{p.text}</a>
       )
     }
+    // a name with its role is ONE unit on the line (`.jr-link-unit`, 10-journal.css): «(AS)»
+    // never wraps away from «Weber Nina», while the row still wraps between people
     return (
-      <b key={pi} className={`jr-link jr-link-${p.kind}`} title={p.hint} data-trupp={p.truppId}>
+      <b key={pi} className={`jr-link jr-link-${p.kind}${p.role ? ' jr-link-unit' : ''}`} title={p.hint} data-trupp={p.truppId}>
         {p.text}
         {p.role && <i className="jr-link-role"> ({p.role})</i>}
       </b>

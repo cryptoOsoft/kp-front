@@ -239,7 +239,8 @@ Three rules the primitives own, so no surface re-answers them (18.09.2026):
     `.ctx-x` — one rule in 13-incident.css; it was 28/30/32). Beside a 44px search field it is
     44px instead (Palette, Verlauf search), and it is the ordinary grey, never a filled «on».
     The Verlauf's head is a row of 44px buttons (ⓘ, lens, funnel, ▶, ✕ – 30.10.2026, owner), so
-    its ✕ and ⓘ are 44 there too, for the same reason.
+    its ✕ and ⓘ are 44 there too, for the same reason – and its ✕ wears ▶'s frame, not the grey
+    (hill climb r13, 05.11.2026: bare utilities, framed ▶ and a grey ✕ were three looks in one row).
   - *Radius – ONE corner (25.09.2026):* **every** rectangle is `var(--r-sm)` (12px) – button,
     field, status box, row, card, page card (tablet and desktop – a phone page has no card,
     [`phone-layout.md`](phone-layout.md) · «No page card on a phone»), sheet, dialog, message; `--r-ctl`/`--r-surface`/
