@@ -54,6 +54,9 @@ export async function fetchElevationProfile(coords: LngLat[], signal?: AbortSign
 // and a Leitung whose pumps stand on the map opens its Messung without a second request.
 // ⚠️ Only an ANSWER is kept: a null (offline, outside CH) is asked again next time – offline now
 // is not offline later. Bounded, oldest out: a Leitung dragged for a minute leaves a path per pause.
+// This cache lives as long as the page; across a reload OFFLINE the service worker answers the
+// same URL from its `height-profiles` cache (vite.config · runtimeCaching, network first, 300
+// paths / 30 days), so the pumps a Leitung draws keep their terrain without a signal.
 
 const CACHE_MAX = 64
 const cache = new Map<string, ProfileResult>()

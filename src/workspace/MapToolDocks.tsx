@@ -216,8 +216,8 @@ export function MapToolDocks({
           // away). Hidden on a locked surface — there, Messen is a question the EL may ask, not a
           // way to draw — and while the measurement is still too short to be one. An opened
           // Wassertransport goes WITH the line: its hose, flow, source and the pumps moved by hand
-          // (its pumps on the map are the Leitung's own «Pumpen auf Karte», off until set there –
-          // lib/linePumps; Messen has no line to draw them on). The same call is
+          // – and with «Pumpen auf Karte» on (useMeasure · adoptedRelay, owner 05.11.2026): the
+          // pumps Messen showed stay on the map as the Leitung's own (lib/linePumps). The same call is
           // the Wassertransport's «Als Leitung auf die Karte» (MeasurePanel · WaterRelay).
           onAdopt={!tacticalLocked && measure.path.length >= (measure.mode === 'line' ? 2 : 3)
             ? () => {

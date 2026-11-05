@@ -48,11 +48,12 @@ describe('adoptedRelay — what a Strecke carries onto its Leitung', () => {
     expect(adoptedRelay({ open: false, value: { hose: '110', relay: { flow: 600 } } })).toBeUndefined()
   })
 
-  it('opened on its defaults: the relay Ø explicitly, and an empty relay', () => {
-    expect(adoptedRelay({ open: true, value: {} })).toEqual({ hose: '75', relay: {} })
+  // …and the new Leitung draws its pumps (owner 05.11.2026): what Messen showed stays on the map
+  it('opened on its defaults: the relay Ø explicitly, and a relay that draws its pumps', () => {
+    expect(adoptedRelay({ open: true, value: {} })).toEqual({ hose: '75', relay: { showPumps: true } })
   })
 
   it('keeps a Ø and assumptions picked in Messen', () => {
-    expect(adoptedRelay({ open: true, value: { hose: '2x75', relay: { flow: 1600 } } })).toEqual({ hose: '2x75', relay: { flow: 1600 } })
+    expect(adoptedRelay({ open: true, value: { hose: '2x75', relay: { flow: 1600 } } })).toEqual({ hose: '2x75', relay: { flow: 1600, showPumps: true } })
   })
 })

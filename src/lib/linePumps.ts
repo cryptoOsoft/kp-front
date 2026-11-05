@@ -12,7 +12,8 @@ import { cachedProfile, loadProfile, reverseProfile, type ProfileResult } from '
 // The live map runs the editor's own controller per line (components/RelayPumpMarkers ·
 // LinePumpMarkers, lib/useRelay); the printed Kroki reads `drawnPumpEntities` (lib/krokiPayload) –
 // the same steps, so screen = editor = paper. ⚠️ The terrain comes from lib/profile's cache, which
-// all three share: no profile (offline, outside CH) plans on flat ground, as the editor does then.
+// all three share (and, across a reload offline, the service worker's `height-profiles` cache): no
+// profile at all (never fetched online, outside CH) plans on flat ground, as the editor does then.
 // The «Pumpen als Symbole setzen» symbols placed between #536 and this (04.–05.11.2026) are
 // ordinary Motorspritzen and stay so – nothing migrates them.
 

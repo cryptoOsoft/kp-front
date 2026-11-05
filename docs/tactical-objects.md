@@ -101,10 +101,13 @@ One object, two surfaces: how a tactical object is stored, anchored, projected a
   along its line and pinned there (`relay.pumps[i].atM`, the chart's own pin, one undo step on
   release, no Verlauf row); a tap selects the Leitung. Paper prints the same pumps
   (`krokiPayload` adds `drawnPumpEntities`; `readyDirectReportPayload` awaits the profiles first)
-  and the Rapport's Kroki preview shows them. No profile (offline, outside CH) plans on flat
-  ground, exactly as the editor then does and says («Ohne Höhenprofil gerechnet»). Messen has no
+  and the Rapport's Kroki preview shows them. A profile once fetched answers offline too, after a reload
+  (the service worker's `height-profiles` cache, docs/sync-and-offline.md); none at all (a path
+  never fetched online, outside CH) plans on flat ground, exactly as the editor then does and
+  says («Ohne Höhenprofil gerechnet»). Messen has no
   switch: its pumps are the panel's while it measures, and «Als Leitung auf die Karte» carries the
-  relay onto a Leitung, whose editor offers it. The one-shot «Pumpen als Symbole setzen» it
+  relay onto a Leitung WITH the switch on (owner 05.11.2026, `useMeasure · adoptedRelay`), so
+  the pumps Messen showed stay on the map. The one-shot «Pumpen als Symbole setzen» it
   replaced (#536, 04.11.2026) placed ordinary Motorspritzen – those stay ordinary symbols.
 
 ## One object, two surfaces
