@@ -1232,10 +1232,13 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 .trowWarn .trowState { color: var(--amber-strong); }
 .trowCrit .trowState { color: var(--red-strong); }
 
-/* the number the whole surface exists for — mono and tabular so the digits line up down the column */
+/* the number the whole surface exists for — mono and tabular so the digits line up down the column.
+   A calm clock in the STRONG green on every board (hill climb r19, 05.11.2026): the phone row's plain
+   `--green` read darker and more saturated at night than the grid's band clocks, which wear the strong
+   ink since r18 — one calm clock, one ink, on the neutral phone card as on the green band. */
 .trowClock { text-align: right; }
 .trowClockVal { display: block; font-family: var(--mono); font-size: 28px; font-weight: var(--fw-heavy);
-  line-height: 1; color: var(--green); font-variant-numeric: tabular-nums; }
+  line-height: 1; color: var(--green-strong); font-variant-numeric: tabular-nums; }
 /* fällig in the strong amber ink (05.11.2026): plain --amber measured 2.4:1 on the phone row's
    wash and 2.2:1 on the grid's amber head band by day, under the 3:1 of large text; the strong
    ink is 5.6:1 on the band by day, 5.2:1 at night (überfällig's --red-strong: 4.9 / 5.4) */
@@ -1245,6 +1248,10 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
    number, so a day-long clock stops out-measuring the name beside it */
 .clockUnit { font-family: var(--body); font-size: .75em; font-weight: var(--fw-bold); margin-left: 1px; }
 .clockGroup { margin-left: .15em; }
+/* «270 bar», «10:00 min» (TruppCard · UnitVal, owner pick C6, 05.11.2026): the figure stays in its
+   value's mono so the digits line up, the unit word goes in the body face at 500 with no tracking —
+   same size and ink as its figure, on its baseline. The Schätzung's figure keeps its 700 (T2). */
+.valUnit { font-family: var(--body); font-weight: var(--fw-medium); letter-spacing: 0; }
 /* the clock's caption, ABOVE the time (owner pick A1/C7, 05.11.2026): 11px caps with the tracking
    nearly closed — at .05em it read as fine print, at 12.5 it out-weighed the name's line. One line,
    normal word spacing. ⚠️ The «KON TAKT» / «DRAU SSEN» gaps in the hill-climb laptop shots are
@@ -1789,8 +1796,8 @@ button.crewLine { cursor: pointer; -webkit-tap-highlight-color: transparent; }
    The wash is 22 % by day, 16 % at night (hill climb r18, 05.11.2026: at 12 % the mint band was
    the board's quietest block beside the out cards' filled tiles; night one token step, its dark
    ground shows a tint sooner). The three tiers keep one strength, so they stay comparable; the
-   calm clock goes to `--green-strong` on it like fällig's and überfällig's strong inks (plain
-   green would be 3.3:1 on the day band).
+   calm clock wears `--green-strong` (`.trowClockVal`, every board since r19) like fällig's and
+   überfällig's strong inks (plain green would be 3.3:1 on the day band).
    2px under the crew line (its own 4px pad over it on a mouse, 2px on touch): the band closes
    ~8–10px under the crew's glyphs as it opens 10px over the caption (r18 – the caption's 4px more
    air came off here, so the iPad's cards keep their height). */
@@ -1801,9 +1808,6 @@ button.crewLine { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 :global(:root[data-theme="night"]) .grid .trowIn .trowHead { background: var(--green-16); }
 :global(:root[data-theme="night"]) .grid .trowWarn .trowHead { background: var(--amber-16); }
 :global(:root[data-theme="night"]) .grid .trowCrit .trowHead { background: var(--red-16); }
-/* (`:where` keeps it at two classes, so a closed Einsatz's dim clock – `.surfaceFrozen`, later –
-   still wins) */
-.grid :where(.trowIn .trowHead) .trowClockVal { color: var(--green-strong); }
 /* the clock's caption steps up one ink tier on the stronger wash: --ink-faint measured 4.49:1 on it
    at night */
 .grid :is(.trowIn, .trowWarn, .trowCrit) .trowHead .trowSub { color: var(--ink-dim); }
