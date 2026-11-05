@@ -130,7 +130,10 @@ export function IconSprite() {
           filled by the caller (.teamCrownOn) once it is the state, so the leader reads as a
           fact rather than as one more button that could still be pressed. */}
       <symbol id="star" viewBox="0 0 24 24"><path d="m12 3.8 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" stroke-linejoin="round" /></symbol>
-      <symbol id="checklist" viewBox="0 0 24 24"><rect x="3.5" y="6.5" width="14" height="14" rx="2" /><path d="M8 3.5h10.5a2 2 0 0 1 2 2V16" /><path d="M6.8 12.4l1.5 1.5 2.7-3M13.2 13h2" /><path d="M6.8 17.2l1.5 1.5 2.7-3M13.2 17.8h2" /></symbol>
+      {/* Checklisten (rail, Karte, Verlauf, visits, admin): ONE clipboard with two ticks – #clipboard's
+          shape, 2 units wider so the ticks have room (hill climb r17, Opus 11: the old stacked sheets
+          with ticks and dashes went muddy at 20px beside the single-stroke stopwatch / people / box) */}
+      <symbol id="checklist" viewBox="0 0 24 24"><path d="M8.5 4.5h-2a1 1 0 0 0-1 1V20a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V5.5a1 1 0 0 0-1-1h-2" /><rect x="8.5" y="3" width="7" height="3.5" rx="1" /><path d="M8.8 12l2 2 4.4-4.6M8.8 17.4l2 2 4.4-4.6" /></symbol>
       {/* An Aufgaben list in the Checkliste rail and the Nachschlagen library (23.10.2026, sweep
           F.9): two EMPTY boxes with their lines – a list still to work through. It wore #check,
           which beside «0%» read as «done»; the glyph names the kind, not a state. */}
