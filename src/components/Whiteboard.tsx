@@ -3028,7 +3028,7 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
         <DrawEditor
           key={selDraw.id}
           readOnly={readOnly}
-          drawing={{ kind: selDraw.kind as 'draw' | 'area' | 'circle', radiusM: selCircleM, color: selDraw.color, width: selDraw.width, dashed: selDraw.dashed, label: selDraw.label, marker: selDraw.marker, arrow: selDraw.arrow, arrowStop: selDraw.arrowStop, showDistance: selDraw.showDistance, fillOpacity: selDraw.fillOpacity, hatch: selDraw.hatch, teilstueck: selDraw.teilstueck, content: selDraw.content, lineNo: selDraw.lineNo, role: selDraw.role, hose: selDraw.hose, floorTag: stack ? selDraw.floorTag ?? selDraw.floor ?? 0 : selDraw.floorTag, startAttachment: selDraw.startAttachment, endAttachment: selDraw.endAttachment }}
+          drawing={{ kind: selDraw.kind as 'draw' | 'area' | 'circle', radiusM: selCircleM, color: selDraw.color, width: selDraw.width, dashed: selDraw.dashed, label: selDraw.label, marker: selDraw.marker, arrow: selDraw.arrow, arrowStop: selDraw.arrowStop, showDistance: selDraw.showDistance, fillOpacity: selDraw.fillOpacity, hatch: selDraw.hatch, teilstueck: selDraw.teilstueck, content: selDraw.content, lineNo: selDraw.lineNo, role: selDraw.role, hose: selDraw.hose, relay: selDraw.relay, floorTag: stack ? selDraw.floorTag ?? selDraw.floor ?? 0 : selDraw.floorTag, startAttachment: selDraw.startAttachment, endAttachment: selDraw.endAttachment }}
           pointCount={selDraw.pts?.length ?? 0}
           /* the distance toggle appears once the plan is calibrated against its printed scale bar */
           supportsDistance={calibrated}

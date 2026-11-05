@@ -17474,6 +17474,41 @@
             "minimum": 0.0,
             "title": "Nearbyobjectwarnm",
             "default": 25
+          },
+          "defaultLineHose": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "40",
+                  "55",
+                  "75",
+                  "2x75",
+                  "110"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Defaultlinehose"
+          },
+          "defaultRelayHose": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "55",
+                  "75",
+                  "2x75",
+                  "110"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Defaultrelayhose"
           }
         },
         "type": "object",

@@ -4,6 +4,7 @@ import { render, screen, cleanup, fireEvent } from '@testing-library/react'
 import { ContextPanel, type SymbolView } from './ContextPanel'
 import type { SymbolControl } from '../types'
 import { appConfig } from '../config/appConfig'
+import { fillTemplate } from '../lib/format'
 // The ADR/ERG datasets are fetched static assets now (lib/staticData) — inject them the
 // way the boot prefetch would, so the autofill/readout under test sees the real tables.
 import unData from '../../public/un-hazard.json'
@@ -346,6 +347,40 @@ describe('ContextPanel — a count field is a stepper', () => {
     setup(rescue({ Status: 'gerettet', 'Anzahl Tiere': '2 Katzen' }))
     expect(screen.queryByRole('group', { name: 'Anzahl Tiere' })).toBeNull()
     expect(screen.getByDisplayValue('2 Katzen')).toBeTruthy()
+  })
+})
+
+// A station list (fleet.attributeLists) only prefills: however short it is, the field is the
+// dropdown with free typing, never Segmented tabs that cannot say anything unlisted (05.11.2026).
+describe('ContextPanel — a station list field is a dropdown with free typing', () => {
+  const sanitaet = (onFields = vi.fn()) => setup({
+    entity: { id: 'b1', symbol: 'VKF Bereich Sanitaet', fields: { Einheit: '' } },
+    protectedKeys: new Set(['Einheit']),
+    fieldOptions: { Einheit: ['RDNWS', 'Rettung Basel-Stadt', 'Rega', 'Care-Team'] },
+    onFields,
+  })
+  const open = () => {
+    const trigger = document.querySelector<HTMLButtonElement>('.combo-pick')!
+    expect(trigger.getAttribute('aria-haspopup')).toBe('listbox')
+    fireEvent.click(trigger)
+  }
+
+  it('picks a listed value from the menu', () => {
+    const onFields = vi.fn()
+    sanitaet(onFields)
+    expect(screen.queryByRole('group', { name: 'Einheit' })).toBeNull() // no Segmented
+    open()
+    fireEvent.click(screen.getByRole('button', { name: 'Rega' }))
+    expect(onFields).toHaveBeenLastCalledWith({ Einheit: 'Rega' })
+  })
+
+  it('takes a value the station did not list', () => {
+    const onFields = vi.fn()
+    sanitaet(onFields)
+    open()
+    fireEvent.change(screen.getByRole('textbox', { name: appConfig.copy.combo.searchOrType }), { target: { value: 'Rettungsdienst Dornach' } })
+    fireEvent.click(screen.getByRole('button', { name: fillTemplate(appConfig.copy.combo.useTyped, { name: 'Rettungsdienst Dornach' }) }))
+    expect(onFields).toHaveBeenLastCalledWith({ Einheit: 'Rettungsdienst Dornach' })
   })
 })
 

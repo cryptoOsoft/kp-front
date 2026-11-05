@@ -98,12 +98,14 @@ export const symbolsCopy: Localizable<Pick<Copy, 'symbolNames' | 'symbolAliases'
   // Symbol-palette category headings, keyed by the German category key.
   symbolCategories: {
     'Schadenlage': 'Damage situation',
-    'Gefahren': 'Hazards',
-    'Gebäude': 'Building',
-    'Wasser': 'Water',
+    'Fahrzeuge / Mittel': 'Vehicles / Resources',
     'Führung': 'Command',
     'Personen / Sanität': 'People / Medical',
     'Partner': 'Partners',
+    'Gefahren': 'Hazards',
+    'Wasser': 'Water',
+    'Gebäude': 'Building',
+    'Karte': 'Map',
   },
   symbolAliases: {
     'VKF Feuer': ['fire', 'blaze', 'flames', 'seat of fire', 'Brand', 'Brandherd', 'Flammen'],

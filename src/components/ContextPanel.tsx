@@ -25,11 +25,6 @@ import { sanitizeSvg } from '../lib/sanitizeSvg'
 import { bearing360 } from '../lib/planProjection'
 import { doneStatusText } from '../lib/objectDone'
 
-// detail-field controls: short fixed lists render as directly-tappable segmented tabs (they
-// wrap to multiple rows), longer lists (and the person roster) as a native dropdown; roster
-// fields keep a "Name eingeben …" free-text escape. Keep this generous so small doctrine lists
-// (e.g. the Offizier Funktion) stay one-tap rather than hiding behind a dropdown.
-const OPTION_TABS_MAX = 6
 // note ink colours = the drawing palette, so a red warning note matches a red line
 const NOTE_COLORS = appConfig.drawing.colors
 const ROSTER_FIELDS = new Set<string>(appConfig.symbols.rosterFields)
@@ -82,18 +77,14 @@ function FieldControl({ fieldKey, value, kind, options, placeholder, officerFilt
         onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()} />
     )
   }
-  // short, non-roster fixed list → the shared segmented control (re-tap the active one to clear)
-  if (!isRoster && options.length <= OPTION_TABS_MAX) {
-    return (
-      <Segmented options={options.map((o) => ({ value: o, label: o }))} value={value}
-        onChange={(v) => onCommit(v === value ? '' : v)} ariaLabel={fieldKey} />
-    )
-  }
-  // long list or roster → custom dropdown (a roster field's search row doubles as the name entry,
-  // and the «‹X› verwenden» row under the matches takes what is typed)
+  // any list, short or long, roster or station list → the dropdown with free typing: the search
+  // row doubles as the entry, and the «‹X› verwenden» row under the matches takes what is typed.
+  // A station list (fleet.attributeLists) is the fast path, never a cage (docs/CONFIGURATION.md ·
+  // fleet). Until 05.11.2026 a list of ≤6 was Segmented tabs, with no way to type an Einheit the
+  // station had not listed (owner pick: one control for every list).
   return (
     <Combo value={value} options={options} placeholder={placeholder}
-      allowCustom={isRoster}
+      allowCustom
       officerFilter={isRoster && officerFilter} rankOf={rankOf}
       // …a hand-typed name commits ONCE, from the «‹X› verwenden» row: a roster field records
       // whoever is named on it as present (a Gast, if the roster has never heard of them).

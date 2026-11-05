@@ -477,6 +477,43 @@
           "minimum": 0,
           "title": "Nearbyobjectwarnm",
           "type": "integer"
+        },
+        "defaultLineHose": {
+          "anyOf": [
+            {
+              "enum": [
+                "40",
+                "55",
+                "75",
+                "2x75",
+                "110"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Defaultlinehose"
+        },
+        "defaultRelayHose": {
+          "anyOf": [
+            {
+              "enum": [
+                "55",
+                "75",
+                "2x75",
+                "110"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Defaultrelayhose"
         }
       },
       "title": "DoctrineConfig",

@@ -463,8 +463,8 @@ export function sanitizeWorkspace(raw: unknown): WorkspaceGate {
     const r = o as Record<string, unknown>
     let out: Record<string, unknown> | undefined
     if (r.color != null && !isSafeColor(r.color)) { out = { ...r }; delete out.color; dropped++ }
-    // a Leitung's Ø outside the four (lib/hydraulics · HOSES) would throw in the Wassertransport's
-    // plan: dropped, so the line reads as the default 75 mm
+    // a Leitung's Ø outside the five (lib/hydraulics · HOSES) would throw in the Wassertransport's
+    // plan: dropped, so the line reads as the station's default (hydraulics · lineHose)
     if (r.hose != null && !(HOSE_SIZES as readonly unknown[]).includes(r.hose)) { out = out ?? { ...r }; delete out.hose; dropped++ }
     // …and so would a relay that is no object, or whose pumps are no list: the relay resp. its
     // pumps go, the rest of its assumptions stay

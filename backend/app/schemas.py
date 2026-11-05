@@ -1628,6 +1628,13 @@ class DoctrineConfig(BaseModel):
     #: (the /admin field reads them) but enforced in `_nearby_warning_in_range`, so a stored
     #: value outside them degrades instead of failing the whole document.
     nearbyObjectWarnM: int = Field(default=25, json_schema_extra={"minimum": 0, "maximum": NEARBY_OBJECT_WARN_MAX_M})
+    #: The hose Ø (owner 05.11.2026, src/lib/hydraulics · hoseDefaults): what a Leitung that stores
+    #: none reads as – a plain Linie is a 40 mm Druckleitung – and what a Wassertransport in Messen
+    #: starts on, a 75 mm Transportleitung. Unset = those shipped values. The relay one never takes
+    #: 40: the 40 mm friction table ends at 500 l/min, below a relay's usual flows. The keys are
+    #: the frontend's `HoseSize` («2x75» = the identical double line).
+    defaultLineHose: Literal["40", "55", "75", "2x75", "110"] | None = None
+    defaultRelayHose: Literal["55", "75", "2x75", "110"] | None = None
 
     @model_validator(mode="after")
     def _nearby_warning_in_range(self, info: ValidationInfo) -> "DoctrineConfig":

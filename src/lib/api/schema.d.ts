@@ -5187,6 +5187,10 @@ export interface components {
              * @default 25
              */
             nearbyObjectWarnM?: number;
+            /** Defaultlinehose */
+            defaultLineHose?: ("40" | "55" | "75" | "2x75" | "110") | null;
+            /** Defaultrelayhose */
+            defaultRelayHose?: ("55" | "75" | "2x75" | "110") | null;
         };
         /**
          * EquipmentItem
