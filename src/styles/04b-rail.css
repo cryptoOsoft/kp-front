@@ -136,8 +136,10 @@
    more: a hint hidden until you already know the shortcut taught nothing. The phone's folded bar
    never wears them (its tiles are doors to groups, and a bar you touch needs no letter).
    Placement follows the tile's shape, because the badge must never sit on its glyph or its word:
-     · icon-only (default): the tile's bottom-right corner, small enough to leave the 22px glyph clear
-       (the alarm/count dot owns the top-right);
+     · icon-only (default): BESIDE the glyph, in the 12px strip right of its 22px box, its foot on
+       the glyph's foot line – 2px clear of the box and 4px in from the tile's edge, above the curved
+       corner (hill climb r20, Opus 5: tucked into the corner it overlapped the glyph's box and read
+       as a subscript); the alarm/count dot owns the top-right;
      · words under the glyph (`.labelled`): the TOP-LEFT corner – the word occupies the bottom half
        of the tile, the glyph only the middle of the top half, and the alarm / count / open dots
        all hang off the right;
@@ -147,12 +149,14 @@
    second small object exactly where the glyph has to be recognised at a glance). It is a hint for
    whoever looks for it, so it is the quietest text in the rail. ⚠️ Inset so the letter's ink stays
    ≥4px clear of the tile's curved corner (05.11.2026, hill climb r13: at 4/2px it ran into the
-   selected pill's radius); on the ink pill it takes the pill's own text colour. */
-.rail-key { display: none; position: absolute; right: 6px; bottom: 4px; min-width: 10px;
-  font-family: var(--mono); font-size: var(--fs-micro); font-weight: var(--fw-medium);
-  line-height: 14px; text-align: center; color: var(--ink-faint); pointer-events: none; }
+   selected pill's radius); on the ink pill it takes the pill's own text colour.
+   The body face at 11/500, not the mono (hill climb r20, Opus 5): the mono's narrow caps rendered
+   ~8px and thin; Sora's are the bar's own letters, wide enough to read at a glance. */
+.rail-key { display: none; position: absolute; left: calc(50% + 13px); bottom: 10px;
+  font-family: var(--body); font-size: var(--fs-micro); font-weight: var(--fw-medium);
+  font-variant-numeric: tabular-nums; line-height: 1; color: var(--ink-faint); pointer-events: none; }
 :is(.nav-item, .vrail-tool).on .rail-key { color: var(--on-here); }
 .rail.labelled:not(.expanded):not(.dragging) .rail-key { top: 4px; bottom: auto; right: auto; left: 6px; }
-.rail.expanded:not(.dragging) .rail-key { top: 50%; bottom: auto; margin-top: -8px; right: 10px; }
+.rail.expanded:not(.dragging) .rail-key { top: 50%; bottom: auto; translate: 0 -50%; left: auto; right: 10px; }
 .vrail.expanded:not(.dragging) .rail-key { right: auto; left: 10px; }
 @media (hover: hover) and (pointer: fine) { .rail:not(.folded) .rail-key { display: block; } }

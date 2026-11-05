@@ -520,6 +520,9 @@
      the vertical separators are dropped entirely: on a bar this narrow they read as
      clutter, and the grouping is clear from the icons alone */
   .tb-actions { gap: 1px; }
+  /* …and ↶ ↷ stay plain members of it here: the pair's 4px group (10-journal · .tb-history) is
+     the tablet/laptop bar's, the phone bar keeps its 1px rhythm */
+  .tb-history { display: contents; }
   .topbar { gap: 4px; }
   /* weather trims to the bare downwind arrow + speed on phones (condition/temp are
      "read, not felt" detail that doesn't fit the narrow bar) */

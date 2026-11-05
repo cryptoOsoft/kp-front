@@ -1986,6 +1986,8 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
   // dropped there, so the building's name carries the lamp, and «anderes Gebäude wählen» is the
   // sheet's top row. Named by the plan's own word («Gebäude») when no object is bound – a verb on
   // a chip that opens a sheet would promise the wrong thing.
+  // On the stack it wears #building (the building itself), not #footprint (an outline from above,
+  // the picker's and the Karte's glyph) – hill climb r20, Opus 3.
   const stackFacts = stack && factsShown
   // …and like the Objekt chip, street and number only on a phone (the town is in the sheet's row)
   const [buildingStreet, buildingTown] = splitAddress(buildingChipName)
@@ -1998,7 +2000,7 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
       aria-expanded={factsOpen}
       onClick={toggleFacts}
     >
-      <Icon id="footprint" />
+      <Icon id="building" />
       <span>{isPhone ? buildingFactsName : buildingChipName ?? active.code}</span>
       {factsLamp}
     </button>
@@ -2011,7 +2013,7 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
       disabled={buildingChipLocked}
       onClick={() => onBuildingFace(stack ? 'pick' : 'stack')}
     >
-      <Icon id={stack ? 'footprint' : 'floors'} />
+      <Icon id={stack ? 'building' : 'floors'} />
       <span>{buildingChipName ?? buildingChipLabel}</span>
       {buildingChipName && !buildingChipLocked && <Icon id="chevron" className="wb-chip-chev" />}
     </button>
@@ -2022,7 +2024,7 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
   const C = appConfig.copy.whiteboard
   const factsPlace = stack
     ? {
-        icon: 'footprint', name: buildingFactsName,
+        icon: 'building', name: buildingFactsName,
         sub: [buildingTown, onBuildingFace && !buildingChipLocked ? C.facts.switchBuilding : null].filter(Boolean).join(' · ') || undefined,
         onClick: onBuildingFace && !buildingChipLocked ? () => { closeFacts(); onBuildingFace('pick') } : undefined,
       }

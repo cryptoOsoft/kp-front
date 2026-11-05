@@ -26,6 +26,10 @@
    rest of `.tb-actions` lines up on. Nudged back onto that line here rather than in the shared
    symbol, which other callers (the undo toast, the Rückgängig-Uhr) draw against their own box. */
 .tb-act-history .i { transform: translateY(-1.5px); }
+/* ↶ ↷ are ONE pair (TopBar · .tb-history, hill climb r20, Opus 8): 4px apart, the bar's 8px either
+   side of the pair. Two 44px hit areas at the bar's 8px read as two loose slots between the
+   Einsatzuhr and «Verlauf». The phone's bar keeps its own spacing (15-mobile · display: contents). */
+.tb-history { display: flex; align-items: center; gap: var(--sp-1); flex: none; }
 .tb-act.icon { padding: var(--sp-2); min-width: 42px; background: transparent; }
 @media (hover: hover) {
   /* --hover-strong, not --fill-soft: a filled act already wears --fill-soft, so the old hover
@@ -86,7 +90,7 @@
 .topbar.fit-3 .tb-einsatzuhr { display: none; }
 .topbar.fit-4 .tb-act-redo { display: none; }
 .topbar.fit-5 { gap: var(--sp-1); padding-inline: var(--bar-pad); }
-.topbar.fit-5 .tb-actions { gap: 0; }
+.topbar.fit-5 :is(.tb-actions, .tb-history) { gap: 0; }
 .topbar.fit-5 :is(.tb-az, .ip-switch-btn) { padding-inline: var(--sp-2); }
 .topbar.fit-6 .tb-act:not(.tb-act-add) span:not(.tb-rem-count) { display: none; }
 .topbar.fit-6 .tb-act:not(.tb-act-add) { padding: 8px; }
