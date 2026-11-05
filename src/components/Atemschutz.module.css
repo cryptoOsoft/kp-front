@@ -47,6 +47,12 @@
 @media (hover: hover) { .newBtn:hover:not(:disabled) { color: var(--on-btn-primary); box-shadow: none; background: var(--btn-primary-hover); } }
 /* per-device alarm-sound toggle (visual alarm + wake-lock stay on either way) */
 .muteBtn { composes: headTile; }
+/* …folded to the bare bell (the phone head, lib/pageHeadFit · `data-folded`): a 20px glyph box
+   (hill climb r24, Sol 1, 05.11.2026). This 24-grid bell draws only 16.5 units, so in the tiles'
+   16px box it stood ~11px tall beside «+ Trupp» and the cards' 18–20px glyphs – a notification
+   mark rather than a control. At 20px it draws ~15px at the cards' ~1.5px stroke (the base 1.8
+   units), centred in the same 44px square. With its word beside it, it keeps the row's 16px. */
+.muteBtn[data-folded] :global(.i) { width: 20px; height: 20px; }
 .muteOn { color: var(--amber-strong); box-shadow: inset 0 0 0 1px var(--amber-45); }
 /* the browser has not released audio: the bell is on, and it cannot make a sound. Red, because
    this is the one bell state that needs a tap — see AtemschutzView · bellLabel. */
@@ -396,7 +402,8 @@
    «In den Einsatz» on a Trupp that is out, «Im Einsatz» on one still waiting – the owner's pick,
    kept through the hill climb (04.11.2026). In the tile family the one primary action is the
    filled tile («+ Trupp» in the head, `.newBtn`; «Anmelden» in the form), never a green band — in
-   the app's one primary fill (`--btn-primary`, dimmed at night), at the primary's 800. Not a quieter
+   the app's one primary fill (`--btn-primary`, dimmed at night), at the primary's 800 (on the
+   tablet / desktop grid an out card's tile is 44px at 700 – «The grid's card, denser»). Not a quieter
    mid slate (hill climb r7 tried it): at night it read as a DISABLED button – on the one action
    the card exists to offer. */
 .actEnter, .actReenter { color: var(--on-btn-primary); background: var(--btn-primary); box-shadow: none; font-weight: var(--fw-heavy); }
@@ -1914,10 +1921,16 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
    a short out card left a hole under it while the next grid row was clipped. Order and slots are
    untouched («Wie gesetzt» keeps every card where it is); only the heights give.
    Touch: the secondary lifecycle tiles — Rückzug | Raus (Fortsetzen), Notfall (beendet) — at the
-   44px floor; the pair «Druck | Kontakt» (Kontakt is the board's primary) and the one filled tile
-   («Wieder in den Einsatz», «Im Einsatz») keep their 48px (3am tenet: primary 48–56). The phone's
-   card is not on a grid and keeps its 48px keypad. */
+   44px floor; the pair «Druck | Kontakt» (Kontakt is the board's primary) and a waiting crew's
+   «Im Einsatz» keep their 48px (3am tenet: primary 48–56). The phone's card is not on a grid and
+   keeps its 48px keypad.
+   An OUT card's «Wieder in den Einsatz» / «In den Einsatz» takes the button spec's smaller size
+   too — 44px, 14/700 (hill climb r24, Opus 1, 05.11.2026): with «Wie gesetzt» the out cards can
+   stand first, and a 48px ink bar at 800 on each of them drew the two-second scan to the crews
+   OUTSIDE before the green clocks of the ones inside. It stays the card's one FILLED tile (owner,
+   27.09.2026); only its height and weight give. */
 .grid .trowCard :is(.actRueckzug, .actContinue, .actExit, .actNotfall, .actNotfallEnd) { min-height: var(--tap); }
+.grid .trowCard .actReenter { min-height: var(--tap); font-weight: var(--fw-bold); }
 /* A mouse (24px floor): every tile at 36px and the foot line (Verlauf ⌄ and ⋯) at 32px (hill climb
    r13, 05.11.2026 — 40/36 before, and on the 1536×864 laptop the second row's feet stood under the
    panel's edge). Type, gaps and the card order stay; only the plates give. */

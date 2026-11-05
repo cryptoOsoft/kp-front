@@ -966,7 +966,7 @@
      reading, so it belongs where the thumb already is — in the same lane as the bar, wearing the
      bar's glass, reading as an extension of it.
      ⚠️ Positioning only. The strip is the same element and the same <Segmented> it always was
-     (ReportPreflight · .rp-tabs), so its dots, its «noch offen» wording and the tab jump that
+     (ReportPreflight · .rp-tabs), so its open marks, its «noch offen» wording and the tab jump that
      `requestReportStep` performs are untouched — the tab is switched first and the body scrolls
      a frame later exactly as before, whichever end of the page the strip is at.
      ⚠️ Its height is RESERVED rather than measured: `--rp-tabs-safe`, the same idiom as

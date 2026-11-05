@@ -6,6 +6,13 @@ import type { ReactNode } from 'react'
 import { Icon } from '../lib/icons'
 import type { PhoneTab } from './useReportPlace'
 
+/** THE Rapport's status mark, set right after a label: open = dashed ring, done = disc
+ *  (13-incident · .rp-check-dot). Every eyebrow with an open/done state wears it – the CheckRows,
+ *  the form's section heads – and the phone tab that still holds an open Mindestangabe. */
+export function StatusMark({ done }: { done: boolean }) {
+  return <span className={`rp-check-dot${done ? ' done' : ''}`} aria-hidden="true" />
+}
+
 export function CheckRow({ done, label, sub, onGo, anchor, tab, children }: {
   done: boolean
   label: string
@@ -23,7 +30,7 @@ export function CheckRow({ done, label, sub, onGo, anchor, tab, children }: {
         <span className="rp-check-label">{label}</span>
         {/* the mark FOLLOWS the label, so every card's eyebrow text starts at one inset; hollow = open,
             filled = done (13-incident · .rp-check-dot) */}
-        <span className={`rp-check-dot${done ? ' done' : ''}`} aria-hidden="true" />
+        <StatusMark done={done} />
         <span className="rp-check-sub">{sub}</span>
         {onGo && <Icon id="chevron" className="rp-check-go" />}
       </button>
