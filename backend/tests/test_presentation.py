@@ -201,7 +201,9 @@ async def test_a_pointer_wakes_every_parked_follower(client, second, editor, vie
     assert (await _signal(client, inc, pid, PRESENTER, "pointer", at=POINT)).status_code == 204
 
     got = (await asyncio.wait_for(poll, timeout=2)).json()
-    assert [(m["kind"], m["name"], m["at"]) for m in got["messages"]] == [("pointer", "Cmd", POINT)]
+    at = [{k: v for k, v in m["at"].items() if v is not None} for m in got["messages"]]
+    assert [(m["kind"], m["name"]) for m in got["messages"]] == [("pointer", "Cmd")]
+    assert at == [POINT]
     assert not live_wait._waiters
 
 
@@ -263,3 +265,43 @@ async def test_the_view_link_still_writes_nothing_else(client, second, editor, d
     assert (await second.post(f"/api/incidents/{inc}/events", json=ev)).status_code == 403
     assert broker.current(uuid.UUID(inc)).presenter.client == PRESENTER
     assert await _texts(db_session, inc) == ["Präsentation gestartet (Cmd)"]
+
+
+async def test_a_client_id_belongs_to_the_session_that_registered_it(client, second, editor, db_session, monkeypatch):
+    """Client ids are in every poll's answer. A link holder who reads the presenter's must not
+    point under the FU's name, nor keep a vanished presenter's presentation alive by polling."""
+    await _login(client, editor)
+    inc = await _incident(client)
+    pid = (await _start(client, inc))["id"]
+    await _open_view_link(second, editor, inc)
+
+    assert (await _signal(second, inc, pid, PRESENTER, "pointer", at=POINT)).status_code == 409
+    assert (await _signal(second, inc, pid, PRESENTER, "join", name="FU")).status_code == 403
+    state = (await client.get(f"/api/incidents/{inc}/presentation?client={PRESENTER}&known={pid}")).json()
+    assert state["messages"] == [] and state["participants"] == []
+
+    # the presenter goes quiet; the link holder polls under the presenter's id all the while
+    t0 = time.monotonic()
+    clock = {"now": t0}
+    monkeypatch.setattr(broker, "_now", lambda: clock["now"])
+    for step in range(1, 5):
+        clock["now"] = t0 + step * 20
+        await second.get(f"/api/incidents/{inc}/presentation?client={PRESENTER}&known={pid}")
+    assert broker.current(uuid.UUID(inc)) is None
+    assert (await _texts(db_session, inc))[-1] == "Präsentation beendet (Cmd – Verbindung verloren)"
+
+
+async def test_a_faded_pointer_is_no_news(client, second, editor, viewer, monkeypatch):
+    """A tab back from the background, or a device that just looked, gets no rings from before."""
+    await _login(client, editor)
+    await _login(second, viewer)
+    inc = await _incident(client)
+    pid = (await _start(client, inc))["id"]
+    await _signal(client, inc, pid, PRESENTER, "pointer", at=POINT)
+    url = f"/api/incidents/{inc}/presentation?client={FOLLOWER}"
+    assert (await second.get(url)).json()["messages"] == []  # had not looked yet
+    assert len((await second.get(f"{url}&known={pid}")).json()["messages"]) == 1
+    later = time.monotonic() + broker.POINTER_TTL_S + 1
+    monkeypatch.setattr(broker, "_now", lambda: later)
+    broker.current(uuid.UUID(inc)).presenter.seen = later  # the presenter is still there
+    assert (await second.get(f"{url}&known={pid}")).json()["messages"] == []

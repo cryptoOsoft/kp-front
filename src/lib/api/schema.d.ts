@@ -918,6 +918,61 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/incidents/{incident_id}/presentation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read Presentation
+         * @description The presentation running on this Einsatz (or `{active: false}`), who is in it, the current
+         *     view and the messages after `since`. `known` is the presentation id the caller has (''
+         *     for none). `wait=1` parks while there is nothing new for it, like the workspace/Verlauf
+         *     follow (app/live_wait). The poll also counts as the caller's presence.
+         */
+        get: operations["read_presentation_api_incidents__incident_id__presentation_get"];
+        put?: never;
+        /**
+         * Start Presentation
+         * @description Start presenting from this device. One running elsewhere is taken over (and ended in the
+         *     Verlauf). A closed Einsatz is presented by nobody: 409 `incident_closed`.
+         */
+        post: operations["start_presentation_api_incidents__incident_id__presentation_post"];
+        /**
+         * End Presentation
+         * @description «Beenden». Any editor may end it – the presenter's tablet may be the one that is gone.
+         *     Idempotent: nothing running is a 204 too.
+         */
+        delete: operations["end_presentation_api_incidents__incident_id__presentation_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/incidents/{incident_id}/presentation/signal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Presentation Signal
+         * @description Join, leave, the presenter's view, or a pointer. Ephemeral by construction – see the
+         *     module docstring. 409 when the presentation it names is not the one running (ended,
+         *     taken over): the client drops back to «no presentation» on its next poll.
+         */
+        post: operations["presentation_signal_api_incidents__incident_id__presentation_signal_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/incidents/{incident_id}/media": {
         parameters: {
             query?: never;
@@ -6637,6 +6692,161 @@ export interface components {
              */
             ts: string;
         };
+        /** PresentationMapView */
+        PresentationMapView: {
+            /** Lng */
+            lng: number;
+            /** Lat */
+            lat: number;
+            /** Zoom */
+            zoom: number;
+            /** Bearing */
+            bearing: number;
+        };
+        /** PresentationPerson */
+        PresentationPerson: {
+            /** Client */
+            client: string;
+            /** Name */
+            name: string;
+            /**
+             * Link
+             * @default false
+             */
+            link?: boolean;
+        };
+        /**
+         * PresentationPlanView
+         * @description A plan/Tafel section: the centre in plan space (0..1), the storey and the zoom relative to
+         *     «eingepasst» (1) – portable between screens of any size (components/useBoardView).
+         */
+        PresentationPlanView: {
+            /** X */
+            x: number;
+            /** Y */
+            y: number;
+            /** Floor */
+            floor: number;
+            /** Scale */
+            scale: number;
+        };
+        /**
+         * PresentationPointerAt
+         * @description Where a pointer was tapped: a map position, or a point on one plan (plan space, 0..1).
+         */
+        PresentationPointerAt: {
+            /**
+             * Surface
+             * @enum {string}
+             */
+            surface: "map" | "plan";
+            /** Lng */
+            lng?: number | null;
+            /** Lat */
+            lat?: number | null;
+            /** Plan Id */
+            plan_id?: string | null;
+            /** Page */
+            page?: string | null;
+            /** X */
+            x?: number | null;
+            /** Y */
+            y?: number | null;
+            /** Floor */
+            floor?: number | null;
+        };
+        /** PresentationPointerMessage */
+        PresentationPointerMessage: {
+            /** Seq */
+            seq: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "pointer";
+            /** Client */
+            client: string;
+            /** Name */
+            name: string;
+            /** Link */
+            link: boolean;
+            at: components["schemas"]["PresentationPointerAt"];
+        };
+        /** PresentationSignal */
+        PresentationSignal: {
+            /** Presentation */
+            presentation: string;
+            /** Client */
+            client: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "join" | "leave" | "view" | "pointer";
+            /** Name */
+            name?: string | null;
+            view?: components["schemas"]["PresentationView"] | null;
+            at?: components["schemas"]["PresentationPointerAt"] | null;
+        };
+        /** PresentationStart */
+        PresentationStart: {
+            /** Client */
+            client: string;
+        };
+        /**
+         * PresentationState
+         * @description One poll's answer – app/presentation · snapshot.
+         */
+        PresentationState: {
+            /** Active */
+            active: boolean;
+            /** Id */
+            id?: string | null;
+            /**
+             * Seq
+             * @default 0
+             */
+            seq?: number;
+            /** Started At */
+            started_at?: string | null;
+            presenter?: components["schemas"]["PresentationPerson"] | null;
+            /**
+             * Participants
+             * @default []
+             */
+            participants?: components["schemas"]["PresentationPerson"][];
+            view?: components["schemas"]["PresentationView"] | null;
+            /**
+             * Messages
+             * @default []
+             */
+            messages?: (components["schemas"]["PresentationViewMessage"] | components["schemas"]["PresentationPointerMessage"])[];
+        };
+        /** PresentationView */
+        PresentationView: {
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "map" | "plans";
+            /** Plan Id */
+            plan_id?: string | null;
+            /** Page */
+            page?: string | null;
+            map?: components["schemas"]["PresentationMapView"] | null;
+            plan?: components["schemas"]["PresentationPlanView"] | null;
+        };
+        /** PresentationViewMessage */
+        PresentationViewMessage: {
+            /** Seq */
+            seq: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "view";
+            view: components["schemas"]["PresentationView"];
+        };
         /** ProviderCapability */
         ProviderCapability: {
             /** Provider */
@@ -9161,6 +9371,147 @@ export interface operations {
             };
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_presentation_api_incidents__incident_id__presentation_get: {
+        parameters: {
+            query: {
+                client: string;
+                known?: string;
+                since?: number;
+                wait?: boolean;
+            };
+            header?: never;
+            path: {
+                incident_id: string;
+            };
+            cookie?: {
+                access_token?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PresentationState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_presentation_api_incidents__incident_id__presentation_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incident_id: string;
+            };
+            cookie?: {
+                access_token?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PresentationStart"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PresentationState"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    end_presentation_api_incidents__incident_id__presentation_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incident_id: string;
+            };
+            cookie?: {
+                access_token?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    presentation_signal_api_incidents__incident_id__presentation_signal_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                incident_id: string;
+            };
+            cookie?: {
+                access_token?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PresentationSignal"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             204: {

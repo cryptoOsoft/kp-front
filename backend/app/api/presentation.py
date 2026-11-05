@@ -13,6 +13,9 @@ authorisation, which is the part to read twice:
   gestartet/beendet rows) is the server's, on start/end and on the lazy timeout.
 · A `view` signal (the presenter's section) is accepted only from the presenter's own client
   id, which only an editor's start can register – a link holder never moves anybody's screen.
+· A client id is bound to the session that registered it (app/presentation · Participant.owner):
+  the ids are in every poll's answer, so presence, leave, pointer and view under one are only
+  taken from that session – nobody points under somebody else's name.
 · A link holder's name is self-chosen, so it is bounded, stripped and flagged `link` on every
   screen, and replaced by «Gast» on the public demo (strangers must not broadcast text there).
 """
@@ -44,14 +47,14 @@ class _Strict(BaseModel):
     model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
 
 
-class MapView(_Strict):
+class PresentationMapView(_Strict):
     lng: float = Field(ge=-180, le=180)
     lat: float = Field(ge=-90, le=90)
     zoom: float = Field(ge=0, le=24)
     bearing: float = Field(ge=-360, le=360)
 
 
-class PlanView(_Strict):
+class PresentationPlanView(_Strict):
     """A plan/Tafel section: the centre in plan space (0..1), the storey and the zoom relative to
     «eingepasst» (1) – portable between screens of any size (components/useBoardView)."""
 
@@ -66,11 +69,11 @@ class PresentationView(_Strict):
     plan_id: str | None = Field(default=None, pattern=_PLAN_ID)
     #: the Tafel page on screen (lib/tafelPages · SKIZZE or a form id)
     page: str | None = Field(default=None, pattern=_PLAN_ID)
-    map: MapView | None = None
-    plan: PlanView | None = None
+    map: PresentationMapView | None = None
+    plan: PresentationPlanView | None = None
 
 
-class PointerAt(_Strict):
+class PresentationPointerAt(_Strict):
     """Where a pointer was tapped: a map position, or a point on one plan (plan space, 0..1)."""
 
     surface: Literal["map", "plan"]
@@ -86,12 +89,27 @@ class PointerAt(_Strict):
 class PresentationPerson(BaseModel):
     client: str
     name: str
+    #: a view-link holder – its name is self-chosen, and every screen says so
     link: bool = False
 
 
+class PresentationViewMessage(BaseModel):
+    seq: int
+    kind: Literal["view"]
+    view: PresentationView
+
+
+class PresentationPointerMessage(BaseModel):
+    seq: int
+    kind: Literal["pointer"]
+    client: str
+    name: str
+    link: bool
+    at: PresentationPointerAt
+
+
 class PresentationState(BaseModel):
-    """One poll's answer – app/presentation · snapshot. `messages` are `{seq, kind: 'view', view}`
-    or `{seq, kind: 'pointer', client, name, link, at}`."""
+    """One poll's answer – app/presentation · snapshot."""
 
     active: bool
     id: str | None = None
@@ -99,8 +117,8 @@ class PresentationState(BaseModel):
     started_at: str | None = None
     presenter: PresentationPerson | None = None
     participants: list[PresentationPerson] = []
-    view: dict | None = None
-    messages: list[dict] = []
+    view: PresentationView | None = None
+    messages: list[Annotated[PresentationViewMessage | PresentationPointerMessage, Field(discriminator="kind")]] = []
 
 
 class PresentationStart(_Strict):
@@ -115,7 +133,7 @@ class PresentationSignal(_Strict):
     #: a link holder's own name; ignored for a logged-in user (the account's name is used)
     name: str | None = Field(default=None, max_length=60)
     view: PresentationView | None = None
-    at: PointerAt | None = None
+    at: PresentationPointerAt | None = None
 
 
 async def _is_open(db: AsyncSession, incident_id: uuid.UUID) -> bool:
@@ -162,18 +180,19 @@ async def read_presentation(
     for none). `wait=1` parks while there is nothing new for it, like the workspace/Verlauf
     follow (app/live_wait). The poll also counts as the caller's presence."""
     cid = _client(client)
+    owner = _owner(_user)
     # Subscribe BEFORE the read, so a signal landing between read and park is not missed.
     async with live_wait.subscribe(live_wait.presentation_topic(incident_id)) as changes:
         p = await broker.expire(db, incident_id, is_open=await _is_open(db, incident_id))
         if p is not None:
-            p.touch(cid)
+            p.touch(cid, owner)
         if wait and not broker.news_for(p, known, since):
             # Hand the pooled DB connection back before parking (see app/live_wait).
             await db.commit()
             await changes.wait()
             p = broker.current(incident_id)
             if p is not None:
-                p.touch(cid)
+                p.touch(cid, owner)
     return PresentationState(**broker.snapshot(p, known, since))
 
 
@@ -190,7 +209,7 @@ async def start_presentation(
     if not await _is_open(db, incident_id):
         raise incident_closed(None)
     name, _ = await _display_name(db, user, None)
-    p = await broker.start(db, incident_id, client=cid, name=name)
+    p = await broker.start(db, incident_id, client=cid, name=name, owner=_owner(user))
     return PresentationState(**broker.snapshot(p, p.id, 0))
 
 
@@ -221,27 +240,35 @@ async def presentation_signal(
     p = await broker.expire(db, incident_id, is_open=await _is_open(db, incident_id))
     if p is None or p.id != body.presentation:
         raise HTTPException(status_code=409, detail={"code": "presentation_gone"})
-    p.touch(cid)
+    owner = _owner(user)
+    p.touch(cid, owner)
     if body.kind == "join":
         name, link = await _display_name(db, user, body.name)
-        if not broker.join(p, client=cid, name=name, link=link):
-            raise HTTPException(status_code=429, detail={"code": "presentation_full"})
+        refused = broker.join(p, client=cid, name=name, link=link, owner=owner)
+        if refused == "taken":
+            raise HTTPException(status_code=403, detail={"code": "client_taken"})
+        if refused is not None:
+            raise HTTPException(status_code=429, detail={"code": f"presentation_{refused}"})
     elif body.kind == "leave":
-        broker.leave(p, cid)
+        broker.leave(p, cid, owner)
     elif body.kind == "view":
         # Only the presenter's client – registered by an editor's start – moves the room. A link
         # session never presents, so its view is refused even if it guessed the id.
-        if body.view is None or is_link_session(user) or not broker.send_view(p, cid, body.view.model_dump()):
+        if body.view is None or is_link_session(user) or not broker.send_view(p, cid, owner, body.view.model_dump()):
             raise HTTPException(status_code=403, detail={"code": "not_presenter"})
     else:
         if body.at is None or not _pointer_complete(body.at):
             raise HTTPException(status_code=422, detail="at")
-        if not broker.send_pointer(p, cid, body.at.model_dump(exclude_none=True)):
+        if not broker.send_pointer(p, cid, owner, body.at.model_dump(exclude_none=True)):
             raise HTTPException(status_code=409, detail={"code": "not_joined"})
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-def _pointer_complete(at: PointerAt) -> bool:
+def _owner(user: User) -> str:
+    return broker.owner_of(user.id, is_link_session(user))
+
+
+def _pointer_complete(at: PresentationPointerAt) -> bool:
     if at.surface == "map":
         return at.lng is not None and at.lat is not None
     return at.plan_id is not None and at.x is not None and at.y is not None

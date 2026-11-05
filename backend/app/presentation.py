@@ -62,7 +62,14 @@ MESSAGES_KEPT = 64
 MAX_PARTICIPANTS = 64
 #: Per-client floors between two messages of a kind. The client throttles too (lib/presentation);
 #: this is the server's own bound on what one device can make every other device download.
-MIN_INTERVAL_S = {"view": 0.1, "pointer": 0.12}
+MIN_INTERVAL_S = {"view": 0.1, "pointer": 0.12, "join": 1.0}
+#: …and the whole room's: at most this many pointers per second, whoever sends them, so a
+#: forwarded link cannot flood every screen by joining under many client ids.
+ROOM_POINTERS_PER_S = 20
+#: A pointer older than this is not handed out any more: it has faded on every screen (the
+#: client's RING_MS is 4 s), and a tab coming back from the background must not draw the
+#: minute it missed as fresh rings.
+POINTER_TTL_S = 4.0
 
 _CLIENT_ID = re.compile(r"^[A-Za-z0-9_-]{4,64}$")
 
@@ -84,6 +91,11 @@ class Participant:
     #: a view-link holder – its name is self-chosen, and every screen says so
     link: bool
     seen: float
+    #: the session that registered this client id (`owner_of`). Client ids are in every poll's
+    #: answer, so they are no secret: every act under one – presence, leave, pointer, view – must
+    #: come from the session that joined with it, or a link holder could point under the FU's
+    #: name, kick a follower, or keep a vanished presenter's presentation alive by polling.
+    owner: str
 
 
 @dataclass
@@ -97,13 +109,16 @@ class Presentation:
     participants: dict[str, Participant] = field(default_factory=dict)
     messages: deque[dict] = field(default_factory=lambda: deque(maxlen=MESSAGES_KEPT))
     last_sent: dict[tuple[str, str], float] = field(default_factory=dict)
+    recent_pointers: deque[float] = field(default_factory=deque)
 
-    def touch(self, client: str | None) -> None:
-        now = _now()
-        if client == self.presenter.client:
-            self.presenter.seen = now
-        elif client and (p := self.participants.get(client)):
-            p.seen = now
+    def member(self, client: str, owner: str) -> Participant | None:
+        """The presenter or a joined follower under `client` – only for the session that owns it."""
+        who = self.presenter if client == self.presenter.client else self.participants.get(client)
+        return who if who is not None and who.owner == owner else None
+
+    def touch(self, client: str | None, owner: str) -> None:
+        if client and (who := self.member(client, owner)):
+            who.seen = _now()
 
     def bump(self) -> None:
         """Something a poll answers changed (a message, who is in the room): wake the polls."""
@@ -111,7 +126,7 @@ class Presentation:
         live_wait.notify(live_wait.presentation_topic(self.incident_id))
 
     def push(self, message: dict) -> None:
-        self.messages.append({**message, "seq": self.seq + 1})
+        self.messages.append({**message, "seq": self.seq + 1, "_t": _now()})
         self.bump()
 
 
@@ -121,6 +136,12 @@ _running: dict[uuid.UUID, Presentation] = {}
 
 def current(incident_id: uuid.UUID) -> Presentation | None:
     return _running.get(incident_id)
+
+
+def owner_of(user_id: uuid.UUID | str, link: bool) -> str:
+    """Who registers a client id: the account, or «a link session» (every link holder is the one
+    shared guest – auth/dependencies · LINK_GUEST_ID – and always shown as «· Link»)."""
+    return "link" if link else f"user:{user_id}"
 
 
 def row_id(presentation_id: str, edge: str) -> str:
@@ -137,13 +158,13 @@ async def _append_edge(db: AsyncSession, p: Presentation, edge: str, at: datetim
 
 
 async def start(
-    db: AsyncSession, incident_id: uuid.UUID, *, client: str, name: str, now: datetime | None = None
+    db: AsyncSession, incident_id: uuid.UUID, *, client: str, name: str, owner: str, now: datetime | None = None
 ) -> Presentation:
     """Start presenting from `client`. A presentation already running is ended first (a takeover:
     the old presenter's tablet may be gone, and «Starten» must never be a dead end at 3am).
     The same device starting again (a double tap) keeps the one it has."""
     running = _running.get(incident_id)
-    if running is not None and running.presenter.client == client:
+    if running is not None and running.member(client, owner) is running.presenter:
         running.presenter.seen = _now()
         return running
     await end(db, incident_id, reason="takeover")
@@ -151,7 +172,7 @@ async def start(
     p = Presentation(
         id=uuid.uuid4().hex[:12],
         incident_id=incident_id,
-        presenter=Participant(client=client, name=name, link=False, seen=_now()),
+        presenter=Participant(client=client, name=name, link=False, seen=_now(), owner=owner),
         started_at=at,
     )
     _running[incident_id] = p
@@ -202,21 +223,31 @@ async def expire(db: AsyncSession, incident_id: uuid.UUID, *, is_open: bool) -> 
     return p
 
 
-def join(p: Presentation, *, client: str, name: str, link: bool) -> bool:
-    """Register a follower (or refresh its name). False when the room is full."""
+def join(p: Presentation, *, client: str, name: str, link: bool, owner: str) -> str | None:
+    """Register a follower (or refresh its name). None when it joined, else why not: «taken» (the
+    client id is another session's), «full», «throttled» (a name changing faster than once a
+    second would wake every screen each time)."""
     if client == p.presenter.client:
-        return True
-    if client not in p.participants and len(p.participants) >= MAX_PARTICIPANTS:
-        return False
+        return None if p.presenter.owner == owner else "taken"
     known = p.participants.get(client)
-    p.participants[client] = Participant(client=client, name=name, link=link, seen=_now())
-    if known is None or known.name != name:
-        p.bump()
-    return True
+    if known is not None and known.owner != owner:
+        return "taken"
+    if known is None and len(p.participants) >= MAX_PARTICIPANTS:
+        return "full"
+    if known is not None and known.name == name:
+        known.seen = _now()
+        return None
+    if _throttled(p, client, "join"):
+        return "throttled"
+    p.participants[client] = Participant(client=client, name=name, link=link, seen=_now(), owner=owner)
+    p.bump()
+    return None
 
 
-def leave(p: Presentation, client: str) -> None:
-    if p.participants.pop(client, None) is not None:
+def leave(p: Presentation, client: str, owner: str) -> None:
+    known = p.participants.get(client)
+    if known is not None and known.owner == owner:
+        del p.participants[client]
         p.bump()
 
 
@@ -229,9 +260,9 @@ def _throttled(p: Presentation, client: str, kind: str) -> bool:
     return False
 
 
-def send_view(p: Presentation, client: str, view: dict) -> bool:
-    """The presenter's surface and section. Only the presenter's client may send one."""
-    if client != p.presenter.client:
+def send_view(p: Presentation, client: str, owner: str, view: dict) -> bool:
+    """The presenter's surface and section. Only the presenter's client, from its own session."""
+    if p.member(client, owner) is not p.presenter:
         return False
     # the latest view is always handed out (a late joiner needs it), even when the message is
     # dropped by the throttle – the presenter's trailing send settles it
@@ -241,12 +272,17 @@ def send_view(p: Presentation, client: str, view: dict) -> bool:
     return True
 
 
-def send_pointer(p: Presentation, client: str, at: dict) -> bool:
-    """A tap with «Zeigen» on. Only from somebody joined (the presenter included)."""
-    who = p.presenter if client == p.presenter.client else p.participants.get(client)
+def send_pointer(p: Presentation, client: str, owner: str, at: dict) -> bool:
+    """A tap with «Zeigen» on. Only from somebody joined (the presenter included), from the session
+    that joined; beyond the per-client and the room's budget a pointer is dropped, not refused."""
+    who = p.member(client, owner)
     if who is None:
         return False
-    if not _throttled(p, client, "pointer"):
+    now = _now()
+    while p.recent_pointers and now - p.recent_pointers[0] > 1.0:
+        p.recent_pointers.popleft()
+    if len(p.recent_pointers) < ROOM_POINTERS_PER_S and not _throttled(p, client, "pointer"):
+        p.recent_pointers.append(now)
         p.push({"kind": "pointer", "client": client, "name": who.name, "link": who.link, "at": at})
     return True
 
@@ -261,11 +297,17 @@ def news_for(p: Presentation | None, known_id: str, since: int) -> bool:
 
 def snapshot(p: Presentation | None, known_id: str, since: int) -> dict:
     """What one poll answers: the presentation (or none), who is in it, the current view, and
-    the messages after `since`. A poll that knew another presentation gets every message kept –
-    a pointer older than its fade is ignored by the client anyway."""
+    the messages after `since` – none for a poll that did not know this presentation yet (it
+    gets the current view, and a pointer from before it looked is not news), and no pointer
+    older than POINTER_TTL_S."""
     if p is None:
         return {"active": False, "seq": 0}
-    fresh = [m for m in p.messages if m["seq"] > since] if p.id == known_id else list(p.messages)
+    now = _now()
+    fresh = [
+        {k: v for k, v in m.items() if k != "_t"}
+        for m in p.messages
+        if p.id == known_id and m["seq"] > since and (m["kind"] != "pointer" or now - m["_t"] < POINTER_TTL_S)
+    ]
     return {
         "active": True,
         "id": p.id,

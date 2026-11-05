@@ -2837,6 +2837,291 @@
         }
       }
     },
+    "/api/incidents/{incident_id}/presentation": {
+      "get": {
+        "tags": [
+          "presentation"
+        ],
+        "summary": "Read Presentation",
+        "description": "The presentation running on this Einsatz (or `{active: false}`), who is in it, the current\nview and the messages after `since`. `known` is the presentation id the caller has (''\nfor none). `wait=1` parks while there is nothing new for it, like the workspace/Verlauf\nfollow (app/live_wait). The poll also counts as the caller's presence.",
+        "operationId": "read_presentation_api_incidents__incident_id__presentation_get",
+        "parameters": [
+          {
+            "name": "incident_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Incident Id"
+            }
+          },
+          {
+            "name": "client",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 4,
+              "maxLength": 64,
+              "title": "Client"
+            }
+          },
+          {
+            "name": "known",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 32,
+              "default": "",
+              "title": "Known"
+            }
+          },
+          {
+            "name": "since",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Since"
+            }
+          },
+          {
+            "name": "wait",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Wait"
+            }
+          },
+          {
+            "name": "access_token",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Access Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresentationState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "presentation"
+        ],
+        "summary": "Start Presentation",
+        "description": "Start presenting from this device. One running elsewhere is taken over (and ended in the\nVerlauf). A closed Einsatz is presented by nobody: 409 `incident_closed`.",
+        "operationId": "start_presentation_api_incidents__incident_id__presentation_post",
+        "parameters": [
+          {
+            "name": "incident_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Incident Id"
+            }
+          },
+          {
+            "name": "access_token",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Access Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PresentationStart"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresentationState"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "presentation"
+        ],
+        "summary": "End Presentation",
+        "description": "«Beenden». Any editor may end it – the presenter's tablet may be the one that is gone.\nIdempotent: nothing running is a 204 too.",
+        "operationId": "end_presentation_api_incidents__incident_id__presentation_delete",
+        "parameters": [
+          {
+            "name": "incident_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Incident Id"
+            }
+          },
+          {
+            "name": "access_token",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Access Token"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/incidents/{incident_id}/presentation/signal": {
+      "post": {
+        "tags": [
+          "presentation"
+        ],
+        "summary": "Presentation Signal",
+        "description": "Join, leave, the presenter's view, or a pointer. Ephemeral by construction – see the\nmodule docstring. 409 when the presentation it names is not the one running (ended,\ntaken over): the client drops back to «no presentation» on its next poll.",
+        "operationId": "presentation_signal_api_incidents__incident_id__presentation_signal_post",
+        "parameters": [
+          {
+            "name": "incident_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Incident Id"
+            }
+          },
+          {
+            "name": "access_token",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Access Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PresentationSignal"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/incidents/{incident_id}/media": {
       "post": {
         "tags": [
@@ -21598,6 +21883,508 @@
           "ts"
         ],
         "title": "PositionOut"
+      },
+      "PresentationMapView": {
+        "properties": {
+          "lng": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Lng"
+          },
+          "lat": {
+            "type": "number",
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "Lat"
+          },
+          "zoom": {
+            "type": "number",
+            "maximum": 24.0,
+            "minimum": 0.0,
+            "title": "Zoom"
+          },
+          "bearing": {
+            "type": "number",
+            "maximum": 360.0,
+            "minimum": -360.0,
+            "title": "Bearing"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "lng",
+          "lat",
+          "zoom",
+          "bearing"
+        ],
+        "title": "PresentationMapView"
+      },
+      "PresentationPerson": {
+        "properties": {
+          "client": {
+            "type": "string",
+            "title": "Client"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "link": {
+            "type": "boolean",
+            "title": "Link",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "client",
+          "name"
+        ],
+        "title": "PresentationPerson"
+      },
+      "PresentationPlanView": {
+        "properties": {
+          "x": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "X"
+          },
+          "y": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Y"
+          },
+          "floor": {
+            "type": "integer",
+            "maximum": 200.0,
+            "minimum": -20.0,
+            "title": "Floor"
+          },
+          "scale": {
+            "type": "number",
+            "maximum": 20.0,
+            "minimum": 0.1,
+            "title": "Scale"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "x",
+          "y",
+          "floor",
+          "scale"
+        ],
+        "title": "PresentationPlanView",
+        "description": "A plan/Tafel section: the centre in plan space (0..1), the storey and the zoom relative to\n«eingepasst» (1) – portable between screens of any size (components/useBoardView)."
+      },
+      "PresentationPointerAt": {
+        "properties": {
+          "surface": {
+            "type": "string",
+            "enum": [
+              "map",
+              "plan"
+            ],
+            "title": "Surface"
+          },
+          "lng": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 180.0,
+                "minimum": -180.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lng"
+          },
+          "lat": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 90.0,
+                "minimum": -90.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lat"
+          },
+          "plan_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_:.\\-]{1,120}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan Id"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_:.\\-]{1,120}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "x": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "X"
+          },
+          "y": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Y"
+          },
+          "floor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 200.0,
+                "minimum": -20.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Floor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "surface"
+        ],
+        "title": "PresentationPointerAt",
+        "description": "Where a pointer was tapped: a map position, or a point on one plan (plan space, 0..1)."
+      },
+      "PresentationPointerMessage": {
+        "properties": {
+          "seq": {
+            "type": "integer",
+            "title": "Seq"
+          },
+          "kind": {
+            "type": "string",
+            "const": "pointer",
+            "title": "Kind"
+          },
+          "client": {
+            "type": "string",
+            "title": "Client"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "link": {
+            "type": "boolean",
+            "title": "Link"
+          },
+          "at": {
+            "$ref": "#/components/schemas/PresentationPointerAt"
+          }
+        },
+        "type": "object",
+        "required": [
+          "seq",
+          "kind",
+          "client",
+          "name",
+          "link",
+          "at"
+        ],
+        "title": "PresentationPointerMessage"
+      },
+      "PresentationSignal": {
+        "properties": {
+          "presentation": {
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 1,
+            "title": "Presentation"
+          },
+          "client": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 4,
+            "title": "Client"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "join",
+              "leave",
+              "view",
+              "pointer"
+            ],
+            "title": "Kind"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 60
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "view": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PresentationView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "at": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PresentationPointerAt"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "presentation",
+          "client",
+          "kind"
+        ],
+        "title": "PresentationSignal"
+      },
+      "PresentationStart": {
+        "properties": {
+          "client": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 4,
+            "title": "Client"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "client"
+        ],
+        "title": "PresentationStart"
+      },
+      "PresentationState": {
+        "properties": {
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "seq": {
+            "type": "integer",
+            "title": "Seq",
+            "default": 0
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "presenter": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PresentationPerson"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "participants": {
+            "items": {
+              "$ref": "#/components/schemas/PresentationPerson"
+            },
+            "type": "array",
+            "title": "Participants",
+            "default": []
+          },
+          "view": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PresentationView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "messages": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/PresentationViewMessage"
+                },
+                {
+                  "$ref": "#/components/schemas/PresentationPointerMessage"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "kind",
+                "mapping": {
+                  "pointer": "#/components/schemas/PresentationPointerMessage",
+                  "view": "#/components/schemas/PresentationViewMessage"
+                }
+              }
+            },
+            "type": "array",
+            "title": "Messages",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "active"
+        ],
+        "title": "PresentationState",
+        "description": "One poll's answer – app/presentation · snapshot."
+      },
+      "PresentationView": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "map",
+              "plans"
+            ],
+            "title": "Mode"
+          },
+          "plan_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_:.\\-]{1,120}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan Id"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_:.\\-]{1,120}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "map": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PresentationMapView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "plan": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PresentationPlanView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "mode"
+        ],
+        "title": "PresentationView"
+      },
+      "PresentationViewMessage": {
+        "properties": {
+          "seq": {
+            "type": "integer",
+            "title": "Seq"
+          },
+          "kind": {
+            "type": "string",
+            "const": "view",
+            "title": "Kind"
+          },
+          "view": {
+            "$ref": "#/components/schemas/PresentationView"
+          }
+        },
+        "type": "object",
+        "required": [
+          "seq",
+          "kind",
+          "view"
+        ],
+        "title": "PresentationViewMessage"
       },
       "ProviderCapability": {
         "properties": {
