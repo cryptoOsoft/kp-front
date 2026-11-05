@@ -46,9 +46,9 @@
 .vrail-nbtn.on { background: var(--here-fill); color: var(--on-here); }
 @media (hover: hover) { .vrail-nbtn.on:hover:not(:disabled) { background: var(--here-fill-hover); } }
 .vrail-nbtn:disabled { opacity: var(--disabled); cursor: default; }
-/* zoom ± is a MOUSE affordance: every touch form factor pinches, so the two buttons only cost
-   rail height the tools need more. Phones already drop the whole footer (15-mobile.css); this
-   covers the tablet band in between.
+/* zoom ± is a MOUSE affordance: every touch form factor pinches, so the two buttons (and the group
+   hairline above them, a `.vrail-zoom` too) only cost rail height the tools need more. Phones
+   already drop the whole footer (15-mobile.css); this covers the tablet band in between.
    ⚠️ `pointer: coarse` as well as the width. Width alone does NOT cover the primary device: an
    iPad in LANDSCAPE is 1194 CSS px, so a width-only rule kept the buttons on exactly the screen
    they were removed for. The two conditions together mean: gone on anything you touch, kept on

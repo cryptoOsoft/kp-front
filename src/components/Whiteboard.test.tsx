@@ -1595,6 +1595,27 @@ describe('das Geschoss einer Leitung ändern', () => {
   })
 })
 
+// The stack draws its symbols on the Lage's floor (lib/mapView · SYM_MIN): the board slider's 0.7
+// default is sized for Modul sheets and took them to ~20 px, under their own caption plates.
+describe('symbol size on the Gebäude stack', () => {
+  const pin: BoardAnno = { id: 's1', kind: 'symbol', symbol: 'P', x: 0.5, y: 0.5, floor: 0 }
+  const drawnPx = (symMul: number) => {
+    const { container } = render(<Whiteboard
+      plans={[gebaeudeDoc]} activeId="gebaeude" annos={[pin]} onChange={() => {}} symMul={symMul}
+      building={aBuilding} onSelectBuilding={() => {}} onAddFloor={() => {}} onRemoveFloor={() => {}}
+      sym={sym} onRecent={() => {}} log={() => {}} hist={{}} setHist={() => {}} focus={null}
+    />)
+    const px = parseFloat(container.querySelector<HTMLElement>('.ts-plan')!.style.width)
+    cleanup()
+    return px
+  }
+
+  it('never draws under the Lage floor, and still grows with the slider', () => {
+    expect(drawnPx(0.7)).toBe(28)
+    expect(drawnPx(1.5)).toBe(42)
+  })
+})
+
 // Folding a storey away is a way of LOOKING at the stack (16.09.2026): it never touches the
 // document, so it is offered on prepared packs and on read-only surfaces too — and the strip it
 // leaves behind is the whole way back.
