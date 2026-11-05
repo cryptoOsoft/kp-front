@@ -1222,7 +1222,8 @@ export function ReportPreflight({
           gap around an inset card makes a form look like something floating over the map, and
           this surface is where somebody sits and writes. */}
       <div className="rp-backdrop" aria-hidden />
-      <div className={cx('report-preflight report-preflight-surface', surface.shell)}>
+      {/* `pageGrid`: the Trupps page's inset and gap (Surface.module.css · THE PAGE GRID) */}
+      <div className={cx('report-preflight report-preflight-surface', surface.shell, surface.pageGrid)}>
         {/* The same head every other surface wears (Anwesenheit, Mittel): a title, and under it
             one line of what is actually recorded. It carried a bare title and an ✕ — dialog
             chrome, which is what a page inherits when it used to be a sheet. No ✕ either: a
