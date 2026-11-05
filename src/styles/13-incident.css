@@ -1082,8 +1082,11 @@ button.list-row:disabled { opacity: var(--disabled); cursor: default; }
    second like the Kroki legend: the list is alphabetical, and a grid row levelled a short name
    beside a wrapped one into a hole. 200, not the council's 240: the tablet's side column has 439px,
    and 240 sent its 42 names into ONE column twice as long. An entry WRAPS instead of ellipsizing.
-   24px between the columns (council round 3): at 16 a long left name ran up against the right
-   column on the tablet, and 2 × 200 + 24 still fits its 439.
+   A 1px rule between the two columns (owner pick C3, 05.11.2026) in a 32px gap – 16px of air on
+   each side (hill climb r18): at 24 without a rule, column 1's right-aligned «bis 16:55» ended
+   that close to column 2's names and read as theirs. 2 × 200 + 32 still fits the tablet's 439.
+   Each column keeps its own rhythm – the rows do not line up across the rule. `column-rule` is
+   only drawn BETWEEN columns, so where the list falls to one (the phone) there is none.
    ONE entry shape, two edges (council rounds 3 + 5): the name and the qualifier share the left
    edge, the «bis» time is the right edge, the same track in every row, 8px off the name. A
    two-track grid: the name (`.rp-person-txt`, 14/500) is always line 1 with the time beside it;
@@ -1097,7 +1100,7 @@ button.list-row:disabled { opacity: var(--disabled); cursor: default; }
    top edge, so what is cut is the empty padding of every column's first entry (the left AND the
    right one – CSS cannot select the second) and the first name sits where it did. Clipped, that
    strip also lets taps through to the step row it overlaps (its 44px hit area). */
-.rp-people { columns: 2 200px; column-gap: var(--sp-5); width: 100%;
+.rp-people { columns: 2 200px; column-gap: var(--sp-6); column-rule: 1px solid var(--border); width: 100%;
   margin-top: calc(-1 * var(--sp-2)); clip-path: inset(var(--sp-2) 0 0 0); }
 .rp-person { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline;
   min-width: 0; break-inside: avoid; padding-block: var(--sp-2);
