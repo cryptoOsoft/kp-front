@@ -2029,7 +2029,7 @@ function PinnedRow({ t, live, alarm, color, confirmed, onContact }: {
   return (
     <div className={cx(s.pinRow, done ? s.pinRowDone : sev >= 2 ? s.trowCrit : s.trowWarn)}>
       <span className={s.pinName}>
-        {color && <span className={s.trowDot} style={{ background: color }} aria-hidden />}
+        {color && <span className={s.trowDot} style={{ color }} aria-hidden />}
         <span className={s.pinNameTxt}>{t.name}</span>
       </span>
       <span className={s.pinTime}>

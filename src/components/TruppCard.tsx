@@ -175,17 +175,17 @@ function RowLine({ t, live, color, lite, act, headed = false }: { t: Trupp; live
 }) {
   const az = appConfig.copy.atemschutz
   const words = plainWords(t, lite)
-  const team = (t.members ?? []).filter(Boolean).join(' / ')
   const clock = collapsedClock(t, live)
   // ⚠️ Defence in depth: `collapsedClock`'s own `!isAtemschutzTrupp` branch already returns an
   // empty sub for a plain Trupp that is out (it has no break clock to show — see the function's
   // doc comment), so this swap is a no-op today. It stays here so a future edit to that branch
   // cannot silently leak «Draussen seit» onto a work squad's row without also failing the app-only
   // wording test below.
-  // The caption — what the clock counts — shows under the clock on the wide grid's card and the
+  // The caption — what the clock counts — shows ABOVE the clock on the wide grid's card and the
   // link board's page (hill climb r2, 04.11.2026: an out card's break clock and an inside card's
-  // contact clock stood in one place with nothing saying which is which); the phone row and its
-  // opened card hide it (CSS), their section heads say Drin / Draussen.
+  // contact clock stood in one place with nothing saying which is which; above since 05.11.2026,
+  // owner pick A1/C7 — German reads «Draussen seit 4:25:20»); the phone row and its opened card
+  // hide it (CSS), their section heads say Drin / Draussen.
   const clockSub = clock.sub === az.outFor ? (headed ? '' : words.outFor) : clock.sub
   const inNotfall = truppInNotfall(t)
   /* ⚠️ A Trupp still at the door has no clock — «–:––» was an empty time where the next act
@@ -207,8 +207,10 @@ function RowLine({ t, live, color, lite, act, headed = false }: { t: Trupp; live
               carries no identity (round 2 review) — and an empty 11px slot would indent the name */}
           {/* ⚠️ a crew in a NOTFALL wears the banner's ⚠ in the dot's place (owner round 4,
               10.10.2026): the banner at the top and this card read as the same crew at a glance */}
+          {/* a hollow RING in the Truppfarbe (owner pick C5, 05.11.2026): a filled red disc read as
+              an alarm; the ring keeps the hue and drops the signal (`.trowDot` draws it in `color`) */}
           {inNotfall ? <Icon id="warn" className={s.nfGlyph} />
-            : color && <span className={s.trowDot} style={{ background: color }} />}
+            : color && <span className={s.trowDot} style={{ color }} />}
           <span className={s.trowNameTxt}>{truppHeadName(t)}</span>
           {/* ⚠️ «Rückzug» is a badge, not a chip (owner, 31.10.2026): an icon-only filled amber
               circle after the name — the Rückzug tile's own glyph — so it reads on the row, the
@@ -219,19 +221,19 @@ function RowLine({ t, live, color, lite, act, headed = false }: { t: Trupp; live
               26.09. and 30.09.2026: «the group leader name needs more space … drop the number #»).
               The number stays in the TruppFinder and in the Verlauf's «Trupp N» rows. */}
         </span>
-        {team && <span className={s.trowTeam}>{team}</span>}
       </span>
       {/* one derivation with the card's band (collapsedClock) — the row used to freeze a work
           squad's Einsatzzeit after the exit and show «–:––» for an out crew's break clock */}
       <span className={s.trowClock}>
         {/* the tier is the digits' colour (red / amber) – no glyph since 30.10.2026; the word is the
             row's aria-label and the card's status line, for a screen reader */}
+        {/* the caption FIRST, so it is read (and drawn) before the time it names */}
         {waiting ? act : (
           <>
+            <span className={s.trowSub}>{clockSub}</span>
             <span className={s.trowClockLine}>
               <span className={s.trowClockVal}><ClockVal val={clock.val} /></span>
             </span>
-            <span className={s.trowSub}>{clockSub}</span>
           </>
         )}
       </span>
@@ -317,11 +319,12 @@ function TruppPair({ t, live, sev, nested = false, onPressure, onContact }: {
  * 26./27.09. and the owner reviewed that version, so it is the reference and the tablet takes it
  * whole, top to bottom:
  *
- *   1 line       dot · name · the clock (RowLine) — the collapse toggle on the phone board
+ *   1 line       ring · name · the clock with its caption above (RowLine) — the collapse toggle
+ *                on the phone board — and the crew on its own line under the name (`crewLine`)
  *   2 tiles      «⌓ 240 bar | Kontakt» (TruppPair), then Rückzug | Raus in the same tile shape
  *   3 state      the tier in words where colour alone would say it (`stateLine`)
  *   4 Hinweis    the Alarmdruck note, for the case where only the projection has crossed
- *   5 facts      crew · Auftrag · Kanal … as chips, each the door to its sheet (the ⋯ ends the foot)
+ *   5 facts      Auftrag · Kanal · Ausrüstung … as chips, each the door to its sheet (the ⋯ ends the foot)
  *   6 foot       Einsatzzeit · Schätzung, the whole line the Verlauf's toggle
  *
  * The link board's page (`page`) reads the same zones in another order — 1, 3, 4, 5, 6, then the
@@ -648,15 +651,20 @@ export function TruppCard({
    * would make this pass cost exactly the kind of number it exists to keep in view.
    * ⚠️ Built as data rather than markup so the separators are the LINE's business (CSS), not
    * four call sites each remembering to print a «·» — and so «what stays out» is one list to
-   * read when somebody asks that question again. */
+   * read when somebody asks that question again.
+   * ⚠️ An OUT card's two values carry a word each (owner pick C18, 05.11.2026): «drin 29:00 min ·
+   * raus mit 175 bar» — the finished Einsatzzeit and the pressure it came out with, which
+   * unworded read as a running clock and a live reading. In the line's one word style (the
+   * Schätzung's). Only out of a real run: a crew stood down at the door was never «drin». */
+  const outWords = out && !neverDeployed
   const sockelLine: { key: string; label: string; value: string; alarm?: boolean; labelled?: boolean; title?: string }[] = [
     ...(monitored && t.entryTime
       // a DURATION that says so — «23:39» read at 23:58 was taken for a clock time (staging r4)
-      ? [{ key: 'elapsed', label: az.elapsed, value: fmtDuration(live.elapsedSec) }] : []),
+      ? [{ key: 'elapsed', label: outWords ? az.footInside : az.elapsed, value: fmtDuration(live.elapsedSec), labelled: outWords }] : []),
     ...(live.outSec != null && !out
       ? [{ key: 'out', label: words.outFor, value: fmtDuration(live.outSec), labelled: true }] : []),
     ...(monitored && !(canEdit && inField)
-      ? [{ key: 'bar', label: az.currentPressure, value: `${live.currentBar} bar`, alarm: pressureLow }] : []),
+      ? [{ key: 'bar', label: outWords ? az.footOutAt : az.currentPressure, value: `${live.currentBar} bar`, alarm: pressureLow, labelled: outWords }] : []),
     ...(estimate
       ? [{
         key: 'est',
@@ -745,8 +753,9 @@ export function TruppCard({
    * «Kanal 11» and the Ausrüstung after it stand in `.factsEnd`: on the grid that is the facts'
    * own LAST row, so the Kanal keeps one address from card to card (hill climb r8, 04.11.2026);
    * everywhere else the wrapper is `display: contents` and the chips wrap as before.
-   * ⚠️ The crew chip wraps BETWEEN people (31.10.2026, owner: names are never cut): each name is
-   * its own nowrap span and the « · » is the break (`.crewName`), so the chip grows in lines.
+   * ⚠️ The crew is NOT a chip since 05.11.2026 (owner pick A3): it is who the Trupp IS, not a fact
+   * about its job, so it is its own line under the name (`crewLine` below) and the chips are the
+   * Auftrag / Ziel, the jumps, the Kanal and the Ausrüstung only.
    * «Rückzug» is not a chip: it is the amber badge in the card head (RowLine · `rueckzug`), which
    * a viewer — who has no Rückzug tile — sees too. It also lowers the turn-back pressure
    * (alarmBarFor), so it is never colour alone. */
@@ -756,9 +765,6 @@ export function TruppCard({
   const gear = equipmentTags.map(({ id, tag }) => chip(`eq-${id}`, tag, onQuick && (() => onQuick('trupp'))))
   const facts = (
     <div className={s.facts}>
-      {!!crewNames.length && chip('crew', <span className={s.crewTxt}>{crewNames.map((n, i) => (
-        <Fragment key={i}>{i > 0 && ' · '}<span className={s.crewName}>{n}</span></Fragment>
-      ))}</span>, onQuick && (() => onQuick('trupp')), s.factCrew)}
       {auftrag
         ? chip('auftrag', <span className={s.factTxt}>{auftrag}{t.ziel ? ` · ${t.ziel}` : ''}</span>, onQuick && (() => onQuick('auftrag')))
         : <>
@@ -777,6 +783,20 @@ export function TruppCard({
       )}
     </div>
   )
+  /* ── The crew: its own line under the name (owner pick A3, 05.11.2026) ──────────────────────────
+   * The Trupp's `name` IS its leader (lib/atemschutz · truppHeadName), so this line lists the
+   * others — plain 14px ink, «Widmer Lukas · Wyss Urs», no chip. It wraps BETWEEN people (31.10.2026,
+   * owner: names are never cut): each name is a nowrap span and the « · » is the break. Still the
+   * door to the Trupp sheet the crew chip was — a button drawn as text, its 44px touch pad an
+   * invisible pseudo-element (`.crewLine`). On the grid and the Tafel it stands IN the head (the
+   * static head's third grid row, inside the band); on the phone's opened card, whose head is the
+   * collapse button, right under it — opening a row adds it below and moves nothing. */
+  const crewTxt = crewNames.map((n, i) => (
+    <Fragment key={i}>{i > 0 && ' · '}<span className={s.crewName}>{n}</span></Fragment>
+  ))
+  const crewLine = crewNames.length > 0 && (onQuick
+    ? <button type="button" className={s.crewLine} onClick={() => onQuick('trupp')}>{crewTxt}</button>
+    : <span className={s.crewLine}>{crewTxt}</span>)
   /* the card says in WORDS what its line and its Kontakt say in colour — one line under the tile
    * grid, red or amber with the tier (26.09.2026 — see `rowWord`) */
   const stateLine = rowWord && (rowWord.hidden
@@ -1060,11 +1080,15 @@ export function TruppCard({
   ) : (
     <div className={cx(s.trowHead, s.trowHeadStatic)}>
       <RowLine t={t} live={live} color={lite ? undefined : color} lite={lite} act={pageAct} headed={headed} />
+      {crewLine}
     </div>
   ))
+  // the static head carries the crew line itself; the phone's collapse button and a page head may not
+  const crewBelow = (rowMode || !!pageHead) && crewLine
   return (
     <div ref={cardRef} data-az-open={rowMode ? '' : undefined} className={cx(s.trow, s.trowCard, rowTone(t, status, sev), conflict && s.cardConflict)}>
       {head}
+      {crewBelow}
       {page ? (
         <>
           {/* the page head says the Notfall in words already («Notfall seit 12:12») */}
