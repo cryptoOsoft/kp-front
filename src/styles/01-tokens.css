@@ -490,9 +490,10 @@
   --surface-veil: rgba(255, 255, 255, .07);
   --ink-tint: rgba(255, 255, 255, .14);
   --ink-tint-strong: rgba(255, 255, 255, .22);
-  /* deep amber note that still reads as a paper sticky against the dark map/board */
-  --note-bg: #4a3f1c;
-  --note-border: #6e5d2a;
+  /* deep amber note that still reads as a paper sticky against the dark map/board – a clean dark
+     amber with a 1 px amber edge (owner C15 05.11.2026: the olive #4a3f1c read muddy) */
+  --note-bg: #3a2a0c;
+  --note-border: #b8862a;
   --note-border-sel: #c9aa4c;
   --note-ink: #f1e3a6;
   --note-ring: rgba(214, 184, 92, .6);
