@@ -75,14 +75,26 @@
    (each reads its own variable); see the notes in 05-navrail.css. */
 .rail.labelled:not(.expanded):not(.dragging) { padding: 8px 4px; }
 
+/* ── A group boundary is ONE hairline, on both rails (owner pick C12, 05.11.2026: «same ui / styling /
+   hairline»). The left rail split its groups (Karte │ the plan tiles │ the rest) by 6px of air
+   (22.09.2026) while the right one drew a hairline above its foot (Ebenen · compass · zoom), so the
+   matched pair grouped two ways. One rule now: 1px of --border, 8px in from the rail's sides, 2px of
+   air either side on top of the scroller's 4px gap (13px from tile to tile). The per-rail names
+   (`nav-sep`, `vrail-sep`) stay as hooks: 15-mobile turns them into the bars' vertical dividers. */
+.rail-sep { height: 1px; flex: none; margin: 2px 8px; background: var(--border); }
+
 /* drag grip — pull it to resize the rail. Which EDGE it hangs off is per-rail. */
 .rail-grip { position: absolute; top: 0; width: 20px; height: 100%; border: 0; background: transparent; padding: 0;
   cursor: ew-resize; z-index: 3; display: flex; align-items: center; justify-content: center; touch-action: none; }
 /* The visible mark is a short pill in the rail's own padding, not the whole hit strip: at 38px tall
    it was a grey bar at the rail's inner edge, which is where a scrollbar thumb sits, and it read as
-   one (04.11.2026, hill climb r11). The BUTTON keeps its full-height strip – only the mark shrank. */
+   one (04.11.2026, hill climb r11). The BUTTON keeps its full-height strip – only the mark shrank.
+   …and it GROWS while it is held (owner note on the r11 checkpoint, 05.11.2026): quiet at rest, a
+   longer, darker pill under the finger (`:active`) and for the whole drag (`.drag`), so the hand
+   can see it has the handle. */
 .rail-grip::after { content: ""; width: 4px; height: 20px; border-radius: var(--r-pill); background: var(--border);
-  transition: background .14s var(--ease), opacity .14s var(--ease); }
+  transition: background .14s var(--ease), opacity .14s var(--ease), height .14s var(--ease); }
+:is(.rail-grip:active, .rail-grip.drag)::after { height: 48px; }
 /* …and with a mouse it is not drawn until the pointer is on the rail (or the grip has focus): a
    handle that shows where the hand is, the way a desktop split view's does. Touch has no hover, so
    there it stays, quiet, at rest. */
@@ -95,7 +107,7 @@
    being dragged wider is neither; it is the same hairline the grip rests in, just taken up a
    step so the finger can see it has the handle. One tint for both rails, both edges, and for
    hover as well as the live drag: the pointer that hovers it is about to drag it. */
-.rail-grip.drag::after { background: var(--ink-28); }
+:is(.rail-grip:active, .rail-grip.drag)::after { background: var(--ink-28); }
 @media (hover: hover) {
   .rail-grip:hover::after { background: var(--ink-28); }
 }

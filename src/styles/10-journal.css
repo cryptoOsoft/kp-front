@@ -212,19 +212,14 @@
 }
 .wx-pop-link:active { background-image: linear-gradient(var(--press), var(--press)); }
 .wx-pop-link svg { width: 16px; height: 16px; }
-/* The bar's Eintrag wears the FAB's material (29.09.2026, sweep K2/E9): the floating family's
-   glass with its inset edge, ink glyph and word — the same door as the phone's FAB, one recipe.
-   It was a --blue slab, and blue now means «chosen» (--sel): a permanently blue tile read as a
-   lit, armed tool, not an action. Its glyph is the journal pen (lib/icons · EntryGlyph), never
-   «+», which is Hinzufügen only. */
-.tb-act-add { position: relative; background: var(--float-bg); box-shadow: var(--float-edge); color: var(--ink);
-  touch-action: none; user-select: none; min-width: 96px; }
+/* The bar's Eintrag is FLAT, the bar's own `.tb-act` like «Verlauf» beside it (owner pick C11,
+   05.11.2026): it wore the FAB's floating glass with its inset edge and shadow (29.09.2026, sweep
+   K2/E9), the one raised object inside a bar whose other buttons all sit in it. Same size and hit
+   area as before (the 96px floor keeps the label and the hold ring from crowding). It was a --blue
+   slab before that, and blue means «chosen» (--sel). Its glyph is the journal pen (lib/icons ·
+   EntryGlyph), never «+», which is Hinzufügen only. */
+.tb-act-add { position: relative; touch-action: none; user-select: none; min-width: 96px; }
 .tb-act-add .i { width: 16px; height: 16px; }
-@media (hover: hover) {
-  /* the wash over its glass – brightness(1.05) lifted the dark glass at night but did nothing to
-     the white one by day (20.10.2026) */
-  .tb-act-add:hover { background: var(--float-bg); background-image: linear-gradient(var(--hover), var(--hover)); color: var(--ink); }
-}
 /* ⚠️ Names the LABEL, not every span. It used to read `.tb-act-add span`, which at (0,1,1)
    also out-specified the charging cue's own `.tb-hold { position: absolute }` (0,1,0) — so on
    every press the cue stopped being absolute, became an in-flow flex item, and animated its

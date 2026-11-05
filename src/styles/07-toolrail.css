@@ -54,7 +54,6 @@
    they were removed for. The two conditions together mean: gone on anything you touch, kept on
    a mouse, whatever the window measures. */
 @media (max-width: 1023px), (pointer: coarse) { .vrail-zoom { display: none; } }
-.vrail-sep-foot { flex: none; margin: 2px 8px; }
 /* no transition: the needle is set on every rotate frame (MapViewsMenu · CompassGlyph) */
 .vrail-compass { display: grid; place-items: center; }
 /* expand toggle — the shared .rail-exp chrome, but row-reversed so the chevron sits in the
@@ -65,8 +64,10 @@
    for a frame or two, floating over the map. Clipped, it slides under the edge instead. */
 .vrail-exp { overflow: hidden; flex-direction: row-reverse; }
 /* state-driven via the ancestor `.vrail.expanded` (not aria-expanded, so the global `.chev`
-   rule stays out of it); the transition matches 02-base's chevron beat */
-.vrail-exp .i { width: 18px; height: 18px; transform: rotate(180deg); transition: transform .16s var(--ease); }
+   rule stays out of it); the transition matches 02-base's chevron beat.
+   22px like the left rail's (`.nav-exp .i`) and every tool glyph under it – one rail grammar (owner
+   pick C12, 05.11.2026); at 18 the right chevron was the smaller twin of the left one. */
+.vrail-exp .i { width: 22px; height: 22px; transform: rotate(180deg); transition: transform .16s var(--ease); }
 .vrail.expanded .vrail-exp .i { transform: rotate(0deg); }
 @media (prefers-reduced-motion: reduce) { .vrail-exp .i { transition: none; } }
 /* tool buttons mirror the left rail's nav-item: a fixed right-edge glyph column + a
@@ -127,8 +128,8 @@
 /* ⚠️ The tools are ONE list — no divider inside it (22.09.2026; the lists in config/copy carry no
    `sep` entries any more). The one hairline this rail draws is the FOOT's: it sets the generic
    controls (Ebenen · compass · zoom) apart from the tools that act on the surface, which is a
-   real seam, where «select vs. create» was noise. */
-.vrail-sep { height: 1px; flex: none; background: var(--border); margin: 4px 8px; }
+   real seam, where «select vs. create» was noise. It is the shared `.rail-sep` (04b-rail.css),
+   the same line the left rail draws between its groups. */
 /* one-shot actions + the display-mode switch read as discrete push-buttons
    (faint resting fill + hairline), visually distinct from the flat, sticky modal
    tools above — so "press to do X" is never confused with "select a mode" */

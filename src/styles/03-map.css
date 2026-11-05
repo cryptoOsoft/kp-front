@@ -3,22 +3,25 @@
 .maplibregl-ctrl-attrib { font-size: var(--fs-micro) !important; }
 /* ── The attribution ⓘ (components/MapAttribution, always the compact control) wears the floating
    family's plate (docs/ui-conventions.md · ONE floating family): the glass, its inset edge and
-   --shadow, theme ink, the app's own outline «info» glyph at 16px. MapLibre's stock look was an
+   --shadow, theme ink, the app's own outline «info» glyph. MapLibre's stock look was an
    18px solid black disc on a white circle 10px from the corner – the one object over the map
    with no plate, at night a white dot on the dark glass (hill climb r11). Round, because it is
-   map furniture (the one-corner exception); open, the credits line wears the one corner. */
-.maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact { box-sizing: border-box; min-width: 32px; min-height: 32px;
-  padding: 0 32px 0 0; border-radius: var(--r-pill); color: var(--ink-dim);
+   map furniture (the one-corner exception); open, the credits line wears the one corner.
+   24px, not round 11's 32 (owner note on the r11 checkpoint, 05.11.2026: «small and quiet»): it is
+   credits, not a control anyone reaches for mid-Einsatz – the glyph 14px, and a finger still gets
+   --tap through the invisible pad below. */
+.maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact { box-sizing: border-box; min-width: 24px; min-height: 24px;
+  padding: 0 24px 0 0; border-radius: var(--r-pill); color: var(--ink-dim);
   background: var(--float-bg); backdrop-filter: var(--float-blur); box-shadow: var(--float-edge); }
-.maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact-show { padding: var(--sp-1) 32px var(--sp-1) var(--sp-3); border-radius: var(--r-sm); }
+.maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact-show { padding: 0 24px 0 var(--sp-2); border-radius: var(--r-sm); }
 .maplibregl-ctrl-attrib.maplibregl-compact .maplibregl-ctrl-attrib-inner { line-height: 24px; }
 .maplibregl-ctrl-attrib.maplibregl-compact a { color: var(--ink-dim); }
-.maplibregl-ctrl-attrib.maplibregl-compact .maplibregl-ctrl-attrib-button { width: 32px; height: 32px; border-radius: var(--r-pill);
+.maplibregl-ctrl-attrib.maplibregl-compact .maplibregl-ctrl-attrib-button { width: 24px; height: 24px; border-radius: var(--r-pill);
   background: none; color: var(--ink-dim); }
 .maplibregl-ctrl-attrib.maplibregl-compact .maplibregl-ctrl-attrib-button::before { content: ''; position: absolute; inset: 0;
   background: currentColor; pointer-events: none;
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 11v5.5'/%3E%3Ccircle cx='12' cy='7.7' r='.5'/%3E%3C/svg%3E") center / 16px no-repeat;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 11v5.5'/%3E%3Ccircle cx='12' cy='7.7' r='.5'/%3E%3C/svg%3E") center / 16px no-repeat; }
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 11v5.5'/%3E%3Ccircle cx='12' cy='7.7' r='.5'/%3E%3C/svg%3E") center / 14px no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 11v5.5'/%3E%3Ccircle cx='12' cy='7.7' r='.5'/%3E%3C/svg%3E") center / 14px no-repeat; }
 /* the app's focus ring, not MapLibre's cyan glow (02-base · :focus-visible) */
 .maplibregl-ctrl-attrib.maplibregl-compact .maplibregl-ctrl-attrib-button:focus { box-shadow: none; }
 .maplibregl-ctrl-attrib.maplibregl-compact .maplibregl-ctrl-attrib-button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
@@ -28,10 +31,10 @@
 /* …on the app's own map (Lage, Karte) it stands at the floating inset, 16px from both edges – the
    right rail's right edge and the bottom-left chip's foot (MapLibre's 10px put it in the gutter) */
 .app > .maplibregl-map .maplibregl-ctrl-bottom-right > .maplibregl-ctrl-attrib.maplibregl-compact { margin: 0 var(--sp-4) var(--sp-4) 0; }
-/* the ⓘ is 32px: a finger gets a pad out to --tap around it (it sits in the corner, so the
+/* the ⓘ is 24px: a finger gets a pad out to --tap around it (it sits in the corner, so the
    pad reaches over the map, never over another control) */
 @media (pointer: coarse) {
-  .maplibregl-ctrl-attrib-button::after { content: ''; position: absolute; inset: calc((var(--tap) - 32px) / -2); }
+  .maplibregl-ctrl-attrib-button::after { content: ''; position: absolute; inset: calc((var(--tap) - 24px) / -2); }
 }
 /* The Lage map's twin of the plan canvas's tool cursors (.wb-canvas.tool-* below). `.placing`
    alone only covered a symbol/shape already picked from the palette — arming Linie, Fläche,

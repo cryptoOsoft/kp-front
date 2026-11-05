@@ -36,11 +36,8 @@
    right edge, which aligns their edges rather than their centres. */
 .nav-exp .i { width: 22px; height: 22px; }
 /* …and the flip is the app-wide `.chev` (02-base.css), off this button's aria-expanded */
-/* A group boundary is SPACING, not a hairline (22.09.2026 — the same rule the editor sheets
-   adopted on 18.09.): the lines above and below the plan tiles said nothing the 12px of air does
-   not, and beside the chips' own borders they read as a table. The element stays (it is where a
-   group starts, and the folded bar's test counts it); only its paint went. */
-.nav-sep { height: 6px; flex: none; }
+/* (a group boundary, `.nav-sep`, is the shared hairline `.rail-sep` (04b-rail.css) since 05.11.2026,
+   owner pick C12 – it was 6px of air here from 22.09.2026, a hairline on the right rail) */
 .nav-item { display: flex; align-items: center; gap: 8px; height: 46px; flex: none; border: 0; background: transparent; border-radius: var(--r-sm);
   cursor: pointer; color: var(--ink); font: inherit; padding: 0; width: 100%; position: relative; transition: background .14s var(--ease); }
 .navrail:not(.expanded) .nav-item, .navrail.dragging .nav-item { justify-content: center; }

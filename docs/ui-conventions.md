@@ -77,8 +77,9 @@ sheets, overlays, the button spec and the touch vocabulary. Phone-only layout is
   list of options — the 24px the dropped rules left behind read as something missing. The same
   rule reached the app chrome on 22.09.2026, and was then tuned by hand the same day — what
   stands is: the TOP BAR has ONE 8px gap between every neighbour and no groups at all (a wider
-  «group gap» was tried and read as holes); the LEFT rail keeps 14px of air around the plan
-  tiles; the TOOL rail's tools are ONE undivided list (the `sep` entries left `mapTools` /
+  «group gap» was tried and read as holes); BOTH rails split their groups by ONE hairline
+  (04b-rail · `.rail-sep`, owner pick C12, 05.11.2026 – the left rail kept 14px of air around the
+  plan tiles until then, which grouped the matched pair two ways); the TOOL rail's tools are ONE undivided list (the `sep` entries left `mapTools` /
   `planTools`) and its one hairline is the FOOT's, above the generic controls (Ebenen · compass ·
   zoom) — a real seam, where «select vs. create» was noise; the map-utility cluster has air; and
   the Einsatz menu draws ONE hairline, above the identity row (the small-caps label heads «App»
@@ -321,8 +322,9 @@ Three rules the primitives own, so no surface re-answers them (18.09.2026):
     each other. The FAB stays ROUND (the one-corner exception) but is `--float-h` across, on that
     baseline; `--fab-safe` is its width + the gap. A new piece in that zone joins the family and
     the row (and the `--float-row` `:has` list) — never a height, material or offset of its own.
-    The map's attribution ⓘ wears the family's MATERIAL only (03-map, 04.11.2026): a round 32px
-    plate at the 16px inset, its outline glyph in theme ink – a credit, not a piece of the row.
+    The map's attribution ⓘ wears the family's MATERIAL only (03-map, 04.11.2026): a round 24px
+    plate at the 16px inset (32px until 05.11.2026, owner: «small and quiet»), its outline glyph in
+    theme ink, a --tap pad for a finger – a credit, not a piece of the row.
     The Meldeleiste hangs from the top and ENDS where the message lane starts (`--msg-lane-bottom`,
     08-toasts · phone `.ml`, 08.10.2026): one `--float-gap` above the floating row, or the highest
     bar when the row is empty. Past that it scrolls. It never runs under the FAB or a bar. Four
@@ -511,7 +513,8 @@ Three rules the primitives own, so no surface re-answers them (18.09.2026):
     pen (`lib/icons` · `#entry`, drawn inline by `EntryGlyph` on the FAB and the top bar's
     Eintrag), never «+»: «+» means Hinzufügen only (the FAB stood 60px above the tool bar's «+
     Hinzufügen» with the same glyph, and the tablet's Eintrag sat beside the rail's «+ Symbol»).
-    The top bar's Eintrag wears the FAB's material (`--float-bg` + `--float-edge`, ink), not a
+    The top bar's Eintrag is the bar's flat `.tb-act`, like «Verlauf» beside it (owner pick C11,
+    05.11.2026 – it wore the FAB's raised glass, the one raised button inside the bar), never a
     blue slab, and keeps its word «Eintrag» until the LAST step of the top bar's ladder
     (`HEAD_FIT_STEPS` · 'eintrag-word'). While the hold's chooser is up, the glyph gives way to
     its drawn ✕ (both paths always in the DOM). «Trupp finden» wears `#trupp-find` (people with a

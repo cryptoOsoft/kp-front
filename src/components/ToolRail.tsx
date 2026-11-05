@@ -186,7 +186,7 @@ export function ToolRail({ primary, tools, active, open = false, onPick, toolRef
           }
           // a sentinel entry renders a group divider so the rail reads as clusters
           // (selection · symbol · create · annotate) instead of one undifferentiated stack
-          if (t.sep) return <span key={t.id} className="vrail-sep" aria-hidden />
+          if (t.sep) return <span key={t.id} className="vrail-sep rail-sep" aria-hidden />
           return toolButton(t)
         })}
         {extras}
@@ -194,7 +194,7 @@ export function ToolRail({ primary, tools, active, open = false, onPick, toolRef
       </div>
 
       {/* pinned footer — surface-specific nav cluster (map: compass·zoom·fit·coords / plan: zoom·fit·%) */}
-      <div className="vrail-sep vrail-sep-foot" />
+      <div className="vrail-sep vrail-sep-foot rail-sep" />
       <div className="vrail-nav">{footer}</div>
 
       {/* drag GRIP on the left edge — aria-label only (a native title pops the OS tooltip) */}

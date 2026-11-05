@@ -1902,9 +1902,13 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
   // (09-whiteboard · .wb-botleft), and a hazard is glyph + WORD, so «⚠ Gas · PV» took the room the
   // Objekt chip's name needs — the name went down to its glyph, and «which object are these
   // plans of» stopped being answered. On a phone the Karte's row carries the chip, one tap away.
-  // `compact`: it is the Objekt chip's second half (R1, 27.10.2026) – the hazard words alone
-  // («⚠ Gas»), the glyph alone without one; the address beside it already says which building.
-  const buildingFloat = !isPhone && !objectChipHidden && (objectName || objectAddress)
+  // `compact`: it is the Objekt chip's second half (R1, 27.10.2026) – «⚠ Gebäude-Info · Gas», the
+  // Sofortmassnahmen as their glyph alone.
+  // …and on the Gebäude STACK too, the building chip's second half (owner pick C8, 05.11.2026): the
+  // stack is the one plan that IS the building, and its row said «Gebäude •» while the Karte said
+  // «⚠ Gebäude-Info · Gas» – the hazard was gone exactly where the crew looks at the storeys. Not
+  // on the outline picker (no building chosen yet). BuildingFloat renders nothing without content.
+  const buildingFloat = !isPhone && (stack || (!objectChipHidden && (objectName || objectAddress)))
     ? <BuildingFloat info={buildingInfo ?? null} compact />
     : null
 
@@ -2820,9 +2824,9 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
               )}
               {/* zoom ±: desktop only (.vrail-zoom is hidden under 1024px) — the plan pinches
                   on every touch form factor, and «Einpassen» above covers the one state that
-                  matters. */}
-              <button className="vrail-nbtn vrail-zoom" title={appConfig.copy.nav.zoomOut} aria-label={appConfig.copy.nav.zoomOut} disabled={scale <= MIN_SCALE} onClick={() => zoom(1 / 1.3)}><span className="vrail-glyph"><Icon id="minus" /></span><span className="vrail-label">{appConfig.copy.nav.zoomOut}</span></button>
+                  matters. «+» on top, like the Karte's (owner pick C9, 05.11.2026). */}
               <button className="vrail-nbtn vrail-zoom" title={appConfig.copy.nav.zoomIn} aria-label={appConfig.copy.nav.zoomIn} disabled={scale >= maxScale} onClick={() => zoom(1.3)}><span className="vrail-glyph"><Icon id="plus" /></span><span className="vrail-label">{appConfig.copy.nav.zoomIn}</span></button>
+              <button className="vrail-nbtn vrail-zoom" title={appConfig.copy.nav.zoomOut} aria-label={appConfig.copy.nav.zoomOut} disabled={scale <= MIN_SCALE} onClick={() => zoom(1 / 1.3)}><span className="vrail-glyph"><Icon id="minus" /></span><span className="vrail-label">{appConfig.copy.nav.zoomOut}</span></button>
 
             </>
           }
@@ -3273,8 +3277,10 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
           own tap. Calibrating, the chip gives its place to the instrument (`calibrateChip`). */}
       {strip}
       {calibrateChip ?? <>
-      <span className="wb-join">{objectChip}{buildingFloat}</span>
-      {buildingChip}
+      {/* on the stack the building chip stands where the Objekt chip does (that one is dropped
+          there), sharing the glass with its Gebäude-Info */}
+      <span className="wb-join">{objectChip}{stack && buildingChip}{buildingFloat}</span>
+      {!stack && buildingChip}
       </>}
       {readingsChip}
       </>}
