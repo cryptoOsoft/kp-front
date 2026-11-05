@@ -122,6 +122,7 @@ import { OrientSlider } from './OrientSlider'
 import { ToolRail } from './ToolRail'
 import { TafelPageStrip } from './TafelPageStrip'
 import { TafelFormPage } from './TafelFormPage'
+import type { PendenzenPort } from '../lib/pendenzenPage'
 import { findForms, pageTitles, type FormSeed } from '../lib/boardForm'
 import type { ProblemSource, TickWrite } from '../lib/problemLink'
 import { isDrawnBoardKind } from '../lib/workspace'
@@ -360,6 +361,8 @@ export interface TafelPagesProps {
   /** the ONE undo timeline, as far as a page needs it: an act over the Tafel and the Checklisten
    *  is one step (`group`), and a deletion's «Rückgängig» takes the step on top while it is ours */
   history?: { group: () => () => void; top: () => unknown; undo: () => void }
+  /** the «Aufträge / Pendenzen» page's view on the Verlauf (workspace/useTafelPendenzen) */
+  pendenzen?: PendenzenPort
 }
 
 /**
@@ -2094,7 +2097,7 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
           // typed over another device's value for the same cell: the later stands, the Verlauf says so
           onConflict={(where, kept, lost) => log('warn', fillTemplate(appConfig.copy.journal.tafelConflict, { page: titles.get(formPage.id) ?? labelText(formPage.form.page.title), where, kept, lost }), { subjectId: formPage.id })}
           onPrint={incidentId ? (all) => void printPages(all ? pages : [formPage]) : undefined} pageCount={pages.length} printing={printing}
-          scene={tafel?.scene} onOpenKarte={tafel?.onOpenKarte}
+          scene={tafel?.scene} onOpenKarte={tafel?.onOpenKarte} pendenzen={tafel?.pendenzen}
           // the bottom: the strip's row and its air, so the last ruling scrolls above it — on a
           // phone above THE floating row (15-mobile · --float-bottom), on a tablet above the row
           inset={{ top: topRes, left: isPhone ? 0 : side.l, right: isPhone ? 0 : side.l, bottom: isPhone ? 'calc(var(--float-bottom, 72px) + var(--float-h) + 16px)' : 'calc(16px + var(--float-h) + 24px)' }} />

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { completeReminder, type ReminderEvent } from './useReminders'
+import { completeReminder, reopenReminder, type ReminderEvent } from './useReminders'
 import { deriveReminders } from './reminders'
 import { createUndoTimeline } from './undoTimeline'
 import type { TimelineEvent } from '../types'
@@ -82,5 +82,24 @@ describe('completeReminder — «Erledigt» is confirm-with-undo', () => {
     completeReminder(r, { ...v, copy, announce: (_t, u) => { onUndo = u } })
     onUndo()
     expect(v.rows.slice(0, 2).map((x) => x.text)).toEqual(['Erinnerung wieder offen: Absperrmaterial holen', 'Erinnerung erledigt: Absperrmaterial holen'])
+  })
+})
+
+// the Tafel's «Aufträge / Pendenzen» page un-ticks an «Erledigt» (05.11.2026)
+describe('reopenReminder — un-ticking is the same act the other way', () => {
+  it('appends «wieder offen», ↶ closes again, and an item already open writes nothing', () => {
+    const v = verlauf()
+    const timeline = createUndoTimeline()
+    const item = v.item()
+    reopenReminder(item, { ...v, copy, timeline })
+    expect(v.rows).toHaveLength(1) // open already: nothing happened, nothing to take back
+    expect(timeline.canUndo()).toBe(false)
+    completeReminder(item, { ...v, copy })
+    reopenReminder(item, { ...v, copy, timeline })
+    expect(v.isOpen('p1')).toBe(true)
+    expect(v.rows[0]).toMatchObject({ text: 'Pendenz wieder offen: Absperrmaterial holen', reminder: { op: 'reopened', id: 'p1' } })
+    expect(timeline.undo().status).toBe('done')
+    expect(v.isOpen('p1')).toBe(false)
+    expect(v.rows.map((r) => r.reminder?.op)).toEqual(['done', 'reopened', 'done', 'created'])
   })
 })

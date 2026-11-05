@@ -142,6 +142,9 @@ export type JournalProps = {
   onPhotoPlace?: (e: TimelineEvent) => void
   /** «Auf Karte zeigen»: a picture of this row is on the Karte already */
   onPhotoShow?: (entityId: string) => void
+  /** «von der Tafel» on a Pendenz typed on the Tafel's «Aufträge / Pendenzen» page: open that
+   *  page. Absent ⇒ the mark is a plain word (a link session has no Tafel pages) */
+  onOpenTafel?: () => void
   /**
    * The replay playhead. Set ⇒ this Verlauf is being read alongside a Wiedergabe: rows after
    * this instant are the FUTURE and render dimmed, and the row the playhead stands in is marked.
@@ -161,7 +164,7 @@ export type JournalProps = {
 // happens on either surface. Rendered as a slide-over so it can open over the
 // map or the plan; a row jumps back to wherever its event happened. Each row is
 // a <JournalRow>; the row's detail sheet is rendered here, at the bottom.
-export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, onClose, onTranscript, onReplay, openReminders, onReminderDone, onReminderNote, onReminderAgain, mediaStatusOf, onOpenPlayer, onEditText, replayAtMs, onSeekTo, landOn, deliveryNotice, photoPlacement, onPhotoPlace, onPhotoShow }: JournalProps) {
+export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, onClose, onTranscript, onReplay, openReminders, onReminderDone, onReminderNote, onReminderAgain, mediaStatusOf, onOpenPlayer, onEditText, replayAtMs, onSeekTo, landOn, deliveryNotice, photoPlacement, onPhotoPlace, onPhotoShow, onOpenTafel }: JournalProps) {
   // read per-render (not module-load) so the resolved locale is applied — see config/copy
   const C = appConfig.copy.journal
   const audio = useAudioPlayer()
@@ -781,6 +784,11 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
                         <b>{rowClock(n.at)}</b>{n.text}
                       </span>
                     ))}
+                    {/* typed on the Tafel's «Aufträge / Pendenzen» page (mock 6A): it says so, and
+                        a tap opens that page */}
+                    {r.origin === 'tafel' && (onOpenTafel
+                      ? <button type="button" className="jr-pinned-from" title={C.fromTafelTitle} onClick={onOpenTafel}><Icon id="easel" />{C.fromTafel}</button>
+                      : <span className="jr-pinned-from"><Icon id="easel" />{C.fromTafel}</span>)}
                   </div>
                   {/* ⚠️ …and it says WHEN, not just that there is a when. The bare clock glyph
                       answered «meldet sich selbst» and left the one thing to act on — «um wie

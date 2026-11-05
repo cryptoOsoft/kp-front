@@ -102,7 +102,24 @@ export interface TextSection extends SectionBase {
    *  side by side under it (the Konzept's Variante with its + and –) */
   layout?: 'stack' | 'row' | 'split'
 }
-export type TemplateSection = QuadSection | MapSection | TableSection | TextSection
+/**
+ * A LIVE section (05.11.2026): a table whose rows are not written on the page but DERIVED from
+ * the Einsatz — the page is a view, and nothing of it lives in the page's values. `source` says
+ * what it shows; the one source today is `pendenzen`, every Pendenz and Erinnerung of the Verlauf
+ * (lib/reminders · pendenzLedger, components/TafelPendenzen). Its columns are the source's own
+ * (`LIVE_COLUMNS`): a station may rename, reorder, re-weigh or hide them, never invent one.
+ * ⚠️ A build that predates `live` keeps such a page as it keeps every unknown section: drawn
+ * without it, never dropped (isUsableSection below; lib/boardForm · isFormData).
+ */
+export interface LiveSection extends SectionBase {
+  type: 'live'
+  source: LiveSource
+  columns: TemplateColumn[]
+}
+/** what a live section can show, and the columns each source has */
+export const LIVE_COLUMNS = { pendenzen: ['was', 'wer', 'prio', 'status', 'zeit'] } as const
+export type LiveSource = keyof typeof LIVE_COLUMNS
+export type TemplateSection = QuadSection | MapSection | TableSection | TextSection | LiveSection
 
 export interface TemplatePage {
   id: string
@@ -195,6 +212,12 @@ export function isUsableSection(v: unknown): v is TemplateSection {
       return Array.isArray(v.fields) && v.fields.length >= 1 && v.fields.length <= 6
         && v.fields.every((f) => isObj(f) && isId(f.id) && optLabel(f.label) && optStr(f.tone) && optStr(f.type))
         && uniqueIds(v.fields as TemplateField[])
+    case 'live': {
+      // a source this build does not know is not drawn; a column it does not know is not drawn
+      // either (shownColumns), so a newer station file never blanks the section for a new column
+      if (typeof v.source !== 'string' || !Object.keys(LIVE_COLUMNS).includes(v.source)) return false
+      return Array.isArray(v.columns) && v.columns.length >= 1 && v.columns.every(isColumn) && uniqueIds(v.columns as TemplateColumn[])
+    }
     default:
       return false
   }

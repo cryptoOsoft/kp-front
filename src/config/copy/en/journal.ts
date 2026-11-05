@@ -3,7 +3,7 @@
 
 import type { Copy, Localizable } from '../index'
 
-export const journalCopy: Localizable<Pick<Copy, 'journal' | 'errors'>> = {
+export const journalCopy: Localizable<Pick<Copy, 'journal' | 'tafelPendenzen' | 'errors'>> = {
   journal: {
     delivery: {
       failedTitleOne: '1 entry not uploaded',
@@ -212,6 +212,33 @@ export const journalCopy: Localizable<Pick<Copy, 'journal' | 'errors'>> = {
     ageToggle: 'Switch time / age',
     openState: 'open',
     openReminderGo: 'Jump to the entry',
+    fromTafel: 'from the board',
+    fromTafelTitle: 'Entered on the board – tap to open the page',
+  },
+  tafelPendenzen: {
+    createdLog: 'Item from the board ({page}): {text}',
+    createdWer: ' · Who: {wer}',
+    createdUrgent: ' · urgent',
+    editLog: 'Changed on the board ({text}): {changes}',
+    editWas: 'What: {v}',
+    editWer: 'Who: {v}',
+    editWerCleared: 'Who removed',
+    editUrgent: 'Prio. 1 (urgent)',
+    editNotUrgent: 'no prio.',
+    doneLog: 'Done on the board: {text}',
+    reopenLog: 'Open again on the board: {text}',
+    erteilt: 'Issued',
+    erledigt: 'Done',
+    erinnerung: 'Reminder',
+    overdue: 'overdue',
+    prio: 'Prio. 1 – urgent',
+    prioOff: 'Set prio. 1 (urgent)',
+    prioOn: 'Prio. 1 (urgent) – tap to remove',
+    toVerlauf: 'Show in the log',
+    saved: 'Entered in the log as an open item · {t}{by}',
+    newRow: 'New item …',
+    empty: 'No open items yet. A row written here becomes an item in the log – and every item from the log stands here.',
+    emptyRo: 'No items in the log yet.',
   },
   errors: {
     updateFailed: 'Update failed',
