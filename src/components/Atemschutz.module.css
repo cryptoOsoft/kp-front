@@ -82,17 +82,17 @@
 .overdueQuiet { color: var(--ink-dim); background: var(--surface); box-shadow: inset 0 0 0 1px var(--glass-edge); animation: none; }
 @keyframes az-pulse-tile { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
 
-.body { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-gutter: stable; padding: var(--sp-4) var(--head-pad-x); }
-/* Touch (the tablet's grid): the cards start 6px under the head (hill climb r4, 04.11.2026 — on
-   the 1180×820 landscape iPad the second grid row's foot met the panel's bottom edge; this and the
-   12px grid gap give the foot its air). 6, not 8, since r13: the card's caption took 2px more room
-   over it (`.grid .trowHeadStatic`), and the iPad's second row must not move. Before the phone
-   block (`--phone` below), which keeps its own 12px. */
-@media (pointer: coarse) { .body { padding-top: calc(var(--sp-2) - 2px); } }
-/* A mouse (the laptop's 1536×864): 8px top air (hill climb r13, 05.11.2026) — with the 12px grid
-   gap and the compact tiles (`.grid .trowCard` · mouse, below) both card rows stand whole above
-   the panel's edge. */
-@media (hover: hover) and (pointer: fine) { .body { padding-top: var(--sp-2); } }
+/* The board's insets: 16px under the page head on every board (hill climb r16, 05.11.2026 – the
+   6/8px of r4/r13 stood the first card row tight under the head's rule while the sides kept 22 and
+   the Rapport ~17 under the same head; the room for the 1180×820 iPad's second row came out of the
+   card gap and the crew line instead – `.grid`, `.grid .crewLine`). ⚠️ `both-edges`: a classic
+   scrollbar's gutter (headless Chromium, a Windows laptop) is reserved on BOTH sides, so the visible
+   left and right insets stay equal (r16: 22 left / 32 right with `stable`); an overlay scrollbar
+   (the iPad, a phone) reserves nothing and the insets stay the head's 22. */
+.body { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-gutter: stable both-edges; padding: var(--sp-4) var(--head-pad-x); }
+/* A mouse: 12px under the last row, so the 1536×864 laptop's two rows stand without a 4px scroll
+   (and a scrollbar thumb for it). */
+@media (hover: hover) and (pointer: fine) { .body { padding-bottom: var(--sp-3); } }
 
 .empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
   height: 100%; color: var(--ink-faint); text-align: center; }
@@ -110,14 +110,16 @@
 /* ⚠️ 288px, not 270. 270 was chosen to fit three cards on a landscape tablet (300 fitted only
    two). Since 29.09.2026 the card is the phone's (TruppCard): its tiles are a 2×2 grid of equal
    keys, and 288 keeps «Rückzug» and «Raus» on one line each with the glyph beside the word. */
-/* 12px between cards, the card's own side padding, on every board (touch since r4; the mouse's
-   16px went in r13, 05.11.2026, to stand the laptop's second row whole — see `.body` above). */
+/* 12px between cards, the card's own side padding, on a mouse (its 16px went in r13, 05.11.2026,
+   to stand the laptop's second row whole). Touch: 8px, the app's one gap (hill climb r16 – the
+   board's 16px top inset came out of it, so the 1180×820 iPad still shows both rows whole). */
 /* ⚠️ `subgrid` is GONE (04.09.) — it made every row as tall as the tallest card in it (a Draussen
    card stretched into an empty box the height of a neighbour's). Each card ends where its content
    ends; what lines up across a row is the first line — name and clock — which every card opens
    with at the same height. */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(288px, 1fr));
   gap: var(--sp-3); align-items: start; }
+@media (pointer: coarse) { .grid { gap: var(--sp-2); } }
 /* ⚠️ The «Raus»-Abschnitt this separated is GONE (17.08.) — a Trupp that came back keeps its slot
    on every screen size (see AtemschutzView · board). The rule is kept out of the sheet rather than
    left behind styling nothing. */
@@ -1734,15 +1736,24 @@ button.crewLine { cursor: pointer; -webkit-tap-highlight-color: transparent; }
    stands ~10px under the card's edge like the 12px side inset (hill climb r13, 05.11.2026: at 4px
    it sat 6px under the edge); no extra row gap under it — the caps have no descenders, so the
    1-line box alone leaves ~2px to the digits. The 2px this adds come back off the band's foot
-   (below) and, for the out cards, the board's top air on touch (`.body`), so the iPad's grid does
-   not move. The phone keeps its name-and-time row (settled). */
+   (below) and, for the out cards, came off the board's top air on touch in r13 (that air is 16px
+   again since r16 – `.body`). The phone keeps its name-and-time row (settled). */
 .grid .trowHeadStatic { grid-template-rows: var(--fs-micro) minmax(25px, auto); padding-top: var(--sp-2); }
 .grid .trowHeadStatic .trowClock { display: contents; }
 .grid .trowHeadStatic .trowId { grid-column: 1; grid-row: 2; }
 .grid .trowHeadStatic .trowClockLine { grid-column: 2; grid-row: 2; }
 .grid .trowHeadStatic .trowSub { display: block; grid-column: 1 / -1; grid-row: 1; justify-self: end; line-height: 1; }
 .grid .trowHeadStatic .trowSub:empty { display: none; }
+/* On the touch grid the crew line is a 22px box – an 18px line, 2px above and below (hill climb r16,
+   05.11.2026: 28 with the phone's 20px line and 4px pads; the 6px it gives back on every card is
+   part of the room the board's 16px top inset took, see `.body`). Same 14px type; on touch its pad
+   grows to 11px so it still owns 44px (11 + 22 + 11). Touch only: a mouse keeps the 28px box, its
+   whole hit area (the 24px floor), and the laptop has the room. */
 .grid .trowHeadStatic .crewLine { grid-row: 3; }
+@media (pointer: coarse) {
+  .grid .trowHeadStatic .crewLine { padding-block: 2px; line-height: 18px; }
+  .grid button.crewLine::before { inset: calc((22px - var(--tap)) / 2) 0; }
+}
 /* ── Inside vs outside on the grid (hill climb r3, 04.11.2026) ───────────────────────────────────
    The out cards wore the strongest blocks (the filled «Wieder in den Einsatz», a surface lit at
    night) while the crews under PA blended into the controls round them. A crew inside with a
@@ -1757,9 +1768,9 @@ button.crewLine { cursor: pointer; -webkit-tap-highlight-color: transparent; }
    must show there too»): amber wash + amber foot rule, red wash + red foot rule, so the state reads
    at the head like the green one. The tier tokens the card's edge already wears; on überfällig the
    red stays in the head only — the card's ground below it stays quiet (24.10.).
-   6px under the crew line (its own 4px pad over it): the band closes ~10px under the crew as it
-   opens ~10px over the caption (hill climb r13 — the caption's 2px more air came off here, so the
-   iPad's cards keep their height). */
+   6px under the crew line (its own 4px pad over it, 2px on touch since r16): the band closes
+   ~9–10px under the crew's glyphs as it opens ~10px over the caption (hill climb r13 — the caption's 2px more air came off
+   here, so the iPad's cards keep their height). */
 .grid :is(.trowIn, .trowWarn, .trowCrit) .trowHead { padding-bottom: calc(var(--sp-2) - 2px); border-bottom: 3px solid; }
 .grid .trowIn .trowHead { background: var(--green-12); border-bottom-color: var(--green); }
 .grid .trowWarn .trowHead { background: var(--amber-12); border-bottom-color: var(--amber); }
