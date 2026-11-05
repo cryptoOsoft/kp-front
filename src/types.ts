@@ -56,6 +56,33 @@ export type ShapeKind = 'arrow' | 'cloud' | 'square' | 'rotation'
  */
 export type LineContent = 'S' | 'W' | 'WW' | 'H' | 'P' | 'N' | 'T' | 'G'
 
+/** A Leitung's hose diameter (mm). «2x75» is the identical double line: two 75 mm hoses side by
+ *  side, each carrying half the water (lib/hydraulics · HOSES). Absent = 75 mm. */
+export type HoseSize = '55' | '75' | '2x75' | '110'
+/** Where a Wassertransport starts: a Hydrant (its Ruhedruck), a Löschweier (no pressure — the
+ *  first pump stands at the source) or a pump (its output). */
+export type RelaySource = 'hydrant' | 'weier' | 'pumpe'
+/** One pump of a relay, adjusted by hand: moved to `atM` metres from the source along the line,
+ *  and/or set to put out `bar`. Either absent = automatic. */
+export interface RelayPumpOverride { atM?: number; bar?: number }
+/**
+ * The Wassertransport assumptions of a Leitung (Drawing/BoardAnno · `relay`) or of a Messen
+ * Strecke — everything the relay calculation (lib/hydraulics · planRelay) needs besides the
+ * route and the hose. Every field absent = its default (lib/hydraulics · RELAY). `pumps` is by
+ * pump index; JSON has no holes, so an untouched pump before a touched one is `null`.
+ */
+export interface RelaySettings {
+  /** l/min wanted at the end */
+  flow?: number
+  source?: RelaySource
+  /** Hydrant Ruhedruck or the source pump's output (bar); a Löschweier has none */
+  startBar?: number
+  pumps?: (RelayPumpOverride | null)[]
+  /** the water runs from the route's LAST point to its first – a line drawn from the fire back to
+   *  the hydrant. The geometry stays as drawn (its ends, arrows and attachments mean what they mean). */
+  reverse?: boolean
+}
+
 /** The built-in steppers in the symbol editor that change how the glyph reads on
  *  the surface: `rotation` (orientation), `count` (quantity badge), `floor` (storey
  *  badge — map only) and `floorRange` (a von/bis storey span, e.g. stairs/lift —
@@ -445,6 +472,13 @@ export interface Drawing {
    *  or Trupp, and no Leitung couples onto its ends. Crosses with the line between the Karte and
    *  a sheet (tacticalObjects · SHARED_PATH_PROPS, planProjection · projectOnto). Absent = Linie. */
   role?: 'wand'
+  /** the hose diameter of a Leitung (lines only; the line editor's «Schlauch» row). Absent =
+   *  75 mm. Crosses to a sheet like the other FKS fields (SHARED_PATH_PROPS). */
+  hose?: HoseSize
+  /** the Wassertransport assumptions of this Leitung — flow, source, pumps moved by hand
+   *  (lines only; DrawEditor · Messung). Absent = the defaults. Planning data, not a record:
+   *  no Verlauf row (lib/drawingEdit). */
+  relay?: RelaySettings
   /** locked: the shape ignores click-select / drag so it can't be moved by accident or
    *  swallow clicks meant for objects over it (e.g. a big Absperrkreis under other work).
    *  A lock chip at its centre unlocks it. Absent = editable. */
@@ -917,6 +951,10 @@ export interface BoardAnno extends SymbolProps {
   content?: LineContent
   lineNo?: number            // Druckleitung number in a small box on the line (= Leitung identity, see Drawing)
   floorTag?: number          // storey the line works on, signed badge (+2 / 0 / -1)
+  hose?: HoseSize            // draw: hose diameter (mirrors Drawing.hose)
+  /** draw: the Wassertransport assumptions (mirrors Drawing.relay). A sheet only CARRIES them —
+   *  the calculation needs real ground and a height profile, so it is offered on the Karte. */
+  relay?: RelaySettings
   endDx?: number             // draw: the FKS end tag's old nudge – no longer drawn, the tag is pinned to its line (28.10.2026)
   endDy?: number
   fillOpacity?: number       // area: polygon fill opacity (0..1); absent = a sensible default

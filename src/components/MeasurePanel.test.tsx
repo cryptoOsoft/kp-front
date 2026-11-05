@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { MeasurePanel } from './MeasurePanel'
 import { appConfig } from '../config/appConfig'
+import { fillTemplate } from '../lib/format'
 import type { LngLat } from '../types'
 
 afterEach(cleanup)
@@ -136,5 +137,152 @@ describe('MeasurePanel · one row, the rest folded', () => {
     render(<MeasurePanel {...base} mode="line" blocked hint="Zuerst kalibrieren" onCalibrate={vi.fn()} calibrateLabel="Kalibrieren" />)
     expect(screen.getByRole('button', { name: 'Kalibrieren' })).toBeTruthy()
     expect(screen.queryByRole('button', { expanded: false })).toBeNull()
+  })
+})
+
+// Wassertransport (components/WaterRelay): ADDED on the Karte's Strecke from a button under the
+// Höhenprofil, closed by its own ×. A plain distance measurement stays two numbers; the pump count
+// joins the folded readout only once the section was added in this measurement.
+describe('MeasurePanel · Wassertransport', () => {
+  const R = appConfig.copy.relay
+  const relay = (open: boolean) => ({ value: {}, onChange: vi.fn(), open, setOpen: vi.fn() })
+  const base = { coords: strecke, profile: null, profileLoading: false, showProfile: false, mode: 'line' } as const
+  const fold = () => screen.getByRole('button', { name: new RegExp(C.distance) })
+
+  it('a plain measurement keeps its two numbers; the section is added from the fold', () => {
+    const r = relay(false)
+    render(<MeasurePanel {...base} relay={r} />)
+    expect(screen.queryByText(R.pumps)).toBeNull()
+    fireEvent.click(fold())
+    fireEvent.click(screen.getByRole('button', { name: R.add }))
+    expect(r.setOpen).toHaveBeenCalledWith(true)
+  })
+
+  it('the Höhenprofil stays until the section is added — then its chart takes over', () => {
+    const profile = { points: [{ dist: 0, alt: 300 }, { dist: 760, alt: 310 }], min: 300, max: 310, gain: 10, loss: 0, start: 300, end: 310 }
+    const { rerender } = render(<MeasurePanel {...base} showProfile profile={profile} relay={relay(false)} />)
+    fireEvent.click(fold())
+    expect(screen.getByText(C.profile)).toBeTruthy()
+    rerender(<MeasurePanel {...base} showProfile profile={profile} relay={relay(true)} />)
+    expect(screen.queryByText(C.profile)).toBeNull()
+    expect(screen.queryByRole('button', { name: R.add })).toBeNull()
+    // the profile's own Aufstieg row moves under the combined chart
+    expect(screen.getByText('+10 m')).toBeTruthy()
+  })
+
+  it('pointing at the chart reads it out — distance and pressure at that spot', () => {
+    render(<MeasurePanel {...base} relay={relay(true)} />)
+    fireEvent.click(fold())
+    expect(screen.queryByRole('status')).toBeNull()
+    // a mouse hovering; jsdom lays nothing out, so it lands on the chart's left edge, the source
+    const chart = screen.getByRole('img', { name: new RegExp(R.title) })
+    fireEvent.pointerMove(chart, { pointerType: 'mouse' })
+    expect(screen.getByRole('status').textContent).toMatch(/^0 m.*6\.0 bar$/)
+    fireEvent.pointerLeave(chart, { pointerType: 'mouse' })
+    expect(screen.queryByRole('status')).toBeNull()
+  })
+
+  it('the inputs are edited in place – the Quelle picker writes straight through, no sheet', () => {
+    const r = relay(true)
+    render(<MeasurePanel {...base} relay={r} />)
+    fireEvent.click(fold())
+    expect(screen.getByRole('group', { name: R.pressure })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: R.sources.hydrant }))
+    fireEvent.click(screen.getByRole('button', { name: R.sources.weier }))
+    expect(r.onChange).toHaveBeenCalledWith({ relay: { source: 'weier' } })
+  })
+
+  it('answers with the pressure at the end – no Pumpen tile, no «Keine Pumpe nötig»', () => {
+    // ~760 m flat from a 6 bar Hydrant: one pump, its count only in the folded readout
+    render(<MeasurePanel {...base} relay={relay(true)} />)
+    fireEvent.click(fold())
+    expect(screen.getByText(R.endBar)).toBeTruthy()
+    expect(screen.queryByText(R.pumps)).toBeNull()
+  })
+
+  it('«Pumpen als Symbole setzen» hands over every pump at once', () => {
+    const onPlacePumps = vi.fn()
+    // ~2.3 km flat: two automatic pumps
+    render(<MeasurePanel {...base} coords={[[7.55, 47.5], [7.58, 47.5]]} relay={relay(true)} onPlacePumps={onPlacePumps} />)
+    fireEvent.click(fold())
+    fireEvent.click(screen.getByRole('button', { name: R.placePumps }))
+    expect(onPlacePumps).toHaveBeenCalledTimes(1)
+    const [coords] = onPlacePumps.mock.calls[0] as [LngLat[]]
+    expect(coords).toHaveLength(screen.getAllByRole('button', { name: /^Pumpe \d$/ }).length)
+    expect(coords.length).toBeGreaterThan(1)
+  })
+
+  it('«Als Leitung auf die Karte» is the panel\'s adopt', () => {
+    const onAdopt = vi.fn()
+    render(<MeasurePanel {...base} relay={relay(true)} onAdopt={onAdopt} />)
+    fireEvent.click(fold())
+    fireEvent.click(screen.getByRole('button', { name: R.adoptLine }))
+    expect(onAdopt).toHaveBeenCalledTimes(1)
+  })
+
+  it('neither action without its callback – a locked surface only asks', () => {
+    render(<MeasurePanel {...base} relay={relay(true)} />)
+    fireEvent.click(fold())
+    expect(screen.queryByRole('button', { name: R.adoptLine })).toBeNull()
+    expect(screen.queryByRole('button', { name: R.placePumps })).toBeNull()
+  })
+
+  // the pump's one adjustable number, in a bubble at the pump – portalled, never in the panel's flow
+  it('tapping a pump opens its bubble with the output to set; Escape closes it', () => {
+    const { container } = render(<MeasurePanel {...base} relay={relay(true)} />)
+    fireEvent.click(fold())
+    const pump = screen.getByRole('button', { name: fillTemplate(R.pumpN, { n: 1 }) })
+    fireEvent.keyDown(pump, { key: 'Enter' }) // a tap, as the keyboard does it (jsdom has no pointer capture)
+    const bubble = screen.getByRole('dialog', { name: fillTemplate(R.pumpN, { n: 1 }) })
+    expect(within(bubble).getByRole('group', { name: R.outlet })).toBeTruthy()
+    expect(container.contains(bubble)).toBe(false)
+    fireEvent.keyDown(bubble, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  // the press on the open pump is the pump's own tap – it closes the bubble, it does not close it
+  // as an outside press and then reopen it
+  it('a second tap on the same pump closes its bubble', () => {
+    render(<MeasurePanel {...base} relay={relay(true)} />)
+    fireEvent.click(fold())
+    const pump = screen.getByRole('button', { name: fillTemplate(R.pumpN, { n: 1 }) })
+    fireEvent.keyDown(pump, { key: 'Enter' })
+    Object.assign(pump, { setPointerCapture: () => {} }) // jsdom's SVG has none
+    fireEvent.pointerDown(pump, { button: 0, pointerType: 'mouse' })
+    fireEvent.mouseDown(pump)
+    fireEvent.click(pump)
+    expect(screen.getByRole('dialog')).toBeTruthy() // the outside press on the pump was ignored…
+    fireEvent.keyDown(pump, { key: 'Enter' })
+    expect(screen.queryByRole('dialog')).toBeNull() // …and its own tap closed it
+  })
+
+  it('the heading is the section alone; ⓘ opens the sources over the panel, not in it', () => {
+    const { container } = render(<MeasurePanel {...base} relay={relay(true)} />)
+    fireEvent.click(fold())
+    expect(screen.queryByText(/Planungshilfe/)).toBeNull()
+    expect(screen.getByText(R.title)).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: R.sourcesLabel }))
+    const note = screen.getByRole('dialog', { name: R.sourcesLabel })
+    expect(note.textContent).toContain('AGV')
+    expect(container.contains(note)).toBe(false)
+  })
+
+  it('the section closes with its own ×', () => {
+    const r = relay(true)
+    render(<MeasurePanel {...base} relay={r} />)
+    fireEvent.click(fold())
+    fireEvent.click(screen.getByRole('button', { name: appConfig.copy.closeDialog }))
+    expect(r.setOpen).toHaveBeenCalledWith(false)
+  })
+
+  it('once opened, the folded readout says how many pumps the Strecke takes', () => {
+    render(<MeasurePanel {...base} relay={relay(true)} />)
+    // ~760 m flat at 75 mm / 800 l/min from a 6 bar Hydrant: one pump
+    expect(screen.getByText(R.pumps).nextElementSibling?.textContent).toBe('1')
+  })
+
+  it('is not offered without a relay — a Plan sheet has no ground', () => {
+    render(<MeasurePanel {...base} />)
+    expect(screen.queryByRole('button', { name: R.add })).toBeNull()
   })
 })

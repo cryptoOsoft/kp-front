@@ -1,0 +1,6 @@
+/* where a chart is being read (ChartCursorMarker.tsx): the curve's ink, ringed in the surface so it
+   shows on any map */
+.dot {
+  display: block; width: 14px; height: 14px; border-radius: 50%; box-sizing: border-box;
+  background: var(--ink); border: 3px solid var(--surface); box-shadow: var(--e2); pointer-events: none;
+}

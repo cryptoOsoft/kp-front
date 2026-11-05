@@ -218,6 +218,8 @@ function projectOntoSheet(o: TacticalObject, plan: PlanFit, margin: number): Boa
     truppId: d.truppId,
     // a Wand drawn on the Karte is a Wand on the sheet too (lib/grundriss · wallRolePatch)
     role: d.role,
+    // …and a Leitung keeps its hose and Wassertransport assumptions (lib/hydraulics)
+    hose: d.hose, relay: d.relay,
     // ⚠️ The lock crosses too. Without it a Fläche locked on the Karte was still draggable
     // through its mirror on the Plan, which defeats the whole point of locking it (01.09.).
     locked: d.locked,

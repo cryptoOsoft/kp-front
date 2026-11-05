@@ -200,6 +200,8 @@ const SHARED_PATH_PROPS = [
   'label', 'truppId',
   // a Linie switched to a Wand on either surface stays one on the other (lib/grundriss · wallRolePatch)
   'role',
+  // the Leitung's hose and Wassertransport assumptions (lib/hydraulics): the sheet only carries them
+  'hose', 'relay',
 ] as const satisfies readonly (keyof Drawing & keyof BoardAnno)[]
 
 /* ⚠️ `labelDx`/`labelDy` deliberately absent: they are a fraction of the SHEET on a plan and

@@ -100,6 +100,10 @@
 /* a stepper as wide as the column: − at its edge, the value in the middle, + and ✕ at the end */
 :is(.field, .draw-editor .de-row) > .step { display: flex; }
 :is(.field, .draw-editor .de-row) > .step > .step-val { flex: 1 1 auto; }
+/* a menu trigger fills the column by its class, not by :nth-child(2): while its menu is open Base
+   UI inserts focus-guard <span>s beside it, the trigger stops being the 2nd child and shrank to
+   its text (DrawEditor's «Typ» and «Gehört zu Trupp», owner 04.11.2026) */
+:is(.field, .draw-editor .de-row) > .de-menu-trigger { flex: 1 1 auto; }
 .field span { color: var(--ink-dim); font-weight: var(--fw-medium); min-width: 0; }
 .field b { font-family: var(--mono); font-weight: var(--fw-medium); }
 /* THE segmented option-picker for the whole details modal — a soft track with a blue-filled active
