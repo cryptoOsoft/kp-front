@@ -1,0 +1,122 @@
+/* ===== «Üben» – the running tutorial (components/tutorial/TutorialLayer) =====================
+   Everything here floats over the Karte or a page, so it wears the floating family's material
+   (--float-bg / --float-blur / --float-edge, --shadow) and the one corner – no surface of its
+   own. Layer: --z-tutorial (over the map chrome, under the Meldeleiste and the top bar). */
+
+/* ── the pill «Üben 3/7 · ✕» ── a container hugging two controls: --r-bar, the float row's height */
+.pill {
+  position: fixed; z-index: var(--z-tutorial);
+  top: calc(16px + env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right));
+  height: var(--float-h); padding: var(--msg-pad); display: flex; align-items: center; gap: var(--sp-1);
+  background: var(--float-bg); backdrop-filter: var(--float-blur); -webkit-backdrop-filter: var(--float-blur);
+  box-shadow: var(--float-edge); border-radius: var(--r-bar);
+}
+.pillOpen {
+  height: var(--tap); padding: 0 var(--sp-3); display: inline-flex; align-items: center; gap: var(--sp-2);
+  border: none; background: none; border-radius: var(--r-sm); color: var(--ink); cursor: pointer;
+  font-weight: var(--fw-bold); font-size: var(--fs-2); line-height: 1; white-space: nowrap;
+}
+.pillGlyph { display: inline-flex; color: var(--blue-strong); }
+.pillGlyph svg { width: 20px; height: 20px; }
+.pillSep { width: 1px; height: 24px; background: var(--ink-12); }
+.pillX {
+  width: var(--tap); height: var(--tap); display: inline-grid; place-items: center;
+  border: none; background: none; border-radius: var(--r-sm); color: var(--ink-dim); cursor: pointer;
+}
+.pillX svg { width: 18px; height: 18px; }
+.pillOpen:active, .pillX:active { background-image: linear-gradient(var(--press), var(--press)); }
+@media (hover: hover) { .pillOpen:hover, .pillX:hover { background-color: var(--ink-5); } }
+
+/* ── the Sprechblase ── */
+.bubble {
+  width: min(320px, calc(100vw - 16px)); padding: var(--sp-3) var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-1);
+  background: var(--float-bg); backdrop-filter: var(--float-blur); -webkit-backdrop-filter: var(--float-blur);
+  box-shadow: var(--float-edge); border-radius: var(--r-sm); color: var(--ink);
+}
+/* Base UI's Arrow: a square turned 45°, the bubble's own material; it stands on the edge that faces the anchor */
+.arrow { width: 14px; height: 14px; background: var(--float-bg); rotate: 45deg; }
+.arrow[data-side='top'] { bottom: -7px; box-shadow: 1px 1px 0 var(--glass-line); }
+.arrow[data-side='bottom'] { top: -7px; box-shadow: -1px -1px 0 var(--glass-line); }
+.arrow[data-side='left'] { right: -7px; box-shadow: 1px -1px 0 var(--glass-line); }
+.arrow[data-side='right'] { left: -7px; box-shadow: -1px 1px 0 var(--glass-line); }
+.instr { font-weight: var(--fw-bold); font-size: var(--fs-3); line-height: var(--lh-3, 1.35); }
+.hint { font-weight: var(--fw-medium); font-size: var(--fs-1); line-height: 1.45; color: var(--ink-dim); }
+.acts { display: flex; justify-content: flex-end; margin: 2px calc(-1 * var(--sp-2)) calc(-1 * var(--sp-1)) 0; }
+.acts svg { width: 18px; height: 18px; }
+
+.dots { display: flex; align-items: center; gap: var(--sp-1); }
+.dot { width: 8px; height: 8px; border-radius: 4px; box-shadow: inset 0 0 0 1.5px var(--ink-22); }
+.dotDone { background: var(--ink-dim); box-shadow: none; }
+.dotNow { width: 18px; background: var(--blue); box-shadow: none; }
+.dotsOf { margin-left: var(--sp-2); font-weight: var(--fw-bold); font-size: var(--fs-1); line-height: 1; color: var(--ink-dim); }
+
+/* the ✓ moment (O3): green glyph on its tint – the state is the glyph's colour, never a fill of the card */
+.tick { display: flex; flex-direction: column; gap: var(--sp-1); }
+.tickHead { display: flex; align-items: center; gap: var(--sp-2); font-weight: var(--fw-bold); font-size: var(--fs-3); line-height: 1.3; }
+.tickMark { width: 32px; height: 32px; border-radius: 16px; display: inline-grid; place-items: center; background: var(--green-16); color: var(--green-strong); flex: none; }
+.tickMark svg { width: 20px; height: 20px; }
+
+/* «Zeigen»: three pulses around the control, then gone; under reduced motion a still ring */
+.ring {
+  position: fixed; z-index: var(--z-tutorial-sheet); pointer-events: none; border-radius: var(--r-sm);
+  box-shadow: 0 0 0 3px var(--blue), 0 0 0 9px var(--blue-28);
+  animation: tutPulse .6s ease-out 3;
+}
+@keyframes tutPulse { from { box-shadow: 0 0 0 3px var(--blue), 0 0 0 0 var(--blue-45); } to { box-shadow: 0 0 0 3px var(--blue), 0 0 0 16px transparent; } }
+@media (prefers-reduced-motion: reduce) { .ring { animation: none; } }
+
+/* ── the step list (C as a Sheet behind the pill, O2) ── */
+.listHead { display: flex; flex-direction: column; gap: 2px; }
+.listEyebrow { font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-faint); }
+.list { min-width: min(460px, 100%); }
+.num {
+  width: 28px; height: 28px; border-radius: 14px; display: inline-grid; place-items: center;
+  box-shadow: inset 0 0 0 1.5px var(--ink-22); font-weight: var(--fw-bold); font-size: var(--fs-1); line-height: 1; color: var(--ink-dim);
+}
+.num svg { width: 16px; height: 16px; }
+.numDone { background: var(--green-12); box-shadow: none; color: var(--green-strong); }
+.numNow { background: var(--blue); box-shadow: none; color: var(--on-fill); }
+.rowDone { color: var(--ink-dim); }
+/* the current step: a picked ROW is the wash, never a fill (ui-conventions · Selected (2)) */
+.rowNow { background: var(--sel-wash); align-items: flex-start; }
+.rowHint { display: block; margin-top: var(--sp-1); font-weight: var(--fw-medium); font-size: var(--fs-2); line-height: 1.4; color: var(--ink-dim); }
+.rowActs { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-2); }
+.rowActs svg { width: 18px; height: 18px; }
+
+/* ── the done card (G = A): in place of the bubble, the Übung visible behind it ── */
+.done {
+  position: fixed; z-index: var(--z-tutorial);
+  right: calc(var(--vrail-w, 0px) + 28px); bottom: calc(16px + env(safe-area-inset-bottom));
+  width: min(400px, calc(100vw - 32px)); max-height: calc(100dvh - 120px); overflow: auto;
+  padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-3);
+  background: var(--float-bg); backdrop-filter: var(--float-blur); -webkit-backdrop-filter: var(--float-blur);
+  box-shadow: var(--float-edge); border-radius: var(--r-sm); color: var(--ink);
+}
+.doneHead { display: flex; align-items: flex-start; gap: var(--sp-3); }
+.doneMark { width: 44px; height: 44px; border-radius: 22px; display: inline-grid; place-items: center; flex: none; background: var(--green-fill); color: var(--on-fill); }
+.doneMarkEnded { background: var(--ink-8); color: var(--ink-dim); }
+.doneMark svg { width: 22px; height: 22px; }
+.doneText { flex: 1; min-width: 0; }
+.doneTitle { margin: 0; font: var(--sheet-title); }
+.doneSub { margin-top: 2px; font-weight: var(--fw-medium); font-size: var(--fs-2); line-height: 1.4; color: var(--ink-dim); }
+.doneList { margin: 0; padding: 0 0 0 calc(var(--sp-7) + var(--sp-2)); /* under the title: the 44px mark + its 12px gap */ list-style: none; display: flex; flex-direction: column; gap: var(--sp-1); font-weight: var(--fw-medium); font-size: var(--fs-2); line-height: 1.35; }
+.doneList li { display: flex; align-items: center; gap: var(--sp-2); }
+.doneList svg { width: 16px; height: 16px; color: var(--green-strong); flex: none; }
+.doneSkipped { color: var(--ink-faint); }
+.doneSkipped svg { color: var(--ink-faint); }
+.doneNote { margin: 0; font-weight: var(--fw-medium); font-size: var(--fs-2); line-height: 1.45; color: var(--ink-dim); }
+.doneActs { display: flex; gap: var(--sp-2); }
+.doneDelete { flex: 1; }
+.doneActs svg { width: 18px; height: 18px; }
+.doneNext { border-top: 1px solid var(--glass-edge); }
+
+/* Phone: the pill under the top bar (O4 pushes the pages, Surface.module.css), the done card
+   above the nav bar at the bars' width */
+@media (--phone) {
+  .pill { top: calc(72px + env(safe-area-inset-top) + var(--ml-push, 0px)); right: auto; left: max(8px, env(safe-area-inset-left)); }
+  .done {
+    left: max(8px, env(safe-area-inset-left)); right: max(8px, env(safe-area-inset-right)); width: auto;
+    bottom: calc(var(--rail-h) + 14px + env(safe-area-inset-bottom));
+    max-height: calc(100dvh - var(--rail-h) - 100px);
+  }
+}

@@ -178,6 +178,9 @@ import { useRecordSlices } from './workspace/useRecordSlices'
 import { useRosterRoles } from './workspace/useRosterRoles'
 import { useMediaOutbox } from './workspace/useMediaOutbox'
 import { useLifecycleElsewhere } from './workspace/useLifecycleElsewhere'
+import { useTutorial } from './lib/tutorials/useTutorial'
+import { tutorialEvent } from './lib/tutorials/bus'
+import { TutorialLayer } from './components/tutorial/TutorialLayer'
 
 /** How long an edit has to sit still before it earns a Verlauf row. Long enough that a sentence
  *  being typed is ONE edit, short enough that reading the Verlauf a moment later already shows
@@ -721,6 +724,8 @@ export function IncidentWorkspace({
     const r = dir === 'undo' ? undoHist.undo() : undoHist.redo()
     if (r.status === 'empty') return
     if (r.status === 'lost') { toast(appConfig.copy.undoLost, { icon: 'warn' }); return }
+    // a ↶ leaves no state a tutorial step could tell from «never placed» – it says so instead
+    tutorialEvent(dir)
     if (anchor) flashUndoCaption(anchor, fillTemplate(dir === 'undo' ? C_HIST.undoNamed : C_HIST.redoNamed, { action: undoCaption(r.entry) }))
   }
   /** …from a button, which anchors the caption at itself. Every ↶ ↷ in the app goes through this. */
@@ -2893,6 +2898,16 @@ export function IncidentWorkspace({
    * the Meldeleiste over the surface in front: overdue / Alarmdruck / Rückzug per Trupp, and the
    * Notfall. Their «Zum Trupp» brings this Einsatz back, on the Atemschutz board at that card.
    * The reminder clock keeps running too. AFTER every hook, like the link shell below. */
+  /* «Üben» – the tutorial runner (lib/tutorials/useTutorial): binds a running tutorial to this
+   * Einsatz, watches the workspace, moves the steps. A hook, so it sits here with the others,
+   * before the covered / link returns; its UI (TutorialLayer) is the full layout's only. */
+  const tutorialRun = useTutorial({
+    incident: { id: incidentMeta.id, title: incidentMeta.title, isExercise: incidentMeta.is_exercise },
+    enabled: !linkScoped,
+    entities: doc.entities, drawings: doc.drawings, trupps, journalRows: timeline.length, present: presentIds.size,
+    mode, tool, palette: paletteOpen, phone: isPhone, setMode,
+  })
+
   if (covered) {
     const goToTrupp = (id: string) => {
       onUncover?.()
@@ -3319,7 +3334,8 @@ export function IncidentWorkspace({
           that says a voice memo is being taken and the only way to stop it, so an open panel or
           the composer does not unmount it, and the CSS that yields it to a tool's dock, the armed
           pill or a detail sheet lets `.rec` stay (15-mobile · «while a tool-option dock …»). */}
-      {isPhone && !readOnly && !linkScoped && (voice.recording || (!composerOpen && !panel)) && (
+      {/* …and it yields to the «Üben» done card, which stands where it would (never while recording) */}
+      {isPhone && !readOnly && !linkScoped && (voice.recording || (!composerOpen && !panel && tutorialRun?.phase !== 'end')) && (
         <FabEntry
           recording={voice.recording}
           recStartedAt={voice.recStartedAt}
@@ -3348,6 +3364,10 @@ export function IncidentWorkspace({
           bars belong to the shell rather than to either one — on a phone the Plan is unmounted
           for the map half of every pair. Renders nothing while the mode is off. */}
       <GeorefModeBars planLabel={planDocs.find((p) => p.id === georefMode.planId)?.code} />
+
+      {/* «Üben»: the pill, the Sprechblase, the step list, the done card – over the map chrome,
+          under the Meldeleiste (components/tutorial/TutorialLayer) */}
+      {tutorialRun && <TutorialLayer run={tutorialRun} />}
     </div>
   )
 }
