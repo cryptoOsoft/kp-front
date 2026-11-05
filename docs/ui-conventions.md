@@ -481,6 +481,10 @@ Three rules the primitives own, so no surface re-answers them (18.09.2026):
     the same disc: the phone tab bar's Rapport «noch offen» count is HOLLOW – a 1.5px amber edge,
     `--amber-strong` figures on `--surface`, like the Rapport head's outlined «4 offen» chip – and
     the filled amber disc is the Pendenzen count's (`.tb-rem-count`; hill climb r22, 05.11.2026).
+    On a map/plan SYMBOL the corner badges (storey `.sym-floor`, count `.sym-count`, dock, done
+    time – 03-map) are one step bigger: 18px tall, min-width 18, figures at `--fs-1`/800, and a
+    1.5px knockout ring in `--label-bg` so they cut out of the glyph they sit on (hill climb r23,
+    05.11.2026: at 16px they were the smallest text on the map).
     (3) **Disabled** = `opacity: var(--disabled)` + `cursor: default` and nothing else — no
     repainted fill, no colour swap, no `not-allowed`, no inlined number (also not as a `var()`
     fallback). **Gone** (a person who left, a Trupp raus, a layer off) = `opacity:

@@ -65,7 +65,7 @@
    --gpx = the glyph's on-screen size; --badge-out = how far the corner badges (.sym-floor,
    .sym-count) hang past the glyph's top/bottom edge. Read by anything that has to sit CLEAR of
    the symbol, so neither may be re-typed as a literal. */
-.marker { position: relative; display: flex; flex-direction: column; align-items: center; cursor: pointer; --gpx: 44px; --badge-out: 7px; }
+.marker { position: relative; display: flex; flex-direction: column; align-items: center; cursor: pointer; --gpx: 44px; --badge-out: 8px; }
 /* the unlock chip on a locked shape — the whole marker is pointer-events:none (click-through
    ink, same doctrine as a locked drawing), so the chip re-enables its own events. Centred on
    the glyph and NOT inside the rotated box, so the Schloss stays upright. */
@@ -121,24 +121,42 @@
 .marker-rotate { background: var(--blue); cursor: grab; touch-action: none; }
 .marker-rotate:active { cursor: grabbing; }
 .ts { position: relative; line-height: 0; border-radius: var(--r-xs); transition: transform .14s var(--ease), box-shadow .14s var(--ease); }
+/* NIGHT label plates: the edge a step up the slate ramp (hill climb r23, Opus 5). By day the plates'
+   --label-plate is a hairline of --ink-22 plus the --e0 contact, and a pile of plates reads as
+   several; at night 22 % of the light ink on the slate plate was #424955 – lost against the grey
+   map and too faint between two slates, so a pile fused into one block. The edge is a SOLID slate
+   instead – --ink-dim taken 40 % into --label-bg (≈ #545d6b), one clear step lighter than the
+   #141c28 fill – on the plates the label pass sets (names, readouts, captions, trail times, the
+   badges): every user reads the token. ⚠️ A token, re-pointed here because 01-tokens was not this
+   round's to edit – move it into the night block there. Line-end tags keep their own 1.5px line-
+   colour edge (09-whiteboard · .line-end-tag), and the printed Kroki (.kf-paper) re-declares the
+   day plate itself (01-tokens · `:root, .kf-paper`). */
+:root[data-theme="night"] { --label-plate: inset 0 0 0 1px color-mix(in srgb, var(--ink-dim) 40%, var(--label-bg)), var(--e0); }
 /* The symbol badges below (storey, count, «angedockt», done time) and the Messpunkt pill wear the
    map plates' ONE edge – the --label-plate hairline + --e0 contact, or --e0 alone on a filled chip –
    never e1: in a cluster its 5px spread ran every plate's shadow into one fringe (hill climb r13,
-   Sol 2). */
+   Sol 2).
+   ONE corner badge, 18px (hill climb r23, Opus 4: at 16px with 11px figures «+1 / −1 / +2» were the
+   smallest text on the map and merged with the tile under them): min-width 18, 4px side padding,
+   the figures at --fs-1 / 800 tabular – the map labels' own size, the step above --fs-micro (the
+   nearest step to the 11.5px asked for is 11, which is where they were) – and a 1.5px KNOCKOUT ring
+   in the map plate colour (--label-bg: white by day, slate at night) outside the edge, so the badge
+   cuts itself out of the glyph it sits on. --badge-out (8px, .marker above) = half the badge less
+   1px, so its middle stays on the glyph's corner as it did at 16 / 7. */
 /* storey badge — signed floor (+2, −1) at the icon's top-right corner. Ink on the surface
    colour, so it reads on any glyph and in both themes: tinting it with the symbol's own colour
    (the white chip was meant to carry that) made a yellow symbol's storey yellow on white.
    Tabular figures and the true minus (lib/symbolRender · floorBadge): «+1» and «−1» are one width,
    a hyphen made the minus badge the narrower one (hill climb r15, Opus 7). */
-.sym-floor { position: absolute; top: calc(var(--badge-out, 7px) * -1); right: -9px; z-index: 6; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box;
-  border-radius: var(--r-xs); background: var(--surface); color: var(--ink); line-height: 16px; text-align: center; font-size: var(--fs-micro); font-weight: var(--fw-heavy); letter-spacing: -.2px;
-  font-variant-numeric: tabular-nums; box-shadow: var(--label-plate); pointer-events: none; }
+.sym-floor { position: absolute; top: calc(var(--badge-out, 8px) * -1); right: -10px; z-index: 6; min-width: 18px; height: 18px; padding: 0 4px; box-sizing: border-box;
+  border-radius: var(--r-xs); background: var(--surface); color: var(--ink); line-height: 18px; text-align: center; font-size: var(--fs-1); font-weight: var(--fw-heavy); letter-spacing: -.2px;
+  font-variant-numeric: tabular-nums; box-shadow: var(--label-plate), 0 0 0 1.5px var(--label-bg); pointer-events: none; }
 /* quantity badge — bottom-right counterpart to the floor badge; an ink chip so it
    reads as a count distinct from the (white, symbol-coloured) floor badge. The ONE count badge
-   (05-navrail · .nav-count, 28.09.2026): --r-xs at 16px, like every other chip that size. */
-.sym-count { position: absolute; bottom: calc(var(--badge-out, 7px) * -1); right: -9px; z-index: 6; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box;
-  border-radius: var(--r-xs); background: var(--ink-fill); color: var(--on-accent-ink); line-height: 16px; text-align: center; font-size: var(--fs-micro); font-weight: var(--fw-heavy);
-  box-shadow: var(--e0); pointer-events: none; }
+   (05-navrail · .nav-count, 28.09.2026): --r-xs, like every other chip that size. */
+.sym-count { position: absolute; bottom: calc(var(--badge-out, 8px) * -1); right: -10px; z-index: 6; min-width: 18px; height: 18px; padding: 0 4px; box-sizing: border-box;
+  border-radius: var(--r-xs); background: var(--ink-fill); color: var(--on-accent-ink); line-height: 18px; text-align: center; font-size: var(--fs-1); font-weight: var(--fw-heavy);
+  font-variant-numeric: tabular-nums; box-shadow: 0 0 0 1.5px var(--label-bg), var(--e0); pointer-events: none; }
 /* «angedockt», von der Seite des HOSTS aus (lib/docking, 15.09.2026): the same `link` glyph the
    Trupp marker wears, so the bond reads from either end. Top-LEFT — the only corner left: the
    storey badge owns top-right, the count bottom-right, and the docked Trupp markers themselves
@@ -146,10 +164,10 @@
 /* …BOTTOM-left since 15.09. («not very smartly placed»): the docked strip hangs under the tile's
    left edge, so the chip sits right above it and reads as the joint between the two – on a
    round glyph the old top-left corner floated off in empty space. */
-.sym-dock { position: absolute; bottom: calc(var(--badge-out, 7px) * -1); left: -9px; z-index: 6;
-  display: grid; place-items: center; width: 16px; height: 16px; box-sizing: border-box;
+.sym-dock { position: absolute; bottom: calc(var(--badge-out, 8px) * -1); left: -10px; z-index: 6;
+  display: grid; place-items: center; width: 18px; height: 18px; box-sizing: border-box;
   border-radius: var(--r-xs); background: var(--surface); color: var(--ink-dim);
-  box-shadow: var(--label-plate); pointer-events: none; }
+  box-shadow: var(--label-plate), 0 0 0 1.5px var(--label-bg); pointer-events: none; }
 .sym-dock .i { width: 12px; height: 12px; }
 /* «Gelöscht / erledigt» (lib/objectDone, 24.09.2026): the glyph, its composite part and its FKS
    arrows go grey — the chip behind an outline glyph with them, so the whole mark recedes — while
@@ -162,10 +180,10 @@
    reaches back past the left edge, so beside one the time steps fully outside (the print does
    the same, kroki · _symbol_badges) */
 .ts:has(> .sym-floor) > .sym-done { right: calc(100% + 3px); }
-.sym-done { position: absolute; top: calc(var(--badge-out, 7px) * -1); right: calc(100% - 7px); z-index: 6; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box;
-  border-radius: var(--r-sm); background: var(--surface); color: var(--ink-dim); line-height: 16px; text-align: center; font-size: var(--fs-micro); font-weight: var(--fw-heavy); letter-spacing: -.2px;
+.sym-done { position: absolute; top: calc(var(--badge-out, 8px) * -1); right: calc(100% - 7px); z-index: 6; min-width: 18px; height: 18px; padding: 0 4px; box-sizing: border-box;
+  border-radius: var(--r-sm); background: var(--surface); color: var(--ink-dim); line-height: 18px; text-align: center; font-size: var(--fs-micro); font-weight: var(--fw-heavy); letter-spacing: -.2px;
   font-variant-numeric: tabular-nums; white-space: nowrap;
-  box-shadow: var(--label-plate); pointer-events: none; }
+  box-shadow: var(--label-plate), 0 0 0 1.5px var(--label-bg); pointer-events: none; }
 /* metadata caption — a symbol's discriminating value(s) printed just under its glyph (e.g.
    "CO₂" under a Kleinlöscher), so an operator reads it without opening the dashboard. Same
    chrome as the line label (.measure-label.draw-label / .wb-line-label) for Lage↔Plan parity;
