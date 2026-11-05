@@ -108,6 +108,13 @@ export function IconSprite() {
       <symbol id="plus-bold" viewBox="0 0 24 24"><path d="M12 4v16M4 12h16" stroke-width="2.6" /></symbol>
       <symbol id="select" viewBox="0 0 24 24"><path d="M6 3.5 6 20 10.2 15.8 13 21 15.2 20 12.4 14.6 18.5 14.5z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" /></symbol>
       <symbol id="history" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></symbol>
+      {/* THE Verlauf (top bar on every device, the drawer's title, its empty state, the help topic,
+          a Checkliste item's «im Verlauf» link): #history's face and hands, its rim run back
+          counter-clockwise into an arrow at the upper left – Lucide `history` on this grid (hill
+          climb r27, Opus 1). The plain clock stood ~30px from the Einsatzuhr's hourglass in the
+          phone bar: two time glyphs side by side. #history keeps the plain face for its other
+          uses (Einsätze register, revisions, Rapport checklists). */}
+      <symbol id="verlauf" viewBox="0 0 24 24"><path d="M3.5 12a8.5 8.5 0 1 0 2.49-6.01L3.5 8.5" /><path d="M3.5 4v4.5H8" /><path d="M12 7.5V12l3 2" /></symbol>
       <symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" /><path d="M12 7v5l3.5 2" /></symbol>
       {/* Die Trupp-Tafel im Navigationsband. A stopwatch, not the #gauge it wore until 04.09.: a
           pressure dial named the cylinder, and the surface is about the CLOCKS — Kontaktuhr,
@@ -130,10 +137,16 @@ export function IconSprite() {
           filled by the caller (.teamCrownOn) once it is the state, so the leader reads as a
           fact rather than as one more button that could still be pressed. */}
       <symbol id="star" viewBox="0 0 24 24"><path d="m12 3.8 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" stroke-linejoin="round" /></symbol>
-      {/* Checklisten (rail, Karte, Verlauf, visits, admin): ONE clipboard with two ticks – #clipboard's
+      {/* Checklisten (rail, Karte, visits, admin): ONE clipboard with two ticks – #clipboard's
           shape, 2 units wider so the ticks have room (hill climb r17, Opus 11: the old stacked sheets
           with ticks and dashes went muddy at 20px beside the single-stroke stopwatch / people / box) */}
       <symbol id="checklist" viewBox="0 0 24 24"><path d="M8.5 4.5h-2a1 1 0 0 0-1 1V20a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V5.5a1 1 0 0 0-1-1h-2" /><rect x="8.5" y="3" width="7" height="3.5" rx="1" /><path d="M8.8 12l2 2 4.4-4.6M8.8 17.4l2 2 4.4-4.6" /></symbol>
+      {/* The Verlauf's «Pendenzen» box head (hill climb r27, Sol 1 / Opus 2): one OPEN ring – the
+          mark every Pendenz row wears – with its two lines of text, a «to do» in the shape of the
+          rows under it. It wore #checklist, the clipboard of the rail's and the phone tab's
+          Checkliste, which said «a Checkliste» about a list that is not one; and its many strokes
+          went busy at 16px beside the bold label. */}
+      <symbol id="pendenzen" viewBox="0 0 24 24"><circle cx="7" cy="12" r="5" /><path d="M15.5 8.5h6.5M15.5 15.5h4.5" /></symbol>
       {/* An Aufgaben list in the Checkliste rail and the Nachschlagen library (23.10.2026, sweep
           F.9): two EMPTY boxes with their lines – a list still to work through. It wore #check,
           which beside «0%» read as «done»; the glyph names the kind, not a state. */}

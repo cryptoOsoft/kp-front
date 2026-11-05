@@ -799,7 +799,11 @@ span.jr-rem { cursor: default; }
 .jr-pinned-head { flex: none; position: sticky; top: -8px; z-index: 3; margin-top: -8px;
   padding: 8px 7px 6px; background: var(--jr-pinned-bg);
   display: flex; align-items: center; gap: 8px; font: var(--fw-bold) var(--fs-2) var(--body); color: var(--ink); }
-.jr-pinned-head .i { width: 16px; height: 16px; flex: none; }
+/* the head's glyph (#pendenzen) at 16px, its stroke raised so it draws the 1.5px line a 20px
+   sprite glyph does (1.8 of 24 at 16px was 1.2px – thinner than the bold label beside it), and
+   1px down: centred on the line box it stood 1px above the label's x-height middle, where the
+   status marks sit (hill climb r27) */
+.jr-pinned-head .i { width: 16px; height: 16px; flex: none; stroke-width: 2.25; translate: 0 1px; }
 /* a row scrolling up under the heading dissolves into it rather
    than being sliced through its letters */
 .jr-pinned-head::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 12px;
