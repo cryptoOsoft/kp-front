@@ -160,8 +160,11 @@
      outline colour) and `--item-lift` (its drop shadow) with its own value as the fallback, and
      only this phone shell sets them. Tablet and desktop keep the card and the outlined items by
      construction (the variables are unset there). */
+  /* «Üben» (O4, 05.11.2026): while the tutorial's pill stands under the top bar the page starts
+     under it – the pill's height and one gap (components/tutorial · `<html data-tut-pill>`) */
+  :root[data-tut-pill] { --tut-push: calc(var(--float-h) + var(--float-gap)); }
   :where(.shell) {
-    inset: calc(78px + env(safe-area-inset-top) + var(--ml-push, 0px)) env(safe-area-inset-right)
+    inset: calc(78px + env(safe-area-inset-top) + var(--ml-push, 0px) + var(--tut-push, 0px)) env(safe-area-inset-right)
       max(calc(var(--rail-h) + 14px + var(--rp-tabs-safe, 0px) + env(safe-area-inset-bottom) - var(--vv-pan, 0px)),
         calc(var(--vv-foot, 0px) + var(--float-gap)))
       env(safe-area-inset-left);

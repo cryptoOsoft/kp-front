@@ -126,6 +126,9 @@ export function IconSprite() {
       {/* who LEADS — the Gruppenführer crown in the Trupp picker. Outline while it is an offer,
           filled by the caller (.teamCrownOn) once it is the state, so the leader reads as a
           fact rather than as one more button that could still be pressed. */}
+      {/* «Üben» (05.11.2026): a mortarboard – the tutorial pill and the «Üben» rows. Not #checklist
+          or #star: the first is a surface, the second a favourite. */}
+      <symbol id="learn" viewBox="0 0 24 24"><path d="M12 4.5 22 9.5l-10 5-10-5z" stroke-linejoin="round" /><path d="M6 11.5v5c3 2.5 9 2.5 12 0v-5M22 9.5v5" stroke-linecap="round" /></symbol>
       <symbol id="star" viewBox="0 0 24 24"><path d="m12 3.8 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" stroke-linejoin="round" /></symbol>
       <symbol id="checklist" viewBox="0 0 24 24"><rect x="3.5" y="6.5" width="14" height="14" rx="2" /><path d="M8 3.5h10.5a2 2 0 0 1 2 2V16" /><path d="M6.8 12.4l1.5 1.5 2.7-3M13.2 13h2" /><path d="M6.8 17.2l1.5 1.5 2.7-3M13.2 17.8h2" /></symbol>
       {/* An Aufgaben list in the Checkliste rail and the Nachschlagen library (23.10.2026, sweep

@@ -53,6 +53,7 @@ import { onStorageDegraded } from './lib/idb'
 import { loadRoster } from './lib/usePersonnel'
 import { HelpOverlay } from './components/HelpOverlay'
 import { installHoldTooltip } from './lib/holdTooltip'
+import { setTutorialHost } from './lib/tutorials/session'
 
 // Objektbesuche (/besuche…, docs/object-visits.md): its own lazy chunk — precached with the field
 // app, so the surface opens offline — mounted in place of home while its route is on.
@@ -471,6 +472,22 @@ export default function App() {
       setOpening((cur) => (cur === id ? null : cur)) // a newer open may already own the state
     }
   }, [selectIncident])
+
+  // «Üben» (lib/tutorials/session · TutorialHost): the runner opens the Lern-Übung the door handed
+  // out, and the done card's «Übung löschen» leaves it before it is deleted – the same hard leave
+  // as «Zurück» from an archived view, minus the «Alle Einsätze» it lands on.
+  useEffect(() => {
+    setTutorialHost({
+      open: (id) => { void openIncident(id) },
+      leave: () => {
+        if (syncRef.current) { syncRef.current.dispose(); syncRef.current = null }
+        savePrefs({ ...loadPrefs(), incidentId: undefined })
+        setActiveId(null); setActiveMeta(null); setWorkspace(null); setForceReadOnly(false)
+        void refreshList()
+      },
+    })
+    return () => setTutorialHost(null)
+  }, [openIncident, refreshList])
 
   // boot: list → migrate legacy localStorage if empty → open remembered/first incident.
   // Offline (network error), fall back to the cached list so the last incident reopens
