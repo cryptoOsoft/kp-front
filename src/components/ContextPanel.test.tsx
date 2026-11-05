@@ -131,6 +131,39 @@ describe('ContextPanel — basic wiring', () => {
     expect(screen.getByText('Fahrer').closest('.field')).toBeTruthy()
   })
 
+  // owner pick 3A (05.11.2026): the Herkunft is a dropdown WITH free typing, whatever the list's
+  // length – a Feuerwehr the station never listed is typed, and empty says «Eigene Feuerwehr»
+  it('a vehicle\'s Herkunft row takes a station option or a typed one, and reads «Eigene Feuerwehr» empty', () => {
+    const onFields = vi.fn()
+    setup({
+      entity: { id: 'v1', symbol: 'VKF Drehleiter', fields: { Fahrer: '', Herkunft: '' } },
+      protectedKeys: new Set(['Fahrer', 'Herkunft']),
+      fieldOptions: { Fahrer: [], Herkunft: ['Stützpunkt', 'Zivilschutz'] },
+      onFields,
+    })
+    const pick = screen.getByText('Eigene Feuerwehr').closest('button')!
+    fireEvent.click(pick)
+    fireEvent.click(screen.getByText('Stützpunkt'))
+    expect(onFields).toHaveBeenLastCalledWith(expect.objectContaining({ Herkunft: 'Stützpunkt' }))
+    fireEvent.click(screen.getByText('Stützpunkt').closest('button')!)
+    fireEvent.change(screen.getByPlaceholderText(appConfig.copy.combo.searchOrType), { target: { value: 'Wache Nord' } })
+    fireEvent.click(screen.getByRole('button', { name: /«Wache Nord»/ }))
+    expect(onFields).toHaveBeenLastCalledWith(expect.objectContaining({ Herkunft: 'Wache Nord' }))
+  })
+
+  it("a live vehicle's Herkunft is its own row under the Fahrer, not repeated among the feed's", () => {
+    const onChange = vi.fn()
+    setup({
+      entity: { id: 'v1', label: 'TLF', fields: { Status: 'Fahrt', Fahrer: 'Graf Stefan', Herkunft: 'Stützpunkt' } },
+      readOnly: true,
+      driver: { value: 'Graf Stefan' },
+      origin: { value: 'Stützpunkt', options: ['Stützpunkt'], onChange },
+    })
+    expect(screen.getAllByText('Herkunft')).toHaveLength(1)
+    expect(screen.getAllByText('Graf Stefan')).toHaveLength(1)
+    expect(screen.getByText('Herkunft').closest('.field')).toBeTruthy()
+  })
+
   // RBAC audit 22.10.2026: a locked session READS the Fahrer – no picker, no empty box
   it("a locked panel states a live vehicle's Fahrer as a read-out", () => {
     setup({ entity: { id: 'v1', symbol: 'VKF Fahrzeug', label: 'TLF' }, readOnly: true, driver: { value: 'Graf Stefan' } })

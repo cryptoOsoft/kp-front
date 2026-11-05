@@ -121,6 +121,7 @@ export const editorsCopy: Localizable<Pick<Copy, Keys>> = {
     swapEl: 'Transmettre la conduite',
     fieldPlaceholders: {
       'Kapazität': 'p. ex. 80 m³',
+      'Herkunft': 'Propre corps',
     },
     ergGuide: 'Guide ERG',
     ergPolymerization: 'Risque de polymérisation (P) – le récipient peut éclater violemment',

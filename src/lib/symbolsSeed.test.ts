@@ -14,7 +14,7 @@ const catalog = [
 describe('seedSymbolProps', () => {
   it('special-cases the generic vehicle: empty label, no subtitle, rotation 0, seeds the Fahrer field', () => {
     const p = seedSymbolProps(appConfig.symbols.vehicleName, catalog)
-    expect(p).toEqual({ symbol: appConfig.symbols.vehicleName, label: '', rotation: 0, fields: { Fahrer: '' } })
+    expect(p).toEqual({ symbol: appConfig.symbols.vehicleName, label: '', rotation: 0, fields: { Fahrer: '', Herkunft: '' } })
     expect(p.subtitle).toBeUndefined()
   })
 

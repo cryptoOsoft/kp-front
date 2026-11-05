@@ -5,9 +5,9 @@
 //   - independent additions to different objects all survive (ordered by server appearance);
 //   - edits to the SAME object are last-writer-wins (the device flushing later wins) — except
 //     Trupps, which merge field-level (mergeTrupp) because an SCBA record must never lose a
-//     pressure reading to a concurrent radio contact, and Anwesenheit entries and Zeitplan
-//     shifts, which merge per field (mergeFields) so two devices saving different fields of one
-//     record in the same second both keep their edit;
+//     pressure reading to a concurrent radio contact, and Anwesenheit entries, Zeitplan shifts
+//     and a live vehicle's override row, which merge per field (mergeFields) so two devices
+//     saving different fields of one record in the same second both keep their edit;
 //   - a delete BEATS a concurrent edit — the object stays gone, no resurrection;
 //   - two devices that minted the same «Trupp N» at once end with ONE holder of the number, the
 //     others renumbered from the one counter (lib/truppNumbers — the last step of mergeWorkspace).
@@ -625,7 +625,11 @@ export const MERGE_POLICY = {
     return !tv || (mv && mv <= tv) ? mi : th
   }),
   board: (_b, _m, _t, cx) => cx.views.board,
-  vehicleOverrides: byKey, // by entity id
+  // by entity id — and PER FIELD when both sides changed one vehicle's override: the Fahrer named
+  // on the tablet and the Herkunft set on the phone in the same second both stand (05.11.2026).
+  // The position is one fact, so `coord` stays one field; a field both changed keeps mine.
+  vehicleOverrides: (b, m, t) => mergeRecord(asRecord(b), asRecord(m), asRecord(t), undefined,
+    (a, mi, th) => (isObj(a) && isObj(mi) && isObj(th) ? mergeFields(a, mi, th).merged : mi)),
   checklists: mergeChecklists, // per tick, within each template (mergeChecklists)
   // records/singletons that ALSO need three-way merging so a concurrent edit in another domain
   // (the "task-scoped multi-editor" case) isn't clobbered by the resolver's whole blob:

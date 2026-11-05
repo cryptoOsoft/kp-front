@@ -17,7 +17,7 @@ import { TacticalSymbol, compositeSpec, compositePartGlyph, luefterVariant, isHu
 import { doneBadge } from '../lib/objectDone'
 import { vehicleSymbolSvg } from '../lib/useVehiclePositions'
 import { placardSvgForSymbol } from '../lib/placard'
-import { symbolCaptionText, isMeasuredSymbol, isRotatableSym, isVehicleSym } from '../lib/symbols'
+import { symbolCaptionText, symbolOriginText, isMeasuredSymbol, isRotatableSym, isVehicleSym } from '../lib/symbols'
 import { softHyphenateText } from '../lib/symbolWrap'
 import { TwinTeamPill } from './TwinTeamPill'
 import { ShapeGlyph, SHAPE_AXIS_GRIPS, SHAPE_DEFS, SHAPE_TWO_POINT, rotationGripOffPx, shapeAspect } from '../lib/shapes'
@@ -226,6 +226,8 @@ export function PlanAnno({ a, selected, grouped, networked, editing, trailShown,
               // …and the seams come with it: .sym-caption wraps on both surfaces now,
               // and German breaks by syllable unless the curated table is asked first.
               caption={(() => { const c = symbolCaptionText(a, captionMode); return c ? softHyphenateText(c) : c })()}
+              // …and a vehicle's Herkunft, the same grey last line the Karte draws
+              origin={symbolOriginText(a, captionMode)}
               measured={isMeasuredSymbol(a) ? a : undefined}
               className="ts-plan"
             />

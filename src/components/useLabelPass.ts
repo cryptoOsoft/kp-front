@@ -7,7 +7,7 @@ import { CRUMB_LABEL_DX, CRUMB_LABEL_STYLE, effectiveLayer, END_TAG_LABEL_STYLE,
 import { noteWPx } from '../lib/notes'
 import { SHAPE_MAX_PX, shapeAspect } from '../lib/shapes'
 import { floorBadge } from '../lib/symbolRender'
-import { isNamedPerson, readingPillText, symbolCaptionText, symbolReading } from '../lib/symbols'
+import { isNamedPerson, readingPillText, symbolCaptionBoxText, symbolReading } from '../lib/symbols'
 import { softHyphenateText } from '../lib/symbolWrap'
 import type { LineTone, TeamLineBadge } from '../lib/truppLines'
 
@@ -164,7 +164,8 @@ export function mapLabelDecisions(px: (c: LngLat) => { x: number; y: number }, s
       const r = cachedLabelSize(readingPillText(reading), SYM_PILL_STYLE)
       occupied.push({ x: p.x - r.w / 2, y: p.y - r.h / 2, w: r.w, h: r.h })
     }
-    const cap = symbolCaptionText(e, captionMode)
+    // the caption box as drawn: the caption plus a vehicle's grey Herkunft line under it
+    const cap = symbolCaptionBoxText(e, captionMode)
     if (!cap) continue
     const s = cachedLabelSize(softHyphenateText(cap), LABEL_STYLE.caption)
     // A person's typed name ranks with the Trupp names, not with the metadata captions — who is

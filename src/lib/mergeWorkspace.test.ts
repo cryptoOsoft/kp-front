@@ -841,6 +841,27 @@ describe.each(['jsonb', 'alphabetical'] as const)('mergeWorkspace — a server r
   })
 })
 
+// 05.11.2026: a live vehicle's Fahrer and Herkunft live in ONE override row, so as a whole row
+// the tablet naming the driver and the phone setting the Herkunft in the same second lost one.
+describe('vehicleOverrides — one vehicle, two devices, different fields', () => {
+  const base = { tlf: { rotation: 90 } }
+  it('keeps the Fahrer from one side and the Herkunft from the other', () => {
+    const merged = mergeWorkspace({ vehicleOverrides: base },
+      { vehicleOverrides: { tlf: { rotation: 90, fahrer: 'Tst Jan' } } },
+      { vehicleOverrides: { tlf: { rotation: 90, herkunft: 'Stützpunkt' } } })
+    expect(merged.vehicleOverrides).toEqual({ tlf: { rotation: 90, fahrer: 'Tst Jan', herkunft: 'Stützpunkt' } })
+  })
+  it('a field both sides changed keeps mine; a «GPS» reset (row gone) still wins', () => {
+    const both = mergeWorkspace({ vehicleOverrides: base },
+      { vehicleOverrides: { tlf: { rotation: 90, herkunft: 'Zivilschutz' } } },
+      { vehicleOverrides: { tlf: { rotation: 90, herkunft: 'Stützpunkt' } } })
+    expect(both.vehicleOverrides).toEqual({ tlf: { rotation: 90, herkunft: 'Zivilschutz' } })
+    const reset = mergeWorkspace({ vehicleOverrides: base }, { vehicleOverrides: {} },
+      { vehicleOverrides: { tlf: { rotation: 90, herkunft: 'Stützpunkt' } } })
+    expect(reset.vehicleOverrides).toEqual({})
+  })
+})
+
 /* staging r3 F11: four tablets filed the same Link crew under the same derived id, and every
  * person got «abweichende Angaben zusammengeführt – bitte prüfen» with two identical sides. Key
  * order is not a difference, nor is the moment a device wrote the same Funktion. */
