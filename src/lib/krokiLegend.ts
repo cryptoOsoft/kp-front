@@ -93,7 +93,7 @@ export function krokiLabels(args: {
       const lines: string[] = []
       if (d.showDistance) {
         const m = pathLengthM(coords)
-        lines.push(`${fmtDistance(m)} · ${hoseLengthHint(m, hoseLines(d.hose))}`)
+        lines.push(`${fmtDistance(m)} · ${hoseLengthHint(m, hoseLines(d))}`)
       }
       // ⚠️ NOT `d.labelAt`. A label dragged by hand moves on the Lage map, but no payload carries
       // that anchor to kroki.py — the sheet always uses the midpoint VERTEX (same rule as the end

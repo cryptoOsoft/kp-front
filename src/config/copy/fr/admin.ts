@@ -731,7 +731,7 @@ export const adminCopy: Localizable<Pick<Copy, 'admin'>> = {
       nearbyObjectWarnMTip: 'Le plan affiche de lui-même l\'objet le plus proche qui a des plans. S\'il ne correspond pas à l’adresse de l’intervention et se trouve à plus de ce nombre de mètres, le plan avertit «pas l’adresse de l’intervention». 0 = avertir à toute distance.',
       groupHose: 'Tuyaux',
       defaultLineHose: 'Ligne (Ø du tuyau)',
-      defaultLineHoseTip: 'Le tuyau avec lequel une ligne calcule tant qu’aucun n’est choisi dans l’éditeur de ligne – nombre de tuyaux et transport d’eau. Sans valeur : {n}.',
+      defaultLineHoseTip: 'Le tuyau avec lequel une ligne calcule tant qu’aucun n’est choisi dans l’éditeur de ligne. Avec un transport d’eau, elle calcule avec le tuyau de celui-ci (ci-dessous). Sans valeur : {n}.',
       defaultRelayHose: 'Transport d’eau (Ø du tuyau)',
       defaultRelayHoseTip: 'Le tuyau avec lequel commence un transport d’eau sous Mesurer. Une conduite reprise de là le conserve. 40 mm est une conduite d’attaque et n’est pas proposé ici. Sans valeur : {n}.',
     },

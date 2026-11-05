@@ -8,6 +8,13 @@ import type { ProfilePoint } from './profile'
 // ONE read: `hoseDefaults()`, the station's doctrine for the Ø a Leitung or a Messen relay
 // starts on (deployment config `doctrine.defaultLineHose` / `defaultRelayHose`).
 //
+// ⚠️ Which default a Leitung without a stored Ø reads as (`lineHose`, lead 05.11.2026): one that
+// carries a Wassertransport (`relay`) is a TRANSPORT line and reads as the relay default (75) –
+// the Leitungen laid since #536 (04.11.2026) were computed on it and must not re-plan to 40; a
+// plain one reads as the Linie default (40). A Ø picked by hand always wins. Adding a relay in
+// the line editor writes the Ø out in the same edit (`relayAddPatch`), so the «Schlauch» row
+// never jumps from 40 to 75 under the operator's finger.
+//
 // ⚠️ The numbers are doctrine, not tuning. Friction: AGV Kantonale Beilage Basiswissen KB 06.06
 // (55 mm), 06.07 (75 mm), 06.08 (110 mm), «Druckverlust in bar» per 100 m by the flow in ONE line.
 // The AGV set has no 40 mm table; that one is GVB «Behelf für den Einsatz von TLF und MS» (2023),
@@ -95,8 +102,23 @@ export function hoseDefaults(): { line: HoseSize; relay: HoseSize } {
   }
 }
 
-/** The Ø a Leitung computes and shows with: its own, else the station's Linie default. */
-export const lineHose = (hose: HoseSize | undefined): HoseSize => hose ?? hoseDefaults().line
+/** What a Leitung's Ø is read from: the stored pair (Drawing / BoardAnno · hose, relay). */
+export interface LineHoseFields { hose?: HoseSize; relay?: RelaySettings }
+
+/** The Ø a Leitung computes and shows with: its own; else, carrying a Wassertransport, the
+ *  station's relay default; else its Linie default (the rule in this module's header). */
+export const lineHose = ({ hose, relay }: LineHoseFields): HoseSize => {
+  const d = hoseDefaults()
+  return hose ?? (relay ? d.relay : d.line)
+}
+
+/** What adding a Wassertransport to a Leitung writes, as ONE edit (one undo step): an empty
+ *  `relay` – so the Leitung shows it from then on, as an adopted Strecke does – and, where no Ø
+ *  was picked, the relay default written out. A picked Ø is never touched. Null: nothing to write. */
+export function relayAddPatch({ hose, relay }: LineHoseFields): LineHoseFields | null {
+  if (hose && relay) return null
+  return { ...(relay ? null : { relay: {} }), ...(hose ? null : { hose: hoseDefaults().relay }) }
+}
 
 export interface Loss {
   /** bar per 100 m of one line */
@@ -241,7 +263,7 @@ export function pumpRange(plan: RelayPlan, pins: readonly (number | null | undef
 }
 
 /** How many lines a Leitung's hose lays side by side (a «2× 75» is two) – the hose count's factor. */
-export const hoseLines = (hose: HoseSize | undefined): number => HOSES[lineHose(hose)].lines
+export const hoseLines = (line: LineHoseFields): number => HOSES[lineHose(line)].lines
 
 /** A Leitung's relay once its points are turned round (Richtung umkehren): the water keeps its
  *  physical source, so the calculation flips with the points – and the pumps, measured from that

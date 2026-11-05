@@ -62,9 +62,8 @@ const compact = ({ flow, source, startBar, pumps, reverse }: RelaySettings): Rel
 
 /**
  * One relay along `coords`. `value` is the stored pair (absent fields = defaults; an absent hose
- * = the host's `defaultHose`, lib/hydraulics · hoseDefaults: a Leitung's Linie default, Messen's
- * relay default); every edit
- * hands `onChange` the changed keys only — a whole `relay` object each time, never `undefined`,
+ * = the host's `defaultHose`, the relay default on both hosts today – a shown relay IS a
+ * Wassertransport, lib/hydraulics · lineHose); every edit hands `onChange` the changed keys only — a whole `relay` object each time, never `undefined`,
  * so a replayed `draw.edit` replaces it rather than keeping the old one. A drag previews locally
  * and writes once, on release (one undo step, never a stream).
  */

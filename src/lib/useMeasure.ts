@@ -58,8 +58,8 @@ export interface MeasureRelay {
  * What «Als Linie übernehmen» / «Als Leitung auf die Karte» carries onto the new Leitung
  * (MapToolDocks · onAdopt → useMapDrawing · createLine): nothing unless the Wassertransport was
  * opened. Opened on its defaults it is still one – an empty `relay`, so the Leitung shows it – and
- * its Ø is written OUT: a Leitung without one reads as the Linie default (lib/hydraulics ·
- * lineHose), so a Strecke computed on the relay's 75 would otherwise come back a 40.
+ * its Ø is written OUT, as adding a relay in the line editor does (lib/hydraulics ·
+ * relayAddPatch): the Leitung keeps the Ø it was computed on whatever the station's defaults do.
  */
 export function adoptedRelay({ open, value }: Pick<MeasureRelay, 'open' | 'value'>): Pick<Drawing, 'hose' | 'relay'> | undefined {
   return open ? { hose: value.hose ?? hoseDefaults().relay, relay: value.relay ?? {} } : undefined

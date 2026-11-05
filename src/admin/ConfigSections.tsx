@@ -1012,8 +1012,8 @@ export function DoctrineSection() {
         guard: { kind: 'int', min: 0, max: 500 }, fallback: appConfig.defaults.nearbyObjectWarnM,
       })}
 
-      {/* The hose Ø a Linie without one reads as, and the one a Messen Wassertransport starts on
-          (lib/hydraulics · hoseDefaults, owner 05.11.2026). Unset shows the shipped Ø as chosen,
+      {/* The hose Ø a plain Linie without one reads as, and the one a Wassertransport (in Messen,
+          or on a Leitung without a picked Ø) starts on (lib/hydraulics · lineHose, 05.11.2026). Unset shows the shipped Ø as chosen,
           like the name order, and writes nothing until a pick. The relay list has no 40 mm. */}
       <SettingsGroup title={C.groupHose} />
       {([

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { DeploymentConfig } from './deploymentConfig'
-import { hoseDefaults, hoseLines, lineHose, lossPer100m, planRelay, pumpRange, resolveRelay, sourceBar, withPumpOverride, withoutPins, RELAY, type RelayRequest } from './hydraulics'
+import { hoseDefaults, hoseLines, lineHose, lossPer100m, relayAddPatch, planRelay, pumpRange, resolveRelay, sourceBar, withPumpOverride, withoutPins, RELAY, type RelayRequest } from './hydraulics'
 
 // the station's doctrine, swapped per test (hoseDefaults reads it at use)
 let deployment: DeploymentConfig = {}
@@ -189,26 +189,62 @@ describe('the stored relay', () => {
 describe('hoseDefaults — the Ø a Leitung and a Messen relay start on', () => {
   it('ships 40 for a Linie and 75 for a Wassertransport', () => {
     expect(hoseDefaults()).toEqual({ line: '40', relay: '75' })
-    expect(lineHose(undefined)).toBe('40')
+    expect(lineHose({})).toBe('40')
   })
 
   it('takes the station\'s doctrine', () => {
     deployment = { doctrine: { defaultLineHose: '55', defaultRelayHose: '2x75' } }
     expect(hoseDefaults()).toEqual({ line: '55', relay: '2x75' })
-    expect(lineHose(undefined)).toBe('55')
-    expect(hoseLines(undefined)).toBe(1)
+    expect(lineHose({})).toBe('55')
+    expect(lineHose({ relay: {} })).toBe('2x75')
+    expect(hoseLines({})).toBe(1)
+    expect(hoseLines({ relay: {} })).toBe(2)
   })
 
   it('a Leitung\'s own Ø wins over the default', () => {
     deployment = { doctrine: { defaultLineHose: '2x75' } }
-    expect(lineHose('40')).toBe('40')
-    expect(hoseLines(undefined)).toBe(2)
-    expect(hoseLines('75')).toBe(1)
+    expect(lineHose({ hose: '40' })).toBe('40')
+    expect(hoseLines({})).toBe(2)
+    expect(hoseLines({ hose: '75' })).toBe(1)
   })
 
   it('falls back on a value this build does not know, and never starts a relay on 40', () => {
     deployment = { doctrine: { defaultLineHose: '90' as never, defaultRelayHose: '40' } }
     expect(hoseDefaults()).toEqual({ line: '40', relay: '75' })
+  })
+})
+
+// lead 05.11.2026: a Leitung with a Wassertransport is a transport line – the ones laid since #536
+// (04.11.) were computed on 75 and must not re-plan to 40; a picked Ø always wins
+describe('lineHose — which default a Leitung without a Ø reads as', () => {
+  it('absent with a relay: the relay default', () => {
+    expect(lineHose({ relay: {} })).toBe('75')
+    expect(lineHose({ relay: { flow: 1200 } })).toBe('75')
+  })
+
+  it('absent without a relay: the Linie default', () => {
+    expect(lineHose({})).toBe('40')
+  })
+
+  it('a picked 40 stays 40 with a relay', () => {
+    expect(lineHose({ hose: '40', relay: {} })).toBe('40')
+  })
+})
+
+describe('relayAddPatch — adding a Wassertransport to a Leitung in the line editor', () => {
+  it('a Leitung without a Ø stores the relay default, with an empty relay, in one edit', () => {
+    expect(relayAddPatch({})).toEqual({ hose: '75', relay: {} })
+    deployment = { doctrine: { defaultRelayHose: '110' } }
+    expect(relayAddPatch({})).toEqual({ hose: '110', relay: {} })
+  })
+
+  it('a picked Ø is never touched', () => {
+    expect(relayAddPatch({ hose: '40' })).toEqual({ relay: {} })
+  })
+
+  it('a relay already stored keeps its assumptions; the Ø is still written out', () => {
+    expect(relayAddPatch({ relay: { flow: 600 } })).toEqual({ hose: '75' })
+    expect(relayAddPatch({ hose: '55', relay: { flow: 600 } })).toBeNull()
   })
 })
 

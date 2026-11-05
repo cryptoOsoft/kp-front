@@ -565,12 +565,15 @@ as `25` and logged, the rest of the document stays.
 
 ### `doctrine.defaultLineHose` / `defaultRelayHose` – the Ø a Linie and a Wassertransport start on
 
-A Leitung's «Schlauch» row (line editor) stores its Ø only once somebody picks one. Until then the
-line reads as **`defaultLineHose`** – its hose count and its Wassertransport compute with it. A
-Wassertransport under **Messen › Strecke** is no Leitung yet and starts on **`defaultRelayHose`**;
-«Als Leitung auf die Karte» (or «Als Linie übernehmen» with it open) writes that Ø onto the new
-Leitung, so it keeps it whatever the Linie default is. Owner pick 05.11.2026: a plain Linie is a
-40 mm Druckleitung, a Wassertransport a 75 mm Transportleitung.
+A Leitung's «Schlauch» row (line editor) stores its Ø only once somebody picks one. Until then a
+plain line reads as **`defaultLineHose`**, and one that carries a Wassertransport as
+**`defaultRelayHose`** – a Wassertransport line is a transport line, and those laid since
+04.11.2026 were computed on 75 (`lib/hydraulics · lineHose`). Adding a Wassertransport in the line
+editor writes the relay Ø out in the same edit, so the row never jumps under the operator's finger;
+a picked Ø is never touched. A Wassertransport under **Messen › Strecke** is no Leitung yet and
+starts on **`defaultRelayHose`**; «Als Leitung auf die Karte» (or «Als Linie übernehmen» with it
+open) writes that Ø onto the new Leitung. Owner pick 05.11.2026: a plain Linie is a 40 mm
+Druckleitung, a Wassertransport a 75 mm Transportleitung.
 
 | | |
 | --- | --- |
@@ -579,9 +582,10 @@ Leitung, so it keeps it whatever the Linie default is. Owner pick 05.11.2026: a 
 | Unset in the config | `defaultLineHose` `40`, `defaultRelayHose` `75` (`lib/hydraulics · SHIPPED_HOSE`) |
 
 Set it on **Station › Doktrin › Schläuche** or in the config file; read through `hoseDefaults()`
-(`src/lib/hydraulics.ts`). A value this build does not know falls back to the shipped Ø. ⚠️ Changing
-`defaultLineHose` re-reads every Leitung that never had a Ø picked, in open Einsätze too – a planning
-number, not a record (no Verlauf row), but a relay on such a line re-plans its pumps.
+(`src/lib/hydraulics.ts`). A value this build does not know falls back to the shipped Ø. ⚠️ A
+changed default re-reads every Leitung that never had a Ø written, in open Einsätze too: a planning
+number, not a record, but a Wassertransport on such a line re-plans its pumps. The Ø written when
+a relay is added is an ordinary «Schlauch» edit and writes its Verlauf row («Schlauch: 75 mm»).
 
 ### ⚠️ `alarms.groups[].color` is not a colour
 

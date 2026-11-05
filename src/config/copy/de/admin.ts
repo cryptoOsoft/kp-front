@@ -938,7 +938,7 @@ export const adminCopy = {
       nearbyObjectWarnMTip: 'Der Plan zeigt von selbst das nächste Objekt mit Plänen. Passt es nicht zur Einsatzadresse und liegt es weiter als so viele Meter entfernt, warnt der Plan «nicht die Einsatzadresse». 0 = bei jedem Abstand warnen.',
       groupHose: 'Schläuche',
       defaultLineHose: 'Linie (Schlauch-Ø)',
-      defaultLineHoseTip: 'Der Schlauch, mit dem eine Linie rechnet, solange im Linien-Editor keiner gewählt ist – Schlauchzahl und Wassertransport. Ohne Eintrag gilt {n}.',
+      defaultLineHoseTip: 'Der Schlauch, mit dem eine Linie rechnet, solange im Linien-Editor keiner gewählt ist. Mit einem Wassertransport rechnet sie mit dessen Schlauch (unten). Ohne Eintrag gilt {n}.',
       defaultRelayHose: 'Wassertransport (Schlauch-Ø)',
       defaultRelayHoseTip: 'Der Schlauch, mit dem ein Wassertransport unter Messen beginnt. Eine daraus übernommene Leitung behält ihn. 40 mm ist eine Druckleitung und hier nicht wählbar. Ohne Eintrag gilt {n}.',
     },

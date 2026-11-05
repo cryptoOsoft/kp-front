@@ -131,6 +131,24 @@ describe('Messung on an already drawn line', () => {
     expect(screen.queryByText(D.measurement)).toBeNull()
   })
 
+  // lead 05.11.2026: a Leitung with a Wassertransport reads as the relay Ø (lib/hydraulics ·
+  // lineHose), so adding one writes that Ø out at once – the Schlauch row never jumps 40 → 75
+  it('adding a Wassertransport stores the relay Ø on a Leitung without one, and keeps a picked one', () => {
+    vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})))
+    const coords: [number, number][] = [[7.5, 47.5], [7.51, 47.51]]
+    for (const [hose, written] of [[undefined, { hose: '75', relay: {} }], ['40', { relay: {} }]] as const) {
+      const onChange = vi.fn()
+      render(<DrawEditor {...base} drawing={{ kind: 'line', hose }} lengthM={412} profileCoords={coords} onHose={noop} waterRelay={{ onChange }} />)
+      expect(screen.getByRole('button', { name: hose ?? '40', pressed: true })).toBeTruthy()
+      fireEvent.click(screen.getByRole('button', { name: D.measurement }))
+      fireEvent.click(screen.getByRole('button', { name: appConfig.copy.relay.add }))
+      expect(onChange).toHaveBeenCalledTimes(1)
+      expect(onChange).toHaveBeenCalledWith(written)
+      cleanup()
+    }
+    vi.unstubAllGlobals()
+  })
+
   it('offers no Höhenprofil where there is no height data (the Plan)', () => {
     render(<DrawEditor {...base} drawing={{ kind: 'line' }} lengthM={412} />)
     fireEvent.click(screen.getByRole('button', { name: D.measurement }))
