@@ -62,8 +62,10 @@
    ONE value type on the whole Rapport (hill climb r22, Opus 5, 05.11.2026): a read-out and a typed
    value are 16 / 400 in ink – the fields' 16px (iOS zooms into a smaller one) and the read-out's
    regular weight. Measured before: read-outs 14 / 400, the fields 16 / 500 (the Einsatzleiter
-   picker 16 / 400), so «Brand» and «Oblt Muster» were two kinds of value in one column. */
-.report-meta-readout dt { margin: 0; font: var(--field-label); color: var(--ink-faint); }
+   picker 16 / 400), so «Brand» and «Oblt Muster» were two kinds of value in one column.
+   The Gerettete keys («Personen», «Tiere», .rz-count below) stand in the same key column and so
+   wear this same key – one row-key voice down the form (hill climb r27, Opus 4). */
+.report-meta-readout dt, .rz-count > span { margin: 0; font: var(--field-label); color: var(--ink-faint); }
 .report-meta-readout dd, .rp-readout { margin: 0; font-size: var(--fs-3); line-height: 1.45; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; }
 .report-preflight-body :is(.ip-field input, .ip-input, .ip-textarea) { font-weight: var(--fw-regular); }
 .report-meta-empty { color: var(--ink-faint); }
@@ -220,14 +222,14 @@
    body text with no box); this only places it under the time field. */
 .rz-warn { margin-top: var(--sp-1); }
 /* Gerettete: two labelled ±steppers (Personen / Tiere), key / value like «Aus den Einsatzdaten»:
-   the label in the Rapport's key column (`--rp-key`), the stepper — or a read-out's count — from
+   the label in the Rapport's key column (`--rp-key`) in its row-key type (.report-meta-readout dt,
+   above), centred on the row (44 touch / 36 laptop), the stepper — or a read-out's count — from
    the value edge, its ✕ 8px after «+» (hill climb r17, 05.11.2026). With the stepper at the
    column's right edge the label stood ~400px from its control on a laptop. The key column gives
    way (minmax) before a narrow phone could push the ✕ off the card. */
 .rz-counts { display: flex; flex-direction: column; gap: var(--sp-2); }
 .rz-count { display: grid; grid-template-columns: minmax(0, var(--rp-key)) 1fr; align-items: center;
   justify-items: start; gap: var(--sp-3); min-height: var(--tap); }
-.rz-count > span { font: var(--fw-medium) var(--fs-2) var(--body); color: var(--ink-dim); }
 /* The recorded count is the row's emphasis (hill climb r13, 05.11.2026): at 14px between two 44px
    plates it was the smallest thing in the row. It stands in a 60×44 well at the value's size,
    bold, tabular – a FIELD between two keys, not a third key (r15 framed it 44×44 like «−» / «+»

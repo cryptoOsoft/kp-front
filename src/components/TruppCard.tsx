@@ -670,7 +670,7 @@ export function TruppCard({
    * raus mit 175 bar» — the finished Einsatzzeit and the pressure it came out with, which
    * unworded read as a running clock and a live reading. In the line's one word style (the
    * Schätzung's). Only out of a real run: a crew stood down at the door was never «drin».
-   * Those two joining words are `quiet` (hill climb r13, 05.11.2026): dim ink at 500, so the
+   * Those two joining words are `quiet` (hill climb r13/r27, 05.11.2026): dim ink, regular, so the
    * values read first — never the Schätzung's word, which keeps full ink and weight (T2). */
   const outWords = out && !neverDeployed
   const sockelLine: { key: string; label: string; value: string; alarm?: boolean; labelled?: boolean; quiet?: boolean; title?: string }[] = [
