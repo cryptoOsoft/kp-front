@@ -148,7 +148,8 @@
   --ink-fill-hover: #0f1722;  /* hover on dark ink-fill buttons (darker in day) */
   /* «Where you are» (docs/ui-conventions · Selected): the ink pill of every bar – the nav rail and
      the phone tab bar (.nav-item), the tool rail and phone tool bar (.vrail-tool / .vrail-nbtn),
-     the open «Verlauf» (.tb-act). By day it IS --ink-fill; the night block lifts it (05.11.2026). */
+     the open «Verlauf» (.tb-act), the docked section tabs (Rapport, Anwesenheit, PDF reader).
+     By day it IS --ink-fill; the night block lifts it (05.11.2026). */
   --here-fill: var(--ink-fill);
   --here-fill-hover: var(--ink-fill-hover);
   --on-here: var(--on-accent-ink);
