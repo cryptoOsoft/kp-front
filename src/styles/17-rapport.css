@@ -47,6 +47,11 @@
 .report-meta-readout dt { margin: 0; font: var(--field-label); color: var(--ink-dim); }
 .report-meta-readout dd, .rp-readout { margin: 0; font-size: var(--fs-2); line-height: 1.45; color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere; }
 .report-meta-empty { color: var(--ink-faint); }
+/* …and a REQUIRED dispatch fact that is missing (ReportPreflight · MissingFact, owner C1
+   05.11.2026): the head's «4 offen» ink (`--amber-strong`, 13-incident · .head-tile.amber) at the
+   value's own regular weight, led by the chip's small ⚠ – the warning stands where the gap is. */
+.report-meta-missing { display: inline-flex; align-items: baseline; gap: var(--sp-1); color: var(--amber-strong); }
+.report-meta-missing > .i { flex: none; align-self: center; }
 /* A Rapport field on a session that cannot change it (ReportPreflight · ReadOut): the dispatch
    block's read-out type above, in the field's own place. `flex: 1` so a Kontaktperson's call
    button still sits at the end of its line. */

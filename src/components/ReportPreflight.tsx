@@ -103,6 +103,14 @@ function ReadOut({ value }: { value?: string | null }) {
   return <div className={cx('rp-readout', !v && 'report-meta-empty')}>{v || appConfig.copy.preflight.notRecorded}</div>
 }
 
+/** A dispatch fact the Rapport needs and the Einsatzdaten do not hold yet – Stichwort, Ort,
+ *  Alarmierung (owner pick C1, 05.11.2026): «Nicht erfasst» in the head chip's warning ink with
+ *  its ⚠, so the gap shows where it stands, not only through «4 offen». Optional facts (the
+ *  Alarmmeldung, which nobody writing is the common case) stay on faint ink. */
+function MissingFact() {
+  return <span className="report-meta-missing"><Icon id="warn" />{appConfig.copy.preflight.notRecorded}</span>
+}
+
 
 // «Später» on the Abschluss-Band, per incident. Same kind of box as the kept place (useReportPlace ·
 // rapportKept) and for the same reason — the surface unmounts on every hop to Anwesenheit/Mittel/Verlauf, and a dismissal that
@@ -1588,9 +1596,9 @@ export function ReportPreflight({
                 {/* Stichwort, Art and Ort first (owner, 18.09.2026): the block is what the Rapport
                     was opened FOR, and with the three pages behind one tile the reader must see
                     which Einsatz this is without going back to the Karte. */}
-                <div><dt>{P.stichwort}</dt><dd>{incident.title || <span className="report-meta-empty">{P.notRecorded}</span>}</dd></div>
+                <div><dt>{P.stichwort}</dt><dd>{incident.title || <MissingFact />}</dd></div>
                 {incident.type && <div><dt>{P.einsatzart}</dt><dd>{incident.type}</dd></div>}
-                <div><dt>{P.ort}</dt><dd>{incident.address || <span className="report-meta-empty">{P.notRecorded}</span>}</dd></div>
+                <div><dt>{P.ort}</dt><dd>{incident.address || <MissingFact />}</dd></div>
                 {/* The gateway hands us one field holding four different things (see
                     lib/alarmText). Shown verbatim it is mostly machinery — a marching order,
                     an object's notes, and a 300-character link this app minted itself — under
@@ -1619,7 +1627,7 @@ export function ReportPreflight({
                     </dd>
                   </div>
                 )}
-                <div><dt>{P.alarmierung}</dt><dd>{alarmiert ? formatDateTime(alarmiert) : <span className="report-meta-empty">{P.notRecorded}</span>}</dd></div>
+                <div><dt>{P.alarmierung}</dt><dd>{alarmiert ? formatDateTime(alarmiert) : <MissingFact />}</dd></div>
               </dl>
             </div>
           </section>

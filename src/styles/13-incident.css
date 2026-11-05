@@ -1090,18 +1090,17 @@ button.list-row:disabled { opacity: var(--disabled); cursor: default; }
    the qualifier (`<i>`), if any, is always line 2 under both (12.5/400 faint, 18px leading) — it
    may use the width under the time, which is empty there. Never a run after the name: that
    wrapped back to the name's edge mid-phrase and left a «Trupp Dach ·» dangling by its time.
-   Entry boundaries (council round 4): 8px above and below each entry, 0 inside one, and a faint
-   hairline (`--border-soft`, the list-card rows' own) on top of each — 16px + a rule between two
-   people against a bare line's leading inside one, so a wrapped Trupp entry reads as one unit.
-   The rule sits on every entry's TOP, and the list pulls up and clips its first 9px (rule + 8):
-   each column starts at the box's top edge, so what is cut is the rule and the empty padding of
-   every column's first entry (the left AND the right one – CSS cannot select the second), no
-   column opens with a hanging rule, and the first name sits where it did. Clipped, that strip
-   also lets taps through to the step row it overlaps (its 44px hit area). */
+   Entry boundaries (council round 4, owner A7 05.11.2026): 8px above and below each entry, 0
+   inside one – 16px between two people against a bare line's leading inside one, so a wrapped
+   Trupp entry reads as one unit. Space only: the faint hairline that sat in that gap is gone
+   (owner pick A7). The list pulls up and clips its first 8px: each column starts at the box's
+   top edge, so what is cut is the empty padding of every column's first entry (the left AND the
+   right one – CSS cannot select the second) and the first name sits where it did. Clipped, that
+   strip also lets taps through to the step row it overlaps (its 44px hit area). */
 .rp-people { columns: 2 200px; column-gap: var(--sp-5); width: 100%;
-  margin-top: calc(-1px - var(--sp-2)); clip-path: inset(calc(1px + var(--sp-2)) 0 0 0); }
+  margin-top: calc(-1 * var(--sp-2)); clip-path: inset(var(--sp-2) 0 0 0); }
 .rp-person { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline;
-  min-width: 0; break-inside: avoid; padding-block: var(--sp-2); border-top: 1px solid var(--border-soft);
+  min-width: 0; break-inside: avoid; padding-block: var(--sp-2);
   font: var(--fw-medium) var(--fs-2)/var(--lh-2) var(--body); color: var(--ink); }
 .rp-person-txt { min-width: 0; overflow-wrap: anywhere; }
 /* the departure time: its own item at the right edge, so every «bis 15:50» stands in one column,
