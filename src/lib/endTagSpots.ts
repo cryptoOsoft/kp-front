@@ -20,7 +20,7 @@ export function endTagText({ lineNo, content, floorTag }: { lineNo?: number; con
   return [lineNo != null ? String(lineNo) : '', content ?? '', floorTag != null ? floorBadge(floorTag) : ''].filter(Boolean).join(' · ')
 }
 
-/** clearance between the stroke and the tag's near edge, px – 14 px centre-lift on a level line */
+/** clearance between the stroke and the tag's near edge, px – a 15.25 px centre-lift on a level line (a 19.5 px tag) */
 const TAG_GAP_PX = 5.5
 /** how far short of the line's end (or of its arrowhead's back) the tag's near edge stands, along
  *  the line, px (hill climb r16, Opus 4: centred on the end, the tag covered the arrowhead and the
@@ -123,10 +123,9 @@ export function placeEndTag(pts: readonly (readonly [number, number])[], w: numb
 }
 
 /** The end tag's box as the sheet will draw it – estimated, not measured, so the spot is known
- *  before the first paint and never jumps: the `.line-end-tag` (--fs-1, 1 px/4 px + the 1.5 px ring)
- *  is ~17.5 px tall and ~6.25 px per character plus its 11 px of chrome wide. The height stays the
- *  17 it was at --fs-micro, so the tag keeps its 14 px centre-lift off the stroke. */
-export const tagSize = (text: string) => ({ w: 11 + text.length * 6.25, h: 17 })
+ *  before the first paint and never jumps: the `.line-end-tag` (--fs-1/700, 2 px/4 px + the 1.5 px
+ *  ring, hill climb r17) is 19.5 px tall and ~6.25 px per character plus its 11 px of chrome wide. */
+export const tagSize = (text: string) => ({ w: 11 + text.length * 6.25, h: 19.5 })
 
 /** a Linie's points in board px, each on its own storey's section (`mapY`) */
 export const boardPts = (a: BoardAnno, sW: number, sH: number, mapY: MapY) =>

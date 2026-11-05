@@ -74,6 +74,10 @@ import { attachInsetPx, lineJoints, boundaryPoint, DETACH_SHOW_PROGRESS, dwellFo
  *  cannot read a CSS custom property; it is deliberately mid-grey, so it reads on both themes.
  *  An OUT Trupp's trail line wears it too (dimmed): its colour has stopped meaning «here». */
 const GHOST_TRAIL_INK = '#8a8f98'
+/** How much of a Fläche's / circle's stored wash (`fillOpacity`, data – never rewritten) is painted
+ *  at NIGHT (hill climb r17, Opus 7): a translucent red over the dark base mixes into a muddy
+ *  brown, so the night wash is thinner and the zone reads as its stroke's hue. Day paints it whole. */
+const NIGHT_FILL_SCALE = 0.5
 /** The open draft's marching dashes (27.10.2026): MapLibre cannot animate a dash offset, so the
  *  dash pattern itself steps through one period — MapLibre's own «animate a line» recipe. */
 const DRAFT_ANTS: number[][] = [
@@ -1396,7 +1400,7 @@ export const MapView = forwardRef<MapRef, MapViewProps>(function MapView(props, 
         {/* TWO fill layers, not one expression: `fill-pattern` overrides `fill-color` whenever it
             resolves, and a `case` that yields no image paints nothing at all — so the washed and
             the hatched Flächen are filtered apart and each gets the paint it can actually use. */}
-        <Layer id="l-draw-fill" type="fill" filter={['all', ['==', ['geometry-type'], 'Polygon'], ['!', ['coalesce', ['get', 'hatch'], false]]]} layout={vis(drawingsVisible && !georefOn)} paint={{ 'fill-color': ['get', 'color'], 'fill-opacity': ['coalesce', ['get', 'fillOpacity'], 0.14] }} />
+        <Layer id="l-draw-fill" type="fill" filter={['all', ['==', ['geometry-type'], 'Polygon'], ['!', ['coalesce', ['get', 'hatch'], false]]]} layout={vis(drawingsVisible && !georefOn)} paint={{ 'fill-color': ['get', 'color'], 'fill-opacity': ['*', ['coalesce', ['get', 'fillOpacity'], 0.14], night ? NIGHT_FILL_SCALE : 1] }} />
         <Layer id="l-draw-hatch" type="fill" filter={['all', ['==', ['geometry-type'], 'Polygon'], ['coalesce', ['get', 'hatch'], false]]} layout={vis(drawingsVisible && !georefOn)} paint={{ 'fill-pattern': ['concat', 'hatch-', ['downcase', ['get', 'color']]] }} />
         {/* solid + dashed split: line-dasharray can't be data-driven, so dashed lines
             render in their own layer filtered on the feature's `dashed` property */}

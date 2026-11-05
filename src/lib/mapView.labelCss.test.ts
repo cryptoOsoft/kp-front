@@ -72,7 +72,8 @@ describe('on-map label metrics follow their CSS', () => {
     const [v, h] = padding(b)
     const border = 2 * 1.5
     expect(fontPx(END_TAG_LABEL_STYLE.font)).toBe(token('--fs-1'))
-    expect(decl(b, 'font')).toMatch(/var\(--fs-1\)\/1 /)
+    expect(decl(b, 'font')).toMatch(/^var\(--fw-bold\) var\(--fs-1\)\/1 /)
+    expect(END_TAG_LABEL_STYLE.font).toMatch(/^700 /)
     expect(END_TAG_LABEL_STYLE.lineH).toBe(token('--fs-1'))
     expect(END_TAG_LABEL_STYLE.chromeW).toBe(2 * h + border)
     expect(END_TAG_LABEL_STYLE.chromeH).toBe(2 * v + border)

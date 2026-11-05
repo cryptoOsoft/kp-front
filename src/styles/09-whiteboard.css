@@ -320,10 +320,11 @@
   /* an ink hairline INSIDE the edge: the e3 ring is black, and at night a black ring on the dark
      stage left the sheet with no edge at all (04.11.2026) */
   box-shadow: inset 0 0 0 1px var(--ink-16), var(--e3); }
-/* …a Gebäude stack's outline is its storey dividers' line by day (.wb-floor below, hill climb r15);
-   the night edge stays the hairline above */
+/* …a Gebäude stack's outline is its storey dividers' line (.wb-floor below), day (hill climb r15) and
+   night (r17, Sol 3: at night the 1px --ink-16 edge was quieter than the 2px dividers inside it, and
+   the stack read as loose bands instead of one building) */
 .wb-board-stack { box-shadow: inset 0 0 0 1.5px var(--ink-45), var(--e3); }
-:root[data-theme="night"] .wb-board-stack { box-shadow: inset 0 0 0 1px var(--ink-16), var(--e3); }
+:root[data-theme="night"] .wb-board-stack { box-shadow: inset 0 0 0 2px var(--ink-28), var(--e3); }
 /* (.wb-pdf-base / .wb-pdf-refine migrated → PdfViewport.module.css) */
 
 /* floor-stack ("Gebäude" doc) — a vertical stack of footprint sheets. Each tile
@@ -355,7 +356,7 @@
   border-bottom: 1.5px solid var(--ink-45); }
 /* day: 1.5px --ink-45 (there is no --border-strong; this is the strong hairline tier) – at 1px
    --ink-22 the white storeys ran together in sunlight (hill climb r15, Opus 10); the stack's outline
-   wears the same (.wb-board-stack). Night: 2px and a step brighter – on the dark board the 1px rule
+   wears the same (.wb-board-stack), at night too. Night: 2px and a step brighter – on the dark board the 1px rule
    was still the faintest line on the sheet, fainter than the drawings inside a storey (hill climb
    r5, 04.11.2026) */
 :root[data-theme="night"] .wb-floor { border-bottom: 2px solid var(--ink-28); }
@@ -1070,14 +1071,16 @@ span.wb-ghost-label { cursor: default; }
    that hue taken 30 % toward black, on the near-white plate the tactical-symbol chip uses
    (.ts-rot.white) – so the line keeps its identity colour instead of being flattened to `--ink`.
    ⚠️ held to lib/mapView · END_TAG_LABEL_STYLE and lib/endTagSpots · tagSize (mapView.labelCss.test.ts):
-   --fs-1/800, 1px/4px + the 1.5px ring = a ~18px plate (hill climb r13, Opus 7: at --fs-micro it was
-   the smallest type on the map; the printed Kroki draws it at 12px).
+   the label plates' type – --fs-1/700, the names' and readouts' – and their small-label corner
+   (--r-xs); 2px/4px + the 1.5px ring = a ~20px plate with ~6px of side room (hill climb r17, Sol 2 /
+   Opus 8: at 800 on 1px/4px and a 4px corner it was the most cramped text on the map; r13 had
+   taken it off --fs-micro, the printed Kroki draws it at 12px).
    Its ring is its plate edge – the line's colour, in place of --label-plate's neutral one – under
    the plates' one contact step (--e0, hill climb r16 Sol 2). Where it stands: lib/endTagSpots ·
    endTagOffset, short of the line's end so the arrowhead stays visible (r16, Opus 4). */
 .line-end-tag { --tag-plate: var(--on-accent-ink); --tag-text: color-mix(in srgb, var(--tag-ink) 70%, #000);
-  display: inline-grid; place-items: center; padding: 1px var(--sp-1); border: 1.5px solid var(--tag-ink);
-  border-radius: 4px; background: var(--tag-plate); color: var(--tag-text); font: var(--fw-heavy) var(--fs-1)/1 var(--body); white-space: nowrap;
+  display: inline-grid; place-items: center; padding: 2px var(--sp-1); border: 1.5px solid var(--tag-ink);
+  border-radius: var(--r-xs); background: var(--tag-plate); color: var(--tag-text); font: var(--fw-bold) var(--fs-1)/1 var(--body); white-space: nowrap;
   box-shadow: var(--e0); }
 /* NIGHT: the map plate (--label-bg) like every other label – the near-white tag was the brightest
    thing on a dark map. The text then takes the hue 55 % toward the night --ink, never the plain hue:
