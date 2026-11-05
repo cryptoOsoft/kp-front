@@ -382,15 +382,17 @@
 /* Preserve the drawing's footprint while Shell trail reports the pending raster. */
 .wb-floor-page-wait { fill: var(--ink-5); }
 /* The storey label stands OUTSIDE its tile, its plate right-aligned in the gutter left of the
-   stack, level with the storey's top (hill climb r3, 04.11.2026). On the tile a note dropped in the middle hid
+   stack, centred on the storey's band (hill climb r18, Opus 2: hung 8px under the divider above
+   it, «EG» read as a tag for that line rather than a name for the floor below it; was level with
+   the storey's top since r3, 04.11.2026). On the tile a note dropped in the middle hid
    «EG» completely and a symbol crowded «3. OG». The tile is still its parent, so it rides the
-   storey's top and the zoom; a longer custom name simply grows further left. A compact surface
+   storey's band and the zoom; a longer custom name simply grows further left. A compact surface
    plate, because it stands on the stage now.
    A note is never drawn into the gutter (lib/notes · stackNoteShiftPx, hill climb r4 – a phone's
    wide note ran its text under «EG»). z 4: above a resting anno (z 3) that still hangs out into it –
    a symbol's caption at the stack's edge – so the storey's name always wins; under a selected one
    (z 6), which is being moved. */
-.wb-floor-label { position: absolute; top: var(--sp-2); right: calc(100% + var(--sp-2)); display: flex; align-items: center; justify-content: center; gap: var(--sp-1); z-index: 4;
+.wb-floor-label { position: absolute; top: 50%; translate: 0 -50%; right: calc(100% + var(--sp-2)); display: flex; align-items: center; justify-content: center; gap: var(--sp-1); z-index: 4;
   min-width: var(--wb-floor-plate-w); flex-wrap: nowrap; white-space: nowrap;
   font-family: var(--body); font-weight: var(--fw-bold); font-size: var(--fs-2); line-height: 1; color: var(--ink);
   background: var(--surface); box-shadow: inset 0 0 0 1px var(--border); border-radius: var(--r-xs);
@@ -993,11 +995,11 @@ span.wb-ghost-label { cursor: default; }
 .wb-sw-grid { display: grid; grid-template-columns: repeat(2, auto); gap: var(--sp-2); }
 
 /* tool rail (right) — uses the shared .vrail look; floats over the canvas exactly
-   like the Lage tool rail (absolute, vertically centred, content-height) */
+   like the Lage tool rail (absolute, hung from --rail-top, content-height) */
 /* top-anchored + scroll/pinned-footer split, identical to the map's .tool-rail so
    both surfaces' right edges read as a pair (tools scroll, zoom/fit pinned below) */
-.wb-tools { position: absolute; right: 16px; top: 88px; bottom: 16px; height: max-content; margin-block: auto;
-  z-index: var(--z-dock); max-height: calc(100dvh - 104px); }
+.wb-tools { position: absolute; right: 16px; top: var(--rail-top); bottom: 16px; height: max-content; margin-block: 0 auto;
+  z-index: var(--z-dock); max-height: calc(100dvh - var(--rail-top) - 16px); }
 /* (the current-zoom % readout is gone: 100% meant «eingepasst», not a real-world scale, so
    the number read as a precision the plan does not have. «Einpassen» states the one view
    that matters.) */

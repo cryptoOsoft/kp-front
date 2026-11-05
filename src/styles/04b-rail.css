@@ -19,6 +19,16 @@
    05-navrail rather than renumbering the whole manifest.
    ============================================================ */
 
+/* ── ONE top for both rails (hill climb r18, Opus 1): the top bar's bottom + 16px. The bar stands
+   16px down and is its controls (42px with a mouse, --tap on touch) + 2 × --bar-pad + its 1px
+   border top and bottom: 56px → 88, 58px → 90. Each rail HANGS from this line and ends where its
+   content ends (`margin-block: 0 auto` in .navrail / .tool-rail / .wb-tools). They used to be centred
+   in the band below the bar, each on its own height, so a 480px left rail and a 571px right one
+   started 46px apart. The Ebenen card (05-navrail · .layers-card) hangs from the same line.
+   The phone turns both rails into bottom bars and sets its own top/bottom (15-mobile). */
+:root { --rail-top: calc(88px + env(safe-area-inset-top)); }
+@media (pointer: coarse) { :root { --rail-top: calc(90px + env(safe-area-inset-top)); } }
+
 /* the glass shell. Each rail keeps its own `width` (it reads a different custom property)
    and its own placement — .navrail positions itself, .vrail is placed by its wrapper class. */
 .rail { display: flex; flex-direction: column; gap: 4px;
