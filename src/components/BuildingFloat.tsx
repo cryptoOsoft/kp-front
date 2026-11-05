@@ -20,9 +20,12 @@ import s from './BuildingFloat.module.css'
  * the message lane stands above it). The card is non-modal like the Passung beside it: the map
  * stays pannable, ✕ or the chip closes it.
  *
- * Closed, the chip says what a crew must not miss: the hazards as glyph + WORD («⚠ Gas · PV»), else
- * just «Gebäude-Info» (not «Gebäude» + the storey glyph: that is the rail's Gebäude tile, a
- * surface of its own). Nothing to say → no chip (lib/buildingCard · hasBuildingContent).
+ * Closed, the chip says what it is and what a crew must not miss: «Gebäude-Info», then the hazards
+ * as glyph + WORD («⚠ Gebäude-Info · Gas · PV») – ONE wording on the Karte and every plan, phone
+ * included (owner pick C8, 05.11.2026: «always Gebäude-Info when it's about the info»; a phone and
+ * the plan's row said «⚠ Gas» alone, or the bare glyph). Not «Gebäude» + the storey glyph: that is
+ * the rail's Gebäude tile, a surface of its own. Nothing to say → no chip (lib/buildingCard ·
+ * hasBuildingContent).
  *
  * The FIRST time this device shows the Karte of an Einsatz whose building has anything to show,
  * the card opens by itself (`autoOpen`, lib/buildingFirstOpen —
@@ -57,11 +60,9 @@ export function BuildingFloat({ info, compact = false, autoOpen = false, onRead 
   if (!summary) return null
   const C = appConfig.copy.building
   // compact (a phone, where the floating row is one line beside the FAB, and the plan's row, where
-  // it is the Objekt chip's second half): the hazard words only; without hazards the glyph alone,
-  // its words in aria-label/title like the row's lamped chips
-  const text = summary.hazard
-    ? (compact ? summary.words.join(' · ') : `${C.chipTitle} · ${summary.words.join(' · ')}`)
-    : (compact ? null : C.chipTitle)
+  // it shares a glass with the Objekt / building chip) sheds only the «Sofortmassn.» word below –
+  // the chip's own word and the hazards stay
+  const text = summary.hazard ? `${C.chipTitle} · ${summary.words.join(' · ')}` : C.chipTitle
   return (
     <span className={s.anchor}>
       <button
@@ -75,7 +76,7 @@ export function BuildingFloat({ info, compact = false, autoOpen = false, onRead 
         onClick={() => (open ? close() : setOpen(true))}
       >
         <Icon id={summary.hazard ? 'warn' : 'info'} />
-        {text && <span>{text}</span>}
+        <span>{text}</span>
         {/* the Objekt's Sofortmassnahmen are inside — a word on a tablet, the glyph alone on a phone */}
         {summary.measures && <span className={s.measures}><Icon id="checklist" />{!compact && C.measuresShort}</span>}
       </button>

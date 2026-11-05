@@ -1234,7 +1234,10 @@
   .tb-gps .i { color: var(--amber-strong); }
   /* --tap, not 40 (UX sweep S9, 20.10.2026): at (0,2,0) this beat 20-touch-floors' coarse
      `.tb-weather` floor, so the Karte's one wind target on a phone stayed 4px short */
-  .phone-wx .tb-weather { min-height: var(--tap); padding: 0 var(--float-pad-x); border-radius: inherit; }
+  /* …and a little narrower than the family's 14px a side (owner note on the r11 checkpoint, 05.11.2026):
+     8px before the arrow, whose own box already carries air around the stroke, 12px after «km/h»;
+     the height stays the --tap target */
+  .phone-wx .tb-weather { min-height: var(--tap); padding: 0 var(--sp-3) 0 var(--sp-2); border-radius: inherit; }
 
   /* Einstellungen rows: the 3-segment controls (Farbschema, Beschriftungen) are wider than
      a phone row leaves next to the label — let the control wrap onto its own right-aligned

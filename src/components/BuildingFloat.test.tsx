@@ -47,7 +47,8 @@ describe('BuildingFloat', () => {
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
-  it('no hazard: «Gebäude-Info» with the info glyph (never the rail tile\'s word + storey glyph); compact: the glyph alone', () => {
+  // owner pick C8 (05.11.2026): «Gebäude-Info» on every surface, compact (phone, plan row) included
+  it('no hazard: «Gebäude-Info» with the info glyph (never the rail tile\'s word + storey glyph); compact says it too', () => {
     const calm = { ...base, gwr: { ...base.gwr!, heating: ['district'], hot_water: [] }, plants: [], object: null }
     render(<BuildingFloat info={calm} />)
     const chip = screen.getByRole('button', { name: 'Gebäude-Steckbrief öffnen' })
@@ -55,11 +56,11 @@ describe('BuildingFloat', () => {
     expect(chip.querySelector('use')?.getAttribute('href')).toBe('#info')
     cleanup()
     render(<BuildingFloat info={calm} compact />)
-    expect(screen.getByRole('button', { name: 'Gebäude-Steckbrief öffnen' }).textContent).toBe('')
+    expect(screen.getByRole('button', { name: 'Gebäude-Steckbrief öffnen' }).textContent).toBe('Gebäude-Info')
     cleanup()
     render(<BuildingFloat info={base} compact />)
     const compact = screen.getByRole('button', { name: /Steckbrief öffnen/ })
-    expect(compact.textContent).toBe('Gas · PV')
+    expect(compact.textContent).toBe('Gebäude-Info · Gas · PV')
     // the Sofortmassnahmen still say they are there — as the glyph
     expect([...compact.querySelectorAll('use')].map((u) => u.getAttribute('href'))).toEqual(['#warn', '#checklist'])
   })

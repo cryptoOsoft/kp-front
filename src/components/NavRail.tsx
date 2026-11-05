@@ -213,7 +213,7 @@ export function NavRail(p: Props) {
 
         {/* divider ABOVE the plan group too, so the module/floor tabs read as their own
             navigable "Pläne" cluster instead of blending into the Karte icon above them */}
-        {p.planDocs.length > 0 && !p.fold && <div className="nav-sep" />}
+        {p.planDocs.length > 0 && !p.fold && <div className="nav-sep rail-sep" />}
         {folded && (
           /* the ONE folded tile, and it is shaped like every other tile: ONE glyph and ONE word.
              The glyph IS the loaded document (the mono chip «1»/«RWA», the floor stack, the
@@ -265,7 +265,7 @@ export function NavRail(p: Props) {
           )
         })}
 
-        {!p.fold && <div className="nav-sep" />}
+        {!p.fold && <div className="nav-sep rail-sep" />}
         <button className={`nav-item${p.mode === 'checklists' ? ' on' : ''}`} aria-pressed={p.mode === 'checklists'} aria-label={appConfig.copy.modes.checklists} onClick={() => p.onMode('checklists')}>
           <span className="nav-glyph"><Icon id="checklist" /></span>
           <span className="nav-label">{appConfig.copy.modes.checklists}</span>

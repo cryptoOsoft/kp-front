@@ -107,7 +107,7 @@ export function KarteNavRail({ obj, docs, active, onMap, onLibrary, onDoc, notHe
             <span className="nav-glyph"><Icon id="checklist" /></span>
             <span className="nav-label">{library}</span>
           </button>
-          {plans && <div className={cx('nav-sep', s.railSep)} />}
+          {plans && <div className="nav-sep rail-sep" />}
           {plans && docs.map(({ doc, row }) => {
             const off = !!notHeld?.has(doc.id)
             const label = off ? fillTemplate(C.railNotStored, { t: doc.title }) : doc.title
