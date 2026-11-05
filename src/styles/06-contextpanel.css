@@ -519,7 +519,8 @@
    8 = 96px from the row's border box; 94 with 10px padding and gutters until hill climb r7,
    04.11.2026, which gave the 6px back to the sentence on a phone; the time column grew to 46 in
    r9, when the clock grew to 12.5px and the 38 it had left it touching the disc, and gave 2px back
-   in r11 to the disc, which grew to 28 — the text did not move), and the sub-lines below are
+   in r11 to the disc, which grew to 28 — the text did not move; the phone runs 40 + 24, 88 from
+   the row, 15-mobile · hill climb r14), and the sub-lines below are
    placed on that same axis, so
    reading a long Verlauf is riding one edge down the page. As a flex row this could not hold:
    six decorations were allowed in front of the sentence, all `flex: none` against the one
@@ -651,7 +652,8 @@
 /* ⚠️ Positioned against the ROW, not the ring (`.jr-pinned-row .jr-rem` is static, below): the
    row's full height and 2px — half the block's 4px flex gap — past it on either side, so two
    rows' pads meet in the gap and the target is the row's pitch whatever the row's height. x 50…96
-   of the row: 9px either side of the ring (7 + 44 + 8 = 59 … 87). */
+   of the row: 9px either side of the ring (7 + 44 + 8 = 59 … 87). The phone's narrower columns
+   move both pads (15-mobile · r14). */
 .jr-pinned-row button.jr-rem::before { content: ""; position: absolute; z-index: 1; top: -2px; bottom: -2px;
   left: 50px; width: 46px; border-radius: var(--r-sm); }
 /* ⚠️ No fill on hover. `--hover` is a neutral wash meant for white rows; over the block's amber

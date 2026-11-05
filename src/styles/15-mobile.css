@@ -744,6 +744,25 @@
      — it no longer sits sticky over the log, so the old «taller than its scrollport» trap this
      comment used to describe is gone with it.) */
   .jr-pinned { max-height: 40dvh; }
+  /* ⚠️ THE PHONE'S TEXT AXIS, 96px in from the sheet's inner edge (its 1px border), not 110 (hill
+     climb r14, 05.11.2026: names with roles ran to three lines). The strip, the Pendenzen box and
+     the log stand 8px in (the drawer's 12 less 4), the clock 16 (+ the row's 8) — on the title's
+     x — and the two columns in front
+     of the sentence shrink to what they hold: 40 for «19:05» (37.5px at 12.5 mono), the 24px disc
+     with no band around it. 8 + 8 + 40 + 8 + 24 + 8 = 96. The Pendenzen rows mirror it (8 + 1 +
+     7 + 40 + 8 + 24 + 8) — one axis, as on the tablet (06-contextpanel · .hist-ev, .jr-pinned-row).
+     ⚠️ 96 is the floor the Pendenzen TARGETS set, not a taste: the clock's pad and the ring's pad
+     are two 44px targets side by side between the box's inner edge (9) and the text, and the
+     ring's may not reach over the clock's digits (they end at 53.5). Clock pad 9…54, ring pad
+     54…98 — 2px into the text, which is the row's own target anyway (06 · .jr-pinned-text). */
+  .journal-drawer > :is(.jr-strip, .jr-pinned, .history-list) { margin-inline: calc(-1 * var(--sp-1)); }
+  .journal-drawer > .history-list { padding-inline: 0; }
+  .hist-ev { grid-template-columns: 40px var(--jr-disc) minmax(0, 1fr) fit-content(50%); }
+  .hist-ev .t { width: 40px; }
+  .jr-pinned-row .jr-when { width: 40px; }
+  .jr-pinned-row .jr-rem { width: 24px; }
+  .jr-pinned-row .jr-when::before { width: 45px; }
+  .jr-pinned-row button.jr-rem::before { left: 45px; width: 44px; }
 
   /* The suggestion row keeps its space even when it has nothing to suggest. The composer is
      bottom-anchored here, so a row that comes and goes between the field and the chips moves
