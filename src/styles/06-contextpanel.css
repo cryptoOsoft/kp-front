@@ -643,13 +643,13 @@
    disc inside it is 24 since 05.11.2026), and the app is `box-sizing: border-box` throughout. Measured
    2px too wide once, against a test page that lacked the reset, and the text came out 2px right of
    the log's. If this is ever re-checked, check it with the reset in place.
-   No top padding: the 22px ring is centred on the item's first line (2px body padding + half its
-   18.9px line, less half the ring = 0.45) — the same first-line rule as the log's disc (r11).
+   1px top padding: the 22px ring is centred on the item's first line (2px body padding + half its
+   21px line, less half the ring = 1.5, held at 1; r19) — the first-line rule of the log's disc (r11).
    ⚠️ No height of its own (C17, 05.11.2026): it used to be `min-height: 34px` stretched over the
    row so its pad could reach the row's edges, and that 34 + the padding is what held a one-line
    item 46 tall. The pad is the ROW's now (below), so the ring is as tall as the ring. */
 .jr-pinned-row .jr-rem { flex: none; width: 28px; min-height: 0;   /* not the log button's --tap (.jr-rem) */
-  padding: 0; border: 0; background: none; border-radius: var(--r-sm);
+  padding: 1px 0 0; border: 0; background: none; border-radius: var(--r-sm);
   display: grid; place-items: start center; color: var(--amber-strong); }
 /* ⚠️ Positioned against the ROW, not the ring (`.jr-pinned-row .jr-rem` is static, below): the
    row's full height and 2px — half the block's 4px flex gap — past it on either side, so two
@@ -860,11 +860,19 @@ span.jr-rem { cursor: default; }
    `anywhere` let the line-breaker take the last character that fits — «Verkehrsdie|nst» in a
    column that had room to break between the words. Emergency breaks stay available for a single
    word longer than the column (a Strassenname, a Stichwort), which is what they are for. */
-/* ⚠️ 500 in full ink — the log's recognised-word weight (10-journal · .jr-link), measured equal
-   in hill climb r17 (05.11.2026); the head above stays 700, dringend turns the item red at 700. */
+/* ⚠️ 500 in full ink at 14px — the log's recognised-word weight (10-journal · .jr-link), measured
+   equal in hill climb r17 (05.11.2026); the head and «6 offen» above stay 700, dringend turns the
+   item red at 700. 500 is the one step between the log's 400 prose and the head's 700 (600 is no
+   step on the scale). The words inside an item are not marked (the item IS the subject, Journal ·
+   r.text), so the settled one-look rule has nothing to set apart here.
+   ⚠️ 1.5 leading (21px), not the 1.35 (18.9) it had (hill climb r19, 05.11.2026): a whole item at
+   500 is a solid run of the weight the log uses for single names, and on 18.9 lines its two and
+   three lines closed into one dark slab — at night more so (light-on-dark strokes spread). The
+   extra air is what separates the lines; a touch more than the log's 1.45 because every word here
+   is medium. The clock (.jr-when), the ring and the alarm below are set on this line. */
 .jr-pinned-text { display: block; width: 100%; min-width: 0; overflow-wrap: break-word;
   border: none; background: none; padding: 0; cursor: pointer; text-align: left;
-  font: var(--fw-medium) var(--fs-2) var(--body); line-height: 1.35; color: var(--ink); }
+  font: var(--fw-medium) var(--fs-2) var(--body); line-height: 1.5; color: var(--ink); }
 .jr-pinned-text::after { content: ""; position: absolute; inset: -2px 0; border-radius: inherit; }   /* the row + half the gap either side, like the ring's and the clock's pads */
 /* a session without a Meldung to write gets the text as a <span> – no row-wide target */
 span.jr-pinned-text { cursor: default; }
@@ -891,13 +899,13 @@ span.jr-pinned-text::after { display: none; }
    12.5px mono, tabular. This one is a `<button>`, so 12.5 is its floor anyway (AGENTS · the 3am
    tenet); the log's span joined it in hill climb r9. «HH:MM» is 37.5px (five mono glyphs at
    0.6em), so the 44 leaves the clock 6px of air before the gutter.
-   ⚠️ On the ITEM's line (r11): the item text's 1.35 line and the body's 2px padding, so the clock
-   sits on its first line — on a 1.25 line under 6px of padding it stood 2px below it.
+   ⚠️ On the ITEM's line (r11): the item text's 1.5 line (r19) and the body's 2px padding, so the
+   clock sits on its first line — on a 1.25 line under 6px of padding it stood 2px below it.
    ⚠️ `nowrap`. Both readings have to fit this width on ONE line — the age used to read «vor 32
    min» and wrapped to three, which made the row three times as tall for a number. The label is
    bare now (copy · ageLabel), and this is the guard that says so. */
 .jr-when { flex: none; width: 44px; padding: 2px 0 0; border: 0; background: none; cursor: pointer;
-  text-align: left; white-space: nowrap; font: var(--fw-regular) var(--fs-1)/calc(var(--fs-2) * 1.35) var(--mono); color: var(--ink-faint);
+  text-align: left; white-space: nowrap; font: var(--fw-regular) var(--fs-1)/calc(var(--fs-2) * 1.5) var(--mono); color: var(--ink-faint);
   font-variant-numeric: tabular-nums; }
 @media (hover: hover) {
   .jr-when:hover { color: var(--ink); }
@@ -914,7 +922,7 @@ span.jr-pinned-text::after { display: none; }
 /* the Fälligkeit, as a clock AND the time it stands for — see Journal.tsx. `align-self` rather
    than the old `padding-top`, so the pair sits on the item's first line whatever the row's height
    (a row with three Meldungen is four lines tall). */
-.jr-pinned-alarm { flex: none; margin-left: auto; align-self: flex-start; margin-top: 7px;
+.jr-pinned-alarm { flex: none; margin-left: auto; align-self: flex-start; margin-top: 8px;   /* +1 with the 21px line (r19) */
   display: inline-flex; align-items: center; gap: 4px; color: var(--amber-strong);
   font: var(--fw-bold) var(--fs-micro) var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .jr-pinned-alarm .i { width: 13px; height: 13px; }
