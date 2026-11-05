@@ -6,7 +6,7 @@ import type { ReactNode } from 'react'
 import { Icon } from '../lib/icons'
 import type { PhoneTab } from './useReportPlace'
 
-/** THE Rapport's status mark, set right after a label: open = dashed ring, done = disc
+/** THE Rapport's status mark, set right after a label: open = broken amber ring, done = grey disc
  *  (13-incident · .rp-check-dot). Every eyebrow with an open/done state wears it – the CheckRows,
  *  the form's section heads – and the phone tab that still holds an open Mindestangabe. Render it
  *  INSIDE the label's text element: it is an inline box that centres itself on that text's font. */

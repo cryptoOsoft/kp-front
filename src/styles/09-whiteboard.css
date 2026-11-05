@@ -148,8 +148,8 @@
    the x-height – tried first in r23 – was exactly the bold lowercase «o» of the word beside it.
    No letter is dashed, so the broken ring reads as a mark: «not set yet». Four arcs since r24, Opus
    4: r23's eight 2px dashes read as a loading spinner; four arcs read as an outline with gaps).
-   ⚠️ The Rapport eyebrow's ring wears the same 10 / four arcs / 1.5px spec (in its own --ink-faint)
-   – change them together. The sheet's dot stands before its status word, 8px (PlanFactsSheet.module.css ·
+   ⚠️ The Rapport's open mark shares the arcs but differs ON PURPOSE since r26: 12px, amber – a
+   pending task; an unset «Gebäude» is not. The sheet's dot stands before its status word, 8px (PlanFactsSheet.module.css ·
    .status gap). */
 /* translate: the row centres the box on the name's line box, whose middle stands 1px above the
    x-height middle (Sora at --fs-1, measured r23) */
