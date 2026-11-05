@@ -124,7 +124,10 @@ the three mockup rounds: `docs/planning/signature-2026-10-15/` (local, gitignore
     value-only caption is an answer without its question once lifted into a legend. A symbol's own
     `caption: 'off'` is a screen declutter and is not read; only «Beschriftungen aus» silences it.
     A «Gelöscht / erledigt» symbol ends its line on that Status with its time («Feuer · gelöscht
-    20:40», 24.09.2026) and prints grey, never absent.
+    20:40», 24.09.2026) and prints grey, never absent. A vehicle's Herkunft is keyed – «Fahrzeug ·
+    TLF · Meier · Herkunft: Stützpunkt» (05.11.2026) – because a bare «Stützpunkt» beside a name
+    reads as a place; a live GPS vehicle prints its name and the same «Herkunft: …». The Erste
+    Führung «Mittel» table seeds a placed vehicle as «TLF (Stützpunkt)» (`boardSeed`).
   - **One figure-page template** (`app/report · figure_pages`): heading, then the muted «Einsatz ·
     Stand …» line, picture, legend – for the Kroki, a plan sheet and a Gebäude page alike. A new
     kind of figure page joins that list; it does not get a layout block of its own. Orientation is

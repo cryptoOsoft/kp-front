@@ -1108,6 +1108,11 @@ export const adminCopy = {
       vehicleRemoveConfirm: 'Fahrzeug löschen? Seine Zeile im Ausrückzeiten-Raster verschwindet, und gemeldete Zeiten finden seine Kennung nicht mehr.',
       vehicleIncomplete: 'Unvollständig – die Zeile wird erst mit Bezeichnung und Kennung gespeichert.',
       vehicleDuplicate: 'Diese Kennung gibt es schon – die Zeile wird nicht gespeichert.',
+      // ── Herkunft: die eine Liste für alle Fahrzeugsymbole ──
+      originsTitle: 'Herkunft der Fahrzeuge',
+      originsTip: 'Woher ein Fahrzeug kommt, das nicht der eigenen Feuerwehr gehört – z. B. Stützpunkt, Zivilschutz, Nachbarwehr oder bei mehreren Standorten «Wache Nord». Die Liste steht bei jedem Fahrzeugsymbol und jedem Fahrzeug aus der Ortung im Feld «Herkunft»; freier Text bleibt möglich. Leer heisst eigene Feuerwehr: dann steht nichts auf der Karte.',
+      originsLabel: 'Auswahl',
+      originsPlaceholder: 'z. B. Stützpunkt',
       // ── Symbol-Auswahllisten: hier nur Ansicht, geschrieben wird auf dem Blatt «Symbolfelder» ──
       attributesTitle: 'Auswahllisten der Symbole',
       cliHint: 'Schreibgeschützt – bearbeitet werden die Listen unter «Daten» → «Arbeitsmappe».',
@@ -1123,7 +1128,7 @@ export const adminCopy = {
       fieldGlossary: {
         Titel: 'Sichtbare Fahrzeugbezeichnung, z. B. TLF 1.', Status: 'Lageabhängiger Zustand, z. B. gerettet oder Schieber offen/zu.',
         Stoff: 'Gefahrstoffbezeichnung.', 'UN-Nr.': 'Vierstellige UN-Gefahrgutnummer.', Einheit: 'Organisation oder eingesetzte Einheit.',
-        Name: 'Person aus dem Personalstamm.', Funktion: 'Führungsaufgabe, z. B. Front oder SiBe.', Fahrer: 'Fahrer aus dem Personalstamm.', Typ: 'Geräte- oder Ausführungstyp.',
+        Name: 'Person aus dem Personalstamm.', Funktion: 'Führungsaufgabe, z. B. Front oder SiBe.', Fahrer: 'Fahrer aus dem Personalstamm.', Herkunft: 'Woher das Fahrzeug kommt – leer heisst eigene Feuerwehr. Die Liste steht oben unter «Herkunft der Fahrzeuge».', Typ: 'Geräte- oder Ausführungstyp.',
       },
       propsLabel: 'Eigenschaften',
       colCategory: 'Kategorie',

@@ -56,7 +56,11 @@ function fieldCells(C: typeof appConfig.copy.admin.fleet, opts: { roster: boolea
   }
 }
 
-export function FleetAttributesViewer({ lists }: { lists: FleetAttributeList[] }) {
+export function FleetAttributesViewer({ lists, origins = [] }: {
+  lists: FleetAttributeList[]
+  /** `fleet.origins` – the «Herkunft» rows of every vehicle show this ONE list */
+  origins?: string[]
+}) {
   const sym = useSymbols()
   const C = appConfig.copy.admin.fleet
   const [filter, setFilter] = useState('')
@@ -97,6 +101,8 @@ export function FleetAttributesViewer({ lists }: { lists: FleetAttributeList[] }
       const label = f.key === 'title' ? C.fieldTitle : f.key
       if (f.roster) {
         rows.push({ key: f.key, label, cells: fieldCells(C, { roster: true, configured: false, options: [] }) })
+      } else if (f.origin) {
+        rows.push({ key: f.key, label, cells: fieldCells(C, { roster: false, configured: origins.length > 0, options: origins }) })
       } else {
         const override = overrideOf(name, f.key)
         rows.push({ key: f.key, label, cells: fieldCells(C, { roster: false, configured: override !== undefined, options: override ?? [] }) })

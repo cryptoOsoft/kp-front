@@ -71,6 +71,17 @@ One object, two surfaces: how a tactical object is stored, anchored, projected a
   is the dashed pill with the icon alone. The label pass books the pill as the glyph's footprint –
   it is never suppressed – and every other place that prints a value keys it (caption «Alle», the
   printed legend), because a bare «180» names nothing.
+- **A vehicle says where it comes from** («Herkunft», owner pick 3A, 05.11.2026). Every driven
+  vehicle preset (the ones with «Fahrer»: Fahrzeug, Drehleiter, Hubretter, Grosslüfter, Boot)
+  carries `Herkunft` as its second field (`appConfig.symbols.originField`); a live GPS vehicle
+  keeps it in its override row (`useVehicleLayer · VehicleOverrides.herkunft`, merged per field
+  like the Fahrer). The panel row is a Combo WITH free typing over the station's ONE list
+  `fleet.origins` (`symbols · vehicleOriginOptions`, no bundled default); empty = own Feuerwehr,
+  and the box says «Eigene Feuerwehr». On the Karte and the Plan it is never the caption: it is
+  a small grey last line in the caption box (`symbolOriginText`, `TacticalSymbol · origin`),
+  booked by the label pass together with the caption (`symbolCaptionBoxText`), hidden with
+  «Beschriftungen aus». Setting it never re-files the Fahrer (`entityEdit ·
+  rosterFieldsToRefile`): no Bemerkung reads it.
 - **A Messpunkt keeps its readings** (`SymbolProps.readings`). Every field commit that changes a
   measured value appends a row (`recordReading`); rows are never rewritten, so two tablets merge
   as a union (`lib/mergeWorkspace · withMergedSymbolReadings`), and «one radio report typed gas by

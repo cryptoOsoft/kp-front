@@ -6,6 +6,8 @@ import { serverNow } from './serverClock'
 import type { CaptionMode, Reading, SymbolControl, SymbolProps } from '../types'
 
 const presets = appConfig.symbols.presets
+/** The vehicle's «Herkunft» field key (appConfig.symbols.originField). */
+const ORIGIN = appConfig.symbols.originField
 
 /** Deployment suggestion-list override for a given symbol+field — returns the configured
  *  list ONLY when it's non-empty; an empty/absent list falls through to the static preset.
@@ -164,7 +166,17 @@ export function symbolFieldOptions(name: string | undefined, cat: string | undef
   for (const key of rosterSet) {
     out[key] = roster
   }
+  // …and the Herkunft → the station's ONE list for every vehicle, never a per-symbol one
+  if (ORIGIN in out) out[ORIGIN] = vehicleOriginOptions()
   return out
+}
+
+/** The «Herkunft» suggestions (`fleet.origins`) – ONE list for every vehicle symbol and every live
+ *  GPS vehicle: a Stützpunkt is the same Stützpunkt whether it sends a TLF or a Drehleiter. No
+ *  bundled default: which Stützpunkt, which Wache, is station data. Free typing stays possible. */
+export function vehicleOriginOptions(): string[] {
+  const list = getDeploymentConfig().fleet?.origins
+  return Array.isArray(list) ? list.filter((o) => typeof o === 'string' && o.trim()) : []
 }
 
 // ─── on-canvas captions: a symbol's metadata printed under its glyph ────────────────
@@ -432,15 +444,22 @@ export function isNamedPerson(props: SymbolProps): boolean {
  */
 export function symbolLegendText(props: SymbolProps, globalMode: CaptionMode): string | null {
   if (globalMode === 'off') return null
-  // a Form has no Art to name — it keeps exactly the words the operator gave it
-  if (!props.symbol) return props.label?.trim() || null
+  // a Form has no Art to name — it keeps exactly the words the operator gave it. So does a live
+  // GPS vehicle (its label is its name), plus the one thing an operator says about it: the Herkunft
+  if (!props.symbol) {
+    const origin = props.fields?.[ORIGIN]?.trim()
+    return [props.label?.trim(), origin && `${ORIGIN}: ${origin}`].filter(Boolean).join(' · ') || null
+  }
   const fields = props.fields ?? {}
   const order = presets.byName[props.symbol]?.fields ?? []
   const keys = [...order, ...Object.keys(fields).filter((k) => !order.includes(k))]
   // a vehicle's label IS its name («TLF 1») and never equals the symbol's own, so it passes
   // …and a symbol marked «Gelöscht / erledigt» (lib/objectDone) ends on that STATUS with its time
   // — «Feuer · gelöscht 20:40» — the one word a grey glyph on paper cannot say by itself
-  const parts = [formatSymbolName(props.symbol), customLabel(props), ...keys.map((k) => fields[k]?.trim() && keyedValue(props, k, fields[k].trim())), globalMode === 'all' ? props.notes?.trim() : undefined, doneStatusText(props) ?? undefined]
+  // …and the Herkunft says what it is («Herkunft: Stützpunkt»): beside a Fahrer's name, a bare
+  // «Stützpunkt» on paper reads as a place
+  const value = (k: string, v: string) => (k === ORIGIN ? `${k}: ${v}` : keyedValue(props, k, v))
+  const parts = [formatSymbolName(props.symbol), customLabel(props), ...keys.map((k) => fields[k]?.trim() && value(k, fields[k].trim())), globalMode === 'all' ? props.notes?.trim() : undefined, doneStatusText(props) ?? undefined]
   const seen = new Set<string>()
   // one line: the legend wraps by itself, and a newline would start a second, unnumbered row
   return parts.filter((v): v is string => !!v && !seen.has(v) && !!seen.add(v)).map((v) => v.replace(/\s*\n\s*/g, ' ')).join(' · ')
@@ -460,8 +479,9 @@ export function symbolCaptionText(props: SymbolProps, globalMode: CaptionMode): 
   // and its Notizen were unreachable on the map.
   const vehicle = props.symbol === appConfig.symbols.vehicleName
   if (vehicle && mode !== 'all') return null
-  const fields = props.fields ?? {}
-  const order = (props.symbol ? presets.byName[props.symbol]?.fields : undefined) ?? Object.keys(fields)
+  // the Herkunft is never part of the caption: it is its own grey line under it (symbolOriginText)
+  const { [ORIGIN]: _origin, ...fields } = props.fields ?? {}
+  const order = ((props.symbol ? presets.byName[props.symbol]?.fields : undefined) ?? Object.keys(fields)).filter((k) => k !== ORIGIN)
   const label = vehicle ? undefined : customLabel(props)
   if (mode === 'all') {
     // 'all' = EVERYTHING the operator typed on this symbol: the preset detail fields (in canonical
@@ -494,6 +514,21 @@ export function symbolCaptionText(props: SymbolProps, globalMode: CaptionMode): 
   return primary || (firstPlain && fields[firstPlain].trim()) || label || null
 }
 
+/** The vehicle's «Herkunft» as the map prints it: a small grey line under the caption
+ *  (TacticalSymbol · origin), on the Karte and the Plan alike – or null for the own Feuerwehr
+ *  (empty) and wherever captions are off. It ignores 'auto' vs 'all': the one fact that says «not
+ *  ours» is worth its line in both. */
+export function symbolOriginText(props: SymbolProps, globalMode: CaptionMode): string | null {
+  if ((props.caption ?? globalMode) === 'off') return null
+  return props.fields?.[ORIGIN]?.trim() || null
+}
+
+/** The caption box's text as the label pass measures it: the caption, then the Herkunft line. */
+export function symbolCaptionBoxText(props: SymbolProps, globalMode: CaptionMode): string | null {
+  const lines = [symbolCaptionText(props, globalMode), symbolOriginText(props, globalMode)].filter(Boolean)
+  return lines.length ? lines.join('\n') : null
+}
+
 // ─── admin: the configurable symbol/field catalog ──────────────────────────────────
 // The Fahrzeuge-&-Geräte viewer browses EVERY library symbol and shows each one's attributes. A
 // symbol's attributes are its special 'title' (only the user-titled vehicle) plus each preset
@@ -505,6 +540,8 @@ export interface ConfigurableField {
   key: string
   /** person-name field (Name / Fahrer): filled from the Mannschaft, not config-listable here */
   roster: boolean
+  /** the vehicle's «Herkunft»: its list is the station's ONE `fleet.origins`, not a per-symbol one */
+  origin?: boolean
 }
 
 /** Every attribute a symbol exposes, in display order: the vehicle's special 'title' (only the
@@ -514,6 +551,6 @@ export function symbolConfigurableFields(name?: string, cat?: string): Configura
   const rosterSet = new Set<string>(appConfig.symbols.rosterFields)
   const out: ConfigurableField[] = []
   if (name === appConfig.symbols.vehicleName) out.push({ key: 'title', roster: false })
-  for (const f of p?.fields ?? []) out.push({ key: f, roster: rosterSet.has(f) })
+  for (const f of p?.fields ?? []) out.push({ key: f, roster: rosterSet.has(f), ...(f === ORIGIN ? { origin: true } : {}) })
   return out
 }
