@@ -18,8 +18,6 @@ import type { LineTone, TeamLineBadge } from '../lib/truppLines'
 const NO_LABELS: ReadonlySet<string> = new Set()
 /** `.sym-caption { margin-top }` (03-map.css), held to the CSS in lib/mapView */
 const CAPTION_GAP = SYM_CAPTION_GAP
-/** the end tag's Marker `offset={[0, -14]}` (MapView) */
-const END_TAG_LIFT = 14
 /** the line-readout / radius Markers' `anchor="bottom"` offsets (MapView) */
 const READOUT_LIFT = 10
 const RADIUS_LIFT = 4
@@ -73,8 +71,9 @@ export interface LabelPassScene {
   /** the Leitung each Trupp marker works (lib/truppLines · teamLineBadges) */
   teamLines: ReadonlyMap<string, TeamLineBadge>
   drawingsVisible: boolean
-  /** the FKS-decorated lines, with their end tag's default anchor and alarm tone */
-  lineDecor: readonly { d: Drawing; anchor: LngLat; tone: LineTone }[]
+  /** the FKS-decorated lines with their alarm tone, each end tag at its ground point + the Marker's
+   *  px offset (MapView · lib/endTagSpots · endTagOffset) */
+  lineDecor: readonly { d: Drawing; tagAt: LngLat; tagOffset: readonly [number, number]; tone: LineTone }[]
   /** a line's readout plate: measured values (mono) and free text (`words`, sans), one row each */
   drawLabels: readonly { id: string; coord: LngLat; lines: readonly { text: string; words: boolean }[] }[]
   circleLabels: readonly { id: string; coord: LngLat; text: string }[]
@@ -181,7 +180,7 @@ export function mapLabelDecisions(px: (c: LngLat) => { x: number; y: number }, s
     for (const ld of lineDecor) {
       const text = endTagText(ld.d)
       if (!text) continue
-      const p = px(ld.d.endLabelAt ?? ld.anchor)
+      const p = px(ld.tagAt)
       const s = cachedLabelSize(text, LABEL_STYLE.endTag)
       cands.push({
         key: `tag:${ld.d.id}`,
@@ -189,7 +188,7 @@ export function mapLabelDecisions(px: (c: LngLat) => { x: number; y: number }, s
           : ld.tone === 'crit' || ld.tone === 'warn' ? LABEL_RANK.criticalTag : LABEL_RANK.tag,
         pinned: !!ld.d.endLabelAt,
         dist: near(p),
-        box: { x: p.x - s.w / 2, y: p.y - END_TAG_LIFT - s.h / 2, w: s.w, h: s.h },
+        box: { x: p.x + ld.tagOffset[0] - s.w / 2, y: p.y + ld.tagOffset[1] - s.h / 2, w: s.w, h: s.h },
       })
     }
     for (const l of drawLabels) {
