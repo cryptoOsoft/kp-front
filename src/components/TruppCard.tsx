@@ -655,16 +655,18 @@ export function TruppCard({
    * ⚠️ An OUT card's two values carry a word each (owner pick C18, 05.11.2026): «drin 29:00 min ·
    * raus mit 175 bar» — the finished Einsatzzeit and the pressure it came out with, which
    * unworded read as a running clock and a live reading. In the line's one word style (the
-   * Schätzung's). Only out of a real run: a crew stood down at the door was never «drin». */
+   * Schätzung's). Only out of a real run: a crew stood down at the door was never «drin».
+   * Those two joining words are `quiet` (hill climb r13, 05.11.2026): dim ink at 500, so the
+   * values read first — never the Schätzung's word, which keeps full ink and weight (T2). */
   const outWords = out && !neverDeployed
-  const sockelLine: { key: string; label: string; value: string; alarm?: boolean; labelled?: boolean; title?: string }[] = [
+  const sockelLine: { key: string; label: string; value: string; alarm?: boolean; labelled?: boolean; quiet?: boolean; title?: string }[] = [
     ...(monitored && t.entryTime
       // a DURATION that says so — «23:39» read at 23:58 was taken for a clock time (staging r4)
-      ? [{ key: 'elapsed', label: outWords ? az.footInside : az.elapsed, value: fmtDuration(live.elapsedSec), labelled: outWords }] : []),
+      ? [{ key: 'elapsed', label: outWords ? az.footInside : az.elapsed, value: fmtDuration(live.elapsedSec), labelled: outWords, quiet: outWords }] : []),
     ...(live.outSec != null && !out
       ? [{ key: 'out', label: words.outFor, value: fmtDuration(live.outSec), labelled: true }] : []),
     ...(monitored && !(canEdit && inField)
-      ? [{ key: 'bar', label: outWords ? az.footOutAt : az.currentPressure, value: `${live.currentBar} bar`, alarm: pressureLow, labelled: outWords }] : []),
+      ? [{ key: 'bar', label: outWords ? az.footOutAt : az.currentPressure, value: `${live.currentBar} bar`, alarm: pressureLow, labelled: outWords, quiet: outWords }] : []),
     ...(estimate
       ? [{
         key: 'est',
@@ -950,7 +952,7 @@ export function TruppCard({
           <span className={s.metaLine}>
             {sockelLine.length > 0 ? sockelLine.map((it) => (
               <span key={it.key} title={it.title}>
-                {it.labelled && <i>{it.label}</i>}
+                {it.labelled && <i className={cx(it.quiet && s.metaWordQuiet)}>{it.label}</i>}
                 {/* the Einsatzzeit / «Draussen seit» past a day in the head's compact «3d 10h» — one card, one spelling */}
                 <b className={cx(it.alarm && s.metaAlarm)}><ClockVal val={it.value} /></b>
               </span>
