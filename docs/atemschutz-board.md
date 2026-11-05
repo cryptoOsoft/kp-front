@@ -137,10 +137,14 @@ questions, and what the record keeps (`components/AtemschutzView`; the card and 
   - *The tablet grid shows every foot* (hill climb r4, 04.11.2026): on the 1180×820 iPad the second
     row's foot (duration, Schätzung) met the panel's bottom edge. The space came out of air, never a
     target: the caption row above the digits is reserved on every grid card, so names still line
-    up across a row; on touch the board starts 6px under the page head (8 until r13, when the
-    caption took 2px more air above it and the band 2px less under the crew) and the cards sit
-    12px apart (on a mouse too since r13, with 8px top air). Tiles, chips, their pads and the foot
-    line keep their heights on touch.
+    up across a row. Tiles, chips, their pads and the foot line keep their heights on touch.
+    Since r16 (05.11.2026) the board starts 16px under the page head on every board (it was 6px on
+    touch, 8 on a mouse – tight under the head's rule beside the 22px sides). The room on the iPad
+    came from the touch grid's card gap (8px, 12 on a mouse) and its crew line (a 22px box, an 18px
+    line, its touch pad 11px so it still owns 44px); a mouse keeps the 28px crew box and ends the
+    board 12px under the last row, so the 1536×864 laptop does not scroll. The board's scroller
+    reserves a classic scrollbar's gutter on both edges (`scrollbar-gutter: stable both-edges`), so
+    its visible left and right insets are equal; an overlay scrollbar (iPad, phone) reserves none.
 
 ## The Atemschutz-Link board (the handed-over phone board, `lite && compact`)
 
