@@ -47,6 +47,14 @@ export async function fetchElevationProfile(coords: LngLat[], signal?: AbortSign
   return { points, min, max, gain, loss, start: points[0].alt, end: points[points.length - 1].alt }
 }
 
+/** The same profile walked from its far end (a Wassertransport whose water runs back along the
+ *  drawn line, lib/useRelay): distances measured from the other end, ascent and descent swapped. */
+export function reverseProfile(p: ProfileResult): ProfileResult {
+  const total = p.points[p.points.length - 1]?.dist ?? 0
+  const points = p.points.map((q) => ({ dist: total - q.dist, alt: q.alt })).reverse()
+  return { points, min: p.min, max: p.max, gain: p.loss, loss: p.gain, start: p.end, end: p.start }
+}
+
 /** One tapped node of the measured path, placed on its own profile. */
 export interface ProfileNode {
   /** 0‥1 along the chart's x axis */
@@ -73,14 +81,16 @@ export function profileNodes(p: ProfileResult, path: LngLat[]): ProfileNode[] {
   const total = cum[cum.length - 1]
   if (!(total > 0)) return []
   const maxDist = p.points[p.points.length - 1].dist || 1
-  const altAt = (d: number) => {
-    const pts = p.points
-    const hi = pts.findIndex((q) => q.dist >= d)
-    if (hi <= 0) return pts[hi === 0 ? 0 : pts.length - 1].alt
-    const a = pts[hi - 1], b = pts[hi]
-    return b.dist === a.dist ? b.alt : a.alt + ((d - a.dist) / (b.dist - a.dist)) * (b.alt - a.alt)
-  }
-  return cum.map((dist) => ({ frac: dist / total, dist, alt: altAt((dist / total) * maxDist) }))
+  return cum.map((dist) => ({ frac: dist / total, dist, alt: altitudeAt(p, (dist / total) * maxDist) }))
+}
+
+/** The profile's height at `d` (its own metres), between its samples; its ends beyond them. */
+export function altitudeAt(p: ProfileResult, d: number): number {
+  const pts = p.points
+  const hi = pts.findIndex((q) => q.dist >= d)
+  if (hi <= 0) return pts[hi === 0 ? 0 : pts.length - 1].alt
+  const a = pts[hi - 1], b = pts[hi]
+  return b.dist === a.dist ? b.alt : a.alt + ((d - a.dist) / (b.dist - a.dist)) * (b.alt - a.alt)
 }
 
 /** Which node labels fit: both ends always, an inner one only with `minGap` (a share of the axis)

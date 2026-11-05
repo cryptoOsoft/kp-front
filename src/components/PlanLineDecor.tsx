@@ -11,10 +11,10 @@ import type { BoardAnno, BoardTool, Trupp } from '../types'
 import { appConfig } from '../config/appConfig'
 import { markerParamsAlong, markerSpacing, markerGlyph, lerpPoint, lookbackPoint } from '../lib/lineStyle'
 import { TeilstueckFork, EndTag } from '../lib/lineDecor'
-import { boardPts, endTagText, placeEndTag, tagSize } from '../lib/endTagSpots'
+import { boardPts, endTagText, placeEndTag, planArrowBackPx, planArrowHead, tagSize } from '../lib/endTagSpots'
 import { truppForLine, truppLineTone } from '../lib/truppLines'
-import { arrowTipLeadPx } from '../lib/lineAttachments'
 import { fmtDistance, hoseLengthHint } from '../lib/geo'
+import { hoseLines } from '../lib/hydraulics'
 
 const COLORS = appConfig.drawing.colors
 interface Props {
@@ -52,18 +52,18 @@ export function PlanLineDecor({ a, sW, sH, mapY, onSection, trupps, truppSeverit
   // follows, whose storey it is on.
   const onLine = (seg: number, at: [number, number]) => onSection(p[seg][2] ?? a.floor, at)
   const endShown = onLine(bpx.length - 1, end)
-  // arrowhead sized to the line weight (tip at 0,0 = the end point), like a real spitze
-  const ahw = Math.max(7, (a.width ?? 5) * 1.7) // half-width
-  const ahl = ahw * 2.1 // length back from the tip
+  // arrowhead sized to the line weight (tip at 0,0 = the end point), like a real spitze – its
+  // half-width, length back from the tip and lead past the end (lib/endTagSpots · planArrowHead:
+  // the end tag stands short of it)
+  const { halfW: ahw, len: ahl, lead: fwd } = planArrowHead(a.width ?? 5)
   // bearing from a point sampled back along the stroke (stable; the last freehand
   // segment is tiny + jittery), so the head points the way the line actually travels
   const ref = lookbackPoint(bpx, Math.max(ahl, 16))
   const dxr = end[0] - ref[0], dyr = end[1] - ref[1]
   const dlen = Math.hypot(dxr, dyr) || 1
   const ang = Math.atan2(dyr, dxr) * 180 / Math.PI
-  // push the tip a little PAST the line's visual end: clear the round cap (~half the
+  // push the tip `fwd` PAST the line's visual end: clear the round cap (~half the
   // stroke width beyond the last vertex), then a few px more so the spitze leads the line
-  const fwd = arrowTipLeadPx(a.width ?? 5)
   const last: [number, number] = [end[0] + (dxr / dlen) * fwd, end[1] + (dyr / dlen) * fwd]
   // `deg` rides along so an FKS chain glyph stands on the line; a letter ignores it.
   // Board px are screen px here (the board is only translated/scaled), so the bearing
@@ -82,7 +82,7 @@ export function PlanLineDecor({ a, sW, sH, mapY, onSection, trupps, truppSeverit
   const lineTone = lineTrupp ? truppLineTone(lineTrupp, truppSeverities?.[lineTrupp.id] ?? 0) : 'idle'
   const distM = a.showDistance ? planMetres(a.pts!.map(([x, y]) => [x, y])) : null
   const labelLines: string[] = []
-  if (distM != null) labelLines.push(`${fmtDistance(distM)} · ${hoseLengthHint(distM)}`)
+  if (distM != null) labelLines.push(`${fmtDistance(distM)} · ${hoseLengthHint(distM, hoseLines(a.hose))}`)
   else if (a.showDistance) labelLines.push(appConfig.copy.whiteboard.scale.needsCalibration)
   if (a.label) labelLines.push(a.label)
   return (
@@ -107,15 +107,15 @@ export function PlanLineDecor({ a, sW, sH, mapY, onSection, trupps, truppSeverit
         </span>
       )}
       {/* one combined FKS tag (Leitung-Nr · content · Stockwerk · the Trupp) — PINNED to its line
-          (owner pick, sweep 28.10.2026 #8b): on its last segment, a fixed gap off the stroke at every
-          zoom, on the first spot that covers no symbol, chip or other tag (planEndTagSpots). Never
-          nudged by hand: the old drag offset was in sheet units, so it grew with the zoom, and a
-          Karte line brought the ground point of its tag (endLabelAt) – both left the tag floating
-          off its line. */}
+          (owner pick, sweep 28.10.2026 #8b): beside its end, short of the arrowhead (hill climb r16),
+          a fixed gap off the stroke at every zoom, on the first spot that covers no symbol, chip or
+          other tag (planEndTagSpots). Never nudged by hand: the old drag offset was in sheet units,
+          so it grew with the zoom, and a Karte line brought the ground point of its tag
+          (endLabelAt) – both left the tag floating off its line. */}
       {(a.content || a.lineNo != null || a.floorTag != null || lineTrupp) && (() => {
         const text = endTagText(a)
         const { w, h } = tagSize(text)
-        const at = tagAt ?? placeEndTag(bpx, w, h, [])
+        const at = tagAt ?? placeEndTag(bpx, w, h, [], planArrowBackPx(a))
         if (!onLine(bpx.length - 1, at)) return null
         return (
           <span className="wb-line-deco" style={{ transform: `translate(${at[0]}px, ${at[1]}px) translate(-50%, -50%)` }}>

@@ -1,6 +1,10 @@
 import { useState, type ReactElement, type ReactNode } from 'react'
-import { Popover as BasePopover } from '@base-ui/react/popover'
+import { Popover as BasePopover, type PopoverPositionerProps, type PopoverRootChangeEventDetails } from '@base-ui/react/popover'
 import { usePopoverGuard } from './popoverGuard'
+
+/** Why a popover opened or closed, and the native event that did it — enough for a caller to
+ *  ignore, say, an outside press that landed on a control which toggles the popover itself. */
+export type PopoverChange = Pick<PopoverRootChangeEventDetails, 'reason' | 'event'>
 
 /**
  * Anchored, non-modal popover — wraps Base UI's Popover. The Positioner anchors to the trigger
@@ -11,11 +15,19 @@ import { usePopoverGuard } from './popoverGuard'
  * trapped to the TopBar).
  *
  * Uncontrolled by default (the trigger toggles it); pass `open`/`onOpenChange` to control it.
+ * ANCHOR mode (`anchor`, 04.11.2026 – the Wassertransport's pump bubble): a controlled popover
+ * opens AT an element that is no trigger – a dot on a chart, a marker on the map – and the
+ * trigger may be left out. The element's own tap handler opens and closes it; `onOpenChange`'s
+ * second argument says why Base UI wants it closed, so that handler's own press can be ignored
+ * (it would otherwise close the popover, and the tap reopen it).
  * NOTE: for surfaces that must NOT be dismissed/focus-managed and must let the map stay live
  * underneath (map tool-docks like MapViewsMenu), keep the hand-rolled dock — do not use this.
  */
 export interface PopoverProps {
-  trigger: ReactElement
+  /** the control that toggles it; optional when `anchor` places a controlled popover */
+  trigger?: ReactElement
+  /** open at this element instead of the trigger (Base UI · Positioner `anchor`) */
+  anchor?: PopoverPositionerProps['anchor']
   children: ReactNode
   ariaLabel?: string
   popupClassName?: string
@@ -34,20 +46,24 @@ export interface PopoverProps {
    *  a phone the difference is not cosmetic — the Rapport's Kontrolle popover lost its first
    *  column of text off the left edge. A property of the surface being finite, not of a call site. */
   collisionPadding?: number
+  /** what the popup must stay inside (default: the anchor's clipping ancestors). An anchor inside
+   *  a scrolling panel passes the page (`document.documentElement`), so the popup may overflow
+   *  the panel instead of being squeezed into it. */
+  collisionBoundary?: PopoverPositionerProps['collisionBoundary']
   open?: boolean
-  onOpenChange?: (open: boolean) => void
+  onOpenChange?: (open: boolean, change: PopoverChange) => void
 }
 
-export function Popover({ trigger, children, ariaLabel, popupClassName, side = 'bottom', align = 'end', sideOffset = 8, alignOffset, collisionPadding = 10, zIndex, open, onOpenChange }: PopoverProps) {
+export function Popover({ trigger, anchor, children, ariaLabel, popupClassName, side = 'bottom', align = 'end', sideOffset = 8, alignOffset, collisionPadding = 10, collisionBoundary, zIndex, open, onOpenChange }: PopoverProps) {
   // uncontrolled callers give us no `open` to read, so the Root reports it — a popover open over
   // a Sheet/Overlay keeps that sheet's backdrop/Esc dismissal off (popoverGuard)
   const [isOpen, setIsOpen] = useState(false)
   usePopoverGuard(open ?? isOpen)
   return (
-    <BasePopover.Root open={open} onOpenChange={(next) => { setIsOpen(next); onOpenChange?.(next) }}>
-      <BasePopover.Trigger render={trigger} />
+    <BasePopover.Root open={open} onOpenChange={(next, { reason, event }) => { setIsOpen(next); onOpenChange?.(next, { reason, event }) }}>
+      {trigger && <BasePopover.Trigger render={trigger} />}
       <BasePopover.Portal>
-        <BasePopover.Positioner side={side} align={align} sideOffset={sideOffset} alignOffset={alignOffset} collisionPadding={collisionPadding} style={zIndex != null ? { zIndex } : undefined}>
+        <BasePopover.Positioner anchor={anchor} side={side} align={align} sideOffset={sideOffset} alignOffset={alignOffset} collisionPadding={collisionPadding} collisionBoundary={collisionBoundary} style={zIndex != null ? { zIndex } : undefined}>
           {/* `ui-pop`: shared exit hook — see 13-incident.css [data-ending-style] */}
           <BasePopover.Popup className={popupClassName ? `ui-pop ${popupClassName}` : 'ui-pop'} aria-label={ariaLabel}>
             {children}

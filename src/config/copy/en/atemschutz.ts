@@ -132,6 +132,9 @@ export const atemschutzCopy: Localizable<Pick<Copy, 'atemschutz' | 'lineDecor'>>
     elapsed: 'Deployment time',
     outFor: 'Out for',
     outForPlain: 'No task for', // ⚠️ app only — see de/atemschutz.ts · outForPlain
+    // an OUT card's foot words (de/atemschutz.ts · footInside): «inside 29:00 min · out at 175 bar»
+    footInside: 'inside',
+    footOutAt: 'out at',
     estimated: 'Estimated pressure',
     // the short form for the one line the Sockel leaves standing (09.09., see de/atemschutz.ts)
     estimatedShort: 'Estimate',

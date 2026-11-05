@@ -151,6 +151,21 @@ describe('ReportPreflight · the Einsatzdaten card', () => {
     fireEvent.click(head)
     expect(onEditDispatch).toHaveBeenCalledTimes(3)
   })
+
+  // owner C1, 05.11.2026: a missing REQUIRED fact warns where it stands; an optional one stays quiet
+  it('marks a missing Ort as a warning and leaves a missing Alarmmeldung faint', async () => {
+    render(
+      <ReportPreflight
+        incident={incident} reportMeta={{}} events={[]} canEdit={false}
+        annotatedPlanCount={0} truppCount={0} attendanceCount={1} mittelCount={1}
+        onSaveMeta={() => {}}
+      />,
+    )
+    await act(async () => {})
+    const valueOf = (label: string) => screen.getByText(label, { selector: 'dt' }).nextElementSibling?.firstElementChild
+    expect(valueOf(P.ort)).toHaveProperty('className', 'report-meta-missing')
+    expect(valueOf(P.alarmMessage)).toHaveProperty('className', 'report-meta-empty')
+  })
 })
 
 describe('ReportPreflight · Auswertung default and operator choice', () => {

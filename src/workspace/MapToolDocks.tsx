@@ -54,7 +54,7 @@ export interface MapToolDocksProps {
   setRotStart: Dispatch<SetStateAction<LngLat | null>>
   rotStart: LngLat | null
   tacticalLocked: boolean
-  createLine: (coords: LngLat[], attachments?: { startAttachment?: LineAttachment; endAttachment?: LineAttachment }, opts?: { select?: boolean }) => Drawing | null
+  createLine: (coords: LngLat[], attachments?: { startAttachment?: LineAttachment; endAttachment?: LineAttachment }, opts?: { select?: boolean; props?: Pick<Drawing, 'hose' | 'relay'> }) => Drawing | null
   createArea: (coords: LngLat[], opts?: { select?: boolean }) => Drawing | null
   replayActive: boolean
   railLabels: RailLabels
@@ -81,6 +81,8 @@ export interface MapToolDocksProps {
   trupps: Trupp[]
   placeTruppOnMap: (id: string, atCoord?: LngLat, revive?: { id: string; trail: GeoTrailPoint[] }) => string | undefined
   placeGenericTeam: (c: LngLat) => void
+  /** a Wassertransport's pumps put on the Karte as Motorspritzen (useMapActions · placePumpSymbols) */
+  placePumpSymbols: (coords: LngLat[]) => void
 }
 
 export function MapToolDocks({
@@ -89,7 +91,7 @@ export function MapToolDocks({
   measure, pendingShape, setPendingShape, setRotStart, rotStart, tacticalLocked, createLine,
   createArea, replayActive, railLabels, slimMapTools, pick, panel, layersPreset, togglePanel, viewsApi,
   view, readOnly, isEl, viewsOpen, sharePick, shareParent, toggleViews, coord, mapRef, paletteOpen,
-  sym, setPaletteOpen, pickShape, teamPick, trupps, placeTruppOnMap, placeGenericTeam,
+  sym, setPaletteOpen, pickShape, teamPick, trupps, placeTruppOnMap, placeGenericTeam, placePumpSymbols,
 }: MapToolDocksProps) {
   return (
     <>
@@ -210,15 +212,23 @@ export function MapToolDocks({
       )}
       {mapUI && tool === 'measure' && (
         <MeasurePanel mode={measure.mode} coords={measure.path} profile={measure.profile} profileLoading={measure.loading}
+          relay={measure.relay}
+          // the Strecke's pumps put on the Karte as Motorspritzen – not from a locked surface
+          onPlacePumps={tacticalLocked ? undefined : placePumpSymbols}
           // «Als Linie/Fläche übernehmen»: the measured points become a real line resp. Fläche
           // (createLine/createArea drop into Select with it active, so its editor opens straight
           // away). Hidden on a locked surface — there, Messen is a question the EL may ask, not a
-          // way to draw — and while the measurement is still too short to be one.
+          // way to draw — and while the measurement is still too short to be one. An opened
+          // Wassertransport goes WITH the line: its hose, flow, source and the pumps moved by hand
+          // (never pump symbols – those are its own «Pumpen als Symbole setzen»). The same call is
+          // the Wassertransport's «Als Leitung auf die Karte» (MeasurePanel · WaterRelay).
           onAdopt={!tacticalLocked && measure.path.length >= (measure.mode === 'line' ? 2 : 3)
             ? () => {
               const coords = measure.path
+              // (opened on its defaults it is still one: an empty `relay`, so the Leitung shows it)
+              const relay = measure.relay.open ? { ...measure.relay.value, relay: measure.relay.value.relay ?? {} } : undefined
               measure.reset()
-              if (measure.mode === 'line') createLine(coords)
+              if (measure.mode === 'line') createLine(coords, undefined, { props: relay })
               else createArea(coords)
             }
             : undefined} />
@@ -263,9 +273,12 @@ export function MapToolDocks({
                 <MapViewsButton api={viewsApi} bearing={view.bearing} readOnly={readOnly || isEl} variant="rail" btnClassName="vrail-nbtn vrail-views" activeClassName="on" glyphClassName="vrail-compass" label={appConfig.copy.mapViews.title} open={viewsOpen && !(sharePick && shareParent === 'views')} onOpenChange={toggleViews} coordsOn={coord.mode !== 'off'} onToggleCoords={coord.cycle} />
                 {/* zoom ±: desktop only (.vrail-zoom is hidden under 1024px). Every touch form
                     factor pinches, and on a tablet the two buttons cost rail space that the
-                    tools above need more. */}
-                <button className="vrail-nbtn vrail-zoom" title={c.zoomOut} aria-label={c.zoomOut} onClick={() => mapRef.current?.zoomOut()}><span className="vrail-glyph"><Icon id="minus" /></span><span className="vrail-label">{c.zoomOut}</span></button>
+                    tools above need more. «+» on top, as on every map (owner pick C9, 05.11.2026).
+                    The pair is its own group, split from the compass by the rails' one hairline
+                    (owner pick C12) – a .vrail-zoom itself, so it goes wherever the buttons go. */}
+                <span className="vrail-sep rail-sep vrail-zoom" aria-hidden />
                 <button className="vrail-nbtn vrail-zoom" title={c.zoomIn} aria-label={c.zoomIn} onClick={() => mapRef.current?.zoomIn()}><span className="vrail-glyph"><Icon id="plus" /></span><span className="vrail-label">{c.zoomIn}</span></button>
+                <button className="vrail-nbtn vrail-zoom" title={c.zoomOut} aria-label={c.zoomOut} onClick={() => mapRef.current?.zoomOut()}><span className="vrail-glyph"><Icon id="minus" /></span><span className="vrail-label">{c.zoomOut}</span></button>
               </>
             )
           })()}

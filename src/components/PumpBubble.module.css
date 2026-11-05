@@ -1,0 +1,26 @@
+/* The tapped pump's bubble (PumpBubble.tsx) – portalled to <body>, so nothing of the Wassertransport
+   section's own stylesheet reaches it: the pump hue is mixed here again (the same one
+   WaterRelay.module.css and RelayPumpMarkers.module.css mix – from tokens, so it follows the theme).
+   The width is the phone's, capped; the Popover keeps it in view. */
+.bubble {
+  --wt-pump: color-mix(in srgb, var(--red) 55%, var(--amber));
+  width: min(304px, calc(100vw - 24px)); box-sizing: border-box;
+  display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-2) var(--sp-2) var(--sp-3) var(--sp-3);
+  border-radius: var(--r-surface); background: var(--surface); box-shadow: var(--e4); text-align: left; color: var(--ink);
+}
+.head { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; }
+.where { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.where b { font: var(--fw-bold) var(--fs-1) var(--body); color: var(--ink); }
+.where span { font: var(--fw-medium) var(--fs-micro) var(--body); color: var(--ink-dim); }
+.row { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); }
+/* the two pressures are separate readings – a hairline and air between them, so the stepper's
+   big ± (the --tap floor, for gloves) doesn't crowd the value above it (owner 04.11.2026) */
+.row + .row { border-top: 1px solid var(--border-soft); padding-top: var(--sp-2); }
+.row > span { font-size: var(--fs-1); color: var(--ink-dim); }
+.row > b { font: var(--fw-bold) var(--fs-2) var(--mono); padding-right: var(--sp-1); }
+.row > :global(.step) { flex: 0 0 auto; }
+.row :global(.step-val) { white-space: nowrap; }
+.badge { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; flex: none;
+  background: var(--wt-pump); color: var(--on-fill); font: var(--fw-heavy) var(--fs-micro) var(--body); }
+.badgeLow { background: var(--red-fill); }
+.bad { color: var(--red-strong); }

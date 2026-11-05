@@ -87,6 +87,44 @@ export function pathLengthM(coords: LngLat[]): number {
   return sum
 }
 
+/** The point `d` metres along a polyline from its first vertex (clamped to its ends) — where a
+ *  relay pump at «420 m» stands on the map (lib/hydraulics). Interpolated linearly in degrees
+ *  inside a segment, which is exact enough over the few hundred metres one segment spans. */
+export function pointAlongPath(coords: LngLat[], d: number): LngLat {
+  if (!coords.length) return [0, 0]
+  let rest = Math.max(0, d)
+  for (let i = 1; i < coords.length; i++) {
+    const a = coords[i - 1], b = coords[i]
+    const seg = haversineM(a, b)
+    if (rest <= seg || i === coords.length - 1) {
+      const t = seg > 0 ? Math.min(1, rest / seg) : 0
+      return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]
+    }
+    rest -= seg
+  }
+  return coords[coords.length - 1]
+}
+
+/** How far along a polyline (metres from its first vertex) the point on it NEAREST to `p` lies —
+ *  the inverse of `pointAlongPath`, for a pump dragged beside its line. The nearest point is
+ *  found in a local flat projection (fine at one incident's scale); the distance is geodesic. */
+export function distanceAlongPath(coords: LngLat[], p: LngLat): number {
+  const kx = Math.cos((p[1] * Math.PI) / 180) * 111320, ky = M_PER_LAT
+  let best = Infinity, bestD = 0, acc = 0
+  for (let i = 1; i < coords.length; i++) {
+    const a = coords[i - 1], b = coords[i]
+    const ax = a[0] * kx, ay = a[1] * ky, dx = b[0] * kx - ax, dy = b[1] * ky - ay
+    const px = p[0] * kx, py = p[1] * ky
+    const len2 = dx * dx + dy * dy
+    const t = len2 ? Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / len2)) : 0
+    const d2 = (ax + t * dx - px) ** 2 + (ay + t * dy - py) ** 2
+    const seg = haversineM(a, b)
+    if (d2 < best) { best = d2; bestD = acc + t * seg }
+    acc += seg
+  }
+  return bestD
+}
+
 /** human distance: metres under 1 km, else kilometres with one decimal */
 export function fmtDistance(m: number): string {
   if (m < 1000) return `${Math.round(m)} m`
@@ -94,18 +132,20 @@ export function fmtDistance(m: number): string {
 }
 
 /** how many hose lengths a run needs: distance + a reserve margin, divided by the nominal
- *  hose length, rounded UP (you can't lay a fraction of a hose). Both the reserve (default
- *  10 %) and the hose length (default 20 m) come from appConfig.drawing. */
-export function hoseCount(lenM: number): number {
+ *  hose length, rounded UP (you can't lay a fraction of a hose) — times `lines` for a double
+ *  line («2× 75», lib/hydraulics · HOSES). Both the reserve (default 10 %) and the hose length
+ *  (default 20 m) come from appConfig.drawing. */
+export function hoseCount(lenM: number, lines = 1): number {
   const h = appConfig.drawing.hoseLengthM
   const reserve = appConfig.drawing.hoseReservePct ?? 0
   if (!(lenM > 0) || !(h > 0)) return 0
-  return Math.ceil((lenM * (1 + reserve)) / h)
+  return Math.ceil((lenM * (1 + reserve)) / h) * lines
 }
 
-/** hose-length helper for the Messpfeil label, e.g. "~5 Schläuche" (incl. the reserve). */
-export function hoseLengthHint(lenM: number): string {
-  return appConfig.copy.hoseHint.replace('{n}', String(hoseCount(lenM)))
+/** hose-length helper for the Messpfeil label, e.g. "~5 Schläuche" (incl. the reserve); `lines`
+ *  as in hoseCount (lib/hydraulics · hoseLines). */
+export function hoseLengthHint(lenM: number, lines = 1): string {
+  return appConfig.copy.hoseHint.replace('{n}', String(hoseCount(lenM, lines)))
 }
 
 /** planar area of a polygon (m²), shoelace over LV95 metric coords — accurate for

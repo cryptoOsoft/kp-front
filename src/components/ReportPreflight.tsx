@@ -63,7 +63,7 @@ import { CaptureUsageChip, type CaptureUsage } from './CaptureUsageChip'
 import { DateTimeField, TimeField } from './TimeField'
 import { Stepper } from './Stepper'
 import { Menu, Popover } from '../lib/overlays'
-import { CheckRow } from './ReportCheckRow'
+import { CheckRow, StatusMark } from './ReportCheckRow'
 import { dirtyFormMeta, formToMeta, geretteteMeta, numOrU, partnerFilled, partnersMeta, remoteForm, rueckMeta, type ReportForm } from './reportForm'
 import { normCount, normDtLocal, normList, normPartners, normText, useBlurTick, useSyncedField } from './useSyncedField'
 import { ReportSignatures } from './ReportSignatures'
@@ -101,6 +101,14 @@ function clockOf(iso?: string): string {
 function ReadOut({ value }: { value?: string | null }) {
   const v = value?.trim()
   return <div className={cx('rp-readout', !v && 'report-meta-empty')}>{v || appConfig.copy.preflight.notRecorded}</div>
+}
+
+/** A dispatch fact the Rapport needs and the Einsatzdaten do not hold yet – Stichwort, Ort,
+ *  Alarmierung (owner pick C1, 05.11.2026): «Nicht erfasst» in the head chip's warning ink with
+ *  its ⚠, so the gap shows where it stands, not only through «4 offen». Optional facts (the
+ *  Alarmmeldung, which nobody writing is the common case) stay on faint ink. */
+function MissingFact() {
+  return <span className="report-meta-missing"><Icon id="warn" />{appConfig.copy.preflight.notRecorded}</span>
 }
 
 
@@ -1120,6 +1128,14 @@ export function ReportPreflight({
   // are warnings, they live beside the buttons they must be read before, and a header that also
   // mentioned them would be the second place to look for the same thing.
   const missing = missingSteps(facts)
+  /* Each form section's own open/done state, for the status mark after its eyebrow (StatusMark,
+   * hill climb r24): the same mark the round-up's CheckRows carry, read off the same `missing` list
+   * the head's «n offen» counts – a section is open while one of its Mindestangaben is. The
+   * Einsatzdaten card is open while a fact it draws as «Nicht erfasst» (MissingFact) is missing.
+   * «Zeiten» holds no Mindestangabe (Einsatzende is the Nachbearbeitung's), so it has no state and
+   * no mark. */
+  const sectionDone = (steps: readonly AbschlussStep[]) => !steps.some((st) => missing.includes(st))
+  const dispatchDone = !!incident.title && !!incident.address && !!alarmiert
   /* What is still open rides inside the ONE Kontrolle chip, at every width (23.09.2026, option B
    * of the UX review). It was a strip of 18px chips under the title on a wide head — the smallest
    * targets in the product, 5–7px apart — and this same popover only below 860px. Raising the
@@ -1214,7 +1230,8 @@ export function ReportPreflight({
           gap around an inset card makes a form look like something floating over the map, and
           this surface is where somebody sits and writes. */}
       <div className="rp-backdrop" aria-hidden />
-      <div className={cx('report-preflight report-preflight-surface', surface.shell)}>
+      {/* `pageGrid`: the Trupps page's inset and gap (Surface.module.css · THE PAGE GRID) */}
+      <div className={cx('report-preflight report-preflight-surface', surface.shell, surface.pageGrid)}>
         {/* The same head every other surface wears (Anwesenheit, Mittel): a title, and under it
             one line of what is actually recorded. It carried a bare title and an ✕ — dialog
             chrome, which is what a page inherits when it used to be a sheet. No ✕ either: a
@@ -1511,9 +1528,12 @@ export function ReportPreflight({
         )}
         {/* PHONE ONLY — `display: none` from 601px up, so tablet and desktop are byte-identical
             to what they were. Outside the scrolling body on purpose: it is a flex item of the
-            surface, like the head, so it cannot scroll away from under the thumb. The dot marks
-            a tab holding a Mindestangabe that is still open — the same amber the head's chips
-            use, so «noch offen» means one thing on this page. */}
+            surface, like the head, so it cannot scroll away from under the thumb. A tab holding a
+            Mindestangabe that is still open carries the page's OPEN mark after its word – the
+            dashed ring its section heads wear (StatusMark, hill climb r24; an amber corner dot
+            until then read as a notification badge, a second language for «offen»). The amber
+            stays the head's «n offen» chip's, the count. A done tab carries nothing: a tab is a
+            way to a page, not a section, and discs on two of three tabs read as bullets. */}
         <PhoneTabBar<PhoneTab>
           ariaLabel={P.tabsLabel}
           value={phoneTab}
@@ -1524,7 +1544,7 @@ export function ReportPreflight({
             return {
               value: t,
               title: open ? `${P.tabs[t]} – ${P.headStillOpen}` : P.tabs[t],
-              label: <>{P.tabs[t]}{open && <span className="rp-tab-dot" aria-hidden />}</>,
+              label: <>{P.tabs[t]}{open && <StatusMark done={false} />}</>,
             }
           })}
         />
@@ -1581,16 +1601,16 @@ export function ReportPreflight({
                     e.preventDefault()
                     onEditDispatch()
                   }}>
-                  {P.fromDispatch}
+                  {P.fromDispatch}<StatusMark done={dispatchDone} />
                 </span>
-              ) : <span className="report-meta-dispatch-head">{P.fromDispatch}</span>}
+              ) : <span className="report-meta-dispatch-head">{P.fromDispatch}<StatusMark done={dispatchDone} /></span>}
               <dl className="report-meta-readout">
                 {/* Stichwort, Art and Ort first (owner, 18.09.2026): the block is what the Rapport
                     was opened FOR, and with the three pages behind one tile the reader must see
                     which Einsatz this is without going back to the Karte. */}
-                <div><dt>{P.stichwort}</dt><dd>{incident.title || <span className="report-meta-empty">{P.notRecorded}</span>}</dd></div>
+                <div><dt>{P.stichwort}</dt><dd>{incident.title || <MissingFact />}</dd></div>
                 {incident.type && <div><dt>{P.einsatzart}</dt><dd>{incident.type}</dd></div>}
-                <div><dt>{P.ort}</dt><dd>{incident.address || <span className="report-meta-empty">{P.notRecorded}</span>}</dd></div>
+                <div><dt>{P.ort}</dt><dd>{incident.address || <MissingFact />}</dd></div>
                 {/* The gateway hands us one field holding four different things (see
                     lib/alarmText). Shown verbatim it is mostly machinery — a marching order,
                     an object's notes, and a 300-character link this app minted itself — under
@@ -1619,7 +1639,7 @@ export function ReportPreflight({
                     </dd>
                   </div>
                 )}
-                <div><dt>{P.alarmierung}</dt><dd>{alarmiert ? formatDateTime(alarmiert) : <span className="report-meta-empty">{P.notRecorded}</span>}</dd></div>
+                <div><dt>{P.alarmierung}</dt><dd>{alarmiert ? formatDateTime(alarmiert) : <MissingFact />}</dd></div>
               </dl>
             </div>
           </section>
@@ -1629,7 +1649,7 @@ export function ReportPreflight({
               sections now, each named after the question it answers, in exactly the order they
               were already in (that order is the printed rapport's). */}
           <section className="report-pre-section report-pre-meta" data-tab="bericht">
-            <h3>{P.sectionBericht}</h3>
+            <h3 className="rp-marked">{P.sectionBericht}<StatusMark done={sectionDone(['kurzbericht', 'einsatzleiter', 'kontaktperson'])} /></h3>
             {/* after-arrival — editable inline (replaces the old Bearbeiten modal).
                 ⚠️ `data-sync` marks which Rapportangabe the caret is in, so a value arriving
                 from another device is never yanked out from under somebody typing here — it is
@@ -1761,17 +1781,19 @@ export function ReportPreflight({
                       <div className="rz-count"><span>{P.geretteteTiere}</span><b>{numOrU(geretteteT) ?? '–'}</b></div>
                     </div>
                   ))) : (
+                // an empty count is a BLANK well, not the stepper's «–» beside its «−» (two minus
+                // signs, hill climb r18) — «nicht erfasst», never «0» (17-rapport · .rz-count)
                 <div className="rz-counts">
                   <div className="rz-count" data-sync="geretteteP">
                     <span>{P.gerettetePersonen}</span>
-                    <Stepper value={numOrU(geretteteP) ?? null} min={0} max={999} seed={1} ariaLabel={P.gerettetePersonen}
+                    <Stepper value={numOrU(geretteteP) ?? null} min={0} max={999} seed={1} placeholder="" ariaLabel={P.gerettetePersonen}
                       readOnly={meta.geretteteNone}
                       onChange={(v) => { setGeretteteP(String(v)); persist(geretteteMeta(String(v), geretteteT)) }}
                       onClear={() => { setGeretteteP(''); persist(geretteteMeta('', geretteteT)) }} canClear={geretteteP !== ''} />
                   </div>
                   <div className="rz-count" data-sync="geretteteT">
                     <span>{P.geretteteTiere}</span>
-                    <Stepper value={numOrU(geretteteT) ?? null} min={0} max={999} seed={1} ariaLabel={P.geretteteTiere}
+                    <Stepper value={numOrU(geretteteT) ?? null} min={0} max={999} seed={1} placeholder="" ariaLabel={P.geretteteTiere}
                       readOnly={meta.geretteteNone}
                       onChange={(v) => { setGeretteteT(String(v)); persist(geretteteMeta(geretteteP, String(v))) }}
                       onClear={() => { setGeretteteT(''); persist(geretteteMeta(geretteteP, '')) }} canClear={geretteteT !== ''} />
@@ -1951,7 +1973,7 @@ export function ReportPreflight({
           </section>
 
           <section className="report-pre-section report-pre-meta" data-tab="bericht">
-            <h3>{P.sectionNachbearbeitung}</h3>
+            <h3 className="rp-marked">{P.sectionNachbearbeitung}<StatusMark done={sectionDone(['zeiten', 'rueckmeldung'])} /></h3>
             <label className="ip-field" data-sync="remarks">
               <span>{P.remarksLabel}</span>
               {canEdit ? (

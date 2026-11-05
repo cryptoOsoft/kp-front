@@ -134,7 +134,7 @@ export type JournalProps = {
   /** correct a HAND-WRITTEN row's text — append-only `textEdit` patch, same pattern as the
    *  transcript edit. Offered on everything a person typed (composer entries, Meldungen,
    *  Nachdokumentation in the player) and on nothing the app wrote about an action; the
-   *  corrected line is marked «korrigiert HH:MM». See lib/verlauf · isHandWritten. */
+   *  corrected line is marked «Korrigiert HH:MM». See lib/verlauf · isHandWritten. */
   onEditText?: (id: string, text: string) => void
   /** where picture `i` of a row was taken, and what it can do on the Karte (lib/photoGeo ·
    *  photoPlacement). `null` for a picture without a position — the sheet then says nothing. */
@@ -407,8 +407,10 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
           target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>{p.text}</a>
       )
     }
+    // a name with its role is ONE unit on the line (`.jr-link-unit`, 10-journal.css): «(AS)»
+    // never wraps away from «Weber Nina», while the row still wraps between people
     return (
-      <b key={pi} className={`jr-link jr-link-${p.kind}`} title={p.hint} data-trupp={p.truppId}>
+      <b key={pi} className={`jr-link jr-link-${p.kind}${p.role ? ' jr-link-unit' : ''}`} title={p.hint} data-trupp={p.truppId}>
         {p.text}
         {p.role && <i className="jr-link-role"> ({p.role})</i>}
       </b>
@@ -697,7 +699,7 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
           {/* THE button's framed secondary (hill climb, 04.11.2026): it was the filled primary, and
               playing back history out-shouted the title and the open Pendenzen below it. */}
           {onReplay && (
-            <Button className="journal-replay" onClick={onReplay} title={C.replayHint} aria-label={C.replay} icon={<Icon id="play" />}>
+            <Button className="journal-replay" onClick={onReplay} title={C.replayHint} aria-label={C.replay} icon={<Icon id="play-circle" />}>
               <span>{C.replay}</span>
             </Button>
           )}

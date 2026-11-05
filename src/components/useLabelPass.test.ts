@@ -35,8 +35,8 @@ describe('mapLabelDecisions — Leitung end tags', () => {
   const line = (id: string, lineNo: number): Drawing => ({ id, kind: 'line', coords: [[0, 0], [0.1, 0]], lineNo } as Drawing)
   // two tags on the same spot: one on a Leitung whose Trupp is überfällig, one at rest
   const lineDecor = [
-    { d: line('due', 1), anchor: [0, 0] as LngLat, tone: 'crit' as const },
-    { d: line('calm', 2), anchor: [0, 0] as LngLat, tone: 'idle' as const },
+    { d: line('due', 1), tagAt: [0, 0] as LngLat, tagOffset: [0, -14] as const, tone: 'crit' as const },
+    { d: line('calm', 2), tagAt: [0, 0] as LngLat, tagOffset: [0, -14] as const, tone: 'idle' as const },
   ]
 
   it('the tag somebody\'s air depends on outranks a resting one', () => {

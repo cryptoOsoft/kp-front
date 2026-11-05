@@ -77,8 +77,9 @@ sheets, overlays, the button spec and the touch vocabulary. Phone-only layout is
   list of options — the 24px the dropped rules left behind read as something missing. The same
   rule reached the app chrome on 22.09.2026, and was then tuned by hand the same day — what
   stands is: the TOP BAR has ONE 8px gap between every neighbour and no groups at all (a wider
-  «group gap» was tried and read as holes); the LEFT rail keeps 14px of air around the plan
-  tiles; the TOOL rail's tools are ONE undivided list (the `sep` entries left `mapTools` /
+  «group gap» was tried and read as holes); BOTH rails split their groups by ONE hairline
+  (04b-rail · `.rail-sep`, owner pick C12, 05.11.2026 – the left rail kept 14px of air around the
+  plan tiles until then, which grouped the matched pair two ways); the TOOL rail's tools are ONE undivided list (the `sep` entries left `mapTools` /
   `planTools`) and its one hairline is the FOOT's, above the generic controls (Ebenen · compass ·
   zoom) — a real seam, where «select vs. create» was noise; the map-utility cluster has air; and
   the Einsatz menu draws ONE hairline, above the identity row (the small-caps label heads «App»
@@ -238,7 +239,8 @@ Three rules the primitives own, so no surface re-answers them (18.09.2026):
     `.ctx-x` — one rule in 13-incident.css; it was 28/30/32). Beside a 44px search field it is
     44px instead (Palette, Verlauf search), and it is the ordinary grey, never a filled «on».
     The Verlauf's head is a row of 44px buttons (ⓘ, lens, funnel, ▶, ✕ – 30.10.2026, owner), so
-    its ✕ and ⓘ are 44 there too, for the same reason.
+    its ✕ and ⓘ are 44 there too, for the same reason – and its ✕ wears ▶'s frame, not the grey
+    (hill climb r13, 05.11.2026: bare utilities, framed ▶ and a grey ✕ were three looks in one row).
   - *Radius – ONE corner (25.09.2026):* **every** rectangle is `var(--r-sm)` (12px) – button,
     field, status box, row, card, page card (tablet and desktop – a phone page has no card,
     [`phone-layout.md`](phone-layout.md) · «No page card on a phone»), sheet, dialog, message; `--r-ctl`/`--r-surface`/
@@ -321,8 +323,9 @@ Three rules the primitives own, so no surface re-answers them (18.09.2026):
     each other. The FAB stays ROUND (the one-corner exception) but is `--float-h` across, on that
     baseline; `--fab-safe` is its width + the gap. A new piece in that zone joins the family and
     the row (and the `--float-row` `:has` list) — never a height, material or offset of its own.
-    The map's attribution ⓘ wears the family's MATERIAL only (03-map, 04.11.2026): a round 32px
-    plate at the 16px inset, its outline glyph in theme ink – a credit, not a piece of the row.
+    The map's attribution ⓘ wears the family's MATERIAL only (03-map, 04.11.2026): a round 24px
+    plate at the 16px inset (32px until 05.11.2026, owner: «small and quiet»), its outline glyph in
+    theme ink, a --tap pad for a finger – a credit, not a piece of the row.
     The Meldeleiste hangs from the top and ENDS where the message lane starts (`--msg-lane-bottom`,
     08-toasts · phone `.ml`, 08.10.2026): one `--float-gap` above the floating row, or the highest
     bar when the row is empty. Past that it scrolls. It never runs under the FAB or a bar. Four
@@ -388,7 +391,8 @@ Three rules the primitives own, so no surface re-answers them (18.09.2026):
     ink (an open count is amber on every row, current or not — `.group-choose-count.open`); a ✓
     may stay as the cue that is not a colour. (3)
     **Where you are** — the nav rail, the armed tool, a Trupp tab — keeps the ink pill
-    (`--ink-fill`): a place, not an answer. A chip whose tone IS its meaning (the composer's
+    (`--here-fill` / `--on-here` in every bar: = `--ink-fill` by day, a lighter plate with a white
+    glyph at night, 05.11.2026): a place, not an answer. A chip whose tone IS its meaning (the composer's
     Auftrag/Sofort) fills in that tone, same shape; colour swatches keep
     their ring (their fill is the colour). Never an outline-only «selected», never `--ink` as a
     choice fill (at night it is the primary button's light grey).
@@ -466,12 +470,21 @@ Three rules the primitives own, so no surface re-answers them (18.09.2026):
     tall, the one corner — the `.cv-btn-add` look (13-incident). Dashed means «missing», never
     «add»; the ONE dashed add is «Foto hinzufügen» (`.cv-beilagen-add`, `.report-att-add`,
     decision D6 — it is the placeholder for a file). Icon-only where a column has no room (the
-    Schichten ＋), still a framed --tap square. Floating over a plan it keeps the glass, not the
-    shape (`.wb-floor-add`). Never a grey disc, a pill or a sub-44 tile.
+    Schichten ＋), still a framed --tap square. On the Plan's storey stack (`.wb-floor-add`) it
+    stands flat at the storey plates' level – their `--surface` and 1px `--border`, no shadow
+    (hill climb r20, 05.11.2026: the glass tile outweighed the plates). Never a grey disc, a pill or
+    a sub-44 tile.
     (2) **Count badge**: 16px tall, min-width 16, 11px/800, `--r-xs`, padding 0 4px. Fill is the
     meaning: ink (`--ink-fill` + `--on-accent-ink`) = a plain count, amber = open, red =
     missing/alarm — NEVER the station `--accent`, never blue, never a round pill (`.nav-count`
-    in 05-navrail is the reference).
+    in 05-navrail is the reference). One exception, so two counts on one phone screen never wear
+    the same disc: the phone tab bar's Rapport «noch offen» count is HOLLOW – a 1.5px amber edge,
+    `--amber-strong` figures on `--surface`, like the Rapport head's outlined «4 offen» chip – and
+    the filled amber disc is the Pendenzen count's (`.tb-rem-count`; hill climb r22, 05.11.2026).
+    On a map/plan SYMBOL the corner badges (storey `.sym-floor`, count `.sym-count`, dock, done
+    time – 03-map) are one step bigger: 18px tall, min-width 18, figures at `--fs-1`/800, and a
+    1.5px knockout ring in `--label-bg` so they cut out of the glyph they sit on (hill climb r23,
+    05.11.2026: at 16px they were the smallest text on the map).
     (3) **Disabled** = `opacity: var(--disabled)` + `cursor: default` and nothing else — no
     repainted fill, no colour swap, no `not-allowed`, no inlined number (also not as a `var()`
     fallback). **Gone** (a person who left, a Trupp raus, a layer off) = `opacity:
@@ -511,7 +524,8 @@ Three rules the primitives own, so no surface re-answers them (18.09.2026):
     pen (`lib/icons` · `#entry`, drawn inline by `EntryGlyph` on the FAB and the top bar's
     Eintrag), never «+»: «+» means Hinzufügen only (the FAB stood 60px above the tool bar's «+
     Hinzufügen» with the same glyph, and the tablet's Eintrag sat beside the rail's «+ Symbol»).
-    The top bar's Eintrag wears the FAB's material (`--float-bg` + `--float-edge`, ink), not a
+    The top bar's Eintrag is the bar's flat `.tb-act`, like «Verlauf» beside it (owner pick C11,
+    05.11.2026 – it wore the FAB's raised glass, the one raised button inside the bar), never a
     blue slab, and keeps its word «Eintrag» until the LAST step of the top bar's ladder
     (`HEAD_FIT_STEPS` · 'eintrag-word'). While the hold's chooser is up, the glyph gives way to
     its drawn ✕ (both paths always in the DOM). «Trupp finden» wears `#trupp-find` (people with a
@@ -556,11 +570,12 @@ Three rules the primitives own, so no surface re-answers them (18.09.2026):
     to a question (the Trupp's Ausrüstung) is a `Chip`, not a tick.
     `controlDebt.test.ts` is the ratchet for raw toggles, selects and search fields.
   - *Colour of a mention is not a state* (29.09.2026, owner pick A): every recognised word in the
-    Verlauf – vehicle, partner, Trupp, person, material, group – is **bold `--ink`**
-    (`.jr-link`), and in the composer one blue wash / one blue suggestion tint
-    (`.jc-text-marks mark`, `.jc-phrase-link`). Red and amber are for alarms and warnings only; a
-    routine «Ausrücken TLF» in the station red read as the loudest row on a page that carries real
-    Atemschutz alarms. The composer's phrase chips wear the one corner (`--r-sm`), never a pill.
+    Verlauf – vehicle, partner, Trupp, person, material, group – is **medium (500) `--ink`**
+    (`.jr-link`; bold until 05.11.2026, owner pick A5), prose regular, and in the composer one
+    blue wash / one blue suggestion tint (`.jc-text-marks mark`, `.jc-phrase-link`). Red and amber
+    are for alarms and warnings only; a routine «Ausrücken TLF» in the station red read as the
+    loudest row on a page that carries real Atemschutz alarms. The composer's phrase chips wear
+    the one corner (`--r-sm`), never a pill.
   - *One green per surface that means «saved / alive»* (29.09.2026): the Einsatz menu card's green
     is its «✓ Gespeichert» pill – no green stripe, no green fill, the other Einsätze' ages
     `--ink-dim`.

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen, cleanup, fireEvent } from '@testing-library/react'
-import { Popover, PopoverClose } from './Popover'
+import { Popover, PopoverClose, type PopoverChange } from './Popover'
 
 afterEach(cleanup)
 
@@ -40,5 +40,25 @@ describe('Popover', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Radar öffnen' }))
     expect(onClick).toHaveBeenCalledTimes(1)
     expect(screen.queryByText('Radar öffnen')).toBeNull()
+  })
+
+  // anchor mode (the Wassertransport's pump bubble): opened AT an element that toggles it itself,
+  // so the caller must be able to tell that element's own press from a real outside press
+  it('anchor mode opens without a trigger, and names why it wants to close', () => {
+    const dot = document.createElement('button')
+    document.body.appendChild(dot)
+    const onOpenChange = vi.fn()
+    render(<Popover open anchor={dot} onOpenChange={onOpenChange} ariaLabel="Pumpe 1">Blase</Popover>)
+    expect(screen.getByRole('dialog', { name: 'Pumpe 1' })).toBeTruthy()
+    fireEvent.pointerDown(dot, { button: 0, pointerType: 'mouse' })
+    fireEvent.mouseDown(dot)
+    fireEvent.click(dot)
+    expect(onOpenChange).toHaveBeenCalledWith(false, expect.objectContaining({ reason: 'outside-press' }))
+    expect((onOpenChange.mock.calls[0][1] as PopoverChange).event.target).toBe(dot)
+    // controlled, and the caller ignored it: still open
+    expect(screen.getByText('Blase')).toBeTruthy()
+    fireEvent.keyDown(screen.getByText('Blase'), { key: 'Escape' })
+    expect(onOpenChange).toHaveBeenLastCalledWith(false, expect.objectContaining({ reason: 'escape-key' }))
+    dot.remove()
   })
 })

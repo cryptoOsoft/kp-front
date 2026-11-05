@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render } from '@testing-library/react'
 import { PlanLineDecor } from './PlanLineDecor'
 import type { BoardAnno } from '../types'
+import { tagSize } from '../lib/endTagSpots'
 
 afterEach(cleanup)
 
@@ -21,14 +22,16 @@ describe('PlanLineDecor — the end tag is pinned to its line', () => {
     expect(tag?.textContent).toBe('1 · +2')
     const m = /translate\(([\d.-]+)px, ([\d.-]+)px\)/.exec((tag!.parentElement as HTMLElement).style.transform)!
     cleanup()
-    return { x: Number(m[1]) / sW, y: Number(m[2]), lineY: 0.5 * sH }
+    return { x: Number(m[1]), y: Number(m[2]), endX: 0.5 * sW, lineY: 0.5 * sH }
   }
 
-  it('72 % along the last segment, a fixed 14 px above the stroke, whatever the stored nudge says', () => {
+  // …and beside the END, its near edge 4 px short of it, so an arrowhead stays visible (hill climb r16)
+  // (its edge 5.5 px off the stroke: a 15.25 px centre-lift for the 19.5 px tag since r17)
+  it('beside the end, a fixed 4 px short of it and its edge 5.5 px above the stroke, whatever the stored nudge says', () => {
     for (const zoom of [1, 4]) {
       const t = tagAt(zoom)
-      expect(t.x).toBeCloseTo(0.1 + 0.4 * 0.72)
-      expect(t.lineY - t.y).toBe(14)
+      expect(t.endX - (t.x + tagSize('1 · +2').w / 2)).toBeCloseTo(4)
+      expect(t.lineY - t.y - tagSize('1 · +2').h / 2).toBe(5.5)
     }
   })
 })

@@ -48,8 +48,10 @@ export const lineLabelAction = (truppId: string | undefined, tone: LineTone | un
 // A Trupp marker is a STRIP — [dot][gap][name] — so where the strip is anchored decides what the
 // coordinate MEANS. Both halves of the map have to agree on it: MapMarkers anchors the marker,
 // MapView's label pass measures the same boxes without a DOM.
-/** `.team-dot i` — the dot IS the position, so it is what sits on the coordinate. */
-export const TEAM_DOT_PX = 13
+/** `.team-dot i` — the dot IS the position, so it is what sits on the coordinate. 16px: an inside
+ *  Trupp's dot fills it, an out Trupp's 13px dot sits centred in the same box (09-whiteboard ·
+ *  .team-dot.raus i), so coming out moves neither the point nor the name. */
+export const TEAM_DOT_PX = 16
 /** `.team-dot` gap — the distance the name hangs off the dot. */
 export const TEAM_DOT_GAP = 8
 /** The selected pill's accent cap, centre-to-left-edge: 1px border + 8px padding + half of the
@@ -79,13 +81,14 @@ export const READOUT_LABEL_STYLE = { font: '700 12.5px "Spline Sans Mono", ui-mo
 /** `.measure-label.draw-label .dl-words` (11-measure.css) — a line's FREE TEXT on the same plate:
  *  the names' 700 --fs-1 Sora (the measured values above stay mono), same chrome. */
 export const READOUT_WORDS_STYLE = { ...READOUT_LABEL_STYLE, font: '700 12.5px Sora, system-ui, sans-serif' }
-/** `.map-trail-dot i` (09-whiteboard.css) — a breadcrumb's time: 700 --fs-1 mono, 2px/8px
- *  padding, line-height 1.25, hung CRUMB_LABEL_DX right of the coordinate (12px off the 9px dot's
- *  left edge, the dot centred on the point). */
-export const CRUMB_LABEL_STYLE = { font: '700 12.5px "Spline Sans Mono", ui-monospace, monospace', maxTextW: Infinity, chromeW: 16, chromeH: 4, lineH: 15.625 }
+/** `.map-trail-dot i` (09-whiteboard.css) — a breadcrumb's time: 500 --fs-1 mono (one step under
+ *  the names' 700 since hill climb r13), 2px/8px padding, line-height 1.25, hung CRUMB_LABEL_DX
+ *  right of the coordinate (12px off the 9px dot's left edge, the dot centred on the point). */
+export const CRUMB_LABEL_STYLE = { font: '500 12.5px "Spline Sans Mono", ui-monospace, monospace', maxTextW: Infinity, chromeW: 16, chromeH: 4, lineH: 15.625 }
 export const CRUMB_LABEL_DX = 12 - 9 / 2
-/** `.line-end-tag` (09-whiteboard.css) — 800 --fs-micro/1, 2px/4px padding plus a 1.5px border; `inline-grid` stacks the Trupp row */
-export const END_TAG_LABEL_STYLE = { font: '800 11px Sora, system-ui, sans-serif', maxTextW: Infinity, chromeW: 11, chromeH: 7, lineH: 11 }
+/** `.line-end-tag` (09-whiteboard.css) — the plates' 700 --fs-1/1, 2px/4px padding plus a 1.5px border
+ *  (a ~20px plate since hill climb r17); `inline-grid` stacks the Trupp row */
+export const END_TAG_LABEL_STYLE = { font: '700 12.5px Sora, system-ui, sans-serif', maxTextW: Infinity, chromeW: 11, chromeH: 7, lineH: 12.5 }
 /** the whole resting strip's width: [dot][gap][name]. ⚠️ No Leitung field any more (11.10.2026,
  *  owner: «on the map the trupps are numbered – which we don't need»): the Karte's marker is the
  *  Gebäude chip's — name only — and the Leitung's number stays on the hose's own end tag. */
@@ -98,8 +101,9 @@ export const teamStripPx = (label: string): number =>
 // slightly when zooming out, so a cluster doesn't clump together.
 const SIZE_M: Record<string, number> = { vehicle: 11, command: 10, hydrant: 6, symbol: 8, area: 8 }
 // the band (px). `mul` is the global S/M/L factor (lib/prefs · symbolMul); it
-// scales the whole band, so the ceiling/floor grow along with it.
-const SYM_MIN = 28
+// scales the whole band, so the ceiling/floor grow along with it. The Gebäude stack draws its
+// symbols on this floor too (components/Whiteboard · symBase), so a symbol reads the same size there.
+export const SYM_MIN = 28
 // …except a VEHICLE, which has a higher floor of its own. A vehicle is the only kind whose NAME
 // is baked into the glyph body (lib/useVehiclePositions · vehicleSymbolSvg), so the name can only
 // grow with the glyph. At the owner's tablet zoom every GPS vehicle at the Magazin sits exactly

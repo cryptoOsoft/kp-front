@@ -1554,10 +1554,10 @@ export function AtemschutzView({
         )}
         {/* «Überwachung abgeben»: the QR, beside the bell, because the realistic handover in an
             Einsatz is «Handy scannen lassen» and the FU is standing on THIS page when they
-            decide to. Green while a link is live. Folded it keeps a WORD beside the glyph
-            («Abgeben», hill climb r8, 04.11.2026: the bare QR glyph did not say «hand over» on
-            the phone head; inline since r11) — 44px tall like the controls beside it; only the
-            second rank, the ladder's last word, leaves the glyph alone. */}
+            decide to. Green while a link is live. Folded it keeps a WORD («Abgeben», hill climb
+            r8, 04.11.2026: the bare QR glyph did not say «hand over» on the phone head) – the word
+            alone in the tiles' type since r21, the glyph gives way (Atemschutz.module · .shareBtn);
+            only the second rank, the ladder's last word, leaves the glyph alone. */}
         {onShareLink && (
           <button
             type="button"
@@ -2029,7 +2029,7 @@ function PinnedRow({ t, live, alarm, color, confirmed, onContact }: {
   return (
     <div className={cx(s.pinRow, done ? s.pinRowDone : sev >= 2 ? s.trowCrit : s.trowWarn)}>
       <span className={s.pinName}>
-        {color && <span className={s.trowDot} style={{ background: color }} aria-hidden />}
+        {color && <span className={s.trowDot} style={{ color }} aria-hidden />}
         <span className={s.pinNameTxt}>{t.name}</span>
       </span>
       <span className={s.pinTime}>

@@ -473,25 +473,31 @@
      below stays the last resort for a bar that is fuller still. */
   .topbar .ip-switch-btn { padding: 6px 7px; gap: 4px; }
   /* ── «name over the clock» (07.10.2026, UI sweep · owner pick B3 D) ──
-     The pill is the Stichwort (--fs-2/700, ellipsis; 13.5 off the scale until 23.10.2026) over the Einsatzuhr (mono 12.5, its mode's
-     glyph): panels/IncidentSwitcher · twoLine. The bar's own clock button is not rendered here
+     The pill is the Stichwort (--fs-2/700, ellipsis; 13.5 off the scale until 23.10.2026) over the Einsatzuhr (mono --fs-2/700
+     in full ink, its mode's glyph): panels/IncidentSwitcher · twoLine. The bar's own clock button is not rendered here
      any more (TopBar), so the pill may take the width the clock had; it is still the bar's
      yielder, and only the title ellipsises. The quiet «gespeichert» ✓ comes back beside it — a
      fixed 16px slot, so a save never shifts the line — because the pill now has the room. */
   .topbar .ip-switch-two { max-width: 100%; gap: 6px; padding-block: 4px; }
   .ip-switch-lines { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; flex: 0 1 auto;
-    line-height: 1.15; text-align: left; }
+    line-height: 1.1; text-align: left; }
   /* ⚠️ also past the bar's ladder: its title step (fit-9) is the TABLET's last resort and hides
      `.ip-switch-title`; here the title is half of what the pill says and never goes */
   .ip-switch-two .ip-switch-title, .topbar.fit-9 .ip-switch-two .ip-switch-title {
     display: block; max-width: 100%; font-size: var(--fs-2); font-weight: var(--fw-bold); }
+  /* ⚠️ the clock is a FIGURE you read at a glance, not a caption (hill climb r18, Opus 4): at mono
+     --fs-1 in --ink-dim it was the smallest, faintest text in the bar, where the tablet's and the
+     laptop's bar clock is the boldest. Now --fs-2/700 mono in full ink – the title's size, mono's
+     wider glyphs make it read a step larger – and the 2px it gains come out of the two lines'
+     leading (1.15 → 1.1, the clock's own line 1), so the pill and the bar keep their height. */
   .ip-switch-clock { display: inline-flex; align-items: center; gap: var(--sp-1); white-space: nowrap;
-    font: var(--fw-bold) var(--fs-1)/1.1 var(--mono); color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+    font: var(--fw-bold) var(--fs-2)/1 var(--mono); color: var(--ink); font-variant-numeric: tabular-nums; }
   /* the time is a <b> inside this bold line: the UA's `bolder` would make it 900, off the scale */
   .ip-switch-clock b { font-weight: inherit; }
   /* the glyph as tall as the figure's line and at full ink: at 12px and .8 opacity the hourglass
-     was a hairline beside the bold mono time (hill climb r11) */
-  .ip-switch-btn .ip-switch-clock svg { width: 14px; height: 14px; }
+     was a hairline beside the bold mono time (hill climb r11); the heavier stroke keeps it level
+     with the 700 figures beside it (r18) */
+  .ip-switch-btn .ip-switch-clock svg { width: 14px; height: 14px; stroke-width: 2.2; }
   .topbar .ip-switch-two .ip-status { display: inline-flex; }
   /* the Übung marker in this pill is ONE letter («Ü», copy.exerciseInitial) in an amber square
      (08.10.2026, owner): the word ellipsised to «ÜBU…» and cost the street its last letters. A
@@ -514,6 +520,9 @@
      the vertical separators are dropped entirely: on a bar this narrow they read as
      clutter, and the grouping is clear from the icons alone */
   .tb-actions { gap: 1px; }
+  /* …and ↶ ↷ stay plain members of it here: the pair's 4px group (10-journal · .tb-history) is
+     the tablet/laptop bar's, the phone bar keeps its 1px rhythm */
+  .tb-history { display: contents; }
   .topbar { gap: 4px; }
   /* weather trims to the bare downwind arrow + speed on phones (condition/temp are
      "read, not felt" detail that doesn't fit the narrow bar) */
@@ -733,9 +742,12 @@
      scroller, so every row was cut off at the band's top edge, the last one included. Paid by the
      scroller's last row instead (AGENTS · «the bottom inset paid by its last row»), rows scroll
      on down to the sheet's edge and the last one still comes to rest above the home indicator. */
-  .journal-drawer > .history-list { padding-bottom: calc(var(--sp-3) + env(safe-area-inset-bottom)); }
+  /* 16px of end air + the indicator, the tablet's 16 (06-contextpanel · .history-list), and the
+     scroll padding with it so a row scrolled into view also stops clear of the indicator */
+  .journal-drawer > .history-list { padding-bottom: calc(var(--sp-4) + env(safe-area-inset-bottom));
+    scroll-padding-bottom: calc(var(--sp-4) + env(safe-area-inset-bottom)); }
   /* (the keyboard covers the home indicator, so its inset is not paid twice) */
-  .journal-drawer.is-kb > .history-list { padding-bottom: var(--sp-3); }
+  .journal-drawer.is-kb > .history-list { padding-bottom: var(--sp-4); scroll-padding-bottom: var(--sp-4); }
   /* ⚠️ The Pendenzen box needs a cap this side of a PERCENTAGE. Its `max-height: 45%` resolves
      against `.journal-drawer`, and on a phone this drawer is `height: auto` (bottom-anchored,
      capped by max-height) — an indefinite height, against which a percentage max-height computes
@@ -744,6 +756,25 @@
      — it no longer sits sticky over the log, so the old «taller than its scrollport» trap this
      comment used to describe is gone with it.) */
   .jr-pinned { max-height: 40dvh; }
+  /* ⚠️ THE PHONE'S TEXT AXIS, 96px in from the sheet's inner edge (its 1px border), not 110 (hill
+     climb r14, 05.11.2026: names with roles ran to three lines). The strip, the Pendenzen box and
+     the log stand 8px in (the drawer's 12 less 4), the clock 16 (+ the row's 8) — on the title's
+     x — and the two columns in front
+     of the sentence shrink to what they hold: 40 for «19:05» (37.5px at 12.5 mono), the 24px disc
+     with no band around it. 8 + 8 + 40 + 8 + 24 + 8 = 96. The Pendenzen rows mirror it (8 + 1 +
+     7 + 40 + 8 + 24 + 8) — one axis, as on the tablet (06-contextpanel · .hist-ev, .jr-pinned-row).
+     ⚠️ 96 is the floor the Pendenzen TARGETS set, not a taste: the clock's pad and the ring's pad
+     are two 44px targets side by side between the box's inner edge (9) and the text, and the
+     ring's may not reach over the clock's digits (they end at 53.5). Clock pad 9…54, ring pad
+     54…98 — 2px into the text, which is the row's own target anyway (06 · .jr-pinned-text). */
+  .journal-drawer > :is(.jr-strip, .jr-pinned, .history-list) { margin-inline: calc(-1 * var(--sp-1)); }
+  .journal-drawer > .history-list { padding-inline: 0; }
+  .hist-ev { grid-template-columns: 40px var(--jr-disc) minmax(0, 1fr) fit-content(50%); }
+  .hist-ev .t { width: 40px; }
+  .jr-pinned-row .jr-when { width: 40px; }
+  .jr-pinned-row .jr-rem { width: 24px; }
+  .jr-pinned-row .jr-when::before { width: 45px; }
+  .jr-pinned-row button.jr-rem::before { left: 45px; width: 44px; }
 
   /* The suggestion row keeps its space even when it has nothing to suggest. The composer is
      bottom-anchored here, so a row that comes and goes between the field and the chips moves
@@ -935,7 +966,7 @@
      reading, so it belongs where the thumb already is — in the same lane as the bar, wearing the
      bar's glass, reading as an extension of it.
      ⚠️ Positioning only. The strip is the same element and the same <Segmented> it always was
-     (ReportPreflight · .rp-tabs), so its dots, its «noch offen» wording and the tab jump that
+     (ReportPreflight · .rp-tabs), so its open marks, its «noch offen» wording and the tab jump that
      `requestReportStep` performs are untouched — the tab is switched first and the body scrolls
      a frame later exactly as before, whichever end of the page the strip is at.
      ⚠️ Its height is RESERVED rather than measured: `--rp-tabs-safe`, the same idiom as
@@ -1234,7 +1265,10 @@
   .tb-gps .i { color: var(--amber-strong); }
   /* --tap, not 40 (UX sweep S9, 20.10.2026): at (0,2,0) this beat 20-touch-floors' coarse
      `.tb-weather` floor, so the Karte's one wind target on a phone stayed 4px short */
-  .phone-wx .tb-weather { min-height: var(--tap); padding: 0 var(--float-pad-x); border-radius: inherit; }
+  /* …and a little narrower than the family's 14px a side (owner note on the r11 checkpoint, 05.11.2026):
+     8px before the arrow, whose own box already carries air around the stroke, 12px after «km/h»;
+     the height stays the --tap target */
+  .phone-wx .tb-weather { min-height: var(--tap); padding: 0 var(--sp-3) 0 var(--sp-2); border-radius: inherit; }
 
   /* Einstellungen rows: the 3-segment controls (Farbschema, Beschriftungen) are wider than
      a phone row leaves next to the label — let the control wrap onto its own right-aligned

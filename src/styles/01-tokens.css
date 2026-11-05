@@ -110,7 +110,11 @@
   /* ---- Semantic surface tokens (theme-flippable) ----
      Day values mirror the literals they replace, so day mode is byte-for-byte
      unchanged. The night block below re-declares only these + the core glass/ink. */
-  --app-bg: radial-gradient(120% 90% at 50% -10%, #eef3f7 0%, #dfe6ec 45%, #d3dce4 100%);
+  /* the page ground: a radial wash from the top. Its fall-off was halved (hill climb r22, Sol 2,
+     05.11.2026): every stop now stands halfway between #eef3f7 and the old #dfe6ec / #d3dce4, so
+     the lower page no longer turns heavy blue-grey behind the Trupps cards and the phone Rapport.
+     Twin in index.html's boot splash – keep the two equal. */
+  --app-bg: radial-gradient(120% 90% at 50% -10%, #eef3f7 0%, #e7edf2 45%, #e1e8ee 100%);
   --canvas-bg: #eef1f4;        /* whiteboard stage backdrop */
   --map-bg: #e9eef0;          /* Lage map fallback fill (under tiles) */
   --board-bg: #fff;            /* the plan "paper" itself */
@@ -146,6 +150,13 @@
   --on-amber: var(--ink);
   --ink-fill: #1b2330;        /* dark "active pill" / Trupp marker bar surface (= day --ink) */
   --ink-fill-hover: #0f1722;  /* hover on dark ink-fill buttons (darker in day) */
+  /* «Where you are» (docs/ui-conventions · Selected): the ink pill of every bar – the nav rail and
+     the phone tab bar (.nav-item), the tool rail and phone tool bar (.vrail-tool / .vrail-nbtn),
+     the open «Verlauf» (.tb-act), the docked section tabs (Rapport, Anwesenheit, PDF reader).
+     By day it IS --ink-fill; the night block lifts it (05.11.2026). */
+  --here-fill: var(--ink-fill);
+  --here-fill-hover: var(--ink-fill-hover);
+  --on-here: var(--on-accent-ink);
   /* "strong" accent variants: a darker shade used as a hover background on an accent
      button OR as legible text on a faint accent-tint chip. Day = the literals they
      replace; night flips LIGHTER so the same role reads on dark surfaces. */
@@ -256,8 +267,8 @@
                                 cover it */
   /* THE surface header — Trupps · Anwesenheit · Material · Checkliste · Einsatzrapport. Five
      panels the operator switches between with one tap, so their heads are the same object: ONE
-     ROW — a title with at most one quiet line under it on the left, the tiles on the right,
-     centred on each other (Surface.module.css · .head). They had drifted to five specs and three
+     ROW — the title and the tiles share one centre line; a quiet line, when there is one, hangs
+     under the title (Surface.module.css · .head, hill climb r23). They had drifted to five specs and three
      shapes; the Trupps head stood 190px tall on the tablet beside a 78px Anwesenheit.
      A head is `--tap` + `--head-pad-y` above and below: 68px here, 60 on a phone (15-mobile sets
      the phone's numbers as these tokens). What does not fit gives up WORDS, one step at a time and
@@ -271,7 +282,7 @@
   --head-gap: 12px 16px;      /* row (only on the last-resort second row) · titles ↔ tiles */
   --head-title: 800 19px/1.3 var(--body);
   --head-sub: 12.5px;
-  --head-sub-gap: 2px;        /* title → the quiet line under it: 25 + 2 + 16 stays inside the 44px row */
+  --head-sub-gap: 2px;        /* title → the quiet line hanging under it; the head's bottom padding absorbs it */
   /* THE title of a SHEET or dialog (28.09.2026) — one step under the page's --head-title, so a
      sheet never out-shouts the surface it opens over. It was 19 on .ip-head and the confirm, 17 on
      the Trupp sheets, 16 in the Suche, 15 on the Uhrzeit dialog, 18 on the Hilfe. Field labels
@@ -393,8 +404,10 @@
      e1 a marker, handle or note resting on the map/plan · e2 lifted (a dragged chip, a selected note) ·
      e3 a small floating card · e4 a panel, a bar, a sheet · e5 a blocking card over a scrim. */
   /* e0 a contact shadow only – a small label plate on the map/plan (hill climb r8, 04.11.2026: with
-     e1's 5px spread, touching plates ran their shadows into dark seams between them) */
-  --e0: 0 1px 2px rgba(15, 22, 34, .2);
+     e1's 5px spread, touching plates ran their shadows into dark seams between them). Halved in
+     r16 (Sol 2, raised the third time: at .2 a pile of plates still wore a dark fringe) – the
+     plate's 1px --label-plate edge separates it, the shadow only says «it rests on the map». */
+  --e0: 0 1px 2px rgba(15, 22, 34, .1);
   --e1: 0 1px 2px rgba(15, 22, 34, .3), 0 2px 5px rgba(30, 45, 70, .2);
   --e2: 0 4px 10px rgba(30, 45, 70, .2);
   /* e3/e4 tightened 04.11.2026 (hill climb, «broad grey halos»): the chrome that floats on every
@@ -438,7 +451,9 @@
   --snap: #f472b6;
   /* elevation (--shadow/--shadow-sm are --e4/--e3): black, not the day's blue-grey, and stronger —
      a dark panel on a dark map needs more shadow to lift, not less */
-  --e0: 0 1px 2px rgba(0, 0, 0, .45);
+  /* …except the contact step under map label plates: in a pile of plates (council r12) the night .45
+     stacked into a heavy fringe, .3 still did (r16, Sol 2); the plate's edge separates it */
+  --e0: 0 1px 2px rgba(0, 0, 0, .16);
   --e1: 0 1px 2px rgba(0, 0, 0, .5), 0 2px 5px rgba(0, 0, 0, .4);
   --e2: 0 4px 10px rgba(0, 0, 0, .45);
   /* tightened with the day's e3/e4 (04.11.2026): the 36px black blur read as a soft heavy halo
@@ -468,6 +483,13 @@
      (NOT the now-light --ink), so their light content keeps contrast */
   --ink-fill: #2b3545;
   --ink-fill-hover: #384354; /* hover LIFTS the dark pill in night (vs darkens in day) */
+  /* …but «where you are» needs an EDGE the raised surface does not have: #2b3545 on the rails'
+     night glass is 1.4:1, a faint grey lift whose glyph was the same grey-white as every other
+     (hill climb r13, Opus 3). A plate lighter by a clear step – 2.3:1 against the rail – and the
+     glyph full white on it (7.7:1); the unselected glyphs keep --ink. */
+  --here-fill: #46546c;
+  --here-fill-hover: #505f79;
+  --on-here: #fff;
   /* The primary button INVERTS at night instead of tracking --ink-fill. Its label was never the
      problem — #f5f8fc on #2b3545 measures 11.6:1 — the BUTTON was: #2b3545 against the #232c3a
      sheet it sits on is 1.14:1, so the one action of a form had no visible edge and read as a
@@ -487,12 +509,17 @@
   --green-solid-hover: #46d684;
   --label-bg: rgb(20, 28, 40);
   --label-soft: rgba(20, 28, 40, .82);
+  /* the map label plates' edge a SOLID slate one step up from the fill (hill climb r23, Opus 5):
+     the day ring's 22 % of the light ink came out #424955 here, lost on the grey map, and a pile of
+     plates fused into one block. The printed Kroki re-declares the day plate (`:root, .kf-paper`). */
+  --label-plate: inset 0 0 0 1px color-mix(in srgb, var(--ink-dim) 40%, var(--label-bg)), var(--e0);
   --surface-veil: rgba(255, 255, 255, .07);
   --ink-tint: rgba(255, 255, 255, .14);
   --ink-tint-strong: rgba(255, 255, 255, .22);
-  /* deep amber note that still reads as a paper sticky against the dark map/board */
-  --note-bg: #4a3f1c;
-  --note-border: #6e5d2a;
+  /* deep amber note that still reads as a paper sticky against the dark map/board – a clean dark
+     amber with a 1 px amber edge (owner C15 05.11.2026: the olive #4a3f1c read muddy) */
+  --note-bg: #3a2a0c;
+  --note-border: #b8862a;
   --note-border-sel: #c9aa4c;
   --note-ink: #f1e3a6;
   --note-ring: rgba(214, 184, 92, .6);
@@ -569,7 +596,9 @@
   --ink-28: color-mix(in srgb, var(--ink) 28%, transparent);
   --ink-45: color-mix(in srgb, var(--ink) 45%, transparent);
   --ink-62: color-mix(in srgb, var(--ink) 62%, transparent);
-  /* the edge of a floating map/plan label plate (names, readouts, captions, trail times): a
-     hairline ring + the e0 contact shadow, so two plates that touch keep their own outlines. */
-  --label-plate: inset 0 0 0 1px var(--ink-16), var(--e0);
+  /* the edge of a floating map/plan label plate (names, readouts, captions, trail times): a crisp
+     1px ring + the e0 contact shadow, so two plates that touch keep their own outlines. The ring
+     does the work (r16, Sol 2: --ink-22, was 16, as e0 was halved); a Leitung's end tag wears its
+     line-coloured ring instead and only the e0 (09-whiteboard · .line-end-tag). */
+  --label-plate: inset 0 0 0 1px var(--ink-22), var(--e0);
 }

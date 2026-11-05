@@ -3,22 +3,25 @@
 .maplibregl-ctrl-attrib { font-size: var(--fs-micro) !important; }
 /* ── The attribution ⓘ (components/MapAttribution, always the compact control) wears the floating
    family's plate (docs/ui-conventions.md · ONE floating family): the glass, its inset edge and
-   --shadow, theme ink, the app's own outline «info» glyph at 16px. MapLibre's stock look was an
+   --shadow, theme ink, the app's own outline «info» glyph. MapLibre's stock look was an
    18px solid black disc on a white circle 10px from the corner – the one object over the map
    with no plate, at night a white dot on the dark glass (hill climb r11). Round, because it is
-   map furniture (the one-corner exception); open, the credits line wears the one corner. */
-.maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact { box-sizing: border-box; min-width: 32px; min-height: 32px;
-  padding: 0 32px 0 0; border-radius: var(--r-pill); color: var(--ink-dim);
+   map furniture (the one-corner exception); open, the credits line wears the one corner.
+   24px, not round 11's 32 (owner note on the r11 checkpoint, 05.11.2026: «small and quiet»): it is
+   credits, not a control anyone reaches for mid-Einsatz – the glyph 14px, and a finger still gets
+   --tap through the invisible pad below. */
+.maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact { box-sizing: border-box; min-width: 24px; min-height: 24px;
+  padding: 0 24px 0 0; border-radius: var(--r-pill); color: var(--ink-dim);
   background: var(--float-bg); backdrop-filter: var(--float-blur); box-shadow: var(--float-edge); }
-.maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact-show { padding: var(--sp-1) 32px var(--sp-1) var(--sp-3); border-radius: var(--r-sm); }
+.maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact-show { padding: 0 24px 0 var(--sp-2); border-radius: var(--r-sm); }
 .maplibregl-ctrl-attrib.maplibregl-compact .maplibregl-ctrl-attrib-inner { line-height: 24px; }
 .maplibregl-ctrl-attrib.maplibregl-compact a { color: var(--ink-dim); }
-.maplibregl-ctrl-attrib.maplibregl-compact .maplibregl-ctrl-attrib-button { width: 32px; height: 32px; border-radius: var(--r-pill);
+.maplibregl-ctrl-attrib.maplibregl-compact .maplibregl-ctrl-attrib-button { width: 24px; height: 24px; border-radius: var(--r-pill);
   background: none; color: var(--ink-dim); }
 .maplibregl-ctrl-attrib.maplibregl-compact .maplibregl-ctrl-attrib-button::before { content: ''; position: absolute; inset: 0;
   background: currentColor; pointer-events: none;
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 11v5.5'/%3E%3Ccircle cx='12' cy='7.7' r='.5'/%3E%3C/svg%3E") center / 16px no-repeat;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 11v5.5'/%3E%3Ccircle cx='12' cy='7.7' r='.5'/%3E%3C/svg%3E") center / 16px no-repeat; }
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 11v5.5'/%3E%3Ccircle cx='12' cy='7.7' r='.5'/%3E%3C/svg%3E") center / 14px no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 11v5.5'/%3E%3Ccircle cx='12' cy='7.7' r='.5'/%3E%3C/svg%3E") center / 14px no-repeat; }
 /* the app's focus ring, not MapLibre's cyan glow (02-base · :focus-visible) */
 .maplibregl-ctrl-attrib.maplibregl-compact .maplibregl-ctrl-attrib-button:focus { box-shadow: none; }
 .maplibregl-ctrl-attrib.maplibregl-compact .maplibregl-ctrl-attrib-button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
@@ -28,10 +31,10 @@
 /* …on the app's own map (Lage, Karte) it stands at the floating inset, 16px from both edges – the
    right rail's right edge and the bottom-left chip's foot (MapLibre's 10px put it in the gutter) */
 .app > .maplibregl-map .maplibregl-ctrl-bottom-right > .maplibregl-ctrl-attrib.maplibregl-compact { margin: 0 var(--sp-4) var(--sp-4) 0; }
-/* the ⓘ is 32px: a finger gets a pad out to --tap around it (it sits in the corner, so the
+/* the ⓘ is 24px: a finger gets a pad out to --tap around it (it sits in the corner, so the
    pad reaches over the map, never over another control) */
 @media (pointer: coarse) {
-  .maplibregl-ctrl-attrib-button::after { content: ''; position: absolute; inset: calc((var(--tap) - 32px) / -2); }
+  .maplibregl-ctrl-attrib-button::after { content: ''; position: absolute; inset: calc((var(--tap) - 24px) / -2); }
 }
 /* The Lage map's twin of the plan canvas's tool cursors (.wb-canvas.tool-* below). `.placing`
    alone only covered a symbol/shape already picked from the palette — arming Linie, Fläche,
@@ -62,7 +65,7 @@
    --gpx = the glyph's on-screen size; --badge-out = how far the corner badges (.sym-floor,
    .sym-count) hang past the glyph's top/bottom edge. Read by anything that has to sit CLEAR of
    the symbol, so neither may be re-typed as a literal. */
-.marker { position: relative; display: flex; flex-direction: column; align-items: center; cursor: pointer; --gpx: 44px; --badge-out: 7px; }
+.marker { position: relative; display: flex; flex-direction: column; align-items: center; cursor: pointer; --gpx: 44px; --badge-out: 8px; }
 /* the unlock chip on a locked shape — the whole marker is pointer-events:none (click-through
    ink, same doctrine as a locked drawing), so the chip re-enables its own events. Centred on
    the glyph and NOT inside the rotated box, so the Schloss stays upright. */
@@ -118,18 +121,31 @@
 .marker-rotate { background: var(--blue); cursor: grab; touch-action: none; }
 .marker-rotate:active { cursor: grabbing; }
 .ts { position: relative; line-height: 0; border-radius: var(--r-xs); transition: transform .14s var(--ease), box-shadow .14s var(--ease); }
-/* storey badge — signed floor (+2, -1) at the icon's top-right corner. Ink on the surface
+/* The symbol badges below (storey, count, «angedockt», done time) and the Messpunkt pill wear the
+   map plates' ONE edge – the --label-plate hairline + --e0 contact, or --e0 alone on a filled chip –
+   never e1: in a cluster its 5px spread ran every plate's shadow into one fringe (hill climb r13,
+   Sol 2).
+   ONE corner badge, 18px (hill climb r23, Opus 4: at 16px with 11px figures «+1 / −1 / +2» were the
+   smallest text on the map and merged with the tile under them): min-width 18, 4px side padding,
+   the figures at --fs-1 / 800 tabular – the map labels' own size, the step above --fs-micro (the
+   nearest step to the 11.5px asked for is 11, which is where they were) – and a 1.5px KNOCKOUT ring
+   in the map plate colour (--label-bg: white by day, slate at night) outside the edge, so the badge
+   cuts itself out of the glyph it sits on. --badge-out (8px, .marker above) = half the badge less
+   1px, so its middle stays on the glyph's corner as it did at 16 / 7. */
+/* storey badge — signed floor (+2, −1) at the icon's top-right corner. Ink on the surface
    colour, so it reads on any glyph and in both themes: tinting it with the symbol's own colour
-   (the white chip was meant to carry that) made a yellow symbol's storey yellow on white. */
-.sym-floor { position: absolute; top: calc(var(--badge-out, 7px) * -1); right: -9px; z-index: 6; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box;
-  border-radius: var(--r-xs); background: var(--surface); color: var(--ink); line-height: 16px; text-align: center; font-size: var(--fs-micro); font-weight: var(--fw-heavy); letter-spacing: -.2px;
-  box-shadow: var(--e1); pointer-events: none; }
+   (the white chip was meant to carry that) made a yellow symbol's storey yellow on white.
+   Tabular figures and the true minus (lib/symbolRender · floorBadge): «+1» and «−1» are one width,
+   a hyphen made the minus badge the narrower one (hill climb r15, Opus 7). */
+.sym-floor { position: absolute; top: calc(var(--badge-out, 8px) * -1); right: -10px; z-index: 6; min-width: 18px; height: 18px; padding: 0 4px; box-sizing: border-box;
+  border-radius: var(--r-xs); background: var(--surface); color: var(--ink); line-height: 18px; text-align: center; font-size: var(--fs-1); font-weight: var(--fw-heavy); letter-spacing: -.2px;
+  font-variant-numeric: tabular-nums; box-shadow: var(--label-plate), 0 0 0 1.5px var(--label-bg); pointer-events: none; }
 /* quantity badge — bottom-right counterpart to the floor badge; an ink chip so it
    reads as a count distinct from the (white, symbol-coloured) floor badge. The ONE count badge
-   (05-navrail · .nav-count, 28.09.2026): --r-xs at 16px, like every other chip that size. */
-.sym-count { position: absolute; bottom: calc(var(--badge-out, 7px) * -1); right: -9px; z-index: 6; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box;
-  border-radius: var(--r-xs); background: var(--ink-fill); color: var(--on-accent-ink); line-height: 16px; text-align: center; font-size: var(--fs-micro); font-weight: var(--fw-heavy);
-  box-shadow: var(--e1); pointer-events: none; }
+   (05-navrail · .nav-count, 28.09.2026): --r-xs, like every other chip that size. */
+.sym-count { position: absolute; bottom: calc(var(--badge-out, 8px) * -1); right: -10px; z-index: 6; min-width: 18px; height: 18px; padding: 0 4px; box-sizing: border-box;
+  border-radius: var(--r-xs); background: var(--ink-fill); color: var(--on-accent-ink); line-height: 18px; text-align: center; font-size: var(--fs-1); font-weight: var(--fw-heavy);
+  font-variant-numeric: tabular-nums; box-shadow: 0 0 0 1.5px var(--label-bg), var(--e0); pointer-events: none; }
 /* «angedockt», von der Seite des HOSTS aus (lib/docking, 15.09.2026): the same `link` glyph the
    Trupp marker wears, so the bond reads from either end. Top-LEFT — the only corner left: the
    storey badge owns top-right, the count bottom-right, and the docked Trupp markers themselves
@@ -137,10 +153,10 @@
 /* …BOTTOM-left since 15.09. («not very smartly placed»): the docked strip hangs under the tile's
    left edge, so the chip sits right above it and reads as the joint between the two – on a
    round glyph the old top-left corner floated off in empty space. */
-.sym-dock { position: absolute; bottom: calc(var(--badge-out, 7px) * -1); left: -9px; z-index: 6;
-  display: grid; place-items: center; width: 16px; height: 16px; box-sizing: border-box;
+.sym-dock { position: absolute; bottom: calc(var(--badge-out, 8px) * -1); left: -10px; z-index: 6;
+  display: grid; place-items: center; width: 18px; height: 18px; box-sizing: border-box;
   border-radius: var(--r-xs); background: var(--surface); color: var(--ink-dim);
-  box-shadow: var(--e1); pointer-events: none; }
+  box-shadow: var(--label-plate), 0 0 0 1.5px var(--label-bg); pointer-events: none; }
 .sym-dock .i { width: 12px; height: 12px; }
 /* «Gelöscht / erledigt» (lib/objectDone, 24.09.2026): the glyph, its composite part and its FKS
    arrows go grey — the chip behind an outline glyph with them, so the whole mark recedes — while
@@ -153,10 +169,10 @@
    reaches back past the left edge, so beside one the time steps fully outside (the print does
    the same, kroki · _symbol_badges) */
 .ts:has(> .sym-floor) > .sym-done { right: calc(100% + 3px); }
-.sym-done { position: absolute; top: calc(var(--badge-out, 7px) * -1); right: calc(100% - 7px); z-index: 6; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box;
-  border-radius: var(--r-sm); background: var(--surface); color: var(--ink-dim); line-height: 16px; text-align: center; font-size: var(--fs-micro); font-weight: var(--fw-heavy); letter-spacing: -.2px;
+.sym-done { position: absolute; top: calc(var(--badge-out, 8px) * -1); right: calc(100% - 7px); z-index: 6; min-width: 18px; height: 18px; padding: 0 4px; box-sizing: border-box;
+  border-radius: var(--r-sm); background: var(--surface); color: var(--ink-dim); line-height: 18px; text-align: center; font-size: var(--fs-micro); font-weight: var(--fw-heavy); letter-spacing: -.2px;
   font-variant-numeric: tabular-nums; white-space: nowrap;
-  box-shadow: var(--e1); pointer-events: none; }
+  box-shadow: var(--label-plate), 0 0 0 1.5px var(--label-bg); pointer-events: none; }
 /* metadata caption — a symbol's discriminating value(s) printed just under its glyph (e.g.
    "CO₂" under a Kleinlöscher), so an operator reads it without opening the dashboard. Same
    chrome as the line label (.measure-label.draw-label / .wb-line-label) for Lage↔Plan parity;
@@ -191,18 +207,18 @@
   display: flex; align-items: center; gap: var(--sp-1); height: 20px; padding: 0 var(--sp-2); border-radius: var(--r-xs);
   background: var(--ink-fill); color: var(--on-accent-ink); white-space: nowrap;
   font-family: var(--mono); font-size: var(--fs-micro); font-weight: var(--fw-bold); line-height: 20px;
-  box-shadow: var(--e1); }
+  box-shadow: var(--e0); }
 .sym-pill .i { width: 13px; height: 13px; flex: none; }
 .sym-pill.a1 { background: var(--amber); color: var(--on-amber); }
 .sym-pill.a2 { background: var(--red-fill); color: var(--on-fill); }
 /* older than the preset's staleMin: the colour moves to the outline and the age shows – an old
    danger must neither vanish nor look fresh (pick C) */
-.sym-pill.stale { background: var(--label-bg); color: var(--ink-dim); box-shadow: inset 0 0 0 1.5px var(--ink-faint), var(--e1); }
-.sym-pill.stale.a1 { color: var(--amber-strong); box-shadow: inset 0 0 0 1.5px var(--amber), var(--e1); }
-.sym-pill.stale.a2 { color: var(--red); box-shadow: inset 0 0 0 1.5px var(--red), var(--e1); }
+.sym-pill.stale { background: var(--label-bg); color: var(--ink-dim); box-shadow: inset 0 0 0 1.5px var(--ink-faint), var(--e0); }
+.sym-pill.stale.a1 { color: var(--amber-strong); box-shadow: inset 0 0 0 1.5px var(--amber), var(--e0); }
+.sym-pill.stale.a2 { color: var(--red); box-shadow: inset 0 0 0 1.5px var(--red), var(--e0); }
 .sym-pill-age { font-weight: var(--fw-medium); opacity: .85; }
 /* placed but not yet measured: the dashed pill with the icon alone */
-.sym-pill.empty { background: var(--label-bg); color: var(--ink-dim); box-shadow: var(--e1); outline: 1.5px dashed var(--ink-faint); outline-offset: -1.5px; }
+.sym-pill.empty { background: var(--label-bg); color: var(--ink-dim); box-shadow: var(--e0); outline: 1.5px dashed var(--ink-faint); outline-offset: -1.5px; }
 .sym-pill .sym-floor { right: -12px; }
 /* …the same pill in a list row (the Gebäude's Messungen, ReadingParts) */
 .sym-pill.inline { position: static; transform: none; flex: none; }

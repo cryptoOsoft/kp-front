@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { forkDims } from './lineAttachments'
 import { appConfig } from '../config/appConfig'
 import type { LineTone } from './truppLines'
@@ -84,9 +85,9 @@ export function EndTag({ lineNo, content, floorTag, trupp, tone = 'idle', color,
   // carries the dim + strike its map marker already wears (.team-dot.raus), instead of the whole
   // tag going quiet and taking the Leitung number with it.
   return (
-    // the letters are the line's colour taken 30 % toward black: on the near-white plate the
-    // plain hue was under AA for blue (4.4:1) and far under for amber; the ring keeps the hue
-    <span className={`line-end-tag tone-${tone}${oneLine ? ' one-line' : ''}`} style={{ color: `color-mix(in srgb, ${ink} 70%, #000)`, borderColor: ink }}>
+    // the hue rides in as `--tag-ink` and only the plate's EDGE wears it – the letters are the map
+    // labels' --ink on their --label-bg plate (09-whiteboard.css · .line-end-tag, hill climb r22)
+    <span className={`line-end-tag tone-${tone}${oneLine ? ' one-line' : ''}`} style={{ '--tag-ink': ink } as CSSProperties}>
       {facts}
       {trupp && <>{facts ? ' · ' : ''}<span className="line-end-trupp">{trupp}</span></>}
     </span>

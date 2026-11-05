@@ -3,6 +3,7 @@ import type { LngLat } from '../types'
 import { pathLengthM, fmtDistance, polygonAreaM2, fmtArea } from './geo'
 import type { ProfileResult } from './profile'
 import { useLineProfile } from './useLineProfile'
+import type { RelayValue } from './useRelay'
 
 // Measurement tool, extracted from App's god component. All state here is EPHEMERAL —
 // it is never written to the workspace blob, so this hook is fully self-contained and
@@ -39,6 +40,17 @@ export interface Measure {
   labels: MeasureLabel[]
   profile: ProfileResult | null
   loading: boolean
+  /** the Strecke's Wassertransport (components/WaterRelay): its hose + relay assumptions, and
+   *  whether the section was opened in this measurement — only then do the pumps show on the map
+   *  and in the folded readout, and does «Als Linie übernehmen» carry them onto the line */
+  relay: MeasureRelay
+}
+
+export interface MeasureRelay {
+  value: RelayValue
+  onChange: (patch: RelayValue) => void
+  open: boolean
+  setOpen: (open: boolean) => void
 }
 
 /**
@@ -62,5 +74,26 @@ export function useMeasure(active: boolean): Measure {
   // uses; a null result (outside CH / API down) just leaves the panel showing distance
   const { profile, loading } = useLineProfile(line, active && mode === 'line')
 
-  return { mode, setMode, path, setPath, reset, labels, profile, loading }
+  // Wassertransport: hose / flow / source stay for the session; what belongs to ONE Strecke — the
+  // section having been opened, a pump moved or set by hand — ends with it (cleared, or reset)
+  const [relayValue, setRelayValue] = useState<RelayValue>({})
+  const [relayOpen, setRelayOpen] = useState(false)
+  // (adjusted during render, React's own pattern for state that follows a prop)
+  const ended = line.length < 2
+  const [wasEnded, setWasEnded] = useState(ended)
+  if (wasEnded !== ended) {
+    setWasEnded(ended)
+    if (ended) {
+      setRelayOpen(false)
+      setRelayValue((v) => (v.relay?.pumps ? { ...v, relay: { ...v.relay, pumps: undefined } } : v))
+    }
+  }
+  const relay: MeasureRelay = {
+    value: relayValue,
+    onChange: (patch) => setRelayValue((v) => ({ ...v, ...patch })),
+    open: relayOpen,
+    setOpen: setRelayOpen,
+  }
+
+  return { mode, setMode, path, setPath, reset, labels, profile, loading, relay }
 }

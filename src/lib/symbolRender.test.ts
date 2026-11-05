@@ -120,7 +120,7 @@ describe('TacticalSymbol — a «Von» alone is one storey', () => {
 
   it('another storey rides on the pill like a single storey; a real span stays a span', () => {
     expect(badges({ svg: '', sizePx: 32, floorFrom: 2, measured: mp })).toEqual(['+2'])
-    expect(badges({ svg: '', sizePx: 32, floorTo: -1 })).toEqual(['-1'])
+    expect(badges({ svg: '', sizePx: 32, floorTo: -1 })).toEqual(['−1'])
     expect(badges({ svg: '', sizePx: 32, floorFrom: 0, floorTo: 3 })).toEqual(['0/+3'])
   })
 })

@@ -3,9 +3,12 @@
 Status: 🟢 shipped (KP Front idea F5, 2026-10-09; opens by itself the first time since 2026-10-10).
 
 The **Gebäude** chip stands in the bottom-left chip row of the **Karte**, and in the **Plan**'s
-chip row beside the Objekt chip whenever an Objekt is bound (`components/BuildingFloat`). On a
-phone it is part of the one floating row, left of the FAB. Closed, it names the hazards as glyph +
-word («⚠ Gebäude-Info · Gas · PV»), or just «Gebäude-Info». A tap opens the card docked one row above it.
+chip row beside the Objekt chip whenever an Objekt is bound, and on the Gebäude stack beside the
+building chip (`components/BuildingFloat`; not on a phone's plan, whose one-line row needs the
+room for the Objekt's name). On a phone it is part of the Karte's one floating row, left of the FAB.
+Closed, it names the hazards as glyph + word («⚠ Gebäude-Info · Gas · PV»), or just «Gebäude-Info»
+– the same words on every surface and size (owner pick C8, 05.11.2026; the phone and the plan's
+row said «⚠ Gas» alone until then). A tap opens the card docked one row above it.
 The card is non-modal, like the Passung: the map stays live, and ✕, the chip or Esc close it.
 Until 09.10.2026 the card sat in the incident menu; the owner wanted it «on the map directly».
 

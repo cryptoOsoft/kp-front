@@ -27,12 +27,14 @@ import { SelectionBar } from './SelectionBar'
 import { SelectionTurn } from './SelectionTurn'
 import { useArmedTransform } from '../lib/useArmedTransform'
 import { SHAPE_MAX_PX } from '../lib/shapes'
-import { EMPTY_STYLE, mapMaxZoom, vis, fc, lineFeat, polyFeat, pathSegmentCount, resumeViewState, shapePx, symPx, effectiveLayer, nativeDrawingChromeVisible, lineLabelAction } from '../lib/mapView'
+import { EMPTY_STYLE, END_TAG_LABEL_STYLE, mapMaxZoom, vis, fc, lineFeat, polyFeat, pathSegmentCount, resumeViewState, shapePx, symPx, effectiveLayer, nativeDrawingChromeVisible, lineLabelAction } from '../lib/mapView'
 import { TeilstueckFork, EndTag, hasLineDecor } from '../lib/lineDecor'
 import { WAND_MAP_PX } from '../lib/grundriss'
-import { MARKER_Z } from '../lib/labelPass'
+import { cachedLabelSize, MARKER_Z } from '../lib/labelPass'
+import { END_TAG_HELD_OFFSET, endDirection, endTagOffset, endTagSide, endTagText, MAP_ARROW_BACK_PX } from '../lib/endTagSpots'
 import { lineTakesTrupp, teamLineBadges, truppForLine, truppLineTone } from '../lib/truppLines'
 import { pathLengthM, fmtDistance, fmtArea, polygonAreaM2, hoseLengthHint, circlePolygon, haversineM } from '../lib/geo'
+import { hoseLines } from '../lib/hydraulics'
 import { useVehicleTrails } from '../lib/useVehicleTrails'
 import { useMapCanvasGestures } from './useMapCanvasGestures'
 import { mapMagnetTargets } from './mapMagnetTargets'
@@ -44,6 +46,8 @@ import { routeMapClick } from './mapClick'
 import { VIEWER_TACTICAL, type MapViewProps } from './mapViewProps'
 import { LineMarker } from './LineMarker'
 import { MapMarkers } from './MapMarkers'
+import { RelayPumpMarkers } from './RelayPumpMarkers'
+import { ChartCursorMarker } from './ChartCursorMarker'
 import { MapLayers } from './MapLayers'
 import { WeatherRadarSource } from './weatherLazy'
 // long-press to delete a path vertex (touch — desktop right-click kept); the placed-object
@@ -64,14 +68,20 @@ import { DRAG_DEADZONE_PX } from '../lib/useHoldToDrag'
 import { oneFingerZoom, setMapOneFingerZoom } from '../lib/tapDragZoom'
 import { useFreshPoint } from '../lib/useFreshPoint'
 import { setLiveBearing } from '../lib/liveBearing'
+import { dismissRelayBubble } from '../lib/useRelay'
 import { LABEL_ABOVE, measureLabelPlacement } from '../lib/measureLabelPlace'
 import { attachInsetPx, lineJoints, boundaryPoint, DETACH_SHOW_PROGRESS, dwellFor, forkPortPoint, gpsGuard, moveLineBody, relationshipNetwork, resolveLinePoints, type AttachableLine, type MagneticTarget } from '../lib/lineAttachments'
 
 /** The ink a ghost «Spur» is drawn in — neutral grey, not the Trupp's colour: colour means
  *  IDENTITY on this map (lib/teamColors), and a trail whose marker is gone must not claim that a
  *  Trupp is standing somewhere. A frozen value rather than a token because MapLibre's paint
- *  cannot read a CSS custom property; it is deliberately mid-grey, so it reads on both themes. */
+ *  cannot read a CSS custom property; it is deliberately mid-grey, so it reads on both themes.
+ *  An OUT Trupp's trail line wears it too (dimmed): its colour has stopped meaning «here». */
 const GHOST_TRAIL_INK = '#8a8f98'
+/** How much of a Fläche's / circle's stored wash (`fillOpacity`, data – never rewritten) is painted
+ *  at NIGHT (hill climb r17, Opus 7): a translucent red over the dark base mixes into a muddy
+ *  brown, so the night wash is thinner and the zone reads as its stroke's hue. Day paints it whole. */
+const NIGHT_FILL_SCALE = 0.5
 /** The open draft's marching dashes (27.10.2026): MapLibre cannot animate a dash offset, so the
  *  dash pattern itself steps through one period — MapLibre's own «animate a line» recipe. */
 const DRAFT_ANTS: number[][] = [
@@ -710,7 +720,7 @@ export const MapView = forwardRef<MapRef, MapViewProps>(function MapView(props, 
       // A line states its length (plus the hose hint); a Fläche states what it covers. Same
       // toggle, same geodesic maths the Messen tool uses — the area used to be computed for
       // the editor panel only and could never reach the map.
-      if (d.showDistance && !isArea) { const len = pathLengthM(d.coords); lines.push({ text: `${fmtDistance(len)} · ${hoseLengthHint(len)}`, words: false }) }
+      if (d.showDistance && !isArea) { const len = pathLengthM(d.coords); lines.push({ text: `${fmtDistance(len)} · ${hoseLengthHint(len, hoseLines(d.hose))}`, words: false }) }
       if (d.showDistance && isArea) lines.push({ text: fmtArea(polygonAreaM2(d.coords)), words: false })
       // Abschnitt: the Leiter rides the name line («Abschnitt 1 · Oblt Steiner»), the Auftrag
       // gets its own — who leads where must be readable off the Lage, not only in the panel.
@@ -773,20 +783,40 @@ export const MapView = forwardRef<MapRef, MapViewProps>(function MapView(props, 
     .map((d) => {
       const n = d.coords.length
       const end = d.coords[n - 1]
-      // default tag anchor sits just BEFORE the tip (72% along the last segment), not on it
-      const anchor = lerpPoint(d.coords[n - 2], end, 0.72) as LngLat
       const m = mapInst.current
       let angleDeg = 0
+      let dir: [number, number] = [1, 0]
+      let side: 1 | -1 = 1
       if (m) {
         const pe = m.project(end as [number, number])
         const pr = m.project(d.coords[n - 2] as [number, number])
         angleDeg = (Math.atan2(pe.y - pr.y, pe.x - pr.x) * 180) / Math.PI
+        const screen = d.coords.map((c): [number, number] => { const p = m.project(c as [number, number]); return [p.x, p.y] })
+        dir = endDirection(screen)
+        side = endTagSide(screen)
       }
+      // The end tag stands beside the tip, its near edge just short of the arrowhead, a constant px
+      // offset from the end, outside the bend the hose makes into it (lib/endTagSpots · endTagOffset,
+      // endTagSide – hill climb r16, Opus 4: at 72 % along a freehand stroke's tiny last segment it
+      // sat ON the arrowhead). A hand-placed tag keeps its stored ground point and the drag's
+      // offset (END_TAG_HELD_OFFSET).
+      const tagSize = cachedLabelSize(endTagText(d), END_TAG_LABEL_STYLE)
+      const tagAt: LngLat = d.endLabelAt ?? end
+      const tagOffset = d.endLabelAt ? END_TAG_HELD_OFFSET : endTagOffset(dir, tagSize.w, tagSize.h, d.arrow ? MAP_ARROW_BACK_PX : 0, side)
       // the Atemschutz-Trupp working this Leitung (anchor or number) + how it is doing right now
       const trupp = truppForLine(d, trupps ?? [])
       const tone = trupp ? truppLineTone(trupp, truppSeverities?.[trupp.id] ?? 0) : 'idle'
-      return { d, end, anchor, angleDeg, color: d.color || DEFAULT_INK, width: d.width || 4, trupp, tone }
+      return { d, end, tagAt, tagOffset, angleDeg, color: d.color || DEFAULT_INK, width: d.width || 4, trupp, tone }
     })
+  /** The ground point a tag drag starts from: the stored one, or the point the drag's held offset
+   *  (END_TAG_HELD_OFFSET) puts exactly where the tag stands now – so the first move does not jump. */
+  const heldTagAnchor = (ld: (typeof lineDecor)[number]): LngLat => {
+    const m = mapInst.current
+    if (ld.d.endLabelAt || !m) return ld.tagAt
+    const p = m.project(ld.tagAt as [number, number])
+    const g = m.unproject([p.x + ld.tagOffset[0] - END_TAG_HELD_OFFSET[0], p.y + ld.tagOffset[1] - END_TAG_HELD_OFFSET[1]])
+    return [g.lng, g.lat]
+  }
   // ── The Leitung a Trupp marker works (lib/truppLines · teamLineBadges) ─────────────────────
   // What the marker carries of it: the coupling in the hose's ink where the hose really ends
   // there. ⚠️ No NUMBER any more (11.10.2026, owner: «on the map the trupps are numbered – which
@@ -1136,6 +1166,9 @@ export const MapView = forwardRef<MapRef, MapViewProps>(function MapView(props, 
     // …and the one that trails a pan/pinch (see panGesture): moving the map is not a tap on it,
     // so it may neither deselect, nor place, nor pick.
     if (clickTrailsPan()) return
+    // …and the one that only closes a Wassertransport pump's bubble open on the map: in Messen it
+    // must not also add a point, anywhere else not also deselect (RelayPumpMarkers)
+    if (dismissRelayBubble()) return
     // everything else is the dispatcher's call (components/mapClick · routeMapClick)
     const m = mapInst.current
     const click = routeMapClick({
@@ -1157,10 +1190,16 @@ export const MapView = forwardRef<MapRef, MapViewProps>(function MapView(props, 
   }
   const fhFC = useMemo(() => fc(fhPath && fhPath.length >= 2 ? [lineFeat(fhPath)] : []), [fhPath])
   // team trails: the dashed line through a Trupp's RECORDED positions (parity with the plan
-  // board's ink polyline — the breadcrumb dots + timestamps stay DOM markers in MapMarkers)
+  // board's ink polyline — the breadcrumb dots + timestamps stay DOM markers in MapMarkers).
+  // An OUT Trupp's line wears its marker's done dim (`done`: the neutral grey at --done-opacity,
+  // the paint's stand-in for `.raus`'s grayscale + opacity), so the whole group recedes together.
   const trailFC = useMemo(() => fc(entities
     .filter((e) => e.kind === 'team' && isVisible(effectiveLayer(e)) && (e.trail?.length ?? 0) >= 2 && !hiddenTrails.has(e.id))
-    .map((e) => lineFeat((e.trail ?? []).map((p) => p.coord), { color: e.color || appConfig.drawing.teamColors[0] }))), [entities, isVisible, hiddenTrails])
+    .map((e) => lineFeat((e.trail ?? []).map((p) => p.coord), {
+      color: e.color || appConfig.drawing.teamColors[0],
+      done: !!e.truppId && !!trupps?.some((t) => t.id === e.truppId && t.status === 'raus'),
+    }))), [entities, isVisible, hiddenTrails, trupps])
+  const doneOpacity = Number(themeToken('--done-opacity', '.5')) || 0.5
   // …and the same dashed line for a ghost trail, in the neutral ink: the marker is gone, so the
   // Trupp's own colour would claim a Trupp that is not standing anywhere (lib/truppTrails).
   const ghostTrailFC = useMemo(() => fc((ghostTrails ?? [])
@@ -1368,7 +1407,7 @@ export const MapView = forwardRef<MapRef, MapViewProps>(function MapView(props, 
         {/* TWO fill layers, not one expression: `fill-pattern` overrides `fill-color` whenever it
             resolves, and a `case` that yields no image paints nothing at all — so the washed and
             the hatched Flächen are filtered apart and each gets the paint it can actually use. */}
-        <Layer id="l-draw-fill" type="fill" filter={['all', ['==', ['geometry-type'], 'Polygon'], ['!', ['coalesce', ['get', 'hatch'], false]]]} layout={vis(drawingsVisible && !georefOn)} paint={{ 'fill-color': ['get', 'color'], 'fill-opacity': ['coalesce', ['get', 'fillOpacity'], 0.14] }} />
+        <Layer id="l-draw-fill" type="fill" filter={['all', ['==', ['geometry-type'], 'Polygon'], ['!', ['coalesce', ['get', 'hatch'], false]]]} layout={vis(drawingsVisible && !georefOn)} paint={{ 'fill-color': ['get', 'color'], 'fill-opacity': ['*', ['coalesce', ['get', 'fillOpacity'], 0.14], night ? NIGHT_FILL_SCALE : 1] }} />
         <Layer id="l-draw-hatch" type="fill" filter={['all', ['==', ['geometry-type'], 'Polygon'], ['coalesce', ['get', 'hatch'], false]]} layout={vis(drawingsVisible && !georefOn)} paint={{ 'fill-pattern': ['concat', 'hatch-', ['downcase', ['get', 'color']]] }} />
         {/* solid + dashed split: line-dasharray can't be data-driven, so dashed lines
             render in their own layer filtered on the feature's `dashed` property */}
@@ -1400,7 +1439,8 @@ export const MapView = forwardRef<MapRef, MapViewProps>(function MapView(props, 
           a dashed breadcrumb reads exactly like a landmark-worthy path during calibration. */}
       <Source id="s-team-trails" type="geojson" data={trailFC}>
         <Layer id="l-team-trails" type="line" layout={{ 'line-join': 'round', ...vis(!georefOn) }}
-          paint={{ 'line-color': ['get', 'color'], 'line-width': 2, 'line-dasharray': [2.5, 2.5], 'line-opacity': 0.85 }} />
+          paint={{ 'line-color': ['case', ['get', 'done'], GHOST_TRAIL_INK, ['get', 'color']], 'line-width': 2, 'line-dasharray': [2.5, 2.5],
+            'line-opacity': ['case', ['get', 'done'], 0.85 * doneOpacity, 0.85] }} />
       </Source>
       {/* …and the ghost trails behind them: the same dashed path, in the neutral ink, because the
           Trupp that walked it is no longer standing anywhere (lib/truppTrails). */}
@@ -1600,6 +1640,11 @@ export const MapView = forwardRef<MapRef, MapViewProps>(function MapView(props, 
         </Marker>
       ))}
 
+      {/* the Wassertransport's pumps — of Messen's Strecke or the selected Leitung, whichever has
+          its relay open (lib/useRelay · usePublishRelay); nothing while none is */}
+      {!georefOn && <RelayPumpMarkers />}
+      {!georefOn && <ChartCursorMarker />}
+
       {/* measurement readouts pinned to the path (cumulative distance / area), BESIDE the handles:
           each one steps off its segment's left so close-together nodes cannot cover it
           (lib/measureLabelPlace; owner, review round 7). The area's single centroid label has no
@@ -1688,7 +1733,7 @@ export const MapView = forwardRef<MapRef, MapViewProps>(function MapView(props, 
               Both levels come from the one stacking table (lib/labelPass · MARKER_Z). */}
           {/* …and suppressed ⇒ no marker at all, never an empty one (see the dl labels above). */}
           {(ld.d.content || ld.d.lineNo != null || ld.d.floorTag != null) && !suppressedLabels.has(`tag:${ld.d.id}`) && (
-            <Marker longitude={(ld.d.endLabelAt ?? ld.anchor)[0]} latitude={(ld.d.endLabelAt ?? ld.anchor)[1]} anchor="center" offset={[0, -14]}
+            <Marker longitude={ld.tagAt[0]} latitude={ld.tagAt[1]} anchor="center" offset={[ld.tagOffset[0], ld.tagOffset[1]]}
               // …and ABOVE the resting tactical symbols (MARKER_Z.note…team, 4–8) once its own
               // line is selected. At rest the tag stays under the symbols, so an overlapping
               // Trupp still owns the tap. Selected means «I am working on this Leitung» — then
@@ -1697,16 +1742,16 @@ export const MapView = forwardRef<MapRef, MapViewProps>(function MapView(props, 
               // A SELECTED symbol still clears it (MARKER_Z.selected) — only one of the two can
               // be the current selection, and the tapped object is the one that must be visible.
               style={{ zIndex: ld.d.id === selectedDrawingId ? MARKER_Z.tagSelected : MARKER_Z.tag }}>
-              {/* the -14 offset lifts the tag clear of the line end; dragging pins it to a
-                  georeferenced anchor. ⚠️ DRAG only while its line is selected (f4ad5c3's
-                  measured decision stands: at rest a pan starting on the tag must stay a pan) —
+              {/* the offset stands the tag beside the line end; dragging pins it to a
+                  georeferenced anchor (held 14 px under it). ⚠️ DRAG only while its line is
+                  selected (f4ad5c3's measured decision stands: at rest a pan starting on the tag must stay a pan) —
                   but the TAP answers at rest, that is the whole point of the 29.08. rework. The
                   rest-press ref lets the release handler drop a pan that ended on the tag. */}
               {(() => { const tagSel = ld.d.id === selectedDrawingId; return (
               <div role="button" tabIndex={0} className={`line-end-tag-wrap draggable${tagSel ? ' sel' : ''}`}
                 style={{ cursor: onLabelMove && tagSel ? 'move' : undefined }}
                 onPointerDown={(e) => {
-                  if (onLabelMove && tagSel) labelDown(e, ld.d.id, ld.d.endLabelAt ?? ld.anchor, 'end')
+                  if (onLabelMove && tagSel) labelDown(e, ld.d.id, heldTagAnchor(ld), 'end')
                   else { e.stopPropagation(); tagTapped.current = false; tagRestPress.current = { x: e.clientX, y: e.clientY, pointerId: e.pointerId } }
                 }}
                 onPointerMove={onLabelMove && tagSel ? labelMove : undefined}

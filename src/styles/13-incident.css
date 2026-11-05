@@ -1012,7 +1012,7 @@ button.list-row:disabled { opacity: var(--disabled); cursor: default; }
 /* Not a card any more — a plain stack of them. The four rows sit at COLUMN level, beside the
    form's named sections, so the gap is the column's own 12px and the rhythm of the two halves
    of the page finally matches. */
-.rp-checks { display: flex; flex-direction: column; gap: 12px; }
+.rp-checks { display: flex; flex-direction: column; gap: var(--page-gap); }
 /* ⚠️ Same material as `.report-pre-section`, because that is now what these ARE: top-level
    cards in the side column, facing the form's cards across the page. (They were `--surface-veil`
    inside a `--surface-2` wrapper — a 1% difference at night, with no border, so the four read as
@@ -1030,7 +1030,13 @@ button.list-row:disabled { opacity: var(--disabled); cursor: default; }
    button, so a second wash on `.rp-check-main:active` painted the header row twice — pressed
    cards showed a darker title band over a lighter body. */
 .rp-check:has(.rp-check-main:not(:disabled)):active { background-image: linear-gradient(var(--press), var(--press)); }
-.rp-check-main { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 12px 16px;
+/* THE HEAD is an eyebrow (hill climb r20, 05.11.2026 · settled «section heads share ONE type»):
+   it was a 14/700 title in ink, so «Anwesenheit» stood a level above «Aus den Einsatzdaten» on
+   the peer card across the page. Now the same 11px caps; 16px down to the eyebrow's line (the
+   row is 16 tall, the sub's 1.3 leading — so the label sits where `.report-pre-section h3` does)
+   and 12 to the body, as on the form's cards. 16 + 16 + 12 = 44: the head is still a full touch
+   row, and the whole card is the target anyway (::after below). */
+.rp-check-main { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: var(--sp-4) var(--sp-4) var(--sp-3);
   border: none; background: none; text-align: left; color: var(--ink); cursor: pointer; width: 100%; }
 .rp-check-main:disabled { cursor: default; }
 /* THE WHOLE CARD OPENS IT, not the title row alone. The names under «Anwesenheit» are the reason
@@ -1051,25 +1057,37 @@ button.list-row:disabled { opacity: var(--disabled); cursor: default; }
 .rp-check-extra .ci-clear { position: absolute; }
 /* same white-on-white as the partner box above — the ring of an unfinished step was invisible
    in light mode, so the checklist read as a list of labels with no state at all */
-.rp-check-dot { flex: none; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
-  border: 1.5px solid color-mix(in srgb, var(--ink-faint) 55%, transparent); color: var(--ink-faint); }
-/* done is the ORDINARY state and reads by its shape — a tick where there was a dash. It was blue,
-   which put four blue rings down a column that also carries one per partner organisation. Ink,
-   not hue: this dot is a section's STATUS, not a tick (the partner ticks are TickRow's). */
-.rp-check-dot.done { border-color: color-mix(in srgb, var(--ink-faint) 80%, transparent); color: var(--ink); }
-.rp-check-dot svg { width: 14px; height: 14px; }
-.rp-check-label { font: var(--fw-bold) var(--fs-2) var(--body); flex: none; }
-.rp-check-sub { font: var(--fw-medium) var(--fs-1) var(--body); color: var(--ink-faint); flex: 1; min-width: 0;
+/* 16px since the head became an eyebrow (r20), 10px in r22, 8px since r23 (below): a 24px ring stood half
+   again as tall as the label's line beside 11px caps.
+   AFTER the label since hill climb r21 (ReportCheckRow): in front of it, it pushed «ANWESENHEIT»
+   24px right of «AUS DEN EINSATZDATEN» on the card across the page – two text edges for one kind
+   of head. Now every eyebrow's text starts at the card's 16 and the ring is the eyebrow's mark,
+   as the Trupps heads carry their count («DRIN 3»). (Hung in the 16px padding instead, a 16px ring
+   plus its gap would have stood on the card's own edge.)
+   THE eyebrow MARK (hill climb r23, Opus 1, 05.11.2026 – the Plan chips' lamp wears the same spec,
+   09-whiteboard · .wb-lamp; change them together): OPEN is a 10px BROKEN ring – 1.5px, four long
+   arcs with ~2.3px gaps on the diagonals (r24, Opus 4: r23's eight 2px dashes read as a loading
+   spinner), drawn as a mask so it takes the eyebrow's muted ink (--ink-faint, the
+   row's own › wears it); DONE an 8px filled disc. 8px after the label (the row's gap), its middle
+   on the label's x-height middle – the row centres it on the caps' middle, the 1px nudge takes it
+   down. A solid ring of either size read as a letter after the word: r22's 10px / 1.5px as a
+   capital «O» («ANWESENHEIT O»), an 8px / 2px as a bold «o»; no letter is dashed.
+   The state is the FILL, not a glyph: r22's tick and dash could not be drawn legibly that small. Ink, not hue: this mark is
+   a section's STATUS – four blue ticks down a column that also carries one per partner
+   organisation was the reason it went grey. */
+.rp-check-dot { flex: none; width: 10px; height: 10px; translate: 0 1px; background: var(--ink-faint);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Ccircle cx='5' cy='5' r='4.25' fill='none' stroke='black' stroke-width='1.5' pathLength='26.8' stroke-dasharray='4.4 2.3' stroke-dashoffset='2.2'/%3E%3C/svg%3E") center / 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Ccircle cx='5' cy='5' r='4.25' fill='none' stroke='black' stroke-width='1.5' pathLength='26.8' stroke-dasharray='4.4 2.3' stroke-dashoffset='2.2'/%3E%3C/svg%3E") center / 100% no-repeat; }
+.rp-check-dot.done { width: 8px; height: 8px; border-radius: 50%; -webkit-mask: none; mask: none; }
+.rp-check-label { font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-faint); flex: none; }
+.rp-check-sub { font: var(--fw-medium) var(--fs-1)/1.3 var(--body); color: var(--ink-faint); flex: 1; min-width: 0;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
 .rp-check-go { flex: none; width: 15px; height: 15px; color: var(--ink-faint); }
-/* the body starts under the LABEL, not under the dot: 16 (card pad) + 24 (dot) + 8 (gap) */
+/* the body starts under the LABEL – which is the card's own 16 now that the ring follows the label
+   (r21; it was 16 + 16 + 8 under a leading ring, lists excepted) */
 /* right inset 16, the title row's own: the right-aligned «bis 15:50» ends under the row's ›
    (it was 8 while 190px columns needed every pixel; entries wrap now, council 04.11.2026) */
-.rp-check-extra { padding: 0 var(--sp-4) 16px 48px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
-/* …except a list of people/material/partners (hill climb r8, 04.11.2026): two columns of names under
-   the label's 48px left a dead strip under the check dot and wrapped the details; a list starts at
-   the card's own 16px, the row's title keeps its dot + label above it */
-.rp-check-extra:has(> .rp-people) { padding-left: var(--sp-4); }
+.rp-check-extra { padding: 0 var(--sp-4) 16px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
 /* quick double-check lists (Anwesenheit names + Mittel lines): read-only chips, early
    leavers / amounts inline — corrections go through the row's Go arrow */
 /* No inner scroller. A 34vh cap put a second scroll region inside a surface that already scrolls
@@ -1082,26 +1100,28 @@ button.list-row:disabled { opacity: var(--disabled); cursor: default; }
    second like the Kroki legend: the list is alphabetical, and a grid row levelled a short name
    beside a wrapped one into a hole. 200, not the council's 240: the tablet's side column has 439px,
    and 240 sent its 42 names into ONE column twice as long. An entry WRAPS instead of ellipsizing.
-   24px between the columns (council round 3): at 16 a long left name ran up against the right
-   column on the tablet, and 2 × 200 + 24 still fits its 439.
+   A 1px rule between the two columns (owner pick C3, 05.11.2026) in a 32px gap – 16px of air on
+   each side (hill climb r18): at 24 without a rule, column 1's right-aligned «bis 16:55» ended
+   that close to column 2's names and read as theirs. 2 × 200 + 32 still fits the tablet's 439.
+   Each column keeps its own rhythm – the rows do not line up across the rule. `column-rule` is
+   only drawn BETWEEN columns, so where the list falls to one (the phone) there is none.
    ONE entry shape, two edges (council rounds 3 + 5): the name and the qualifier share the left
    edge, the «bis» time is the right edge, the same track in every row, 8px off the name. A
    two-track grid: the name (`.rp-person-txt`, 14/500) is always line 1 with the time beside it;
    the qualifier (`<i>`), if any, is always line 2 under both (12.5/400 faint, 18px leading) — it
    may use the width under the time, which is empty there. Never a run after the name: that
    wrapped back to the name's edge mid-phrase and left a «Trupp Dach ·» dangling by its time.
-   Entry boundaries (council round 4): 8px above and below each entry, 0 inside one, and a faint
-   hairline (`--border-soft`, the list-card rows' own) on top of each — 16px + a rule between two
-   people against a bare line's leading inside one, so a wrapped Trupp entry reads as one unit.
-   The rule sits on every entry's TOP, and the list pulls up and clips its first 9px (rule + 8):
-   each column starts at the box's top edge, so what is cut is the rule and the empty padding of
-   every column's first entry (the left AND the right one – CSS cannot select the second), no
-   column opens with a hanging rule, and the first name sits where it did. Clipped, that strip
-   also lets taps through to the step row it overlaps (its 44px hit area). */
-.rp-people { columns: 2 200px; column-gap: var(--sp-5); width: 100%;
-  margin-top: calc(-1px - var(--sp-2)); clip-path: inset(calc(1px + var(--sp-2)) 0 0 0); }
+   Entry boundaries (council round 4, owner A7 05.11.2026): 8px above and below each entry, 0
+   inside one – 16px between two people against a bare line's leading inside one, so a wrapped
+   Trupp entry reads as one unit. Space only: the faint hairline that sat in that gap is gone
+   (owner pick A7). The list pulls up and clips its first 8px: each column starts at the box's
+   top edge, so what is cut is the empty padding of every column's first entry (the left AND the
+   right one – CSS cannot select the second) and the first name sits where it did. Clipped, that
+   strip also lets taps through to the step row it overlaps (its 44px hit area). */
+.rp-people { columns: 2 200px; column-gap: var(--sp-6); column-rule: 1px solid var(--border); width: 100%;
+  margin-top: calc(-1 * var(--sp-2)); clip-path: inset(var(--sp-2) 0 0 0); }
 .rp-person { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline;
-  min-width: 0; break-inside: avoid; padding-block: var(--sp-2); border-top: 1px solid var(--border-soft);
+  min-width: 0; break-inside: avoid; padding-block: var(--sp-2);
   font: var(--fw-medium) var(--fs-2)/var(--lh-2) var(--body); color: var(--ink); }
 .rp-person-txt { min-width: 0; overflow-wrap: anywhere; }
 /* the departure time: its own item at the right edge, so every «bis 15:50» stands in one column,
@@ -1143,9 +1163,6 @@ button.rp-sign-row:disabled { cursor: default; }
 .rp-sign-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); margin-top: var(--sp-1); }
 .rp-sign-locked { display: inline-flex; align-items: center; gap: var(--sp-2); font: var(--fw-medium) var(--fs-2) var(--body); color: var(--ink-dim); }
 .rp-sign-locked svg { width: 20px; height: 20px; }
-@media (max-width: 520px) {
-  .rp-check-extra { padding-left: 12px; }
-}
 /* floating way back to the Rapport sheet after a checklist row navigated away.
    ⚠️ A piece of the floating family since 26.09.2026 (01-tokens · --float-*): it was a filled
    primary capsule of its own height and shadow, the one pill-shaped rectangle left in the app. */
@@ -1727,13 +1744,19 @@ select.cv-input { appearance: none; -webkit-appearance: none;
    (lib/pageHeadFit · ReportPreflight `RP_FOLD`); a second row (`data-fit-wrap`) is the last
    resort. The squeeze the old wrap answered is now the ladder's: a cut <h2> or chip count is
    «does not fit», so the words go before the title is ever squeezed. */
-.rp-head { flex: none; display: flex; align-items: center; gap: var(--head-gap); flex-wrap: nowrap;
-  padding: var(--head-pad); min-height: calc(var(--tap) + 2 * var(--head-pad-y));
+.rp-head { flex: none; display: flex; align-items: flex-start; gap: var(--head-gap); flex-wrap: nowrap;
+  padding: var(--head-pad-y) var(--page-x, var(--head-pad-x)); min-height: calc(var(--tap) + 2 * var(--head-pad-y));
   background: var(--surface); box-shadow: inset 0 -1px 0 var(--glass-edge); }
 /* …and on a phone, like the shared head, it is no band: the page has no card there to band
    (Surface.module.css · the phone block, sweep 30.10.2026 #12) */
 @media (--phone) { .rp-head { background: none; box-shadow: none; } }
 .rp-head-titles { flex: 1 1 auto; min-width: 0; }
+/* ROW 1 · the title and the tiles on ONE centre line, the verdict hangs under the title when it
+   stands, the head closes up when it does not (Surface.module.css · ROW 1, hill climb r23): the
+   title's box padded to --tap, the head stacked from the top */
+.rp-head-titles h2 { padding-top: calc((var(--tap) - 1.3em) / 2); }
+.rp-head-titles h2:last-child { padding-bottom: calc((var(--tap) - 1.3em) / 2); }
+.rp-head:not([data-fit-wrap]) > .rp-head-titles:has(> h2:not(:last-child)) { margin-bottom: calc(var(--sp-1) - var(--head-pad-y)); }
 /* The second row (the ladder's last step — a phone with something open, since the Kontrolle chip
    keeps its words, council round 3): the TITLE and the chip share the first row (what this is,
    what is wrong), the actions take the second, splitting its width — «Abschliessen» and «PDF ▾»,
@@ -1748,6 +1771,10 @@ select.cv-input { appearance: none; -webkit-appearance: none;
 .rp-head[data-fit-wrap] .rp-state { flex: 0 1 auto; }
 .rp-head[data-fit-wrap] .rp-head-actions > :not(.rp-state) { order: 2; flex: 1 1 0; margin-top: var(--sp-2); }
 .rp-head[data-fit-wrap] .rp-split-main { flex: 1 1 auto; justify-content: center; }
+/* …and on that row of their own the worded tiles have the room for their glyph again: «Abschliessen»
+   with its archive box, «PDF» with its document, 16px at the tiles' 8px gap like the tablet's (hill
+   climb r23, Opus 8: they were text-only on the phone only). Measured to fit at 360 and 390. */
+.rp-head[data-fit-wrap] .head-tile[data-folded]:has(.fold-short) > svg.fold-long { display: block; }
 /* it truncates, exactly as the line under it always did — an <h2> that does not is an <h2> that
    paints over whatever is beside it */
 .rp-head-titles h2 { margin: 0; font: var(--head-title); color: var(--ink);
@@ -1929,8 +1956,15 @@ select.cv-input { appearance: none; -webkit-appearance: none;
 .rp-control-step .i { width: 15px; height: 15px; flex: none; color: var(--ink-faint); }
 @media (hover: hover) { .rp-control-step:hover { background: var(--blue-8); } }
 .rp-control-step:active:not(:disabled) { background-image: linear-gradient(var(--press), var(--press)); }
-/* the head must not clip a popover anchored inside it */
-.rp-head { position: relative; overflow: visible; }
+/* ⚠️ The rows ABOVE the scrolling body – the head, the strip, the band – keep the body's
+   scrollbar lane (hill climb r21, 05.11.2026): the body reserves it on its right edge
+   (`scrollbar-gutter: stable`, below), so these reserve the same lane, and the head's last tile
+   ends where the last card ends on a classic-scrollbar desktop too; an overlay scrollbar (iPad,
+   phone, macOS) reserves nothing on either. `scrollbar-gutter` needs a clipping box, hence
+   `overflow: hidden` – which clips nothing: the Kontrolle popover and the print menu are portalled
+   (overlays · Popover / Menu), and every tile stands a padding inside the row. */
+.rp-head { position: relative; }
+.rp-head, .rp-band, .rp-strip { overflow: hidden; scrollbar-gutter: stable; }
 /* the ✕ is a control on this row, so it obeys the row's floor — .ip-x is a 30px dialog affordance
    and this is a page you leave with gloves on */
 .rp-head .ip-x { display: grid; place-items: center; width: var(--tap); height: var(--tap); }
@@ -1939,9 +1973,9 @@ select.cv-input { appearance: none; -webkit-appearance: none;
    Deliberately a BAND and not a dialog — it is the one thing on this surface that interrupts
    nothing: the head above it and the form below it both keep working, and «Später» removes it.
    Green, because nothing here is wrong: the work is done, this is the receipt. It follows the
-   head's 22px so its text starts on the same line the title does. */
+   head's inset (the page grid's `--page-x`) so its text starts on the same line the title does. */
 .rp-band { flex: none; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-  padding: 12px var(--head-pad-x); border-bottom: 1px solid var(--glass-edge);
+  padding: 12px var(--page-x, var(--head-pad-x)); border-bottom: 1px solid var(--glass-edge);
   background: color-mix(in srgb, var(--green) 9%, var(--surface)); }
 /* The same band, amber, for the print job that has not come back (see ReportPreflight). Nothing
    is wrong and nothing is finished — and the green above is reserved for the receipt. */
@@ -1962,7 +1996,7 @@ select.cv-input { appearance: none; -webkit-appearance: none;
    The pill is the tap (≥52px, two short lines), the ✕ in front a --tap square; green = nothing is
    missing and this is the next step, the receipt tint the band always had. */
 .rp-strip { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2);
-  padding: var(--sp-2) var(--head-pad-x); border-bottom: 1px solid var(--glass-edge); }
+  padding: var(--sp-2) var(--page-x, var(--head-pad-x)); border-bottom: 1px solid var(--glass-edge); }
 .rp-strip-done { background: color-mix(in srgb, var(--green) 9%, var(--surface)); }
 .rp-strip-x { flex: none; }
 .rp-strip-go { flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: var(--sp-3); min-height: 52px;
@@ -1984,38 +2018,48 @@ select.cv-input { appearance: none; -webkit-appearance: none;
 .rp-strip-more .i { width: 15px; height: 15px; flex: none; }
 .rp-strip-link { min-height: var(--tap); padding: 0; border: none; background: none; color: var(--ink); cursor: pointer;
   font: var(--fw-bold) var(--fs-1) var(--body); text-decoration: underline; text-underline-offset: 3px; }
-/* Content padding matches the head's 22px, so the cards line up with the title above them
-   (`.ip-body`'s own 6px/20px is a dialog's, and left the first card glued to the head border).
+/* Content padding is the page grid's (Surface.module.css · THE PAGE GRID, hill climb r21): the
+   head's inset, 16 – the Trupps page's – so the first card's left edge is the title's and the last
+   card's right edge the last tile's (`.ip-body`'s own 6px/20px is a dialog's). `--content-pad-x`
+   is that inset until the wide cap below centres the columns.
    The bottom clears the FAB the way Anwesenheit, Mittel, Atemschutz, Checklists and Zeitplan all
-   already do — `--fab-safe` is 0px when no FAB is on screen, so this is inert on a tablet. */
+   already do — `--fab-safe` is 0px when no FAB is on screen, so this is inert on a tablet.
+   The scrollbar lane is reserved on the RIGHT only, and the rows above reserve the same one
+   (`.rp-head, .rp-band, .rp-strip` above). r16 reserved it on both edges for a symmetric inset,
+   which put the cards ~11px inside the title on a classic-scrollbar desktop (33 against 22); now
+   the left edges are one line and the right lane holds the scrollbar. Overlay scrollbars (iPad,
+   phone, macOS) reserve nothing anywhere. */
 .report-preflight-surface > .ip-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-gutter: stable;
-  padding: 16px var(--head-pad-x) calc(24px + var(--fab-safe, 0px)); }
+  padding: 16px var(--content-pad-x) calc(24px + var(--fab-safe, 0px)); }
 /* The actions live in the HEAD with the other surfaces' controls, and the readiness chip rides
    with them — a warning about the record has to be in the same glance as the button that makes
    the paper. The old pinned footer is gone with them. */
 /* TWO columns of a rapport (see the component for what goes in which and why). Each column is
    its own stack, so the single-column phone case is simply the two of them below one another —
    the DOM order, which is the printed order, is the same either way. */
-.report-preflight-body > .rp-col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.report-preflight-body > .rp-col { display: flex; flex-direction: column; gap: var(--page-gap); min-width: 0; }
 /* 1080px = an iPad in landscape, the narrowest screen where two columns of ~460px still fit
    beside the rail. Below it the surface stays the single column it is on a phone. */
 @media (min-width: 1080px) {
   .report-preflight-surface > .report-preflight-body {
-    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px;
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--page-gap);
     /* start, not stretch: the two columns are different lengths and neither should be padded
        out to the other's height — the checklist would grow a hole under its last row */
     align-items: start;
   }
 }
 /* Wide screens (B1, 07.10.2026 — Surface.module.css · «cap + columns»): the two columns stop at
-   ~670px each, the whole Rapport at 1360 + its padding, centred on the surface ground. At 1920 a
+   ~694px each, the whole Rapport at 1400 + its padding, centred on the surface ground. At 1920 a
    column was 840px: a 840px text field, and the Gerettete stepper 650px from its label. Two
    columns, not three: the left one is the form and the right one the round-up of what the other
    surfaces recorded, and a third would split one of them for width's sake. Below 1181px
-   `--content-max` is unset and the inset is the 22px it always was. */
+   `--content-max` is unset and the inset is the page grid's 16.
+   1400, not 1360 (hill climb r21): 1400 is the 1536 laptop's whole content box (a 1432 surface less
+   2 × 16), so there the cap does not bite and the cards stand on the head's own 16 inset at both
+   edges. The cap begins on a wider screen, where the HEAD stays full width (B1: heads are never
+   capped, «keep things right aligned») and the columns centre under it. */
 @media (min-width: 1181px) {
-  .report-preflight-surface { --content-max: 1360px; }
-  .report-preflight-surface > .ip-body { padding-inline: var(--content-pad-x); }
+  .report-preflight-surface { --content-max: 1400px; }
 }
 /* ONE SURFACE while the Rapport is one column (30.09.2026, owner on the phone: «in the rapport we
    have double stacked cards»). Below 1080px every section — the four form sections, the round-up
@@ -2034,9 +2078,9 @@ select.cv-input { appearance: none; -webkit-appearance: none;
   .report-preflight-body .rp-check { padding-top: 4px; } /* + the title row's own 12px = 16 */
   .report-preflight-body .rp-col-form > .report-fieldset > [data-tab]:not([data-tab] ~ *) { border-top: 0; padding-top: 0; }
   /* a round-up row is a row of the page now: no card inset — the title row keeps its --tap
-     height, the body stays under the label (24px dot + 8px gap) */
+     height, the body stays under the label (at the page's inset: the ring follows the label) */
   .report-preflight-body .rp-check-main { padding-inline: 0; }
-  .report-preflight-body .rp-check-extra { padding: 0 0 4px 32px; }
+  .report-preflight-body .rp-check-extra { padding: 0 0 4px; }
   /* the whole row still opens it (the stretched ::after); with no edge to light, a mouse hover
      keeps the hairline as it is */
   .report-preflight-body .rp-check:has(.rp-check-main:not(:disabled)):hover { border-color: var(--glass-edge); }
@@ -2094,9 +2138,13 @@ select.cv-input { appearance: none; -webkit-appearance: none;
   /* (the strip itself — shown, docked above the nav bar, its segments — is ONE phone block in
      15-mobile.css · .rp-tabs, which owns its box) */
 
-  /* the same amber the head's «noch offen» chips carry — one page, one meaning for «offen» */
-  .rp-tab-dot { position: absolute; top: 7px; right: 8px; width: 7px; height: 7px; border-radius: 50%;
-    background: var(--amber); }
+  /* a tab still holding an open Mindestangabe: the page's OPEN mark after its word (ReportPreflight ·
+     StatusMark, hill climb r24 – an amber corner dot until then, a badge's language), in the
+     segment's own ink so it holds on the «where you are» pill as on the quiet tabs */
+  .rp-tabs .useg-btn .rp-check-dot { background: currentColor; }
+  /* …and a strip carrying one shares its width by content: at 390px «Personal & Mittel» fills its
+     equal third to the padding, and its mark pushed the word 6px over the segment's edges */
+  .rp-tabs > .useg:has(.rp-check-dot) > .useg-btn { flex: 1 1 auto; }
 
   /* One rule per tab: everything carrying a DIFFERENT tab is off screen. Blocks with no
      `data-tab` at all (the fieldset, the columns) are structure and are not addressed here —
@@ -2132,9 +2180,6 @@ select.cv-input { appearance: none; -webkit-appearance: none;
   .report-preflight-body[data-phone-tab="beilagen"] [data-tab="beilagen"]:not([data-tab="beilagen"] ~ *, :has([data-tab="beilagen"]) ~ *) {
     border-top: 0; padding-top: 0;
   }
-  /* 360–390px: the round-up rows' body starts at the dot, not under the label — the Partner
-     fields and the names want the width more than the indent */
-  .report-preflight-body .rp-check-extra { padding-left: 0; }
   .report-preflight-body[data-phone-tab="bericht"] > .rp-col:not(:has([data-tab="bericht"])),
   .report-preflight-body[data-phone-tab="werwas"] > .rp-col:not(:has([data-tab="werwas"])),
   .report-preflight-body[data-phone-tab="beilagen"] > .rp-col:not(:has([data-tab="beilagen"])) { display: none; }

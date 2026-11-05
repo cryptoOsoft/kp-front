@@ -786,7 +786,7 @@ export default function KarteApp({ einsaetze, announceReturn = false, onOpenVisi
             ]} />
             {/* temporary by construction: no «Als Linie/Fläche übernehmen» (no onAdopt) — and no
                 line saying so either (owner-6): nothing on this surface is ever saved */}
-            <MeasurePanel mode={measure.mode} coords={measure.path} profile={measure.profile} profileLoading={measure.loading} className={s.measurePanel} />
+            <MeasurePanel mode={measure.mode} coords={measure.path} profile={measure.profile} profileLoading={measure.loading} relay={measure.relay} className={s.measurePanel} />
           </>
         )}
         {pinHint && <MapHint>{C.pinHint}</MapHint>}

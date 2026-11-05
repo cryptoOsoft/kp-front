@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { LngLat } from '../types'
-import { labelledNodes, profileNodes, type ProfileResult } from './profile'
+import { labelledNodes, profileNodes, reverseProfile, type ProfileResult } from './profile'
 
 const profile = (pts: [number, number][]): ProfileResult => ({
   points: pts.map(([dist, alt]) => ({ dist, alt })), min: 0, max: 0, gain: 0, loss: 0, start: pts[0][1], end: pts[pts.length - 1][1],
@@ -35,5 +35,16 @@ describe('labelledNodes', () => {
   const at = (...fracs: number[]) => fracs.map((frac) => ({ frac, dist: frac * 100, alt: 0 }))
   it('always labels both ends and drops an inner label that would collide', () => {
     expect([...labelledNodes(at(0, 0.05, 0.5, 0.55, 0.95, 1))].sort()).toEqual([0, 2, 5])
+  })
+})
+
+// a Wassertransport drawn from the fire back to the hydrant runs the profile the other way round
+describe('reverseProfile', () => {
+  it('measures from the far end and swaps the climbs', () => {
+    const p = { ...profile([[0, 300], [40, 320], [100, 310]]), gain: 20, loss: 10 }
+    expect(reverseProfile(p)).toMatchObject({
+      points: [{ dist: 0, alt: 310 }, { dist: 60, alt: 320 }, { dist: 100, alt: 300 }],
+      gain: 10, loss: 20, start: 310, end: 300,
+    })
   })
 })

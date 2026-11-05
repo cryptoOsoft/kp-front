@@ -253,7 +253,7 @@ describe('the Eingangsdruck is guarded', () => {
     mount({ trupps: [outWithRest()], editTrupp })
     await openEdit()
     // «300 bar 🔒» and ONE hint line (owner review 26.09.2026)
-    expect(screen.getByText('300 bar')).toBeTruthy()
+    expect(screen.getByText((_, el) => el?.tagName === 'B' && el.textContent === '300 bar')).toBeTruthy()
     expect(screen.getByText(fillTemplate(az.pressureLockedWhyExit, { bar: 60 }))).toBeTruthy()
     expect(screen.queryByRole('button', { name: new RegExp(`^${az.editPressureLabel}`) })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: az.save }))

@@ -106,7 +106,10 @@ describe('the contact times (the head of the Verlauf)', () => {
     it('never states the Schätzung twice — the panel carries its provenance, not its number', () => {
       mount()
       fireEvent.click(screen.getByRole('button', { name: new RegExp(az.verlauf) }))
-      const bars = screen.queryAllByText(/≈ \d+ bar/)
+      // the innermost elements that read «≈ N bar» whole (the unit is a span of its own – UnitVal)
+      const est = /^≈ \d+ bar$/
+      const bars = [...document.body.querySelectorAll('*')]
+        .filter((el) => est.test(el.textContent ?? '') && ![...el.children].some((ch) => est.test(ch.textContent ?? '')))
       expect(bars).toHaveLength(1)
       expect(bars[0].closest(`.${s.metaLine}`)).toBeTruthy()
       // the panel's own row is labelled and explains, in the footnote voice, never in mono
@@ -150,6 +153,17 @@ describe('the contact times (the head of the Verlauf)', () => {
       const line = document.querySelector(`.${s.metaLine}`)!.textContent!
       expect(line).not.toMatch(/(^|[^≈] )240 bar/)
       expect(line).toContain(az.estimatedShort)
+    })
+
+    // owner pick C18 (05.11.2026): an OUT card words its finished values — and only an out card
+    it('words an out card\'s foot «drin … · raus mit … bar»', () => {
+      mount({ trupps: [{ ...aktivTrupp(), status: 'raus', exitTime: iso(5 * 60_000) }] })
+      const words = [...document.querySelectorAll(`.${s.metaLine} i`)].map((i) => i.textContent)
+      expect(words).toEqual([az.footInside, az.footOutAt])
+      expect(document.querySelector(`.${s.metaLine}`)!.textContent).toMatch(/\d+:\d{2} min.*\d+ bar/)
+      cleanup()
+      mount()
+      expect(document.querySelector(`.${s.metaLine}`)!.textContent).not.toContain(az.footInside)
     })
   })
 })
@@ -384,7 +398,8 @@ describe('an abgeschlossener Einsatz (frozenAt)', () => {
     // rules neutralise the red status edge and the green clocks
     expect(document.querySelector(`.${s.surfaceFrozen}`)).toBeTruthy()
     const css = readFileSync(`${process.cwd()}/src/components/Atemschutz.module.css`, 'utf8')
-    expect(css).toMatch(/\.surfaceFrozen \.trow \{ border-left-color: var\(--ink-faint\); background: var\(--surface\); \}/)
+    expect(css).toMatch(/\.surfaceFrozen \.trow \{ background: var\(--surface\); \}/)
+    expect(css).toMatch(/\.surfaceFrozen \.trow::before \{ content: none; \}/)
     expect(css).toMatch(/\.surfaceFrozen \.trowClockVal, \.surfaceFrozen \.tabClock \{ color: var\(--ink-dim\)/)
     // …the SICHERUNGSTRUPP head included — no amber title on a closed Tafel (r6, F3; a head since
     // the slim-down of 26.09.2026)
@@ -603,6 +618,19 @@ describe('a collapsed row tells the same time as the open card', () => {
     const foot = document.querySelector(`.${s.metaLine}`)!
     expect(foot.textContent).toContain('3d 10h')
     expect(foot.textContent).not.toMatch(/\d d \d+ h/)
+  })
+
+  // owner pick C6, 05.11.2026: the figure stays in the value's mono, only the unit word changes face –
+  // and the space before it with it (hill climb r20: a mono space out-measured the gaps between items)
+  it('sets the units of the foot and the Druck tile in their own span, the figures and the text as they were', () => {
+    mount({ trupps: [aktivTrupp()] })
+    const units = (el: Element) => [...el.querySelectorAll(`.${s.valUnit}`)].map((u) => u.textContent)
+    const foot = document.querySelector(`.${s.metaLine}`)!
+    expect(units(foot)).toEqual([' min', ' bar'])
+    expect(foot.textContent).toMatch(/\d+:\d\d min.*≈ \d+ bar$/)
+    const tile = document.querySelector(`.${s.pairBar}`)!
+    expect(units(tile)).toEqual([' bar'])
+    expect(tile.textContent).toMatch(/^\d+ bar$/)
   })
 
   it('shows no time at all on the closed row of an out work squad', () => {
