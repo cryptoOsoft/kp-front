@@ -319,8 +319,8 @@
 .tb-stop { position: relative; z-index: 1; width: 11px; height: 11px; border-radius: 2px; background: var(--on-accent-ink); flex: none; }
 
 /* slide-over drawer — right edge, full height, opens over either surface */
-/* the Verlauf drawer docks INBOARD of the right tool rail (right:16 + width:88 + 8px
-   gap = 112px) so the rail and its pinned zoom/fit footer stay visible + interactive.
+/* the Verlauf drawer docks INBOARD of the right tool rail (right:16 + the compact rail + the
+   16px gap = 92px) so the rail and its pinned zoom/fit footer stay visible + interactive.
    The scrim stops at the same edge, leaving the rail strip un-covered (and un-dimmed)
    so its buttons stay live; click-away-to-close still works over the rest of the map.
    The phone block (below) resets both to a full-width bottom sheet. */
@@ -331,9 +331,11 @@
    Pendenzen block as well as the log, and both are lines of prose: an item's text plus its
    Meldungen ellipsised after a handful of words. The 112px gutter was ~30px more than the rail
    needs (`.tool-rail` sits at right:16px and `--vrail-w` is 60–64px compact), so the panel sat
-   adrift in the middle of the map with air on the side it is anchored to. 84px clears the compact
-   rail with a hair of daylight; `max-width` keeps it honest on a narrow window, and below the
-   mobile breakpoint it becomes a bottom sheet anyway.
+   adrift in the middle of the map with air on the side it is anchored to. 92px clears the compact
+   rail by the 16px system gap (hill climb r17, 05.11.2026: 84 left 8px to the rail and the 12px
+   foot stood off the 16 the rails and panels keep to the viewport — so 612 wide, 16 to the foot);
+   `max-width` keeps 16px on the left of a narrow window, and below the mobile breakpoint it
+   becomes a bottom sheet anyway.
    ⚠️ The WIDE rail (--vrail-w 212) overlaps this — as it always did, and deliberately: it is a
    transient state you drag open and let go of, and it renders above (z-index 30 vs the drawer's
    61 puts the drawer on top, so nothing is lost behind it).
@@ -343,7 +345,7 @@
    blocks behind the clock column, and a busy Lage would do the same behind the log's prose — a
    sheet you READ, unlike the floating chips and menus that keep the see-through glass. Scoped to
    the Verlauf drawer (tablet, laptop and the phone's bottom sheet); no blur, nothing to blur. */
-.journal-drawer { position: fixed; top: 88px; right: 84px; bottom: 12px; width: 620px; max-width: calc(100vw - 96px); z-index: var(--z-drawer);
+.journal-drawer { position: fixed; top: 88px; right: 92px; bottom: 16px; width: 612px; max-width: calc(100vw - 108px); z-index: var(--z-drawer);
   display: flex; flex-direction: column; background: linear-gradient(var(--glass), var(--glass)) var(--surface);
   border: 1px solid var(--glass-line); border-radius: var(--r-surface); box-shadow: var(--e4); padding: var(--sp-3);
   animation: drawerIn .18s var(--ease); }

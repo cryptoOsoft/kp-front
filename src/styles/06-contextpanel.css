@@ -858,6 +858,8 @@ span.jr-rem { cursor: default; }
    `anywhere` let the line-breaker take the last character that fits — «Verkehrsdie|nst» in a
    column that had room to break between the words. Emergency breaks stay available for a single
    word longer than the column (a Strassenname, a Stichwort), which is what they are for. */
+/* ⚠️ 500 in full ink — the log's recognised-word weight (10-journal · .jr-link), measured equal
+   in hill climb r17 (05.11.2026); the head above stays 700, dringend turns the item red at 700. */
 .jr-pinned-text { display: block; width: 100%; min-width: 0; overflow-wrap: break-word;
   border: none; background: none; padding: 0; cursor: pointer; text-align: left;
   font: var(--fw-medium) var(--fs-2) var(--body); line-height: 1.35; color: var(--ink); }
