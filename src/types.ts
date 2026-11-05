@@ -556,6 +556,10 @@ export interface TimelineEvent {
      *  text there stuttered the time and the word «Erinnerung» twice per line.
      *  Optional: rows written before this existed fall back to the stripped `text`. */
     text?: string
+    /** `created` by «wieder in …» on a done row: the item it re-raises (lib/reminders ·
+     *  openReRaises). While it is open, that done row shows ✓ «↻ in 30 min gesetzt» instead of
+     *  its chips (05.11.2026: a double tap raised two). Absent on every other `created`. */
+    again?: string
   }
   /**
    * A record divergence and its answer — the same append-only lifecycle the `reminder` above

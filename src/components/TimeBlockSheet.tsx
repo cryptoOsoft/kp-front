@@ -4,6 +4,8 @@ import { cx } from '../lib/cx'
 import { Sheet } from '../lib/overlays'
 import { TimeField } from './TimeField'
 import { Button, IconButton } from './Button'
+import { DoneChip } from './DoneChip'
+import { useOneShot } from '../lib/useOneShot'
 import s from './TimeBlockSheet.module.css'
 
 
@@ -89,7 +91,7 @@ export interface TimeBlock {
  * different paddings, one with labels and one without — and at 3am two surfaces that look almost
  * alike are worse than either.
  */
-export function TimeBlockSheet({ title, subject, sectionTitle, blocks, emptyLabel, addLabel, onAdd, note, extra, danger, onClose, labels, days }: {
+export function TimeBlockSheet({ title, subject, sectionTitle, blocks, emptyLabel, addLabel, onAdd, addedLabel, note, extra, danger, onClose, labels, days }: {
   title: string
   /** who this sheet is about — field labels read «von – Meier Anna», not «von – Schichten – …» */
   subject: string
@@ -99,6 +101,11 @@ export function TimeBlockSheet({ title, subject, sectionTitle, blocks, emptyLabe
   /** absent = this surface cannot add a block here */
   addLabel?: string
   onAdd?: () => void
+  /** the add is a one-time action (docs/ui-conventions.md · One-time actions): after a tap the
+   *  button gives way to ✓ `addedLabel` for a moment (lib/useOneShot), so a double tap adds ONE
+   *  block – the Zeitplan's «Schicht erstellen» drafted two identical shifts (05.11.2026). Absent:
+   *  every tap adds (the Anwesenheit's «Weiterer Block» guards itself, useAttendanceActions). */
+  addedLabel?: string
   /** closing note; omit where a surface has nothing useful to say */
   note?: string
   /** an additional read-only section under the blocks (the Zeitplan's «tatsächlich anwesend») */
@@ -111,6 +118,7 @@ export function TimeBlockSheet({ title, subject, sectionTitle, blocks, emptyLabe
   /** the incident's own days — the picker shows a day wheel only when there is more than one */
   days?: Date[]
 }) {
+  const shot = useOneShot()
   return (
     // NO confirm footer (29.09.2026, owner: «everything should be auto-saved without manual
     // confirmations»): every change here is live the moment it is made, so a primary «Fertig»
@@ -205,11 +213,13 @@ export function TimeBlockSheet({ title, subject, sectionTitle, blocks, emptyLabe
             </span>
           </div>
         ))}
-        {addLabel && onAdd && (
-          <Button variant="quiet" icon={<Icon id="plus" />} className={s.add} onClick={onAdd}>
-            {addLabel}
-          </Button>
-        )}
+        {addLabel && onAdd && (addedLabel && shot.done
+          ? <DoneChip className={s.add}>{addedLabel}</DoneChip>
+          : (
+            <Button variant="quiet" icon={<Icon id="plus" />} className={s.add} onClick={() => (addedLabel ? shot.run(onAdd) : onAdd())}>
+              {addLabel}
+            </Button>
+          ))}
         {note && <p className={s.note}>{note}</p>}
       </div>
       {extra}

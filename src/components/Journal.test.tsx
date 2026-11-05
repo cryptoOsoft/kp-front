@@ -349,6 +349,24 @@ describe('Journal · the classification column', () => {
     expect(document.querySelector('[data-ev="c1"] .jr-ring-open')).toBeTruthy()
   })
 
+  // a one-time action (05.11.2026: a double tap raised two) – while the item it raised is open,
+  // the done row says so instead of offering the chips again
+  it('a done row whose «wieder in» is still open shows ✓ «↻ in 30 min gesetzt», no chips', () => {
+    setup({
+      events: [
+        { id: 'n1', t: '', at: new Date(1_040_000).toISOString(), icon: 'bell', kind: 'reminder',
+          text: 'Erinnerung gesetzt: Lagerapport durchführen',
+          reminder: { op: 'created', id: 'p3', dueAt: new Date(1_040_000 + 30 * 60_000).toISOString(), text: 'Lagerapport durchführen', again: 'p2' } },
+        { id: 'd1', t: '', at: new Date(1_030_000).toISOString(), icon: 'check', kind: 'reminder',
+          text: 'Pendenz erledigt: Lagerapport durchführen', reminder: { op: 'done', id: 'p2' } },
+      ],
+      openReminders: [pendenz('p3', 'Lagerapport durchführen', { rowId: 'n1' })],
+      onReminderAgain: vi.fn(),
+    })
+    expect(document.querySelectorAll('[data-ev="d1"] .jr-again-btn')).toHaveLength(0)
+    expect(document.querySelector('[data-ev="d1"] [role="status"]')?.textContent).toContain('↻ in 30 min gesetzt')
+  })
+
   it('renders no «wieder in» chips when the handler is absent', () => {
     setup({
       events: [

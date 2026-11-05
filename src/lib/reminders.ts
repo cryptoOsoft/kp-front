@@ -23,6 +23,24 @@ import { appConfig } from '../config/appConfig'
 import { fuzzyScore, norm } from './quickPhrases'
 import type { Surface, TimelineEvent } from '../types'
 
+/**
+ * «wieder in …» on a done row (Journal · JournalRow): the items re-raised from a closed one that are
+ * still OPEN, keyed by the item they re-raise (`reminder.again`), with how far ahead each was set
+ * (whole minutes, its `dueAt` less its row's `at`). That done row shows ✓ «↻ in 30 min gesetzt»
+ * instead of its chips – the one-time action's done state, read off the record
+ * (docs/ui-conventions.md · One-time actions); once the re-raise is closed too, the chips are back.
+ */
+export function openReRaises(timeline: readonly TimelineEvent[], open: readonly Pick<OpenReminder, 'id'>[]): Map<string, number> {
+  const openIds = new Set(open.map((r) => r.id))
+  const out = new Map<string, number>()
+  for (const e of timeline) {
+    const r = e.reminder
+    if (r?.op !== 'created' || !r.again || !openIds.has(r.id) || !r.dueAt || !e.at) continue
+    out.set(r.again, Math.max(1, Math.round((Date.parse(r.dueAt) - Date.parse(e.at)) / 60_000)))
+  }
+  return out
+}
+
 /** The latest Meldung on an open item — what the list shows under the item's own text. */
 export interface PendenzNote {
   /** the note row's id, so the list can jump to it */

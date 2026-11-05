@@ -16,7 +16,7 @@ import { ART_DISC, groupByDay, isHandWritten, isNachtrag, repeatRuns, rowPhotos,
 import { journalDisc, withoutAreaPrefix } from '../lib/report'
 import { journalQuery, matchesJournalQuery } from '../lib/journalSearch'
 import { journalCategories, journalFacets, matchesJournalCategories, showsPinnedPendenzen, type JournalCategoryKind } from '../lib/journalFilter'
-import type { OpenReminder } from '../lib/reminders'
+import { openReRaises, type OpenReminder } from '../lib/reminders'
 import { cardinalIndex, fmtDistance, takenClock, type PhotoPlacement } from '../lib/photoGeo'
 
 /** HH:MM of an ISO instant — the Pendenzen block's time column and its Meldung lines. */
@@ -168,6 +168,8 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
   // open reminders keyed by id, plus a clock captured when the drawer opens (it remounts on
   // each open, so this is "now" at open time) to flag overdue rows
   const openMap = new Map((openReminders ?? []).map((r) => [r.id, r]))
+  // done rows whose «wieder in …» already raised an item that is still open (lib/reminders)
+  const reRaised = openReRaises(events, openReminders ?? [])
   // id → the item's own words, so a Meldung row can name what it is an answer to. Built from the
   // `created` rows themselves (not from `openReminders`), or a Meldung on an item that has since
   // been ticked off would lose its anchor the moment it was closed.
@@ -815,7 +817,7 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
                 <JournalRow
                   key={e.id} e={e} plans={plans} live={live} closedAt={closedAt} now={now} replayAtMs={replayAtMs}
                   openMap={openMap} repeated={repeats.counts.get(e.id) ?? 1}
-                  pendenzTitles={pendenzTitles} pendenzRowIds={pendenzRowIds} audioWindows={audioWindows}
+                  pendenzTitles={pendenzTitles} pendenzRowIds={pendenzRowIds} reRaised={reRaised} audioWindows={audioWindows}
                   playing={audio.playing === e.id} onTogglePlay={audio.toggle}
                   editTx={editTx} editRow={editRow} setEditTx={setEditTx} setEditRow={setEditRow}
                   saveTranscript={saveTranscript} saveRowText={saveRowText}

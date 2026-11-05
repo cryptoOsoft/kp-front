@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { deriveReminders, isDue, suggestPendenzen } from './reminders'
+import { deriveReminders, isDue, openReRaises, suggestPendenzen } from './reminders'
 import type { TimelineEvent } from '../types'
 
 // timeline is stored newest-first (App prepends), so fixtures list newest rows first.
@@ -248,5 +248,17 @@ describe('suggestPendenzen', () => {
   it('ignores single letters and empty input', () => {
     expect(suggestPendenzen('a', open)).toEqual([])
     expect(suggestPendenzen('', open)).toEqual([])
+  })
+})
+
+// «wieder in …» is a one-time action (05.11.2026: a double tap raised two): its done state is read
+// off the record – the item a re-raise points back at (`again`), while that re-raise is open
+describe('openReRaises', () => {
+  const again = row('n1', 'Erinnerung gesetzt für 03:30: Lagerapport', { op: 'created', id: 'p2', dueAt: '2026-06-24T03:30:00.000Z', text: 'Lagerapport', again: 'p1' })
+  it('names the closed item and how far ahead its open re-raise was set', () => {
+    expect(openReRaises([again], [{ id: 'p2' }])).toEqual(new Map([['p1', 30]]))
+  })
+  it('lets go once the re-raise is closed too – its own done row offers the next one', () => {
+    expect(openReRaises([again], []).size).toBe(0)
   })
 })
