@@ -1068,17 +1068,24 @@ button.list-row:disabled { opacity: var(--disabled); cursor: default; }
    09-whiteboard · .wb-lamp; change them together): OPEN is a 10px BROKEN ring – 1.5px, four long
    arcs with ~2.3px gaps on the diagonals (r24, Opus 4: r23's eight 2px dashes read as a loading
    spinner), drawn as a mask so it takes the eyebrow's muted ink (--ink-faint, the
-   row's own › wears it); DONE an 8px filled disc. 8px after the label (the row's gap), its middle
-   on the label's x-height middle – the row centres it on the caps' middle, the 1px nudge takes it
-   down. A solid ring of either size read as a letter after the word: r22's 10px / 1.5px as a
+   row's own › wears it); DONE an 8px filled disc. 8px after the label, its middle ON the middle
+   of the label's capitals (owner 05.11.2026: «always nicely aligned with the text» – flex-centred
+   on the line box plus a 1px nudge, it sat 1.7px low on the CheckRows and ~2px low on the form's
+   section heads, whose line box is taller). So it is an INLINE box inside the label's own text
+   element (ReportCheckRow · StatusMark): `vertical-align` lifts its bottom edge off the baseline
+   by half the font's cap height less half its own size, in the label's font, at any size. An
+   eyebrow is all capitals, so the cap middle is its optical middle; a mixed-case word (the phone
+   tab) takes its x-height middle instead (below). Where `cap` is unknown (Safari < 17.2) the
+   declaration drops and the mark stands on the baseline, ~1px high. A solid ring of either size read as a letter after the word: r22's 10px / 1.5px as a
    capital «O» («ANWESENHEIT O»), an 8px / 2px as a bold «o»; no letter is dashed.
    The state is the FILL, not a glyph: r22's tick and dash could not be drawn legibly that small. Ink, not hue: this mark is
    a section's STATUS – four blue ticks down a column that also carries one per partner
    organisation was the reason it went grey. */
-.rp-check-dot { flex: none; width: 10px; height: 10px; translate: 0 1px; background: var(--ink-faint);
+.rp-check-dot { display: inline-block; width: 10px; height: 10px; margin-left: var(--sp-2);
+  vertical-align: calc(.5cap - 5px); background: var(--ink-faint);
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Ccircle cx='5' cy='5' r='4.25' fill='none' stroke='black' stroke-width='1.5' pathLength='26.8' stroke-dasharray='4.4 2.3' stroke-dashoffset='2.2'/%3E%3C/svg%3E") center / 100% no-repeat;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Ccircle cx='5' cy='5' r='4.25' fill='none' stroke='black' stroke-width='1.5' pathLength='26.8' stroke-dasharray='4.4 2.3' stroke-dashoffset='2.2'/%3E%3C/svg%3E") center / 100% no-repeat; }
-.rp-check-dot.done { width: 8px; height: 8px; border-radius: 50%; -webkit-mask: none; mask: none; }
+.rp-check-dot.done { width: 8px; height: 8px; vertical-align: calc(.5cap - 4px); border-radius: 50%; -webkit-mask: none; mask: none; }
 .rp-check-label { font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-faint); flex: none; }
 .rp-check-sub { font: var(--fw-medium) var(--fs-1)/1.3 var(--body); color: var(--ink-faint); flex: 1; min-width: 0;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
@@ -1120,6 +1127,11 @@ button.list-row:disabled { opacity: var(--disabled); cursor: default; }
    strip also lets taps through to the step row it overlaps (its 44px hit area). */
 .rp-people { columns: 2 200px; column-gap: var(--sp-6); column-rule: 1px solid var(--border); width: 100%;
   margin-top: calc(-1 * var(--sp-2)); clip-path: inset(var(--sp-2) 0 0 0); }
+/* The Anwesenheit's names-only list (owner pick A, 05.11.2026 – ReportPreflight): one line per
+   person, so 3px above and below instead of 8 – a 26px pitch that keeps a whole Einsatz (40+ names)
+   in the tablet's card; the pull-up and clip shrink to the same 3px. */
+.rp-people.rp-names { margin-top: -3px; clip-path: inset(3px 0 0 0); }
+.rp-names .rp-person { padding-block: 3px; }
 .rp-person { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline;
   min-width: 0; break-inside: avoid; padding-block: var(--sp-2);
   font: var(--fw-medium) var(--fs-2)/var(--lh-2) var(--body); color: var(--ink); }
@@ -2140,8 +2152,9 @@ select.cv-input { appearance: none; -webkit-appearance: none;
 
   /* a tab still holding an open Mindestangabe: the page's OPEN mark after its word (ReportPreflight ·
      StatusMark, hill climb r24 – an amber corner dot until then, a badge's language), in the
-     segment's own ink so it holds on the «where you are» pill as on the quiet tabs */
-  .rp-tabs .useg-btn .rp-check-dot { background: currentColor; }
+     segment's own ink so it holds on the «where you are» pill as on the quiet tabs. «Bericht» is
+     mixed case, so the ring centres on its x-height middle, not on the caps like an eyebrow's */
+  .rp-tabs .useg-btn .rp-check-dot { background: currentColor; vertical-align: calc(.5ex - 5px); }
   /* …and a strip carrying one shares its width by content: at 390px «Personal & Mittel» fills its
      equal third to the padding, and its mark pushed the word 6px over the segment's edges */
   .rp-tabs > .useg:has(.rp-check-dot) > .useg-btn { flex: 1 1 auto; }

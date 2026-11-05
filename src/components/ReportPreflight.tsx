@@ -1544,7 +1544,7 @@ export function ReportPreflight({
             return {
               value: t,
               title: open ? `${P.tabs[t]} – ${P.headStillOpen}` : P.tabs[t],
-              label: <>{P.tabs[t]}{open && <StatusMark done={false} />}</>,
+              label: <span>{P.tabs[t]}{open && <StatusMark done={false} />}</span>,
             }
           })}
         />
@@ -2133,20 +2133,16 @@ export function ReportPreflight({
                   flagged inline — corrections go through the row's arrow (Anwesenheit) */}
               {attendanceCount > 0 && (
                 <div className="rp-check-extra">
-                  <div className="rp-people">
+                  <div className="rp-people rp-names">
                     {rows.map((r) => (
                       <span key={r.personId} className="rp-person">
-                        {/* the name is line 1 with the departure time at its right edge, so the
-                            amber times stand in one column instead of trailing wherever a name
-                            ended; the Funktion is line 2 (`<i>`), under both (council 04.11.2026,
-                            round 5 — 13-incident.css `.rp-person`) */}
+                        {/* ONE line: the name, with the departure time at its right edge so the
+                            times stand in one column (13-incident.css `.rp-person`). No Funktion
+                            here (owner pick A, 05.11.2026): as a second line it doubled the list's
+                            height and the card showed half the people – this list is the check
+                            «sind alle drauf», and that needs the names. The Bemerkung stays on the
+                            Anwesenheit tab and the printed Anwesenheitsblatt. */}
                         <span className="rp-person-txt">{r.name}</span>
-                        {/* the job they had — «Einsatzleiter», «Fahrer TLF» — read straight off
-                            their Bemerkung, the same string the printed Personal-/Anwesenheits-
-                            blatt puts under the name. At the end of an Einsatz this list IS the
-                            check «wer war da, und als was», so the function belongs on it. */}
-                        {(attendance[r.personId]?.note ?? '').trim()
-                          && <i>{(attendance[r.personId]!.note ?? '').trim()}</i>}
                         {/* only somebody who actually LEFT gets a time. hoursRows fills an open
                             block with the Einsatzende, which put «· bis 09:00» behind every name
                             on the list — the exception it exists to flag then read as the rule. */}
