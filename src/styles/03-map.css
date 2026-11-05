@@ -121,17 +121,6 @@
 .marker-rotate { background: var(--blue); cursor: grab; touch-action: none; }
 .marker-rotate:active { cursor: grabbing; }
 .ts { position: relative; line-height: 0; border-radius: var(--r-xs); transition: transform .14s var(--ease), box-shadow .14s var(--ease); }
-/* NIGHT label plates: the edge a step up the slate ramp (hill climb r23, Opus 5). By day the plates'
-   --label-plate is a hairline of --ink-22 plus the --e0 contact, and a pile of plates reads as
-   several; at night 22 % of the light ink on the slate plate was #424955 – lost against the grey
-   map and too faint between two slates, so a pile fused into one block. The edge is a SOLID slate
-   instead – --ink-dim taken 40 % into --label-bg (≈ #545d6b), one clear step lighter than the
-   #141c28 fill – on the plates the label pass sets (names, readouts, captions, trail times, the
-   badges): every user reads the token. ⚠️ A token, re-pointed here because 01-tokens was not this
-   round's to edit – move it into the night block there. Line-end tags keep their own 1.5px line-
-   colour edge (09-whiteboard · .line-end-tag), and the printed Kroki (.kf-paper) re-declares the
-   day plate itself (01-tokens · `:root, .kf-paper`). */
-:root[data-theme="night"] { --label-plate: inset 0 0 0 1px color-mix(in srgb, var(--ink-dim) 40%, var(--label-bg)), var(--e0); }
 /* The symbol badges below (storey, count, «angedockt», done time) and the Messpunkt pill wear the
    map plates' ONE edge – the --label-plate hairline + --e0 contact, or --e0 alone on a filled chip –
    never e1: in a cluster its 5px spread ran every plate's shadow into one fringe (hill climb r13,

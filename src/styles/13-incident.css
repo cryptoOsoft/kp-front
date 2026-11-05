@@ -1064,19 +1064,20 @@ button.list-row:disabled { opacity: var(--disabled); cursor: default; }
    of head. Now every eyebrow's text starts at the card's 16 and the ring is the eyebrow's mark,
    as the Trupps heads carry their count («DRIN 3»). (Hung in the 16px padding instead, a 16px ring
    plus its gap would have stood on the card's own edge.)
-   THE eyebrow MARK (hill climb r23, Opus 1, 05.11.2026 – the Plan chips' lamp wears the same spec):
-   8px across, a 2px stroke in the muted icon ink (--ink-faint, the row's own › wears it), 8px after
-   the label (the row's gap), its middle on the label's x-height middle – the row centres it on the
-   caps' middle, the 1px nudge takes it down to the x-height's. r22's 10px / 1.5px ring in --ink-dim
-   on the caps' middle read as a capital «O» after the word («ANWESENHEIT O»).
-   The state is the FILL, not a glyph: a 2px stroke leaves a 4px hole, where r22's tick and dash
-   could not be drawn legibly. Open is the hollow ring, done the filled disc – the Plan chip lamp's
-   language (an unlit ring is «nothing yet», 09-whiteboard · .wb-lamp). Ink, not hue: this mark is
+   THE eyebrow MARK (hill climb r23, Opus 1, 05.11.2026 – the Plan chips' lamp wears the same spec,
+   09-whiteboard · .wb-lamp; change them together): OPEN is a 10px DASHED ring – 1.5px, eight 2px
+   dashes with 1.5px gaps, drawn as a mask so it takes the eyebrow's muted ink (--ink-faint, the
+   row's own › wears it); DONE an 8px filled disc. 8px after the label (the row's gap), its middle
+   on the label's x-height middle – the row centres it on the caps' middle, the 1px nudge takes it
+   down. A solid ring of either size read as a letter after the word: r22's 10px / 1.5px as a
+   capital «O» («ANWESENHEIT O»), an 8px / 2px as a bold «o»; no letter is dashed.
+   The state is the FILL, not a glyph: r22's tick and dash could not be drawn legibly that small. Ink, not hue: this mark is
    a section's STATUS – four blue ticks down a column that also carries one per partner
    organisation was the reason it went grey. */
-.rp-check-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; translate: 0 1px;
-  box-shadow: inset 0 0 0 2px var(--ink-faint); }
-.rp-check-dot.done { background: var(--ink-faint); }
+.rp-check-dot { flex: none; width: 10px; height: 10px; translate: 0 1px; background: var(--ink-faint);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Ccircle cx='5' cy='5' r='4.25' fill='none' stroke='black' stroke-width='1.5' pathLength='28' stroke-dasharray='2 1.5'/%3E%3C/svg%3E") center / 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Ccircle cx='5' cy='5' r='4.25' fill='none' stroke='black' stroke-width='1.5' pathLength='28' stroke-dasharray='2 1.5'/%3E%3C/svg%3E") center / 100% no-repeat; }
+.rp-check-dot.done { width: 8px; height: 8px; border-radius: 50%; -webkit-mask: none; mask: none; }
 .rp-check-label { font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-faint); flex: none; }
 .rp-check-sub { font: var(--fw-medium) var(--fs-1)/1.3 var(--body); color: var(--ink-faint); flex: 1; min-width: 0;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
