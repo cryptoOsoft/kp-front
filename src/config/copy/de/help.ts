@@ -285,7 +285,7 @@ export const helpCopy = {
         ],
       },
       {
-        id: 'verlauf', title: 'Verlauf & Eintrag', icon: 'history',
+        id: 'verlauf', title: 'Verlauf & Eintrag', icon: 'verlauf',
         blocks: [
           { kind: 'lead', text: 'Ein gemeinsames, fortlaufendes Protokoll über Karte und Plan – der Verlauf des Einsatzes.' },
           { kind: 'list', items: [

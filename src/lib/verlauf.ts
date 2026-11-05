@@ -306,8 +306,9 @@ export function repeatRuns(events: TimelineEvent[]): {
 }
 
 /** One mark on the Verlauf strip's time scale: where it stands (0–1 along the track) and the
- *  clock it prints, if there is room for it. */
-export interface StripMark { frac: number; label?: string }
+ *  clock it prints, if there is room for it. A mark closer to a track end than half a label
+ *  prints its clock flush with that `edge` instead of centred under it (Journal · `.jr-strip-edge`). */
+export interface StripMark { frac: number; label?: string; edge?: 'start' | 'end' }
 
 /** The scale steps the strip may use, in minutes — the first one whose marks stand far enough
  *  apart wins, so a 40-minute Einsatz gets quarter hours and a Hochwasser six-hour marks. */
@@ -316,35 +317,49 @@ const STRIP_STEPS = [5, 10, 15, 30, 60, 120, 180, 360, 720, 1440]
 const STRIP_LABEL_PX = 46
 
 /**
- * The time scale under the Verlauf strip's ticks (Journal · `.jr-strip`): the Einsatz's first and
- * last moment as the two end labels, and marks on round local times between them (full hours
- * for an afternoon's Einsatz). `trackPx` is the track's measured width; a mark is labelled only
- * where its clock clears both end labels and the previous label, so the scale never prints two
- * times over each other. Unmeasured (`trackPx` 0, e.g. jsdom) it draws at most six unlabelled marks.
+ * The time scale under the Verlauf strip's ticks (Journal · `.jr-strip`): marks on round local
+ * times (full hours for an afternoon's Einsatz), and the Einsatz's first and last moment as the
+ * two end stamps. `trackPx` is the track's measured width.
+ * ⚠️ A mark's clock is never dropped for a stamp – the STAMP gives way (`start` / `end` undefined):
+ * «14:08 · 16:00 · 17:00» with 15:00 swallowed read as one hour from the start to 16:00 (hill
+ * climb r27, Opus 3). A mark only goes unlabelled when it would print over the previous mark's
+ * clock, which the step's spacing rules out except on a track too narrow for any step.
+ * Unmeasured (`trackPx` 0, e.g. jsdom) it draws at most six unlabelled marks and both stamps.
  */
-export function stripScale(from: number, to: number, trackPx: number): { start: string; end: string; marks: StripMark[] } {
+export function stripScale(from: number, to: number, trackPx: number): { start?: string; end?: string; marks: StripMark[] } {
   const span = to - from
   const minPx = trackPx > 0 ? STRIP_LABEL_PX + 12 : 0
   const step = STRIP_STEPS.find((m) => (trackPx > 0 ? (m * 60_000 / span) * trackPx >= minPx : span / (m * 60_000) <= 6))
     ?? STRIP_STEPS[STRIP_STEPS.length - 1]
   const marks: StripMark[] = []
+  const half = STRIP_LABEL_PX / 2
+  // the labelled clocks' extent along the track, px: the stamps test against these
+  let firstLeft = Infinity
+  let lastRight = -Infinity
   // walk local wall-clock time from the hour before `from`, so DST and odd offsets stay on the clock
   const d = new Date(from)
   d.setMinutes(0, 0, 0)
-  let lastLabelPx = STRIP_LABEL_PX // the start label's right edge
   while (d.getTime() < to) {
     const t = d.getTime()
     const onStep = step < 60 ? d.getMinutes() % step === 0 : d.getMinutes() === 0 && d.getHours() % (step / 60) === 0
     if (t > from && onStep) {
       const frac = (t - from) / span
       const px = frac * trackPx
-      const fits = trackPx > 0 && px - STRIP_LABEL_PX / 2 >= lastLabelPx && px + STRIP_LABEL_PX / 2 <= trackPx - STRIP_LABEL_PX
-      if (fits) lastLabelPx = px + STRIP_LABEL_PX / 2
-      marks.push(fits ? { frac, label: formatTime(d) } : { frac })
+      const edge = px < half ? 'start' : px > trackPx - half ? 'end' : undefined
+      const left = edge === 'start' ? 0 : edge === 'end' ? trackPx - STRIP_LABEL_PX : px - half
+      if (trackPx > 0 && left >= lastRight) {
+        firstLeft = Math.min(firstLeft, left)
+        lastRight = left + STRIP_LABEL_PX
+        marks.push(edge ? { frac, label: formatTime(d), edge } : { frac, label: formatTime(d) })
+      } else marks.push({ frac })
     }
     d.setMinutes(d.getMinutes() + Math.min(step, 60))
   }
-  return { start: formatTime(new Date(from)), end: formatTime(new Date(to)), marks }
+  return {
+    start: firstLeft >= STRIP_LABEL_PX ? formatTime(new Date(from)) : undefined,
+    end: lastRight <= trackPx - STRIP_LABEL_PX ? formatTime(new Date(to)) : undefined,
+    marks,
+  }
 }
 
 /** One density mark on the Verlauf strip: where it stands (0–1 along the track) and how many

@@ -659,7 +659,7 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
         <div className="journal-head">
           {/* the title and its count as two pieces (hill climb r6): the count is a caption beside
               the name, not part of it — so «Verlauf» leads and «· 322» steps back (10-journal.css) */}
-          <span className="journal-title"><Icon id="history" /><span className="journal-title-txt">{C.title}</span>{' '}<span className="journal-count">· {events.length}</span></span>
+          <span className="journal-title"><Icon id="verlauf" /><span className="journal-title-txt">{C.title}</span>{' '}<span className="journal-count">· {events.length}</span></span>
           {/* ⚠️ ON A TAP, never by itself. The disc carries the Bereich now, and a glyph has to be
               learned — but a panel that opens on its own, or one the app remembers having opened,
               is a thing to dismiss on the way to the record. This one is a question somebody asks
@@ -774,8 +774,9 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
                 and last tick sat on its rounded ends — half-swallowed by the corner radius and
                 the inset hairline, so the two moments that bracket the whole Einsatz were the
                 two you could not see. */}
-            {/* …and on it, under the ticks, the scale: the first and last moment at the ends, round
-                times between them as taller marks, labelled where a label fits (stripScale). */}
+            {/* …and on it, under the ticks, the scale: round times as taller marks, every one
+                labelled, and the first and last moment at the ends where they do not collide with
+                one of those clocks (stripScale – the stamp gives way, never an hour). */}
             <div className="jr-strip-track" style={{ insetInline: STRIP_INSET }} aria-hidden>
               {density.map((d, i) => (
                 <i key={i} data-busy={d.n >= STRIP_BUSY || undefined} style={{ left: `${d.frac * 100}%` }} />
@@ -783,13 +784,12 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
               {scale?.marks.map((m) => (
                 <Fragment key={m.frac}>
                   <b className="jr-strip-major" style={{ left: `${m.frac * 100}%` }} />
-                  {m.label && <span className="jr-strip-lbl" style={{ left: `${m.frac * 100}%` }}>{m.label}</span>}
+                  {m.label && <span className={m.edge ? 'jr-strip-lbl jr-strip-edge' : 'jr-strip-lbl'}
+                    style={m.edge === 'start' ? { left: 0 } : m.edge === 'end' ? { right: 0 } : { left: `${m.frac * 100}%` }}>{m.label}</span>}
                 </Fragment>
               ))}
-              {scale && <>
-                <span className="jr-strip-lbl jr-strip-end" style={{ left: 0 }}>{scale.start}</span>
-                <span className="jr-strip-lbl jr-strip-end" style={{ right: 0 }}>{scale.end}</span>
-              </>}
+              {scale?.start && <span className="jr-strip-lbl jr-strip-end" style={{ left: 0 }}>{scale.start}</span>}
+              {scale?.end && <span className="jr-strip-lbl jr-strip-end" style={{ right: 0 }}>{scale.end}</span>}
             </div>
           </div>
         )}
@@ -808,7 +808,7 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
         {pinnedReminders.length > 0 && (
           <div className="jr-pinned" ref={watchPinned} data-more={pinnedBelow > 0 || undefined}>
             <div className="jr-pinned-head">
-              <Icon id="checklist" /><span>{C.openRemindersHead}</span>
+              <Icon id="pendenzen" /><span>{C.openRemindersHead}</span>
               <b>{C.openCount.replace('{n}', String(pinnedReminders.length))}</b>
             </div>
             {pinnedReminders.map((r) => {
@@ -886,7 +886,7 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
           </div>
         )}
         <div className="history-list" ref={listRef}>
-          {events.length === 0 && <EmptyState icon="history" title={C.empty} />}
+          {events.length === 0 && <EmptyState icon="verlauf" title={C.empty} />}
           {/* a query that kept nothing says so – and what it looked in, because «Nichts» beside a
               name that IS in the Verlauf otherwise reads as the search being broken */}
           {/* …and with a filter on, the ticks are the likelier culprit, so they are what it names */}

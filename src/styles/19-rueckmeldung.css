@@ -125,7 +125,8 @@ p.fb-prompt-q { margin: 0; font: var(--fw-bold) var(--fs-2) var(--body); color: 
    14/6px and one hairline per row still read barcode first, r6; r15 at 10/4px and --ink-28 still
    read as one comb with the anchors, so the marks are 8 vs 3 and the rows a tint step lower,
    r16). Then a clear 4px gap and the clocks on one baseline: the first and last moment at the
-   ends (`.jr-strip-end`), round times centred under their marks where a label fits.
+   ends (`.jr-strip-end`) where they clear the round times, which are centred under their marks
+   and never dropped for a stamp.
    11 + 8 + 4 + 12.5 (the label, line-height 1) leaves 8.5 under it. Nothing here is a target;
    the strip takes the tap. */
 .jr-strip i {
@@ -144,6 +145,9 @@ p.fb-prompt-q { margin: 0; font: var(--fw-bold) var(--fs-2) var(--body); color: 
 /* the ends sit INSIDE the track (left- and right-aligned) and in the stronger ink: they are the
    two clocks that bracket the Einsatz */
 .jr-strip-end { transform: none; color: var(--ink-dim); }
+/* a round time too close to a track end to centre under its mark stands flush with that end
+   instead, in its own ink – it took the stamp's place (lib/verlauf · stripScale) */
+.jr-strip-edge { transform: none; }
 /* The row the strip — or the Wiedergabe's «im Verlauf» — just landed on. Without it a scroll
    ends somewhere with no sign of which line was meant.
    ⚠️ The SHARED ink ring (02-base.css · ui-flash-ring), not a background wash of its own. The

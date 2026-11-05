@@ -389,19 +389,31 @@ describe('stripScale', () => {
   const from = new Date('2026-07-02T14:33:00').getTime()
   const to = new Date('2026-07-02T19:05:00').getTime()
 
-  it('marks full hours and labels only the ones clear of the end labels', () => {
+  it('labels every full hour; a stamp an hour would collide with gives way', () => {
     const s = stripScale(from, to, 330)
     expect(s.marks).toHaveLength(5) // 15, 16, 17, 18, 19 h
-    // 15:00 sits 33px in, under the start label; 19:00 6px before the end label
-    expect(s.marks.map((m) => m.label !== undefined)).toEqual([false, true, true, true, false])
+    expect(s.marks.every((m) => m.label)).toBe(true)
     expect(s.marks[1].label).toMatch(/16.00/)
-    expect(s.start).toMatch(/14.33/)
-    expect(s.end).toMatch(/19.05/)
+    // 15:00 sits 33px in, over the start stamp; 19:00 6px before the end, flush with it
+    expect(s.marks[0].label).toMatch(/15.00/)
+    expect(s.marks[0].edge).toBeUndefined()
+    expect(s.marks[4]).toMatchObject({ label: expect.stringMatching(/19.00/), edge: 'end' })
+    expect(s.start).toBeUndefined()
+    expect(s.end).toBeUndefined()
+  })
+
+  it('keeps a stamp that clears the first and last hour', () => {
+    // 14:00 stands 75px in, 16:00 52px before the end: both stamps clear them
+    const s = stripScale(new Date('2026-07-02T13:10:00').getTime(), new Date('2026-07-02T16:50:00').getTime(), 330)
+    expect(s.marks.map((m) => m.label)).toEqual([/14.00/, /15.00/, /16.00/].map((t) => expect.stringMatching(t)))
+    expect(s.start).toMatch(/13.10/)
+    expect(s.end).toMatch(/16.50/)
   })
 
   it('never prints two labels closer than one label width', () => {
     const s = stripScale(from, to, 120)
-    expect(s.marks.filter((m) => m.label)).toHaveLength(0)
+    const lefts = s.marks.filter((m) => m.label).map((m) => (m.edge === 'start' ? 0 : m.edge === 'end' ? 120 - 46 : m.frac * 120 - 23))
+    lefts.forEach((l, i) => { if (i) expect(l - lefts[i - 1]).toBeGreaterThanOrEqual(46) })
     expect(s.marks.length).toBeLessThanOrEqual(3)
   })
 
@@ -409,6 +421,8 @@ describe('stripScale', () => {
     const s = stripScale(from, to, 0)
     expect(s.marks.length).toBeLessThanOrEqual(6)
     expect(s.marks.every((m) => m.label === undefined)).toBe(true)
+    expect(s.start).toMatch(/14.33/)
+    expect(s.end).toMatch(/19.05/)
   })
 })
 
