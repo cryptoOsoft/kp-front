@@ -171,6 +171,10 @@
 .report-meta-end .ip-btn { flex: none; }
 .report-meta-end.dtrow { flex-wrap: nowrap; }
 .report-meta-end.dtrow .timefield { flex: none; }
+/* Kurzbericht / Bemerkungen / Lehren: the shared `.ip-textarea` (13-incident) keeps its
+   `resize: vertical` for a mouse; under a finger the grip is a corner nobody can drag, drawn over
+   the text (hill climb r15, 05.11.2026). Rapport only – the intake's textareas are not touched. */
+@media (pointer: coarse) { .report-preflight-body .ip-textarea { resize: none; } }
 /* Alarmierungs-/Ausrückzeiten grid (config-driven rows: Gruppen + Fahrzeuge) */
 .rz-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--sp-2) var(--sp-3); }
 .rz-row { display: flex; align-items: center; gap: 8px; min-height: 44px; }
@@ -190,17 +194,25 @@
 .rz-count > span { font: var(--fw-medium) var(--fs-2) var(--body); color: var(--ink-dim); }
 /* The recorded count is the row's emphasis (hill climb r13, 05.11.2026): at 14px between two 44px
    plates it was the smallest thing in the row. It stands in a --tap square well at the value's
-   size, bold, tabular. An EMPTY count keeps the faint regular dash (`.step-empty`, 07-toolrail:
-   «nicht erfasst», never «0» – r11) at the same size in the same box, with no fill: the faint
-   dash on the well's tint fell under 4.5:1 on the phone's ground, and an empty well says «nothing
-   recorded» as plainly. Typing a count changes the ink, never the geometry; the typed-value field
-   takes the well's box for the same reason. Rapport only: the shared stepper elsewhere (Geschoss,
-   Mittel) keeps its compact value. */
+   size, bold, tabular. The well is framed like an input – 1px --border, the one corner, --surface
+   fill – filled or EMPTY (hill climb r15, 05.11.2026): unframed, the empty count's faint dash
+   stood between «−» and «+» at their size and spacing and read as a second minus. In the field
+   it reads as an empty value, «nicht erfasst», never «0» (`.step-empty`, 07-toolrail: faint,
+   regular – r11). Typing a count changes the ink, never the geometry; the typed-value field
+   takes the well's box for the same reason. Rapport only: the shared stepper elsewhere
+   (Geschoss, Mittel) keeps its compact value. */
 .rz-count :is(.step-val-btn, .step-input) { width: var(--tap); height: var(--tap); padding: 0;
+  border: 1px solid var(--border); border-radius: var(--r-ctl); background-color: var(--surface);
   font: var(--fw-bold) var(--fs-3) var(--body); font-variant-numeric: tabular-nums; text-align: center; }
-.rz-count .step-val-btn:not(.step-empty) { background-color: var(--fill-soft); }
-@media (hover: hover) { .rz-count .step-val-btn:hover:not(:disabled) { background-color: var(--hover); } }
+/* the frame above outranks `.step-input:focus` (07-toolrail), so the field focus is restated; hover
+   tints OVER the solid well (an overlay, as the press does) – a translucent --hover in place of
+   the fill would show the card through it */
+.rz-count .step-input:focus { border-color: var(--focus-edge); }
+@media (hover: hover) { .rz-count .step-val-btn:hover:not(:disabled, :active) { background-image: linear-gradient(var(--hover), var(--hover)); } }
 .rz-count .step-val.step-empty { font-weight: var(--fw-regular); }
+/* the reset ✕ stands 16px off «+» (the shared 4px + the row's 12px): at the stepper's 8px rhythm
+   it read as a fourth button of the same group (r15) */
+.rz-count .step-clear { margin-left: var(--sp-4); }
 /* The ± are their frame, no plate (hill climb r14, 05.11.2026). `.step-btn`'s `--surface-2` is a
    .6 white: on a white sheet it is no plate at all, but on this card it stacked into a whiter one,
    and the disabled «−» (THE disabled dim, opacity only) thinned that plate into a pale tile with
