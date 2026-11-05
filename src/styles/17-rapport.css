@@ -257,7 +257,7 @@
    the 44px box 8px after «+», but a frameless ✕ is its 8px glyph, centred in that box: it stood
    26px off «+» and read as detached. Now the box starts at «+»'s edge (the stepper's 8px gap taken
    back) and the glyph leans on its left side, 8px in (4px padding + the icon's own 4px), on every
-   width. The box stays the full 44px target. Frameless and dim as before, so it does not read as
+   width. The box stays the full 44px target (36 on the laptop, below). Frameless and dim as before, so it does not read as
    a fourth key; a hover turns the glyph red without the tile plate, which would stand off-centre
    round a glyph that no longer sits in its middle. */
 .rz-count .step-clear { margin-left: calc(-1 * var(--sp-2)); justify-items: start; padding-left: var(--sp-1); }
@@ -269,6 +269,15 @@
    the frame's strength and nothing else, so «−» disabled is «+» faded; the value well keeps the
    row's one fill. Hover / press still paint their plate (07-toolrail, more specific). */
 .rz-count .step-btn { background-color: transparent; }
+/* On the laptop the row is a 36px row (hill climb r26, Opus 5): «−», «+», the well and the ✕ box
+   36 tall, the well 52 wide, as the laptop's Trupps tiles and editor rows
+   (#27 B, 44/36). The ✕ glyph stays 8px after «+» – its offset is the padding above, not the box.
+   Touch keeps the 44px targets. */
+@media (hover: hover) and (pointer: fine) {
+  .rz-count { min-height: 36px; }
+  .rz-count .step-btn, .rz-count .step-clear { width: 36px; height: 36px; }
+  .rz-count :is(.step-val-btn, .step-input) { width: 52px; height: 36px; min-height: 36px; }
+}
 /* (History: until r13 a wide screen capped the pair at 320px, B1 07.10.2026; r13–r16 ran the
    stepper to the column's right edge to line its ✕ up with the Einsatzleiter field's – which left
    it ~400px from «Personen». The key column above replaces both.) */

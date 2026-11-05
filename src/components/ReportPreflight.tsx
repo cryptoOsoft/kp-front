@@ -1530,9 +1530,9 @@ export function ReportPreflight({
             to what they were. Outside the scrolling body on purpose: it is a flex item of the
             surface, like the head, so it cannot scroll away from under the thumb. A tab holding a
             Mindestangabe that is still open carries the page's OPEN mark after its word – the
-            dashed ring its section heads wear (StatusMark, hill climb r24; an amber corner dot
-            until then read as a notification badge, a second language for «offen»). The amber
-            stays the head's «n offen» chip's, the count. A done tab carries nothing: a tab is a
+            broken amber ring its section heads wear (StatusMark, hill climb r24/r26; an amber
+            corner dot until then read as a notification badge, a second language for «offen»).
+            The count stays the head's «n offen» chip's. A done tab carries nothing: a tab is a
             way to a page, not a section, and discs on two of three tabs read as bullets. */}
         <PhoneTabBar<PhoneTab>
           ariaLabel={P.tabsLabel}
