@@ -337,9 +337,9 @@
    read as a hover, not as a mode. The blue ring around it keeps it in the bar's own family. The
    ring is drawn OUTSIDE the button and the fill arrives on a transition, so nothing moves and
    nothing flickers when a mode goes on or off. */
-.sel-bar-act.on { background: var(--ink-fill); color: var(--on-accent-ink);
+.sel-bar-act.on { background: var(--here-fill); color: var(--on-here);
   box-shadow: 0 0 0 2px var(--glass), 0 0 0 4px var(--blue); }
-@media (hover: hover) { .sel-bar-act.on:hover { background: var(--ink-fill-hover); } }
+@media (hover: hover) { .sel-bar-act.on:hover { background: var(--here-fill-hover); } }
 @media (prefers-reduced-motion: reduce) { .sel-bar-act { transition: none; } }
 .sel-bar-act .i { width: 19px; height: 19px; }
 

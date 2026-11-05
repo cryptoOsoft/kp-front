@@ -121,18 +121,22 @@
 .marker-rotate { background: var(--blue); cursor: grab; touch-action: none; }
 .marker-rotate:active { cursor: grabbing; }
 .ts { position: relative; line-height: 0; border-radius: var(--r-xs); transition: transform .14s var(--ease), box-shadow .14s var(--ease); }
+/* The symbol badges below (storey, count, «angedockt», done time) and the Messpunkt pill wear the
+   map plates' ONE edge – the --label-plate hairline + --e0 contact, or --e0 alone on a filled chip –
+   never e1: in a cluster its 5px spread ran every plate's shadow into one fringe (hill climb r13,
+   Sol 2). */
 /* storey badge — signed floor (+2, -1) at the icon's top-right corner. Ink on the surface
    colour, so it reads on any glyph and in both themes: tinting it with the symbol's own colour
    (the white chip was meant to carry that) made a yellow symbol's storey yellow on white. */
 .sym-floor { position: absolute; top: calc(var(--badge-out, 7px) * -1); right: -9px; z-index: 6; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box;
   border-radius: var(--r-xs); background: var(--surface); color: var(--ink); line-height: 16px; text-align: center; font-size: var(--fs-micro); font-weight: var(--fw-heavy); letter-spacing: -.2px;
-  box-shadow: var(--e1); pointer-events: none; }
+  box-shadow: var(--label-plate); pointer-events: none; }
 /* quantity badge — bottom-right counterpart to the floor badge; an ink chip so it
    reads as a count distinct from the (white, symbol-coloured) floor badge. The ONE count badge
    (05-navrail · .nav-count, 28.09.2026): --r-xs at 16px, like every other chip that size. */
 .sym-count { position: absolute; bottom: calc(var(--badge-out, 7px) * -1); right: -9px; z-index: 6; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box;
   border-radius: var(--r-xs); background: var(--ink-fill); color: var(--on-accent-ink); line-height: 16px; text-align: center; font-size: var(--fs-micro); font-weight: var(--fw-heavy);
-  box-shadow: var(--e1); pointer-events: none; }
+  box-shadow: var(--e0); pointer-events: none; }
 /* «angedockt», von der Seite des HOSTS aus (lib/docking, 15.09.2026): the same `link` glyph the
    Trupp marker wears, so the bond reads from either end. Top-LEFT — the only corner left: the
    storey badge owns top-right, the count bottom-right, and the docked Trupp markers themselves
@@ -143,7 +147,7 @@
 .sym-dock { position: absolute; bottom: calc(var(--badge-out, 7px) * -1); left: -9px; z-index: 6;
   display: grid; place-items: center; width: 16px; height: 16px; box-sizing: border-box;
   border-radius: var(--r-xs); background: var(--surface); color: var(--ink-dim);
-  box-shadow: var(--e1); pointer-events: none; }
+  box-shadow: var(--label-plate); pointer-events: none; }
 .sym-dock .i { width: 12px; height: 12px; }
 /* «Gelöscht / erledigt» (lib/objectDone, 24.09.2026): the glyph, its composite part and its FKS
    arrows go grey — the chip behind an outline glyph with them, so the whole mark recedes — while
@@ -159,7 +163,7 @@
 .sym-done { position: absolute; top: calc(var(--badge-out, 7px) * -1); right: calc(100% - 7px); z-index: 6; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box;
   border-radius: var(--r-sm); background: var(--surface); color: var(--ink-dim); line-height: 16px; text-align: center; font-size: var(--fs-micro); font-weight: var(--fw-heavy); letter-spacing: -.2px;
   font-variant-numeric: tabular-nums; white-space: nowrap;
-  box-shadow: var(--e1); pointer-events: none; }
+  box-shadow: var(--label-plate); pointer-events: none; }
 /* metadata caption — a symbol's discriminating value(s) printed just under its glyph (e.g.
    "CO₂" under a Kleinlöscher), so an operator reads it without opening the dashboard. Same
    chrome as the line label (.measure-label.draw-label / .wb-line-label) for Lage↔Plan parity;
@@ -194,18 +198,18 @@
   display: flex; align-items: center; gap: var(--sp-1); height: 20px; padding: 0 var(--sp-2); border-radius: var(--r-xs);
   background: var(--ink-fill); color: var(--on-accent-ink); white-space: nowrap;
   font-family: var(--mono); font-size: var(--fs-micro); font-weight: var(--fw-bold); line-height: 20px;
-  box-shadow: var(--e1); }
+  box-shadow: var(--e0); }
 .sym-pill .i { width: 13px; height: 13px; flex: none; }
 .sym-pill.a1 { background: var(--amber); color: var(--on-amber); }
 .sym-pill.a2 { background: var(--red-fill); color: var(--on-fill); }
 /* older than the preset's staleMin: the colour moves to the outline and the age shows – an old
    danger must neither vanish nor look fresh (pick C) */
-.sym-pill.stale { background: var(--label-bg); color: var(--ink-dim); box-shadow: inset 0 0 0 1.5px var(--ink-faint), var(--e1); }
-.sym-pill.stale.a1 { color: var(--amber-strong); box-shadow: inset 0 0 0 1.5px var(--amber), var(--e1); }
-.sym-pill.stale.a2 { color: var(--red); box-shadow: inset 0 0 0 1.5px var(--red), var(--e1); }
+.sym-pill.stale { background: var(--label-bg); color: var(--ink-dim); box-shadow: inset 0 0 0 1.5px var(--ink-faint), var(--e0); }
+.sym-pill.stale.a1 { color: var(--amber-strong); box-shadow: inset 0 0 0 1.5px var(--amber), var(--e0); }
+.sym-pill.stale.a2 { color: var(--red); box-shadow: inset 0 0 0 1.5px var(--red), var(--e0); }
 .sym-pill-age { font-weight: var(--fw-medium); opacity: .85; }
 /* placed but not yet measured: the dashed pill with the icon alone */
-.sym-pill.empty { background: var(--label-bg); color: var(--ink-dim); box-shadow: var(--e1); outline: 1.5px dashed var(--ink-faint); outline-offset: -1.5px; }
+.sym-pill.empty { background: var(--label-bg); color: var(--ink-dim); box-shadow: var(--e0); outline: 1.5px dashed var(--ink-faint); outline-offset: -1.5px; }
 .sym-pill .sym-floor { right: -12px; }
 /* …the same pill in a list row (the Gebäude's Messungen, ReadingParts) */
 .sym-pill.inline { position: static; transform: none; flex: none; }

@@ -45,8 +45,9 @@
   .nav-item:hover { background: var(--hover); }
 }
 .nav-item:active:not(:disabled) { background-image: linear-gradient(var(--press), var(--press)); }
-.nav-item.on { background: var(--ink-fill); color: var(--on-accent-ink); }
-@media (hover: hover) { .nav-item.on:hover { background: var(--ink-fill-hover); } }
+/* «where you are» = THE ink pill of every bar (01-tokens · --here-fill, lifted at night) */
+.nav-item.on { background: var(--here-fill); color: var(--on-here); }
+@media (hover: hover) { .nav-item.on:hover { background: var(--here-fill-hover); } }
 .nav-glyph { width: 46px; min-width: 46px; height: 46px; display: grid; place-items: center; font-size: var(--fs-3); font-weight: var(--fw-heavy); position: relative; }
 .nav-glyph .i { width: 22px; height: 22px; }
 .nav-glyph.mono { letter-spacing: -.02em; }
@@ -145,7 +146,7 @@
 .navrail.expanded:not(.dragging) .nav-mono-chip { min-width: 26px; min-height: 26px; padding: 1px 4px; white-space: nowrap; }
 .navrail.expanded:not(.dragging) .nav-glyph.nav-frac { font-size: var(--fs-4); }
 .nav-live { position: absolute; top: 6px; right: 6px; width: 9px; height: 9px; border-radius: 50%; background: var(--green); border: 2px solid #fff; }
-.nav-item.on .nav-live { border-color: var(--ink-fill); }
+.nav-item.on .nav-live { border-color: var(--here-fill); }
 /* ⚠️ A COUNT, not a dot — same family as .nav-live (same corner, same white ring, so the bar has
    one badge idiom), but it carries a figure and therefore needs a box that grows with it. The
    phone's «Einsatz» tile wears it with what the Rapport still has OPEN (26.09.2026 — the head

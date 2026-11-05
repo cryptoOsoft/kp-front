@@ -1030,6 +1030,11 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
     }
     return out
   }, [annos, trupps, truppSeverities])
+  // The Trupp chips whose Trupp is out (anno ids): their trail – breadcrumbs and polyline – wears
+  // the chip's done dim (`.raus`), so the whole group recedes together.
+  const outTrails = useMemo(() => new Set(annos
+    .filter((a) => a.kind === 'resource' && a.truppId && trupps.some((t) => t.id === a.truppId && t.status === 'raus'))
+    .map((a) => a.id)), [annos, trupps])
 
   const resolvedPts = new Map<string, BoardPoint[]>()
   const { chipSizes, chipRef } = useWbChipSizes()
@@ -2324,7 +2329,7 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
               onPickCircle={tool === 'pan' ? circleDown : undefined} sections={sections ?? undefined} />
 
             {/* committed drawings */}
-            <WbInkLayer annos={drawnAnnos} draft={draft} draftFloor={draftFloorRef.current} draftClosed={tool === 'area'} draftOpen={noding} color={INK_DEFAULTS.color} width={INK_DEFAULTS.width} dashed={INK_DEFAULTS.dashed} hiddenTrails={hiddenTrails} mapY={mapY}
+            <WbInkLayer annos={drawnAnnos} draft={draft} draftFloor={draftFloorRef.current} draftClosed={tool === 'area'} draftOpen={noding} color={INK_DEFAULTS.color} width={INK_DEFAULTS.width} dashed={INK_DEFAULTS.dashed} hiddenTrails={hiddenTrails} outTrails={outTrails} mapY={mapY}
               selId={selId} flashId={flashId} networkIds={[...relationship.lineIds]} onPickDraw={tool === 'pan' ? drawDown : undefined}
               truppTones={truppTones} sW={sW} sH={sH} sections={sections ?? undefined} />
             {/* «Ring lädt, dann schnappt es» — the identical pair the Lage map draws: a blue chip
@@ -2575,12 +2580,13 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
             ))}
 
             {/* trail breadcrumbs — a constant-size dot + timestamp at each RECORDED
-                position, so the trail reads as a time-stamped log at a glance */}
+                position, so the trail reads as a time-stamped log at a glance; an out Trupp's
+                track wears its chip's done dim (`.raus`, as PlanAnno decides it) */}
             {shownAnnos.filter((a) => a.kind === 'resource' && !hiddenTrails.has(a.id)).flatMap((a) =>
               (a.trail ?? []).map((p, i) => (
                 <div
                   key={`dot-${a.id}-${i}`}
-                  className={`wb-trail-dot ${selId === a.id ? 'sel' : ''}`}
+                  className={cx('wb-trail-dot', selId === a.id && 'sel', outTrails.has(a.id) && 'raus')}
                   style={{ transform: `translate(${p.x * sW}px, ${mapY(p.floor ?? a.floor, p.y) * sH}px) translate(-50%, -50%)` }}
                 >
                   <span className="wb-trail-mark" style={{ background: a.color || COLORS[0] }} />

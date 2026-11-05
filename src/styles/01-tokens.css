@@ -146,6 +146,12 @@
   --on-amber: var(--ink);
   --ink-fill: #1b2330;        /* dark "active pill" / Trupp marker bar surface (= day --ink) */
   --ink-fill-hover: #0f1722;  /* hover on dark ink-fill buttons (darker in day) */
+  /* «Where you are» (docs/ui-conventions · Selected): the ink pill of every bar – the nav rail and
+     the phone tab bar (.nav-item), the tool rail and phone tool bar (.vrail-tool / .vrail-nbtn),
+     the open «Verlauf» (.tb-act). By day it IS --ink-fill; the night block lifts it (05.11.2026). */
+  --here-fill: var(--ink-fill);
+  --here-fill-hover: var(--ink-fill-hover);
+  --on-here: var(--on-accent-ink);
   /* "strong" accent variants: a darker shade used as a hover background on an accent
      button OR as legible text on a faint accent-tint chip. Day = the literals they
      replace; night flips LIGHTER so the same role reads on dark surfaces. */
@@ -470,6 +476,13 @@
      (NOT the now-light --ink), so their light content keeps contrast */
   --ink-fill: #2b3545;
   --ink-fill-hover: #384354; /* hover LIFTS the dark pill in night (vs darkens in day) */
+  /* …but «where you are» needs an EDGE the raised surface does not have: #2b3545 on the rails'
+     night glass is 1.4:1, a faint grey lift whose glyph was the same grey-white as every other
+     (hill climb r13, Opus 3). A plate lighter by a clear step – 2.3:1 against the rail – and the
+     glyph full white on it (7.7:1); the unselected glyphs keep --ink. */
+  --here-fill: #46546c;
+  --here-fill-hover: #505f79;
+  --on-here: #fff;
   /* The primary button INVERTS at night instead of tracking --ink-fill. Its label was never the
      problem — #f5f8fc on #2b3545 measures 11.6:1 — the BUTTON was: #2b3545 against the #232c3a
      sheet it sits on is 1.14:1, so the one action of a form had no visible edge and read as a

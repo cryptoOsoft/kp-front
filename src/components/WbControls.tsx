@@ -45,6 +45,8 @@ interface InkProps {
   dashed: boolean
   /** per-team hidden trails (anno ids) — a team's trail renders unless its id is in here */
   hiddenTrails: ReadonlySet<string>
+  /** the Trupp chips whose Trupp is out (anno ids) — their trail wears the done dim (`.raus`) */
+  outTrails?: ReadonlySet<string>
   mapY: (floor: number | undefined, ly: number) => number
   selId?: string | null
   /** «schau hier»: one anno outlined for a few seconds without being SELECTED (no handles, no
@@ -137,7 +139,7 @@ function strokeCut(pts: Pt[], section: Section | undefined, closed = false): { m
  * (Line arrowheads + marker letters still render OUTSIDE this layer — they need their own
  * un-stretched transforms either way.)
  */
-export function WbInkLayer({ annos, draft, draftFloor, draftClosed, draftOpen, color, width, dashed, hiddenTrails, mapY, selId, flashId, networkIds = [], onPickDraw, truppTones = {}, sW, sH, sections }: InkProps) {
+export function WbInkLayer({ annos, draft, draftFloor, draftClosed, draftOpen, color, width, dashed, hiddenTrails, outTrails, mapY, selId, flashId, networkIds = [], onPickDraw, truppTones = {}, sW, sH, sections }: InkProps) {
   const W = Math.max(1, sW), H = Math.max(1, sH)
   const toPx = (pts: BoardPoint[], floor: number | undefined): Pt[] => pts.map((p) => [p[0] * W, mapY(p[2] ?? floor, p[1]) * H])
   const str = (pts: Pt[]) => pts.map((p) => `${p[0]},${p[1]}`).join(' ')
@@ -267,6 +269,7 @@ export function WbInkLayer({ annos, draft, draftFloor, draftClosed, draftOpen, c
         return runs.map((run, ri) => (
           <polyline
             key={`trail-${a.id}:${ri}`}
+            className={outTrails?.has(a.id) ? 'wb-trail-line raus' : undefined}
             points={pointStr(run, a.floor)}
             clipPath={sections ? clipOf(run[0][2]) : undefined}
             fill="none" stroke={a.color || COLORS[0]} strokeWidth={2} strokeDasharray="5 5"

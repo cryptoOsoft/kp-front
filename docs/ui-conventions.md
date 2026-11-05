@@ -391,7 +391,8 @@ Three rules the primitives own, so no surface re-answers them (18.09.2026):
     ink (an open count is amber on every row, current or not — `.group-choose-count.open`); a ✓
     may stay as the cue that is not a colour. (3)
     **Where you are** — the nav rail, the armed tool, a Trupp tab — keeps the ink pill
-    (`--ink-fill`): a place, not an answer. A chip whose tone IS its meaning (the composer's
+    (`--here-fill` / `--on-here` in every bar: = `--ink-fill` by day, a lighter plate with a white
+    glyph at night, 05.11.2026): a place, not an answer. A chip whose tone IS its meaning (the composer's
     Auftrag/Sofort) fills in that tone, same shape; colour swatches keep
     their ring (their fill is the colour). Never an outline-only «selected», never `--ink` as a
     choice fill (at night it is the primary button's light grey).

@@ -43,8 +43,8 @@
   .vrail-nbtn:not(.on):hover:not(:disabled) { background: var(--hover); color: var(--ink); }
 }
 .vrail-nbtn:active:not(:disabled) { background-image: linear-gradient(var(--press), var(--press)); }
-.vrail-nbtn.on { background: var(--ink-fill); color: var(--on-accent-ink); }
-@media (hover: hover) { .vrail-nbtn.on:hover:not(:disabled) { background: var(--ink-fill-hover); } }
+.vrail-nbtn.on { background: var(--here-fill); color: var(--on-here); }
+@media (hover: hover) { .vrail-nbtn.on:hover:not(:disabled) { background: var(--here-fill-hover); } }
 .vrail-nbtn:disabled { opacity: var(--disabled); cursor: default; }
 /* zoom ± is a MOUSE affordance: every touch form factor pinches, so the two buttons only cost
    rail height the tools need more. Phones already drop the whole footer (15-mobile.css); this
@@ -120,9 +120,10 @@
 @media (hover: hover) {
   .vrail-tool:not(.on):hover:not(:disabled) { background: var(--hover); color: var(--ink); }
 }
-.vrail-tool.on { background: var(--ink-fill); color: var(--on-accent-ink); }
+/* the armed tool = «where you are», the nav rail's ink pill (01-tokens · --here-fill) */
+.vrail-tool.on { background: var(--here-fill); color: var(--on-here); }
 @media (hover: hover) {
-  .vrail-tool.on:hover:not(:disabled) { background: var(--ink-fill-hover); color: var(--on-accent-ink); }
+  .vrail-tool.on:hover:not(:disabled) { background: var(--here-fill-hover); color: var(--on-here); }
 }
 .vrail-tool:disabled { opacity: var(--disabled); cursor: default; }
 /* ⚠️ The tools are ONE list — no divider inside it (22.09.2026; the lists in config/copy carry no
