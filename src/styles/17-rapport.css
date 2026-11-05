@@ -325,9 +325,10 @@
    beside it so the value is never hidden under the finger */
 .kf-at-track { position: relative; flex: 1 1 220px; min-width: 160px; max-width: 340px; display: flex; }
 .kf-at-track .uslider { position: relative; z-index: 1; }
-/* WHEN anything happened, under the Stand track — the same BARCODE the Verlauf draws over its
-   list (19-rueckmeldung.css · .jr-strip i): one 1.5px tick per recorded moment, same ink
-   (--ink-faint at .7), so the two strips read as one instrument. Density IS the signal — where
+/* WHEN anything happened, under the Stand track — a BARCODE: one 1.5px tick per recorded moment
+   (--ink-faint at .7). The Verlauf strip drew the same barcode until hill climb r28; it now draws
+   those moments as runs of a 2px line under a quarter-hour ruler (19-rueckmeldung.css ·
+   .jr-strip, lib/verlauf · stripRuns) – this narrow track keeps the ticks. Density IS the signal — where
    the ticks crowd is where it was busy — which is why the old ruler hairline is gone: a tick
    per moment carries the pattern by itself (the ruler existed to prop up a handful of
    quantised dashes; see KrokiFramingPanel · markPcts). They MARK, they are not targets:
