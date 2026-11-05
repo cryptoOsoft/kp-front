@@ -123,7 +123,10 @@ questions, and what the record keeps (`components/AtemschutzView`; the card and 
     2.2–2.4:1 by day on the washes), überfällig `--red-strong` as before.
     An out card sinks: its surface is mixed toward the canvas (it was mixed toward the ink, which
     lit it at night), its name AND its crew line are the dim ink (r13: an ink crew under a dim name
-    read louder than the Trupp) and its clock the quiet 16px. Slots never move.
+    read louder than the Trupp) and its clock the quiet 16px. Since r15 its fact chips and its
+    foot's values wear the same dim ink (the phone row's out tone; `--done-opacity` would take the
+    text under AA) – only «Wieder in den Einsatz» stays at full strength, so it reads as the card's
+    one action. Slots never move.
     Since r11 the grid card's 5px left edge is drawn only for a tone that means something (amber
     fällig, red überfällig, blue angemeldet, green Sicherungstrupp); a calm inside card, an out
     card and a work squad have just the 1px card border — the phone rows too since owner pick C2
