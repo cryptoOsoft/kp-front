@@ -305,28 +305,53 @@ export function repeatRuns(events: TimelineEvent[]): {
   return { counts, hidden, lastAt }
 }
 
-/** One mark on the Verlauf strip's time scale: where it stands (0–1 along the track) and the
- *  clock it prints, if there is room for it. A mark closer to a track end than half a label
- *  prints its clock flush with that `edge` instead of centred under it (Journal · `.jr-strip-edge`). */
-export interface StripMark { frac: number; label?: string; edge?: 'start' | 'end' }
+/** One clock mark on the Verlauf strip's time scale: where it stands (0–1 along the track) and
+ *  the clock it prints, centred under it, if there is room for it. */
+export interface StripMark { frac: number; label?: string }
+/** One unlabelled division between the clock marks: `mid` the taller (e.g. the half hour), the
+ *  rest the quiet fine marks (e.g. every ten minutes). */
+export interface StripMinor { frac: number; mid?: true }
 
 /** The scale steps the strip may use, in minutes — the first one whose marks stand far enough
- *  apart wins, so a 40-minute Einsatz gets quarter hours and a Hochwasser six-hour marks. */
+ *  apart wins, so a 40-minute Einsatz gets quarter hours and a Hochwasser six-hour marks. The
+ *  divisions between them come from the same list. */
 const STRIP_STEPS = [5, 10, 15, 30, 60, 120, 180, 360, 720, 1440]
+/** …and the finer ones only a division may use */
+const STRIP_DIVS = [1, 5, 10, 15, 30, 60, 120, 180, 360, 720]
 /** A «HH:MM» label at 12.5px mono is ~38px; this is that plus its breathing room. */
 const STRIP_LABEL_PX = 46
+/** The closest a `mid` division / a fine division may stand to the next one, px. */
+const STRIP_MID_PX = 24
+const STRIP_FINE_PX = 8
+
+/** Room, in px, at each end of the strip before its track begins: half a clock label and 8px of
+ *  air to the strip's edge, so a clock on the very first or last moment still centres on its own mark (hill
+ *  climb r28 – a last hour clamped flush with the end stood 11–14px off its tick). THE source of
+ *  truth for it: Journal insets the track by this and its tap→time maths subtracts it, so the two
+ *  cannot drift apart and leave a tap landing a few minutes off what the ticks show. */
+export const STRIP_INSET = STRIP_LABEL_PX / 2 + 4
+
+/** On `m`'s grid: a round m minutes on the local wall clock (whole hours for m ≥ 60). */
+const onGrid = (d: Date, m: number) => (m < 60 ? d.getMinutes() % m === 0 : d.getMinutes() === 0 && d.getHours() % (m / 60) === 0)
 
 /**
  * The time scale under the Verlauf strip's ticks (Journal · `.jr-strip`): marks on round local
- * times (full hours for an afternoon's Einsatz), and the Einsatz's first and last moment as the
- * two end stamps. `trackPx` is the track's measured width.
+ * times (full hours for an afternoon's Einsatz), their unlabelled divisions, and the Einsatz's
+ * first and last moment as the two end stamps. `trackPx` is the track's measured width; the
+ * strip leaves `STRIP_INSET` beyond each end of it, so every clock – a stamp on the very end as
+ * well – is centred on its own moment.
  * ⚠️ A mark's clock is never dropped for a stamp – the STAMP gives way (`start` / `end` undefined):
  * «14:08 · 16:00 · 17:00» with 15:00 swallowed read as one hour from the start to 16:00 (hill
  * climb r27, Opus 3). A mark only goes unlabelled when it would print over the previous mark's
  * clock, which the step's spacing rules out except on a track too narrow for any step.
- * Unmeasured (`trackPx` 0, e.g. jsdom) it draws at most six unlabelled marks and both stamps.
+ * The divisions (r28, Sol 2): `mid` the step's widest division ≥ `STRIP_MID_PX` apart, the fine
+ * ones the widest of ITS divisions ≥ `STRIP_FINE_PX` apart – a 5-hour Einsatz on a phone gets
+ * half hours and ten minutes, on a tablet quarter hours and five minutes; none where they would
+ * crowd into a comb.
+ * Unmeasured (`trackPx` 0, e.g. jsdom) it draws at most six unlabelled marks, no divisions and
+ * both stamps.
  */
-export function stripScale(from: number, to: number, trackPx: number): { start?: string; end?: string; marks: StripMark[] } {
+export function stripScale(from: number, to: number, trackPx: number): { start?: string; end?: string; marks: StripMark[]; minor: StripMinor[] } {
   const span = to - from
   const minPx = trackPx > 0 ? STRIP_LABEL_PX + 12 : 0
   const step = STRIP_STEPS.find((m) => (trackPx > 0 ? (m * 60_000 / span) * trackPx >= minPx : span / (m * 60_000) <= 6))
@@ -341,54 +366,88 @@ export function stripScale(from: number, to: number, trackPx: number): { start?:
   d.setMinutes(0, 0, 0)
   while (d.getTime() < to) {
     const t = d.getTime()
-    const onStep = step < 60 ? d.getMinutes() % step === 0 : d.getMinutes() === 0 && d.getHours() % (step / 60) === 0
-    if (t > from && onStep) {
+    if (t > from && onGrid(d, step)) {
       const frac = (t - from) / span
-      const px = frac * trackPx
-      const edge = px < half ? 'start' : px > trackPx - half ? 'end' : undefined
-      const left = edge === 'start' ? 0 : edge === 'end' ? trackPx - STRIP_LABEL_PX : px - half
+      const left = frac * trackPx - half
       if (trackPx > 0 && left >= lastRight) {
         firstLeft = Math.min(firstLeft, left)
         lastRight = left + STRIP_LABEL_PX
-        marks.push(edge ? { frac, label: formatTime(d), edge } : { frac, label: formatTime(d) })
+        marks.push({ frac, label: formatTime(d) })
       } else marks.push({ frac })
     }
     d.setMinutes(d.getMinutes() + Math.min(step, 60))
   }
+  const minor: StripMinor[] = []
+  const pxPerMin = trackPx > 0 ? trackPx / (span / 60_000) : 0
+  const divOf = (whole: number, px: number) => STRIP_DIVS.find((m) => m < whole && whole % m === 0 && m * pxPerMin >= px)
+  const mid = pxPerMin ? divOf(step, STRIP_MID_PX) : undefined
+  const fine = pxPerMin ? divOf(mid ?? step, STRIP_FINE_PX) ?? mid : undefined
+  if (fine) {
+    const m = new Date(from)
+    m.setMinutes(0, 0, 0)
+    while (m.getTime() < to) {
+      if (m.getTime() > from && !onGrid(m, step)) {
+        const frac = (m.getTime() - from) / span
+        minor.push(mid && onGrid(m, mid) ? { frac, mid: true } : { frac })
+      }
+      m.setMinutes(m.getMinutes() + Math.min(fine, 60))
+    }
+  }
   return {
-    start: firstLeft >= STRIP_LABEL_PX ? formatTime(new Date(from)) : undefined,
-    end: lastRight <= trackPx - STRIP_LABEL_PX ? formatTime(new Date(to)) : undefined,
+    // a stamp is centred on its end of the track, so it clears the clocks by half a label
+    start: firstLeft >= half ? formatTime(new Date(from)) : undefined,
+    end: lastRight <= trackPx - half ? formatTime(new Date(to)) : undefined,
     marks,
+    minor,
   }
 }
 
-/** One density mark on the Verlauf strip: where it stands (0–1 along the track) and how many
- *  rows it stands for. */
-export interface StripTick { frac: number; n: number }
+/** One stretch of the Verlauf strip's activity floor, 0–1 along the track. */
+export interface StripRun { from: number; to: number }
 
-/** The strip's density column, px: rows closer than this draw as ONE mark. */
+/** The strip's density column, px: rows closer than this land in ONE column. */
 const STRIP_COL_PX = 3
+/** A column holding this many rows or more is busy: it draws a step darker. */
+const STRIP_BUSY = 3
+/** Empty columns the floor bridges: a lull up to this long is not a gap in the line (it would
+ *  break the floor into dashes), a longer one is the Einsatz going quiet. Busy stretches bridge one. */
+const STRIP_BRIDGE = 2
 
 /**
- * The Verlauf strip's row marks (Journal · `.jr-strip i`): the rows' moments (`ticks`, ascending
- * ms) merged into `STRIP_COL_PX` columns of the measured track, one mark per column that holds
- * any, at the mean position of its rows and with their count — so 300 rows read as density
- * (a busy column a step darker), not as 300 equal hairlines. Look only: the tap still jumps
- * by time (Journal · jumpTo). Unmeasured (`trackPx` 0, e.g. jsdom) every row is its own mark.
+ * The Verlauf strip's activity floor (Journal · `.jr-strip-run`): the rows' moments (`ticks`,
+ * ascending ms) dropped into `STRIP_COL_PX` columns of the measured track, and every stretch of
+ * columns holding a row (lulls of up to `STRIP_BRIDGE` empty columns bridged) drawn as ONE run
+ * along the floor of the ruler – `busy` the stretches of columns with `STRIP_BUSY`+ rows, drawn
+ * over them a step darker. So the rows read as where the Einsatz was active and where it was
+ * quiet (a gap in the floor), never as a comb of per-row hairlines beside the scale's own marks
+ * (hill climb r28, Sol 2: at phone width the 3px-apart row ticks read as a stippled band of minute
+ * marks). Look only: the tap still jumps by time (Journal · jumpTo). A run covers its columns: a lone row is one column wide.
+ * Unmeasured (`trackPx` 0, e.g. jsdom) every row is its own zero-width run.
  */
-export function stripDensity(ticks: readonly number[], from: number, to: number, trackPx: number): StripTick[] {
+export function stripRuns(ticks: readonly number[], from: number, to: number, trackPx: number): { runs: StripRun[]; busy: StripRun[] } {
   const span = to - from
-  if (span <= 0) return []
+  if (span <= 0) return { runs: [], busy: [] }
   const fracs = ticks.map((t) => (t - from) / span)
-  if (trackPx <= 0) return fracs.map((frac) => ({ frac, n: 1 }))
+  if (trackPx <= 0) return { runs: fracs.map((f) => ({ from: f, to: f })), busy: [] }
   const lastCol = Math.max(0, Math.ceil(trackPx / STRIP_COL_PX) - 1)
-  const cols = new Map<number, { sum: number; n: number }>()
+  const counts = new Map<number, number>()
   for (const f of fracs) {
-    const col = Math.min(lastCol, Math.floor((f * trackPx) / STRIP_COL_PX))
-    const c = cols.get(col)
-    if (c) { c.sum += f; c.n++ } else cols.set(col, { sum: f, n: 1 })
+    const col = Math.min(lastCol, Math.max(0, Math.floor((f * trackPx) / STRIP_COL_PX)))
+    counts.set(col, (counts.get(col) ?? 0) + 1)
   }
-  return [...cols.values()].map(({ sum, n }) => ({ frac: sum / n, n }))
+  /** the stretches of the columns that pass `keep`, as track fractions – a gap of up to `bridge`
+   *  empty columns does not break one */
+  const stretches = (keep: (n: number) => boolean, bridge: number): StripRun[] => {
+    const cols = [...counts].filter(([, n]) => keep(n)).map(([c]) => c).sort((a, b) => a - b)
+    const spans: [number, number][] = []
+    for (const c of cols) {
+      const last = spans[spans.length - 1]
+      if (last && c - last[1] <= bridge + 1) last[1] = c
+      else spans.push([c, c])
+    }
+    return spans.map(([a, b]) => ({ from: (a * STRIP_COL_PX) / trackPx, to: Math.min(1, ((b + 1) * STRIP_COL_PX) / trackPx) }))
+  }
+  return { runs: stretches(() => true, STRIP_BRIDGE), busy: stretches((n) => n >= STRIP_BUSY, 1) }
 }
 
 /**

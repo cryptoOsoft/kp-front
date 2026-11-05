@@ -598,11 +598,16 @@
   .hist-ev.clickable:hover .hist-go { opacity: 1; transform: translateX(2px); }
 }
 /* the clock: the anchor a reader scans the log by, so at the 12.5px floor (hill climb r9 — at
-   `--fs-micro` 11 it stood a size under the sentence and the ruler labels), tabular, in the faint
-   ink. Same type as the Pendenzen clock (.jr-when), same 44px column. On the SENTENCE's line
-   height and lead (r11), so it shares the first line's centre instead of floating between lines. */
+   `--fs-micro` 11 it stood a size under the sentence and the ruler labels), tabular. Same type as
+   the Pendenzen clock (.jr-when), same 44px column. On the SENTENCE's line height and lead (r11),
+   so it shares the first line's centre instead of floating between lines.
+   ⚠️ Two inks, one per minute (hill climb r28, Opus 3: seven «19:05» in a row at one weight read
+   as a stuck column): the FIRST stamp of a minute in the secondary ink, every stamp below it that
+   prints the same clock (`data-same`, Journal) in the faint one – each row keeps its stamp, the
+   eye lands on where the minute changes. */
 .hist-ev .t { width: 44px; padding-top: var(--jr-lead); font: var(--fw-regular) var(--fs-1)/calc(var(--fs-2) * var(--lh-2)) var(--mono);
-  color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+  color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+.hist-ev .t[data-same] { color: var(--ink-faint); }
 /* timeline node + connector. 24px with a 12px glyph and the --border hairline (owner pick A6,
    05.11.2026: round 11 had grown it to 28/16, and the size was never what told two rows apart —
    the kind colour carries the difference). A ring, not a bare fill, since r11 (at --border-soft
@@ -798,12 +803,14 @@ span.jr-rem { cursor: default; }
    heading sits flush while scrolled and keeps its air when it is not. */
 .jr-pinned-head { flex: none; position: sticky; top: -8px; z-index: 3; margin-top: -8px;
   padding: 8px 7px 6px; background: var(--jr-pinned-bg);
-  display: flex; align-items: center; gap: 8px; font: var(--fw-bold) var(--fs-2) var(--body); color: var(--ink); }
-/* the head's glyph (#pendenzen) at 16px, its stroke raised so it draws the 1.5px line a 20px
-   sprite glyph does (1.8 of 24 at 16px was 1.2px – thinner than the bold label beside it), and
-   1px down: centred on the line box it stood 1px above the label's x-height middle, where the
-   status marks sit (hill climb r27) */
-.jr-pinned-head .i { width: 16px; height: 16px; flex: none; stroke-width: 2.25; translate: 0 1px; }
+  display: flex; align-items: center; gap: var(--sp-1); font: var(--fw-bold) var(--fs-2) var(--body); color: var(--ink); }
+/* the head's glyph (#pendenzen): the rows' open ring in small – 10px across inside its 16px box,
+   a 2px line (3 of 24 at 16px) in the rings' own amber (10-journal · .jr-ring-open), so the head
+   names its rows by their mark (hill climb r28, Opus 2). The box's 3px of air + the head's 4px gap
+   + the «P»'s own 1px bearing leave the ring 8px off the label's ink (measured). 1px down: centred
+   on the line box it stood 1px above the label's x-height middle, where the status marks sit (r27) */
+.jr-pinned-head .i { width: 16px; height: 16px; flex: none; stroke-width: 3; translate: 0 1px;
+  color: var(--amber-strong); }
 /* a row scrolling up under the heading dissolves into it rather
    than being sliced through its letters */
 .jr-pinned-head::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 12px;
