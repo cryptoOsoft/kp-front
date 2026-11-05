@@ -3,8 +3,9 @@
    grid of big, glanceable monitoring cards with live pressure-based countdowns and an
    escalating colour-coded status banner. Sits below the top bar like the Checkliste
    surface; light "Karte Minimal" style, finger-friendly targets for a tired operator (~44px+). */
-/* geometry + header: the shell every full surface shares (Surface.module.css) */
-.surface { composes: shell from './Surface.module.css'; flex-direction: column; }
+/* geometry + header: the shell every full surface shares, and the page grid (one inset for the
+   head and the cards, one gap) the Rapport shares with it (Surface.module.css) */
+.surface { composes: shell pageGrid from './Surface.module.css'; flex-direction: column; }
 /* the Notfall's solid red on the link board (its strip, its open tab): the red darkened so white
    text on it reaches AA in both themes (4.8:1 at night, 6.3:1 by day — the plain night red gave 3.1) */
 .surface { --nf-fill: color-mix(in srgb, var(--red) 78%, #000); }
@@ -20,7 +21,10 @@
    The head's controls used to be three recipes in one row — a red-FILLED alarm pill, framed
    squares (1px border), a light-filled «+ Trupp» — and the alarm chip was as loud as the alarm
    itself. Now every one of them is the phone card's tile (`.trowPressBtn` / `.trowCard .actBtn`):
-   44px, the one corner, ONE 1px inset edge, 700/14, meaning by text colour + a faint tint only.
+   44px, the one corner, ONE 1px inset edge, 700/14 in ink with a 16px glyph – THE secondary
+   button's type (13-incident · .ip-btn, the Rapport's head tiles; it was --ink-dim and a 17px glyph
+   until hill climb r21, so «Abgeben» read muted beside «+ Trupp» and «Bestimmen») – meaning by
+   text colour + a faint tint only.
    The single primary action, «+ Trupp», is the one FILLED tile (ink fill, as the chip rows' «on»)
    and the one at 800 (the button spec: 800 only on a surface's single action — hill climb r1,
    04.11.2026; the way-of-looking tiles at 800 out-shouted the cards under them).
@@ -29,10 +33,10 @@
    choice fill (--sel), so an ACTION and a CHOSEN answer no longer look alike. */
 .headTile { flex: none; display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
   height: 44px; min-width: 44px; padding: 0 12px; border: none; cursor: pointer; border-radius: var(--r-sm);
-  background: var(--surface); color: var(--ink-dim); box-shadow: inset 0 0 0 1px var(--glass-edge);
+  background: var(--surface); color: var(--ink); box-shadow: inset 0 0 0 1px var(--glass-edge);
   font: var(--fw-bold) var(--fs-2) var(--body); white-space: nowrap; -webkit-tap-highlight-color: transparent; }
 /* glyphs: one size, centred by the flex box — never a baseline-sensitive inline SVG */
-.headTile :global(.i) { flex: none; width: 17px; height: 17px; }
+.headTile :global(.i) { flex: none; width: 16px; height: 16px; }
 .headTile:active:not(:disabled) { background-image: linear-gradient(var(--press), var(--press)); }
 @media (hover: hover) { .headTile:hover:not(:disabled) { color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink-faint); } }
 .headTile[data-popup-open] { color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink-faint); }
@@ -52,14 +56,13 @@
 .orderBtn { composes: headTile; }
 /* «Überwachung abgeben»: a head tile that, folded (lib/pageHeadFit · its first rank), keeps a word
    — «Abgeben» (hill climb r8, 04.11.2026: the bare QR glyph on the phone head did not say «hand
-   over»). Since r11 the word stands BESIDE the glyph, one line like «+ Trupp» — stacked under it,
-   it was a third anatomy in a row of three tiles. To fit the 390px head beside «✓ Gespeichert»
-   (measured: 98px wide, the title block 6px to spare; at the tiles' 14px with these insets it was
-   105px and cut «Gespeichert» by a pixel) the folded tile closes up — 8px inside (the ladder's
-   tight-rung inset), 4px glyph gap — and its word is 700/12.5 (`--fs-1`). At its second rank (the
-   ladder's last word) the word goes and it is the plain 44px square again. */
+   over»). Folded, it is the WORD alone, in the tiles' own 700/14 (hill climb r21, 05.11.2026): r11
+   set the glyph beside it and, to fit the 390px head beside «✓ Gespeichert», shrank the word to
+   12.5 – a step smaller than «+ Trupp» and «Bestimmen» at the same 44px. The glyph goes rather
+   than the type (the word is what says «hand over»; the full title keeps the QR). At its second
+   rank (the ladder's last word) the word goes and it is the plain 44px QR square again. */
 .shareBtn { composes: headTile; }
-.shareBtn[data-folded="1"] { padding: 0 var(--sp-2); gap: var(--sp-1); font-size: var(--fs-1); }
+.shareBtn[data-folded="1"] :global(.i) { display: none; }
 /* «Überwachung abgeben», while a link IS live. Green = a running, healthy state, the same
    reading the contact clock gives — not an alarm and not the primary action of the header.
    Tokens only, so it survives the day/night flip and a station's own accent. */
@@ -83,7 +86,9 @@
 @keyframes az-pulse-tile { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
 
 /* The board's insets – ONE rhythm with the card gap (hill climb r20, 05.11.2026): 16px at the top
-   and the sides, 12 under the last row, 12 between the cards (`.grid`). r16 had 16 on top but 22 +
+   and the sides, 12 under the last row, 12 between the cards (`.grid`). The sides and the gap are
+   the page grid's (`--page-x`, `--page-gap`, Surface.module.css · r21), which the head and the
+   Rapport read too. r16 had 16 on top but 22 +
    a scrollbar gutter (~32 visible) at the sides against an 8px gap, and shadowed cards 8px apart
    read as one slab. The 12 at the foot is what pays for the gap's +4: the 1180×820 iPad and the
    1536×864 laptop both stand their two rows whole with no scroll (measured r20: 0px to spare).
@@ -91,7 +96,7 @@
    gutter to BOTH sides, so the visible inset was never the padding): a board that fits shows the
    padding exactly; one that scrolls shows its scrollbar where a scrollbar goes. An overlay
    scrollbar (the iPad, a phone, macOS) never reserved anything. */
-.body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: var(--sp-4) var(--sp-4) var(--sp-3); }
+.body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: var(--sp-4) var(--page-x) var(--sp-3); }
 
 .empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
   height: 100%; color: var(--ink-faint); text-align: center; }
@@ -117,7 +122,7 @@
    ends; what lines up across a row is the first line — name and clock — which every card opens
    with at the same height. */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(288px, 1fr));
-  gap: var(--sp-3); align-items: start; }
+  gap: var(--page-gap); align-items: start; }
 /* ⚠️ The «Raus»-Abschnitt this separated is GONE (17.08.) — a Trupp that came back keeps its slot
    on every screen size (see AtemschutzView · board). The rule is kept out of the sheet rather than
    left behind styling nothing. */
@@ -129,17 +134,20 @@
    below it is not. Rendered only once the board actually holds a Trupp without Atemschutz
    (AtemschutzView · `sectioned`), so an ordinary Einsatz never pays a heading for a distinction
    it does not make. */
-.sect { display: flex; align-items: center; gap: var(--sp-2); margin: 0 0 var(--sp-3); }
+.sect { display: flex; align-items: center; gap: var(--sp-1); margin: 0 0 var(--sp-3); }
 .sectTitle {
   display: inline-flex; align-items: center; gap: 8px;
   font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-faint);
 }
 .sectTitle :global(.i) { width: 15px; height: 15px; color: var(--ink-faint); }
-/* the ONE count badge (05-navrail · .nav-count, 28.09.2026): 16px, min 16, 11/800, --r-xs, and a
-   plain count is INK. It was a faint 999px pill — the only round count in the app. */
-.sectCount { display: inline-block; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box;
-  border-radius: var(--r-xs); background: var(--ink-fill); color: var(--on-accent-ink);
-  font: var(--fw-heavy) var(--fs-micro)/16px var(--body); text-align: center; font-variant-numeric: tabular-nums; }
+/* The section's count is part of the EYEBROW – «DRIN 3», its type and its muted ink, 4px after the
+   word (+ the word's own tracking) – not a badge (hill climb r21, 05.11.2026). It wore the app's
+   count badge (05-navrail · .nav-count: a 16px ink-filled plate), which is a CORNER mark on an
+   icon; in a section head it was the darkest mark in the head and pulled the eye before the
+   clocks. The badge stays everywhere it marks an icon (nav, map, Verlauf, audio); this head is the
+   only one that wore it as a count. */
+.sectCount { font: var(--eyebrow); letter-spacing: var(--eyebrow-track); color: var(--ink-faint);
+  font-variant-numeric: tabular-nums; }
 /* (the hairline rule that ran from the count to the edge — «DRIN 4 ────» — went on 29.09.2026,
    T6: it was the divider between Atemschutz and ohne Atemschutz, then every section wore one,
    between cards that already have their own frames and left edges, and in the SICHERUNGSTRUPP
@@ -984,7 +992,7 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
      foot keeps the shared --fab-safe reserve: the last card – its «Austritt» included – scrolls
      clear of the circle, and a viewer (no FAB) gets no dead space. Mid-scroll a card still passes
      under it; an opened card's foot row has the guard above (data-az-fab-foot). */
-  .body { padding: var(--sp-3) var(--head-pad-x); padding-bottom: calc(var(--sp-3) + var(--fab-safe, 0px)); }
+  .body { padding: var(--sp-3) var(--page-x); padding-bottom: calc(var(--sp-3) + var(--fab-safe, 0px)); }
   .grid { grid-template-columns: 1fr; gap: var(--sp-2); }
   /* (the head's phone paddings are the shared tokens — 15-mobile · --head-pad-*) */
 }
@@ -1947,7 +1955,8 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
   border-radius: var(--r-ctl); background: var(--btn-primary); color: var(--on-btn-primary); font: var(--fw-heavy) var(--fs-2) var(--body); }
 .rowEnter:active { background-image: linear-gradient(var(--press), var(--press)); }
 /* The SICHERUNGSTRUPP head (26.09.2026, phone card slim-down): a section head like DRIN / DRAUSSEN,
-   and «Bestimmen» at the row's right — a 36px pill of the count badge's family, so the
+   and «Bestimmen» at the row's right — a 36px framed tile in the secondary button's 700/14 (800
+   until r21: that weight is the single primary's, «+ Trupp»), so the
    head reads as a head with a door in it, not as a box. The dashed «Kein Sicherungstrupp» slot
    (D1 ⑦, 24.09.2026) went with the slim-down: an empty section under its own head says the same
    in no words. `.sectDue`: a crew is inside and nobody stands ready — the title wears the warn
@@ -1955,7 +1964,7 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
 /* 4 + the zone's 8px row gap = the 12px every other head keeps above its first card (30.09.2026) */
 .sectSafety { margin-bottom: 4px; }
 .sectAct { position: relative; margin-left: auto; flex: none; min-height: 36px; padding: 0 var(--sp-3); border: none; cursor: pointer; border-radius: var(--r-sm);
-  background: var(--surface); color: var(--ink); font: var(--fw-heavy) var(--fs-2) var(--body); box-shadow: inset 0 0 0 1px var(--glass-edge); }
+  background: var(--surface); color: var(--ink); font: var(--fw-bold) var(--fs-2) var(--body); box-shadow: inset 0 0 0 1px var(--glass-edge); }
 .sectAct:active:not(:disabled) { background-image: linear-gradient(var(--press), var(--press)); }
 /* 36px drawn, --tap under a finger — the same 4px pad as `.fact` */
 @media (pointer: coarse) { .sectAct::before { content: ''; position: absolute; inset: -4px 0; } }

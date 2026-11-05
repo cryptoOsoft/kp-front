@@ -13,7 +13,8 @@
  * · «cap + columns». A surface sets `--content-max` (its content box, padding excluded) on its
  * shell, only inside a `min-width` block of 1181px or more. Its scrolling body then takes
  * `padding-inline: var(--content-pad-x)`. Because `--content-max` is unset at 1180 and below,
- * phones and tablets get exactly the old 22px inset. Never cap a phone or tablet layout this way.
+ * phones and tablets get exactly the page's own inset (`--page-x` on a page-grid page, else
+ * `--head-pad-x`, 22). Never cap a phone or tablet layout this way.
  * A new capped body uses this token rather than a hand-rolled `max-width` + `margin: auto` box
  * (the Checkliste's readers are not a capped body: one LEFT-aligned 760px column on a white
  * pane, owner pick 20.10.2026). Inside a row, a control stays near its label (the
@@ -74,7 +75,7 @@
    ⚠️ The hairline is an INSET shadow, not a border: a border is one more pixel in a height that is
    the whole point of this rule. */
 :where(.head) {
-  flex: none; display: flex; align-items: center; gap: var(--head-gap); padding: var(--head-pad); flex-wrap: nowrap;
+  flex: none; display: flex; align-items: center; gap: var(--head-gap); padding: var(--head-pad-y) var(--page-x, var(--head-pad-x)); flex-wrap: nowrap;
   min-height: calc(var(--tap) + 2 * var(--head-pad-y));
   background: var(--surface); box-shadow: inset 0 -1px 0 var(--glass-edge);
 }
@@ -111,7 +112,7 @@
    How a surface takes part:
    1. it sets `--content-max` (the width of its CONTENT box, the padding not included) on its
       shell, ONLY inside a `min-width` block of 1181px or more. Unset, the inset below is exactly
-      `--head-pad-x`, so a phone and every tablet up to 1180 landscape are untouched by
+      the head's (`--page-x`, else `--head-pad-x`), so a phone and every tablet up to 1180 landscape are untouched by
       construction;
    2. its scrolling body (a direct child of the shell) takes `padding-inline: var(--content-pad-x)`
       in that same block. The body stays full width, so its scrollbar stays at the surface edge;
@@ -119,7 +120,20 @@
    A `%` in padding is the containing block's width — the shell's for a direct child — and an
    unregistered custom property is substituted where it is USED, so this one formula is right on
    every child that reads it. */
-:where(.shell) { --content-pad-x: max(var(--head-pad-x), calc((100% - var(--content-max, 100%)) / 2)); }
+:where(.shell) { --content-pad-x: max(var(--page-x, var(--head-pad-x)), calc((100% - var(--content-max, 100%)) / 2)); }
+
+/* ===== THE PAGE GRID (hill climb r21, 05.11.2026) ========================================= */
+/* A page of cards in a grid – Trupps and the Rapport, one tap apart – stands its head and its
+   cards on ONE inset and keeps ONE gap between the cards, so the page's title starts at the first
+   card's left edge and its last tile ends at the last card's right edge. A shell that wears
+   `pageGrid` beside `shell` (Atemschutz composes it, ReportPreflight adds it) gets:
+   - `--page-x`: the head's AND the content's side inset – 16, the phone's `--head-pad-x` (14);
+   - `--page-gap`: between the cards, columns and rows alike – 12.
+   The shared `.head` above and `--content-pad-x` read `--page-x` with `--head-pad-x` as the
+   fallback, so a page without `pageGrid` (Anwesenheit, Material, Checkliste) keeps its 22 by
+   construction. (Before: the head at 22 over Trupps cards at 16 and Rapport cards at ~33, with
+   gaps of 12 / 18 × 14 – three insets on two pages.) */
+:where(.pageGrid) { --page-x: var(--sp-4); --page-gap: var(--sp-3); }
 
 /* Phone (and a short landscape tablet): the surface takes the full width below the floating top
    bar — 78px clears it with a visible gap, at 64px the header sat glued under it — and the
@@ -170,4 +184,6 @@
   }
   /* the head is the page's first row, not a band: no fill, no hairline under it */
   :where(.head) { background: none; box-shadow: none; }
+  /* the page grid takes the phone's one inset (15-mobile · --head-pad-x) */
+  :where(.pageGrid) { --page-x: var(--head-pad-x); }
 }
