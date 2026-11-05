@@ -343,7 +343,9 @@
    `--wb-floor-plate-w`: ONE width for every storey plate, the widest standard name's («3. OG ⌄»,
    ~70px) on the 4px grid – sized from their text, «EG» stood narrower and the column's edge
    zig-zagged (hill climb r15, Opus 8). The lane is that plate + its 8px gap (80, was 72: «3. OG ⌄»
-   already reached 5px past it). A longer custom name still grows further left. */
+   already reached 5px past it). A longer custom name still grows further left. Label + chevron
+   stand CENTRED in it (r16, Opus 8: right-aligned, «EG ⌄» left ~24px of its plate empty) – both
+   edges still line up as one ruler, the free room splits to the two sides. */
 .wb-board { --wb-floor-inset: 12px; --wb-floor-plate-pad: var(--sp-2); --wb-floor-plate-w: 72px; --wb-label-lane: 80px; }
 /* `container-type: inline-size` makes the tile the query container for its own header: the board
    is zoomed by LAYOUT (the tile's width is set in rendered px), so the tile's inline size IS the
@@ -378,8 +380,8 @@
 .wb-floor-noplan { font: var(--fw-medium) var(--fs-2) var(--body); fill: var(--ink-faint); }
 /* Preserve the drawing's footprint while Shell trail reports the pending raster. */
 .wb-floor-page-wait { fill: var(--ink-5); }
-/* The storey label stands OUTSIDE its tile, right-aligned in the gutter left of the stack, level
-   with the storey's top (hill climb r3, 04.11.2026). On the tile a note dropped in the middle hid
+/* The storey label stands OUTSIDE its tile, its plate right-aligned in the gutter left of the
+   stack, level with the storey's top (hill climb r3, 04.11.2026). On the tile a note dropped in the middle hid
    «EG» completely and a symbol crowded «3. OG». The tile is still its parent, so it rides the
    storey's top and the zoom; a longer custom name simply grows further left. A compact surface
    plate, because it stands on the stage now.
@@ -387,7 +389,7 @@
    wide note ran its text under «EG»). z 4: above a resting anno (z 3) that still hangs out into it –
    a symbol's caption at the stack's edge – so the storey's name always wins; under a selected one
    (z 6), which is being moved. */
-.wb-floor-label { position: absolute; top: var(--sp-2); right: calc(100% + var(--sp-2)); display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-1); z-index: 4;
+.wb-floor-label { position: absolute; top: var(--sp-2); right: calc(100% + var(--sp-2)); display: flex; align-items: center; justify-content: center; gap: var(--sp-1); z-index: 4;
   min-width: var(--wb-floor-plate-w); flex-wrap: nowrap; white-space: nowrap;
   font-family: var(--body); font-weight: var(--fw-bold); font-size: var(--fs-2); line-height: 1; color: var(--ink);
   background: var(--surface); box-shadow: inset 0 0 0 1px var(--border); border-radius: var(--r-xs);
@@ -732,12 +734,13 @@ span.wb-ghost-label { cursor: default; }
 /* the dot's shadow is the plates' contact step (--e0): in a cluster the e1 spread ran into a fringe
    (hill climb r13, Sol 2 – ONE plate treatment for every map/plan label) */
 .wb-trail-mark { display: block; width: 9px; height: 9px; border-radius: 50%; border: 2px solid #fff; box-shadow: var(--e0); }
-/* a breadcrumb's time is a record, one step under the Trupp's name: secondary ink, medium weight,
-   the plate's hairline without the contact shadow (hill climb r13, Opus 2 – it was full ink + e1,
-   the loudest thing near the marker). Same read as the Lage's .map-trail-dot i below. */
+/* a breadcrumb's time is a record, one step under the Trupp's name: secondary ink, medium weight
+   (hill climb r13, Opus 2 – it was full ink + e1, the loudest thing near the marker), on THE plate
+   edge every map/plan label wears (--label-plate, r16 Sol 2 – since e0 is a faint contact only, the
+   time no longer needs its own shadowless variant). Same read as the Lage's .map-trail-dot i below. */
 .wb-trail-dot i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-family: var(--mono); font-style: normal;
   font-size: var(--fs-micro); font-weight: var(--fw-medium); color: var(--ink-dim); background: var(--label-bg); border-radius: var(--r-xs); padding: 1px var(--sp-1);
-  white-space: nowrap; box-shadow: inset 0 0 0 1px var(--ink-16); }
+  white-space: nowrap; box-shadow: var(--label-plate); }
 /* an OUT Trupp's track: THE done dim on dots and times – like its marker (.wb-resource-pill.raus /
    .team-dot.raus) – grayscale on the colour carrier (the dot). The time's PLATE stays opaque: the
    dim sits on its ink (the inner span, MapMarkers / Whiteboard), or a line under «12:25» crossed
@@ -752,11 +755,11 @@ span.wb-ghost-label { cursor: default; }
 .map-trail-dot { position: relative; pointer-events: none; }
 /* ⚠️ held to lib/mapView · CRUMB_LABEL_STYLE (the label pass books this box before it is drawn,
    and drops the time when it would cover another label – mapView.labelCss.test.ts)
-   One step under the names (hill climb r13, Opus 2): the names' size, but medium weight, secondary
-   ink and the plate's hairline without its contact shadow – a time is a record, the name the Trupp. */
+   One step under the names (hill climb r13, Opus 2): the names' size, but medium weight and
+   secondary ink on the one --label-plate – a time is a record, the name the Trupp. */
 .map-trail-dot i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-family: var(--mono); font-style: normal;
   font-size: var(--fs-1); font-weight: var(--fw-medium); line-height: 1.25; color: var(--ink-dim); background: var(--label-bg); border-radius: var(--r-xs); padding: 2px var(--sp-2);
-  white-space: nowrap; box-shadow: inset 0 0 0 1px var(--ink-16); }
+  white-space: nowrap; box-shadow: var(--label-plate); }
 /* a selected team marker on the map rings its pill like the plan board's selection */
 .marker.sel .wb-resource-pill { box-shadow: 0 0 0 2px var(--team), var(--e2); }
 /* resting team marker — compact team-coloured dot + name; the full pill only on selection */
@@ -1068,10 +1071,14 @@ span.wb-ghost-label { cursor: default; }
    (.ts-rot.white) – so the line keeps its identity colour instead of being flattened to `--ink`.
    ⚠️ held to lib/mapView · END_TAG_LABEL_STYLE and lib/endTagSpots · tagSize (mapView.labelCss.test.ts):
    --fs-1/800, 1px/4px + the 1.5px ring = a ~18px plate (hill climb r13, Opus 7: at --fs-micro it was
-   the smallest type on the map; the printed Kroki draws it at 12px). */
+   the smallest type on the map; the printed Kroki draws it at 12px).
+   Its ring is its plate edge – the line's colour, in place of --label-plate's neutral one – under
+   the plates' one contact step (--e0, hill climb r16 Sol 2). Where it stands: lib/endTagSpots ·
+   endTagOffset, short of the line's end so the arrowhead stays visible (r16, Opus 4). */
 .line-end-tag { --tag-plate: var(--on-accent-ink); --tag-text: color-mix(in srgb, var(--tag-ink) 70%, #000);
   display: inline-grid; place-items: center; padding: 1px var(--sp-1); border: 1.5px solid var(--tag-ink);
-  border-radius: 4px; background: var(--tag-plate); color: var(--tag-text); font: var(--fw-heavy) var(--fs-1)/1 var(--body); white-space: nowrap; }
+  border-radius: 4px; background: var(--tag-plate); color: var(--tag-text); font: var(--fw-heavy) var(--fs-1)/1 var(--body); white-space: nowrap;
+  box-shadow: var(--e0); }
 /* NIGHT: the map plate (--label-bg) like every other label – the near-white tag was the brightest
    thing on a dark map. The text then takes the hue 55 % toward the night --ink, never the plain hue:
    the palette holds a near-black line (#1b2330) and a dark blue, either of which would vanish on the

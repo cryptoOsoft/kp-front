@@ -277,7 +277,7 @@ export const FREEHAND_SIMPLIFY_PX = 3.5
  *  bearing. The final captured segment of a freehand stroke is tiny and jittery, so pointing the
  *  arrow along just the last segment makes it wobble/skew; sampling a fixed distance back gives the
  *  stroke's actual approach direction. Falls back to the first point for a very short line. */
-export function lookbackPoint(px: [number, number][], dist: number): [number, number] {
+export function lookbackPoint(px: readonly (readonly [number, number])[], dist: number): [number, number] {
   let acc = 0
   for (let i = px.length - 1; i > 0; i--) {
     const a = px[i], b = px[i - 1]
@@ -285,7 +285,7 @@ export function lookbackPoint(px: [number, number][], dist: number): [number, nu
     if (acc + seg >= dist) { const t = (dist - acc) / seg; return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t] }
     acc += seg
   }
-  return px[0]
+  return [px[0][0], px[0][1]]
 }
 
 /**
