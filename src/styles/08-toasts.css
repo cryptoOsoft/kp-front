@@ -867,9 +867,9 @@ textarea.note-pill-input { resize: none; overflow: hidden; display: block; line-
 /* a link holder: a dashed edge and the chain badge – a self-chosen name, never an account */
 .present-av { position: relative; }
 .present-av[data-link] { box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--ink-dim); }
-.present-av-link { position: absolute; right: -4px; bottom: -4px; display: grid; place-items: center; width: 14px; height: 14px;
-  border-radius: 50%; background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--border); }
-.present-av-link .i { width: 10px; height: 10px; }
+.present-av-link { position: absolute; right: -6px; bottom: -6px; z-index: 1; display: grid; place-items: center; width: 18px; height: 18px;
+  border-radius: 50%; background: var(--ink-fill); color: var(--on-accent-ink); box-shadow: 0 0 0 2px var(--surface); }
+.present-av-link .i { width: 12px; height: 12px; }
 [data-tone='1'] { --tone: var(--present-1); }
 [data-tone='2'] { --tone: var(--present-2); }
 [data-tone='3'] { --tone: var(--present-3); }
