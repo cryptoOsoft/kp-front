@@ -26,7 +26,7 @@ function fmtClock(ms: number): string {
 
 // --- TopBar switcher ----------------------------------------------------------------
 export function IncidentSwitcher({
-  active, incidents, isEditor, syncStatus, lastSyncedAt, user, startedAt, endedAt, onSettings, onSwitch, onHistory, onObjectVisits, onKarte, onDivera, onEditMeta, onArchive, onShare, archiveOpenCount = 0, onHelp, onInstall, onOfflineReadiness, onSyncNow, onLogout, navKey, sheetOpen = false, syncDetail,
+  active, incidents, isEditor, syncStatus, lastSyncedAt, user, startedAt, endedAt, onSettings, onSwitch, onHistory, onObjectVisits, onKarte, onDivera, onEditMeta, onArchive, onShare, archiveOpenCount = 0, onUeben, onHelp, onInstall, onOfflineReadiness, onSyncNow, onLogout, navKey, sheetOpen = false, syncDetail,
   onBackFromArchive, onReactivate, canCorrectRapport = false,
 }: {
   active: IncidentMeta | null
@@ -70,6 +70,9 @@ export function IncidentSwitcher({
   /** how many Mindestangaben are still open, shown as a badge on that row. The check used to
    *  happen only after the press, and only on the other door — see confirmAndComplete. */
   archiveOpenCount?: number
+  /** «Üben» – App's tutorials sheet over this Einsatz; absent for a link session. The menu closes
+   *  first: the sheet is App's, so this menu's `sheetOpen` suspension never hears of it. */
+  onUeben?: () => void
   onHelp: () => void
   /** open the "Als App installieren" guide — App passes it only in a plain browser tab */
   onInstall?: () => void
@@ -488,6 +491,7 @@ export function IncidentSwitcher({
             onObjectVisits={onObjectVisits && (() => { setOpen(false); onObjectVisits() })}
             onSettings={onSettings}
             offline={active ? { label: appConfig.copy.offline.title, onOpen: onOfflineReadiness } : undefined}
+            onUeben={onUeben && (() => { setOpen(false); onUeben() })}
             onHelp={onHelp}
             onInstall={onInstall}
             onLogout={onLogout && (() => { onLogout(); setOpen(false) })}
