@@ -1555,9 +1555,9 @@ export function AtemschutzView({
         {/* «Überwachung abgeben»: the QR, beside the bell, because the realistic handover in an
             Einsatz is «Handy scannen lassen» and the FU is standing on THIS page when they
             decide to. Green while a link is live. Folded it keeps a WORD («Abgeben», hill climb
-            r8, 04.11.2026: the bare QR glyph did not say «hand over» on the phone head) – the word
-            alone in the tiles' type since r21, the glyph gives way (Atemschutz.module · .shareBtn);
-            only the second rank, the ladder's last word, leaves the glyph alone. */}
+            r8, 04.11.2026: the bare QR glyph did not say «hand over» on the phone head) – glyph + word
+            in the tiles' type since r26 (Atemschutz.module · .shareBtn); only the second rank, the
+            ladder's last word, leaves the glyph alone. */}
         {onShareLink && (
           <button
             type="button"

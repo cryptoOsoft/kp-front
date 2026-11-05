@@ -62,13 +62,13 @@
 .orderBtn { composes: headTile; }
 /* «Überwachung abgeben»: a head tile that, folded (lib/pageHeadFit · its first rank), keeps a word
    — «Abgeben» (hill climb r8, 04.11.2026: the bare QR glyph on the phone head did not say «hand
-   over»). Folded, it is the WORD alone, in the tiles' own 700/14 (hill climb r21, 05.11.2026): r11
-   set the glyph beside it and, to fit the 390px head beside «✓ Gespeichert», shrank the word to
-   12.5 – a step smaller than «+ Trupp» and «Bestimmen» at the same 44px. The glyph goes rather
-   than the type (the word is what says «hand over»; the full title keeps the QR). At its second
-   rank (the ladder's last word) the word goes and it is the plain 44px QR square again. */
+   over»), in the tiles' own 700/14 (hill climb r21, 05.11.2026: r11 had shrunk it to 12.5 to fit
+   the 390px head, a step under «+ Trupp»). Since r26 (Sol 3 / Opus 4) it keeps the full title's
+   16px QR in front of it too, the tiles' one 8px glyph gap – the phone head read three patterns
+   (a bare word, a bare bell, «+ Trupp»); the room comes from the folded tiles' 8px inside
+   (`.head .headTile[data-folded]`, below), not from the type. At its second rank (the ladder's
+   last word) the word goes and it is the plain 44px QR square again. */
 .shareBtn { composes: headTile; }
-.shareBtn[data-folded="1"] :global(.i) { display: none; }
 /* «Überwachung abgeben», while a link IS live. Green = a running, healthy state, the same
    reading the contact clock gives — not an alarm and not the primary action of the header.
    Tokens only, so it survives the day/night flip and a station's own accent. */
@@ -376,7 +376,8 @@
    at 300 bar nothing is wrong. Colour is state and nothing else — «Rückzug» turns amber only at or
    under the Trupp's Alarmdruck (`.actAlarm`), the one moment the tile is the answer. */
 .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-/* a single action («Im Einsatz», «Wieder in den Einsatz», a work squad's «Raus melden») owns the row */
+/* a single action («Im Einsatz», «Wieder in den Einsatz», a work squad's «Raus melden») owns the row
+   (on the grid an out card's «Wieder in den Einsatz» stands at its own width – «The grid's card, denser») */
 .actions:has(> :only-child) { grid-template-columns: 1fr; }
 .actBtn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2); border: none; cursor: pointer;
   min-height: 48px; min-width: 0; padding: 0 12px; border-radius: var(--r-sm);
@@ -1371,8 +1372,11 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
    the title line, then this row on a line of its own — is GONE: it cost 121px of a phone for a
    head that fits in 60, and «the ⚠ tile arriving adds a tile, not a row» holds on one row too. */
 .headActs { composes: headActions from './Surface.module.css'; }
-/* the ladder's «close up» step (lib/pageHeadFit): a worded tile 8px inside — still ≥ a tap wide */
-.head[data-fit-tight] .headTile { padding: 0 8px; }
+/* the ladder's «close up» step (lib/pageHeadFit): a worded tile 8px inside — still ≥ a tap wide.
+   A FOLDED tile is 8px inside already (hill climb r26, Sol 3 / Opus 4): the short word is the
+   crowded head's form, and on the 390px phone the 16px the two worded tiles give back keep «Abgeben» its
+   QR glyph without folding «✓ Gespeichert» to its mark (an icon-only tile stays the 44px square). */
+.head[data-fit-tight] .headTile, .head .headTile[data-folded] { padding: 0 var(--sp-2); }
 /* the sync line under the title is ONE line: the quiet state gives its time to the ladder first,
    and the LOUD one (the switcher's `.ip-offline-chip`, `flex: none` elsewhere) may shrink rather
    than run under the tiles — its text ellipsizes, which the ladder reads as «does not fit»
@@ -1928,9 +1932,12 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
    too — 44px, 14/700 (hill climb r24, Opus 1, 05.11.2026): with «Wie gesetzt» the out cards can
    stand first, and a 48px ink bar at 800 on each of them drew the two-second scan to the crews
    OUTSIDE before the green clocks of the ones inside. It stays the card's one FILLED tile (owner,
-   27.09.2026); only its height and weight give. */
+   27.09.2026); only its height and weight give. And its WIDTH (hill climb r26, Sol 2 / Opus 2):
+   sized by its word, 16px each side, on the card's content edge (the row's start) – three
+   card-wide ink slabs side by side still outweighed the live clocks. The phone keeps its
+   full-width tile (not on the grid). */
 .grid .trowCard :is(.actRueckzug, .actContinue, .actExit, .actNotfall, .actNotfallEnd) { min-height: var(--tap); }
-.grid .trowCard .actReenter { min-height: var(--tap); font-weight: var(--fw-bold); }
+.grid .trowCard .actReenter { min-height: var(--tap); font-weight: var(--fw-bold); justify-self: start; padding: 0 var(--sp-4); }
 /* A mouse (24px floor): every tile at 36px and the foot line (Verlauf ⌄ and ⋯) at 32px (hill climb
    r13, 05.11.2026 — 40/36 before, and on the 1536×864 laptop the second row's feet stood under the
    panel's edge). Type, gaps and the card order stay; only the plates give. */
