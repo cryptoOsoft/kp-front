@@ -116,5 +116,6 @@ export const linksCopy: Localizable<Pick<Copy, Keys>> = {
     pill: 'Presentazione',
     startFailed: 'Presentazione non avviata – serve una connessione al server.',
     endFailed: 'Presentazione non terminata – riprova.',
+    full: 'Presentazione piena – troppi partecipanti tramite link. Riprova «Segui» più tardi.',
   },
 }

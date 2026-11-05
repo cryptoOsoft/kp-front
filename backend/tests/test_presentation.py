@@ -13,6 +13,7 @@ Contract under test:
 import asyncio
 import time
 import uuid
+from datetime import UTC, datetime
 
 import httpx
 import pytest
@@ -305,3 +306,183 @@ async def test_a_faded_pointer_is_no_news(client, second, editor, viewer, monkey
     monkeypatch.setattr(broker, "_now", lambda: later)
     broker.current(uuid.UUID(inc)).presenter.seen = later  # the presenter is still there
     assert (await second.get(f"{url}&known={pid}")).json()["messages"] == []
+
+
+# --- review 06.11.2026 --------------------------------------------------------------------
+
+
+async def test_a_signal_that_finds_the_end_still_writes_the_row(
+    client, second, editor, viewer, db_session, monkeypatch
+):
+    """The «beendet» row of a timeout noticed by a SIGNAL (refused with 409 right after) must not
+    roll back with the refusal – the presentation is gone from memory, nobody would write it again."""
+    await _login(client, editor)
+    await _login(second, viewer)
+    inc = await _incident(client)
+    pid = (await _start(client, inc))["id"]
+    assert (await _signal(second, inc, pid, FOLLOWER, "join")).status_code == 204
+    later = time.monotonic() + broker.PRESENTER_TIMEOUT_S + 5
+    monkeypatch.setattr(broker, "_now", lambda: later)
+    assert (await _signal(second, inc, pid, FOLLOWER, "pointer", at=POINT)).status_code == 409
+    assert await _texts(db_session, inc) == [
+        "Präsentation gestartet (Cmd)",
+        "Präsentation beendet (Cmd – Verbindung verloren)",
+    ]
+
+
+MINT = "presentation-mint-key-0123456789-at-least-32-bytes"  # gitleaks:allow
+
+
+async def _link_session(db_session, inc: str, kind: str) -> httpx.AsyncClient:
+    """A device holding a link of `kind` on this Einsatz: the key on its column, the session
+    cookie minted from it (auth/incident_link)."""
+    from app.auth import incident_link as il
+    from app.main import app
+    from app.models import DeploymentConfig, Incident
+
+    row = (await db_session.execute(select(DeploymentConfig).where(DeploymentConfig.id == 1))).scalar_one_or_none()
+    if row is None:
+        row = DeploymentConfig(id=1, config_json=None)
+        db_session.add(row)
+    incident = (await db_session.execute(select(Incident).where(Incident.id == uuid.UUID(inc)))).scalar_one()
+    if kind == "alarm":
+        row.incident_link_key = MINT
+        token = il.create_link_session_token(inc, MINT)
+    elif kind == "atemschutz":
+        incident.atemschutz_link_key = MINT
+        token = il.create_atemschutz_session_token(inc, MINT)
+    elif kind == "atemschutz-standing":
+        row.atemschutz_standing_key = MINT
+        token = il.create_standing_atemschutz_session_token(inc, MINT)
+    else:
+        row.terminal_link_key = MINT
+        token = il.create_terminal_session_token(inc, MINT)
+    await db_session.commit()
+    ac = httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test")
+    ac.cookies.set(il.LINK_COOKIE, token)
+    return ac
+
+
+@pytest.mark.parametrize("kind", ["alarm", "atemschutz", "atemschutz-standing", "terminal"])
+async def test_every_other_link_kind_follows_and_points_but_never_presents(client, editor, db_session, kind):
+    await _login(client, editor)
+    inc = await _incident(client)
+    pid = (await _start(client, inc))["id"]
+    async with await _link_session(db_session, inc, kind) as link:
+        assert (await link.get(f"/api/incidents/{inc}/presentation?client={LINKER}")).json()["id"] == pid
+        assert (await _signal(link, inc, pid, LINKER, "join", name="Hans")).status_code == 204
+        assert (await _signal(link, inc, pid, LINKER, "pointer", at=POINT)).status_code == 204
+        view = {"mode": "map", "map": {"lng": 7.5, "lat": 47.5, "zoom": 17, "bearing": 0}}
+        assert (await link.post(f"/api/incidents/{inc}/presentation", json={"client": LINKER})).status_code == 403
+        assert (await link.delete(f"/api/incidents/{inc}/presentation")).status_code == 403
+        assert (await _signal(link, inc, pid, PRESENTER, "view", view=view)).status_code == 403
+        assert (await _signal(link, inc, pid, LINKER, "view", view=view)).status_code == 403
+    assert broker.current(uuid.UUID(inc)).presenter.client == PRESENTER
+
+
+async def test_one_link_session_cannot_act_under_another_ones_id(client, editor, db_session):
+    """Link holders all share one guest identity; the owner is the SESSION – a forwarded view
+    link may not kick or point under the alarm-link phone's id."""
+    await _login(client, editor)
+    inc = await _incident(client)
+    pid = (await _start(client, inc))["id"]
+    alarm = await _link_session(db_session, inc, "alarm")
+    other = await _link_session(db_session, inc, "terminal")
+    async with alarm, other:
+        assert (await _signal(alarm, inc, pid, LINKER, "join", name="Hans")).status_code == 204
+        assert (await _signal(other, inc, pid, LINKER, "pointer", at=POINT)).status_code == 409
+        assert (await _signal(other, inc, pid, LINKER, "join", name="Hans")).status_code == 403
+        await _signal(other, inc, pid, LINKER, "leave")
+    assert [q.client for q in broker.current(uuid.UUID(inc)).participants.values()] == [LINKER]
+
+
+async def test_on_the_demo_every_link_holder_is_gast(client, second, editor, monkeypatch):
+    from app.api import presentation as api
+
+    async def demo(_db):
+        return True
+
+    monkeypatch.setattr(api, "is_demo_deployment", demo)
+    await _login(client, editor)
+    inc = await _incident(client)
+    pid = (await _start(client, inc))["id"]
+    await _open_view_link(second, editor, inc)
+    await _signal(second, inc, pid, LINKER, "join", name="Irgendwer")
+    assert [q.name for q in broker.current(uuid.UUID(inc)).participants.values()] == ["Gast"]
+
+
+@pytest.mark.parametrize(
+    ("raw", "shown"),
+    [
+        ("  Sandra\x00 Meier  ", "Sandra Meier"),
+        ("Sandra\u202e Meier\u200b", "Sandra Meier"),  # bidi override, zero-width space
+        ("\x85Hans\x9f", "Hans"),  # C1 controls
+        ("\u3164\u2800\u115f", "Gast"),  # letters that draw nothing → blank → «Gast»
+        ("e\u0301\u0301\u0301\u0301x", "\u00e9\u0301\u0301x"),  # a tower of marks: NFC, then two stay
+        ("\u0301\u0301", "Gast"),  # marks with no base
+        ("Cafe\u0301", "Caf\u00e9"),  # NFC
+        ("", "Gast"),
+    ],
+)
+def test_a_link_name_is_cleaned_before_anybody_sees_it(raw, shown):
+    from app.api.presentation import clean_link_name
+
+    assert clean_link_name(raw) == shown
+
+
+def _room(monkeypatch):
+    t = {"now": 1000.0}
+    monkeypatch.setattr(broker, "_now", lambda: t["now"])
+    p = broker.Presentation(
+        id="p" * 12,
+        incident_id=uuid.uuid4(),
+        presenter=broker.Participant(client=PRESENTER, name="FU", link=False, seen=1000.0, owner="user:fu"),
+        started_at=datetime.now(UTC),
+    )
+    return p, t
+
+
+def test_the_links_share_of_the_room_is_capped_and_never_costs_a_signed_in_follower(monkeypatch):
+    p, t = _room(monkeypatch)
+    for i in range(broker.LINK_PARTICIPANTS):
+        t["now"] += 1  # inside the link share's change budget
+        assert broker.join(p, client=f"lk{i:04d}", name=f"L{i}", link=True, owner=f"link:view:{i}") is None
+    t["now"] += 1
+    assert broker.join(p, client="lk9999", name="L", link=True, owner="link:view:x") == "full"
+    for i in range(20):
+        assert broker.join(p, client=f"ac{i:04d}", name=f"A{i}", link=False, owner=f"user:{i}") is None
+    assert len(p.participants) == broker.LINK_PARTICIPANTS + 20
+
+
+def test_link_pointers_have_their_own_budget(monkeypatch):
+    p, t = _room(monkeypatch)
+    for i in range(4):
+        t["now"] += 1
+        broker.join(p, client=f"lk{i:04d}", name=f"L{i}", link=True, owner=f"link:view:{i}")
+    t["now"] += 5
+    before = len(p.messages)
+    # four link devices tapping as fast as the per-client floor lets them, for one second
+    for _ in range(8):
+        t["now"] += 0.125
+        for i in range(4):
+            broker.send_pointer(p, f"lk{i:04d}", f"link:view:{i}", {"surface": "map", "lng": 7.5, "lat": 47.5})
+        broker.send_pointer(p, PRESENTER, "user:fu", {"surface": "map", "lng": 7.6, "lat": 47.5})
+    sent = list(p.messages)[before:]
+    assert len([m for m in sent if m["link"]]) <= broker.LINK_POINTERS_PER_S + 1  # one window plus its edge
+    assert len([m for m in sent if m["client"] == PRESENTER]) == 8  # the presenter loses none to the links
+
+
+def test_join_leave_churn_is_bounded_and_a_rejoin_wakes_nobody(monkeypatch):
+    p, t = _room(monkeypatch)
+    assert broker.join(p, client=FOLLOWER, name="A", link=False, owner="user:a") is None
+    t["now"] += 5
+    seq = p.seq
+    assert broker.join(p, client=FOLLOWER, name="A", link=False, owner="user:a") is None
+    assert p.seq == seq  # the same name again is a presence refresh, not news
+    # a link device cycling join/leave under fresh ids: only its budget's worth wakes the screens
+    t["now"] += 5
+    for i in range(200):
+        broker.join(p, client=f"cy{i:04d}", name="X", link=True, owner="link:view:cy")
+        broker.leave(p, f"cy{i:04d}", "link:view:cy")
+    assert p.seq - seq <= broker.LINK_CHANGES_PER_S + 1
+    assert not [k for k in p.last_sent if k[0].startswith("cy")]  # nothing left behind

@@ -35,8 +35,12 @@ Rules that span modules live here; each module's header says what it owns.
   together are kept off each other and off the other rings (`lib/presentation · placeTags`: the
   newer ring's tag moves left, then a row down or up; the older keeps its place).
 - **A link holder's name**: asked once per device when they first tap «Folgen» (empty = «Gast»),
-  kept in `localStorage` (`kp-front-present-name`, a device flag). On the public demo the server
-  replaces every link holder's name by «Gast».
+  kept in `localStorage` (`kp-front-present-name`, a device flag). The server cleans it
+  (`api/presentation · clean_link_name`: NFC; every Unicode control/format/private character –
+  C0, C1, bidi overrides, zero-width – and the letters that draw nothing out; at most two
+  combining marks per base; 40 characters) and an empty result is «Gast». On the public demo
+  every link holder is «Gast». On the presenter's row a link holder's avatar wears a chain badge,
+  so a self-chosen «Führungsunterstützung» cannot pass as the FU.
 - **Surfaces presented**: the Karte and the Plan/Tafel. On any other surface (Atemschutz,
   Checklisten …) the presenter sends nothing and the room stays where it was.
 
@@ -59,7 +63,9 @@ with `lifecycle="closed"` calls `presentation.end_for_close` first, so «beendet
 lifecycle. The timeout is **60 s** without a poll or signal from the presenter's page
 (`PRESENTER_TIMEOUT_S` – three missed 20 s polls, so an iPad locked for a moment comes back to its
 own presentation); its row is stamped with the presenter's last contact. It is observed lazily, by
-the next poll or signal of anybody on the Einsatz – there is no background task. A follower
+the next poll or signal of anybody on the Einsatz – there is no background task. ⚠️ A signal
+commits that expiry before it answers 409 `presentation_gone`, or the refusal would roll the
+«beendet» row back with it while the presentation is already gone from memory. A follower
 unheard for 45 s leaves the room (`PARTICIPANT_TIMEOUT_S`) and re-joins by itself when its poll
 finds it missing. A process restart drops a running presentation without its «beendet» row.
 
@@ -80,12 +86,20 @@ needs no new infrastructure on the proxy, the service worker or the tests.
 - The poll is the presence: a parked poll counts as «still here».
 - A pointer is handed out for `POINTER_TTL_S` (4 s) and only to a poll that already knew the
   presentation: a device that just looked, or a tab back from the background, draws no stale rings.
-  A room takes at most 20 pointers a second (`ROOM_POINTERS_PER_S`), whoever sends them.
+- ⚠️ **Link sessions together get a capped share** (review 06.11.2026): a link is forwarded and
+  its holder chooses client ids, so a per-client limit bounds nothing. All link sessions together:
+  at most 8 in the room (`LINK_PARTICIPANTS`), 5 pointers a second (`LINK_POINTERS_PER_S`), 4
+  joins/leaves a second (`LINK_CHANGES_PER_S`). A signed-in session is never refused or dropped for
+  anything a link did (its own bound is the roster, `MAX_PARTICIPANTS` = 200 as a safety net). A
+  refused join is said on the device («Präsentation voll …», back to «Folgen»); a pointer over
+  budget is dropped. A re-join under the same name only refreshes presence and wakes nobody; a
+  leaving or timed-out follower takes its throttle stamps with it.
 - ⚠️ A client id is bound to the session that registered it (`Participant.owner`: the account, or
-  «a link session»). The ids are in every poll's answer, so presence, leave, pointer and view are
-  only taken from the owning session – nobody points under the FU's name, and nobody keeps a gone
-  presenter's presentation alive by polling with its id. (Link holders all share one guest
-  identity, so one link holder could act under another link holder's id; both are shown «· Link».)
+  `link:<kind>:<hash of the link session's jti>` – every link holder is the one shared guest, so
+  the session cookie's own id is what tells two link phones apart). The ids are in every poll's
+  answer, so presence, leave, pointer and view are only taken from the owning session – nobody
+  points under the FU's name or another link phone's, and nobody keeps a gone presenter's
+  presentation alive by polling with its id.
 - ⚠️ **In-process.** The broker lives in the one uvicorn worker on the one replica production runs
   (`docs/DEPLOYMENT.md` – Replicas `1`; `backend/start.sh` – no `--workers`), like `live_wait`.
   On several workers a follower would not hear a presenter on another one; the fix then is

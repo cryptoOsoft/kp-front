@@ -864,6 +864,12 @@ textarea.note-pill-input { resize: none; overflow: hidden; display: block; line-
 .present-avs .present-av { width: 26px; height: 26px; font-size: var(--fs-micro); margin-left: calc(var(--sp-2) * -1); }
 .present-avs .present-av:first-child { margin-left: 0; }
 .present-av-more { background: var(--ink-dim); }
+/* a link holder: a dashed edge and the chain badge – a self-chosen name, never an account */
+.present-av { position: relative; }
+.present-av[data-link] { box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--ink-dim); }
+.present-av-link { position: absolute; right: -4px; bottom: -4px; display: grid; place-items: center; width: 14px; height: 14px;
+  border-radius: 50%; background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--border); }
+.present-av-link .i { width: 10px; height: 10px; }
 [data-tone='1'] { --tone: var(--present-1); }
 [data-tone='2'] { --tone: var(--present-2); }
 [data-tone='3'] { --tone: var(--present-3); }

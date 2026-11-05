@@ -20,8 +20,16 @@ import { Chip } from './Chip'
 
 const ringLabel = (r: Ring) => (r.link ? `${r.name} · ${appConfig.copy.presentation.link}` : r.name)
 
-function Avatar({ name, tone }: { name: string; tone: number }) {
-  return <span className="present-av" data-tone={tone} aria-hidden>{initials(name)}</span>
+/** A person's initials in their colour. A link holder's wears the chain badge (review
+ *  06.11.2026): its name is self-chosen, so «Führungsunterstützung» from a forwarded link must
+ *  not pass as the FU on the presenter's row – a tooltip says nothing on a touch screen. */
+function Avatar({ name, tone, link = false }: { name: string; tone: number; link?: boolean }) {
+  return (
+    <span className="present-av" data-tone={tone} data-link={link || undefined} aria-hidden>
+      {initials(name)}
+      {link && <span className="present-av-link"><Icon id="link" /></span>}
+    </span>
+  )
 }
 
 /** The pill. Renders nothing while no presentation is running or this device is offline. */
@@ -66,7 +74,7 @@ export function PresentationPill({ p }: { p: Presentation }) {
         <span>{n === 0 ? C.followersNone : n === 1 ? C.followersOne : C.followersMany.replace('{n}', String(n))}</span></span>
       {n > 0 && (
         <span className="present-avs" title={s.participants.map((x) => (x.link ? `${x.name} · ${C.link}` : x.name)).join(', ')}>
-          {shown.map((x) => <Avatar key={x.client} name={x.name} tone={personTone(x.client, s.presenter?.client)} />)}
+          {shown.map((x) => <Avatar key={x.client} name={x.name} link={x.link} tone={personTone(x.client, s.presenter?.client)} />)}
           {n > shown.length && <span className="present-av present-av-more" aria-hidden>+{n - shown.length}</span>}
         </span>
       )}

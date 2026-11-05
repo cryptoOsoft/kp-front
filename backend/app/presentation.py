@@ -39,6 +39,7 @@ presentation without its «beendet» row; the devices simply see none any more.
 
 # Rules for this area that span modules: docs/presentation.md.
 
+import hashlib
 import re
 import time
 import uuid
@@ -58,14 +59,22 @@ PRESENTER_TIMEOUT_S = 60.0
 PARTICIPANT_TIMEOUT_S = 45.0
 #: The newest messages kept; a follower further behind gets the current view and these.
 MESSAGES_KEPT = 64
-#: One presentation is a room, not a broadcast list: beyond this, `join` is refused.
-MAX_PARTICIPANTS = 64
+#: One presentation is a room, not a broadcast list. Signed-in followers are accountable and
+#: bounded by the roster: they are never refused below this safety bound.
+MAX_PARTICIPANTS = 200
 #: Per-client floors between two messages of a kind. The client throttles too (lib/presentation);
 #: this is the server's own bound on what one device can make every other device download.
 MIN_INTERVAL_S = {"view": 0.1, "pointer": 0.12, "join": 1.0}
-#: …and the whole room's: at most this many pointers per second, whoever sends them, so a
-#: forwarded link cannot flood every screen by joining under many client ids.
-ROOM_POINTERS_PER_S = 20
+#: ⚠️ LINK SESSIONS TOGETHER get a capped share of the room (adversarial review 06.11.2026). A
+#: link is forwarded, and its holder chooses its client ids, so a per-client limit bounds
+#: nothing: 64 made-up ids filled the room for the FU's own followers, three ate the room's
+#: pointer budget, the presenter's included. So the link share is its own budget – at most
+#: LINK_PARTICIPANTS of them in the room, LINK_POINTERS_PER_S pointers and LINK_CHANGES_PER_S
+#: joins/leaves a second between them – and a signed-in session is never refused or dropped
+#: for anything a link did.
+LINK_PARTICIPANTS = 8
+LINK_POINTERS_PER_S = 5
+LINK_CHANGES_PER_S = 4
 #: A pointer older than this is not handed out any more: it has faded on every screen (the
 #: client's RING_MS is 4 s), and a tab coming back from the background must not draw the
 #: minute it missed as fresh rings.
@@ -108,8 +117,17 @@ class Presentation:
     view: dict | None = None
     participants: dict[str, Participant] = field(default_factory=dict)
     messages: deque[dict] = field(default_factory=lambda: deque(maxlen=MESSAGES_KEPT))
+    #: (client, kind) → when it last sent one; pruned with the client (`forget`)
     last_sent: dict[tuple[str, str], float] = field(default_factory=dict)
-    recent_pointers: deque[float] = field(default_factory=deque)
+    #: the link share's recent pointers and room changes (one-second windows)
+    link_pointers: deque[float] = field(default_factory=deque)
+    link_changes: deque[float] = field(default_factory=deque)
+
+    def forget(self, client: str) -> None:
+        """A follower left (or timed out): drop it and its throttle stamps."""
+        self.participants.pop(client, None)
+        for key in [k for k in self.last_sent if k[0] == client]:
+            del self.last_sent[key]
 
     def member(self, client: str, owner: str) -> Participant | None:
         """The presenter or a joined follower under `client` – only for the session that owns it."""
@@ -138,10 +156,26 @@ def current(incident_id: uuid.UUID) -> Presentation | None:
     return _running.get(incident_id)
 
 
-def owner_of(user_id: uuid.UUID | str, link: bool) -> str:
-    """Who registers a client id: the account, or «a link session» (every link holder is the one
-    shared guest – auth/dependencies · LINK_GUEST_ID – and always shown as «· Link»)."""
-    return "link" if link else f"user:{user_id}"
+def owner_of(user_id: uuid.UUID | str, link_kind: str | None, link_session: str = "") -> str:
+    """Who registers a client id: the account, or THIS link session – its kind and a hash of the
+    session cookie's own id (every link holder is the one shared guest, auth/dependencies ·
+    LINK_GUEST_ID, so the guest's id says nothing): a forwarded view link cannot leave or point
+    under an id an alarm-link phone or another view-link phone registered."""
+    if not link_kind:
+        return f"user:{user_id}"
+    ref = hashlib.sha256(link_session.encode()).hexdigest()[:16]
+    return f"link:{link_kind}:{ref}"
+
+
+def _within(window: deque[float], per_s: int) -> bool:
+    """Take one from a one-second budget; False when it is spent."""
+    now = _now()
+    while window and now - window[0] > 1.0:
+        window.popleft()
+    if len(window) >= per_s:
+        return False
+    window.append(now)
+    return True
 
 
 def row_id(presentation_id: str, edge: str) -> str:
@@ -217,7 +251,7 @@ async def expire(db: AsyncSession, incident_id: uuid.UUID, *, is_open: bool) -> 
         return None
     gone = [c for c, q in p.participants.items() if now - q.seen > PARTICIPANT_TIMEOUT_S]
     for c in gone:
-        del p.participants[c]
+        p.forget(c)
     if gone:
         p.bump()
     return p
@@ -225,29 +259,41 @@ async def expire(db: AsyncSession, incident_id: uuid.UUID, *, is_open: bool) -> 
 
 def join(p: Presentation, *, client: str, name: str, link: bool, owner: str) -> str | None:
     """Register a follower (or refresh its name). None when it joined, else why not: «taken» (the
-    client id is another session's), «full», «throttled» (a name changing faster than once a
-    second would wake every screen each time)."""
+    client id is another session's), «full» (the room, or the link share of it), «throttled»
+    (a name changing faster than once a second, or the link share's changes spent – each would
+    wake every screen). A re-join under the same name only refreshes presence and wakes nobody."""
     if client == p.presenter.client:
         return None if p.presenter.owner == owner else "taken"
     known = p.participants.get(client)
     if known is not None and known.owner != owner:
         return "taken"
-    if known is None and len(p.participants) >= MAX_PARTICIPANTS:
-        return "full"
     if known is not None and known.name == name:
         known.seen = _now()
         return None
-    if _throttled(p, client, "join"):
+    if known is None:
+        links = sum(1 for q in p.participants.values() if q.link)
+        if (link and links >= LINK_PARTICIPANTS) or len(p.participants) - links >= MAX_PARTICIPANTS:
+            return "full"
+    # a refused join leaves no stamp behind (`last_sent` only holds clients in the room)
+    last = p.last_sent.get((client, "join"))
+    if last is not None and _now() - last < MIN_INTERVAL_S["join"]:
         return "throttled"
+    if link and not _within(p.link_changes, LINK_CHANGES_PER_S):
+        return "throttled"
+    p.last_sent[(client, "join")] = _now()
     p.participants[client] = Participant(client=client, name=name, link=link, seen=_now(), owner=owner)
     p.bump()
     return None
 
 
 def leave(p: Presentation, client: str, owner: str) -> None:
+    """Out of the room. A link session's leave beyond its change budget still leaves – it just
+    wakes nobody; the next change carries it to the screens."""
     known = p.participants.get(client)
-    if known is not None and known.owner == owner:
-        del p.participants[client]
+    if known is None or known.owner != owner:
+        return
+    p.forget(client)
+    if not known.link or _within(p.link_changes, LINK_CHANGES_PER_S):
         p.bump()
 
 
@@ -274,15 +320,13 @@ def send_view(p: Presentation, client: str, owner: str, view: dict) -> bool:
 
 def send_pointer(p: Presentation, client: str, owner: str, at: dict) -> bool:
     """A tap with «Zeigen» on. Only from somebody joined (the presenter included), from the session
-    that joined; beyond the per-client and the room's budget a pointer is dropped, not refused."""
+    that joined. Beyond the per-client floor – and, for a link session, the link share's budget –
+    a pointer is dropped, not refused (the client must not retry a pointer). A signed-in
+    session's pointer never counts against the links' budget, nor theirs against it."""
     who = p.member(client, owner)
     if who is None:
         return False
-    now = _now()
-    while p.recent_pointers and now - p.recent_pointers[0] > 1.0:
-        p.recent_pointers.popleft()
-    if len(p.recent_pointers) < ROOM_POINTERS_PER_S and not _throttled(p, client, "pointer"):
-        p.recent_pointers.append(now)
+    if not _throttled(p, client, "pointer") and (not who.link or _within(p.link_pointers, LINK_POINTERS_PER_S)):
         p.push({"kind": "pointer", "client": client, "name": who.name, "link": who.link, "at": at})
     return True
 

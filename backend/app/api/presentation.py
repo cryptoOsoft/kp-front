@@ -20,7 +20,6 @@ authorisation, which is the part to read twice:
   screen, and replaced by «Gast» on the public demo (strangers must not broadcast text there).
 """
 
-import re
 import unicodedata
 import uuid
 from typing import Annotated, Literal
@@ -153,7 +152,34 @@ def _client(raw: str) -> str:
     return cid
 
 
-_CONTROL = re.compile(r"[\x00-\x1f\x7f]")
+#: Letters that draw nothing (Hangul fillers, the Braille blank): a name of them reads as blank.
+_BLANK_LETTERS = frozenset("\u115f\u1160\u3164\uffa0\u2800")
+#: Combining marks kept per base character – enough for any real name, not for a «Zalgo» tower.
+_MARKS_PER_BASE = 2
+
+
+def clean_link_name(raw: str | None) -> str:
+    """A link holder's self-chosen name, made safe to stand beside a pointer on every screen:
+    NFC; every Unicode control/format/private/unassigned character (category C – C0, C1, bidi
+    overrides, zero-width) and the blank letters out; at most two combining marks per base;
+    whitespace collapsed; 40 characters. Empty after all that → «Gast»."""
+    out: list[str] = []
+    marks = 0
+    for c in unicodedata.normalize("NFC", raw or ""):
+        cat = unicodedata.category(c)
+        if cat.startswith("C") or c in _BLANK_LETTERS:
+            if cat == "Cc":  # a tab or newline separates words; the rest vanish
+                out.append(" ")
+            continue
+        if cat.startswith("M"):
+            if not out or out[-1].isspace() or marks >= _MARKS_PER_BASE:
+                continue
+            marks += 1
+        else:
+            marks = 0
+        out.append(c)
+    name = " ".join("".join(out).split())[:40].strip()
+    return name or GUEST_NAME
 
 
 async def _display_name(db: AsyncSession, user: User, wanted: str | None) -> tuple[str, bool]:
@@ -162,11 +188,7 @@ async def _display_name(db: AsyncSession, user: User, wanted: str | None) -> tup
         return (user.display_name or user.username), False
     if await is_demo_deployment(db):
         return GUEST_NAME, True
-    # control characters out, and the invisible format ones too (a right-to-left override would
-    # let a name read as somebody else's)
-    clean = "".join(" " if _CONTROL.match(c) else c for c in (wanted or "") if unicodedata.category(c) != "Cf")
-    name = " ".join(clean.split())[:40]
-    return (name or GUEST_NAME), True
+    return clean_link_name(wanted), True
 
 
 @router.get("/{incident_id}/presentation")
@@ -242,6 +264,11 @@ async def presentation_signal(
     taken over): the client drops back to «no presentation» on its next poll."""
     cid = _client(body.client)
     p = await broker.expire(db, incident_id, is_open=await _is_open(db, incident_id))
+    # ⚠️ Commit what the expiry wrote BEFORE any refusal below: the «Präsentation beendet» row of
+    # a presentation this very signal found ended is already gone from memory, and the 409 that
+    # follows would roll it back with the request – nobody would ever write it again (review
+    # 06.11.2026). Nothing else in this handler touches the database.
+    await db.commit()
     if p is None or p.id != body.presentation:
         raise HTTPException(status_code=409, detail={"code": "presentation_gone"})
     owner = _owner(user)
@@ -269,7 +296,7 @@ async def presentation_signal(
 
 
 def _owner(user: User) -> str:
-    return broker.owner_of(user.id, is_link_session(user))
+    return broker.owner_of(user.id, getattr(user, "link_kind", None), getattr(user, "link_session", ""))
 
 
 def _pointer_complete(at: PresentationPointerAt) -> bool:

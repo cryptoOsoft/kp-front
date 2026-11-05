@@ -19,6 +19,7 @@
 import { createContext, useCallback, useEffect, useMemo, useReducer, useRef, useState, type RefObject } from 'react'
 import type { MapRef } from 'react-map-gl/maplibre'
 import { appConfig } from '../config/appConfig'
+import { ApiError } from '../lib/api'
 import { endPresentation, pollPresentation, sendPresentationSignal, startPresentation, type PresentationSignal } from '../lib/api/presentation'
 import { newId } from '../lib/ids'
 import {
@@ -110,8 +111,15 @@ export function usePresentation({ incidentId, enabled, canPresent, isLink, mode,
   const signal = useCallback((s: Omit<PresentationSignal, 'client' | 'presentation'>) => {
     const id = known.current
     if (!id) return Promise.resolve()
-    return sendPresentationSignal(incidentId, { ...s, presentation: id, client: CLIENT }).catch(() => {
-      /* ended or taken over (409), or the link went down: the next poll says what is true */
+    return sendPresentationSignal(incidentId, { ...s, presentation: id, client: CLIENT }).catch((e: unknown) => {
+      // A join the room refused is SAID, never swallowed (review 06.11.2026): the pill would
+      // read «Folgst» on a device that is in nobody's room. A full room (the links' share of it)
+      // sends the device back to «Folgen» with a line saying why; everything else – ended or
+      // taken over (409), the link down, a join throttled – the next poll settles.
+      if (s.kind === 'join' && e instanceof ApiError && e.code === 'presentation_full') {
+        toast(appConfig.copy.presentation.full, { tone: 'warn' })
+        dispatch({ type: 'leave' })
+      }
     })
   }, [incidentId])
 

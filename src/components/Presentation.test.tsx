@@ -48,6 +48,15 @@ describe('the presentation pill', () => {
     expect(p.followNow).toHaveBeenCalled()
   })
 
+  it('marks a link holder on the presenter row, whatever name it chose', () => {
+    pill('presenting', { state: { ...state, participants: [
+      { client: 'pc2', name: 'Führungsunterstützung', link: true },
+      { client: 'pc3', name: 'Hans Muster', link: false },
+    ] } })
+    const marked = [...document.querySelectorAll('.present-avs .present-av')].map((el) => el.hasAttribute('data-link'))
+    expect(marked).toEqual([true, false])
+  })
+
   it('offline or nothing running: no pill at all', () => {
     pill('invited', { available: false })
     expect(screen.queryByRole('region')).toBeNull()

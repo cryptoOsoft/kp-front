@@ -160,5 +160,6 @@ export const linksCopy = {
     pill: 'Präsentation',
     startFailed: 'Präsentation nicht gestartet – braucht Verbindung zum Server.',
     endFailed: 'Präsentation nicht beendet – nochmals versuchen.',
+    full: 'Präsentation voll – zu viele Teilnehmende über einen Link. Später nochmals «Folgen».',
   },
 } as const
