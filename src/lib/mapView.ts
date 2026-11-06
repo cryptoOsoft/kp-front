@@ -81,10 +81,10 @@ export const READOUT_LABEL_STYLE = { font: '700 12.5px "Spline Sans Mono", ui-mo
 /** `.measure-label.draw-label .dl-words` (11-measure.css) — a line's FREE TEXT on the same plate:
  *  the names' 700 --fs-1 Sora (the measured values above stay mono), same chrome. */
 export const READOUT_WORDS_STYLE = { ...READOUT_LABEL_STYLE, font: '700 12.5px Sora, system-ui, sans-serif' }
-/** `.map-trail-dot i` (09-whiteboard.css) — a breadcrumb's time: 500 --fs-1 mono (one step under
- *  the names' 700 since hill climb r13), 2px/8px padding, line-height 1.25, hung CRUMB_LABEL_DX
- *  right of the coordinate (12px off the 9px dot's left edge, the dot centred on the point). */
-export const CRUMB_LABEL_STYLE = { font: '500 12.5px "Spline Sans Mono", ui-monospace, monospace', maxTextW: Infinity, chromeW: 16, chromeH: 4, lineH: 15.625 }
+/** `.map-trail-dot i` (09-whiteboard.css) — a breadcrumb's time: 400 --fs-micro mono (one step
+ *  under the names' 700 --fs-1 plate, hill climb r33), 1px/4px padding, line-height 1.25, hung
+ *  CRUMB_LABEL_DX right of the coordinate (12px off the 9px dot's left edge, the dot centred on the point). */
+export const CRUMB_LABEL_STYLE = { font: '400 11px "Spline Sans Mono", ui-monospace, monospace', maxTextW: Infinity, chromeW: 8, chromeH: 2, lineH: 13.75 }
 export const CRUMB_LABEL_DX = 12 - 9 / 2
 /** `.line-end-tag` (09-whiteboard.css) — the plates' 700 --fs-1/1, 2px/4px padding plus a 1.5px border
  *  (a ~20px plate since hill climb r17); `inline-grid` stacks the Trupp row */
