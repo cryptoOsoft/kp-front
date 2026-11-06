@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { TUTORIALS } from './catalogue'
-import { filterTutorials, helpTutorials, offeredTutorials } from './offer'
+import { filterTutorials, helpTutorials, offeredTutorials, pinnedTutorial } from './offer'
 
 const editor = { role: 'editor' as const, linkScoped: false }
 const withVisits = { objectVisits: true }
@@ -23,11 +23,25 @@ describe('offeredTutorials – who may practise what', () => {
 })
 
 describe('filterTutorials', () => {
-  it('narrows a function chip to exactly its track – the «für alle» ones stay under «Alle»', () => {
+  it('gives a function chip its own track plus the «Für alle» ones', () => {
     const all = offeredTutorials(editor, withVisits)
     expect(filterTutorials(all, 'all')).toHaveLength(15)
-    expect(filterTutorials(all, 'fu').map((t) => t.id)).not.toContain('zurechtfinden')
-    expect(filterTutorials(all, 'as').map((t) => t.id)).toEqual(['trupps', 'notfall'])
+    expect(filterTutorials(all, 'fu')).toHaveLength(15)
+    expect(filterTutorials(all, 'el')).toHaveLength(9)
+    expect(filterTutorials(all, 'as').map((t) => t.id)).toEqual(['zurechtfinden', 'trupps', 'notfall', 'nachschlagen', 'objektbesuch'])
+    expect(filterTutorials(offeredTutorials(editor, { objectVisits: false }), 'fu')).toHaveLength(14)
+  })
+})
+
+describe('pinnedTutorial', () => {
+  const all = offeredTutorials(editor, withVisits)
+  it('pins nothing without a run to finish', () => {
+    expect(pinnedTutorial(all, { lageZeichnen: { doneAt: '2026-11-06T00:00:00Z' } }, null)).toBeNull()
+  })
+  it('pins the running one over a stored resume point, else the first interrupted one', () => {
+    const progress = { planGebaeude: { step: 2 }, verlauf: { step: 1 } }
+    expect(pinnedTutorial(all, progress, null)?.id).toBe('planGebaeude')
+    expect(pinnedTutorial(all, progress, { id: 'verlauf', step: 3 })?.id).toBe('verlauf')
   })
 })
 

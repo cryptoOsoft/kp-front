@@ -39,8 +39,29 @@ describe('UebenSheet', () => {
     markDone('trupps')
     render(<UebenSheet tutorials={offeredTutorials(editor, withVisits)} onClose={vi.fn()} />)
     fireEvent.click(within(screen.getByRole('group', { name: 'Nach Funktion filtern' })).getByRole('button', { name: /Atemschutz/ }))
-    expect(document.querySelectorAll('[data-tutorial]')).toHaveLength(2)
-    expect(screen.getByText('1 von 2 erledigt')).toBeTruthy()
+    expect(document.querySelectorAll('[data-tutorial]')).toHaveLength(5)
+    expect(rowOf('zurechtfinden')).toBeTruthy()
+    expect(screen.getByText('1 von 5 erledigt')).toBeTruthy()
+  })
+
+  it('pins the interrupted run above the list, once, under every chip', () => {
+    markStep('planGebaeude', 2)
+    render(<UebenSheet tutorials={offeredTutorials(editor, withVisits)} onClose={vi.fn()} />)
+    const group = screen.getByRole('region', { name: 'Alle' })
+    expect(within(group).queryByText('Plan & Gebäude')).toBeNull()
+    expect(document.querySelectorAll('[data-tutorial="planGebaeude"]')).toHaveLength(1)
+    expect(document.querySelector('[data-tutorial]')).toBe(rowOf('planGebaeude'))
+    expect(screen.getByText('0 von 15 erledigt')).toBeTruthy()
+    // Plan & Gebäude is FU only – it stays pinned under «Einsatzleitung»
+    fireEvent.click(within(screen.getByRole('group', { name: 'Nach Funktion filtern' })).getByRole('button', { name: /Einsatzleitung/ }))
+    expect(rowOf('planGebaeude').textContent).toContain('Fortsetzen')
+    expect(screen.getByText('0 von 9 erledigt')).toBeTruthy()
+  })
+
+  it('pins nothing without a run to finish', () => {
+    render(<UebenSheet tutorials={offeredTutorials(editor, withVisits)} onClose={vi.fn()} />)
+    expect(document.querySelector('[data-tutorial]')).toBe(rowOf('zurechtfinden'))
+    expect(document.querySelectorAll('[data-tutorial]')).toHaveLength(15)
   })
 
   it('draws no chip row when only «Alle» has anything (a viewer)', () => {
