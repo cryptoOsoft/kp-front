@@ -820,11 +820,11 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 .comboDotOff { background: var(--ink-faint); opacity: .4; }
 /* «Gast» on a roster option — somebody recorded on this Einsatz who is not on the
    Mannschaftsliste (lib/guests). It states a fact, it does not disable anything — a Nachbarwehr's
-   AdF is pickable like anyone. The word is --blue-strong, the token for text on a faint tint of
-   its hue: plain --blue on this 14 % tint was 3.9:1 by day, 4.2 at night (hill climb r34).
-   (Anwesenheit's .guestBadge wears neutral ink on grey – the two marks have drifted apart.) */
-.comboGuest { flex: none; font: var(--fw-heavy) var(--fs-micro) var(--body); letter-spacing: .02em; color: var(--blue-strong);
-  background: color-mix(in srgb, var(--blue) 14%, var(--surface)); border-radius: 5px; padding: 2px var(--sp-1); }
+   AdF is pickable like anyone. ONE tag look for a crew fact (r35, 06.11.2026): ink on grey, as
+   the Anwesenheit's «Gast» (.guestBadge) and the Trupp-Suche's «AS» (TruppFinder · .tag) – it was
+   a blue pill here, 3.9:1 by day. */
+.comboGuest { flex: none; font: var(--fw-heavy) var(--fs-micro) var(--body); letter-spacing: .02em; color: var(--ink-dim);
+  background: var(--fill-soft); border-radius: 5px; padding: 2px var(--sp-1); }
 .comboHint { flex: none; font-size: var(--fs-micro); color: var(--ink-faint); }
 /* The Dienstgrad chip, the option's name cell and the sticky search row are the SKINLESS parts
    of this control — identical here and in the global `.combo-*` copy, so ComboMenu draws them

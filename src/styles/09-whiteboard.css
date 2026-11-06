@@ -756,11 +756,11 @@ span.wb-ghost-label { cursor: default; }
 .wb-trupp-opt i { font-style: normal; font-size: var(--fs-1); font-weight: var(--fw-medium); color: var(--ink-faint); }
 /* «AS» — the Trupp in this row is under Atemschutz. A FACT about the crew, not an alarm, so it
    wears the quiet status tone; amber and red belong to a clock running out and must never turn
-   up on a picker. The word is --blue-strong, the token for text on a faint tint of its hue (plain
-   --blue on --blue-12 was 3.9:1 by day, 3.7 at night; hill climb r34). (The Trupp-Suche's row
-   wears its «AS» in ink on grey since 29.09.2026 – TruppFinder.module.css · .tag.) */
+   up on a picker. ONE tag look for a crew fact (r35, 06.11.2026): ink on grey, the Trupp-Suche's
+   «AS» (TruppFinder.module.css · .tag, since 29.09.2026) and the Anwesenheit's «Gast» – it was a
+   blue pill here, plain --blue on --blue-12 at 3.9:1 by day. */
 .wb-trupp-as { flex: none; font: var(--fw-heavy) var(--fs-micro) var(--body); padding: 2px var(--sp-2); border-radius: var(--r-pill);
-  background: var(--blue-12); color: var(--blue-strong); }
+  background: var(--fill-soft); color: var(--ink-dim); }
 /* already placed on this surface: visible (so you can see WHY it is not offered) but inert —
    picking it would move the existing marker, not add a second one */
 .wb-trupp-opt.placed { opacity: var(--disabled); cursor: default; }
