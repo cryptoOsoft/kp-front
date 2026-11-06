@@ -121,6 +121,7 @@ export const editorsCopy: Localizable<Pick<Copy, Keys>> = {
     swapEl: 'Trasferisci la condotta',
     fieldPlaceholders: {
       'Kapazität': 'p. es. 80 m³',
+      'Herkunft': 'Proprio corpo',
     },
     ergGuide: 'Guida ERG',
     ergPolymerization: 'Rischio di polimerizzazione (P) – il contenitore può scoppiare violentemente',
@@ -136,6 +137,9 @@ export const editorsCopy: Localizable<Pick<Copy, Keys>> = {
     dockedTo: 'Agganciato a «{name}»',
     dockedRelease: 'Sgancia',
     ergAdopt: 'Applica come perimetro',
+    ergAdopted: 'Perimetro applicato',
+    ergAdoptedShort: 'applicato',
+    ergAdoptedToast: 'Perimetro {r} applicato',
     ergRingsLabel: 'Raggio sulla mappa',
     ergRingsOff: 'No',
     ergRingsSmall: 'Piccolo',

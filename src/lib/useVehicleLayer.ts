@@ -1,15 +1,18 @@
 import { useMemo, useState, type Dispatch, type SetStateAction } from 'react'
 import { useVehiclePositions, vehicleSymbolSvg } from './useVehiclePositions'
+import { appConfig } from '../config/appConfig'
 import type { Entity, LngLat } from '../types'
 
 // Live-vehicle layer, extracted from App's god component. The GPS list is derived from
 // the backend each poll (never persisted); operator overrides (drag to reposition / orient)
 // ride the workspace blob and win over the live value until reset.
 
-/** Per-vehicle operator overrides, persisted in the workspace blob. `fahrer` is here rather
- *  than in the entity's own fields because a live vehicle is REBUILT from the GPS feed on every
- *  poll — anything written onto the entity itself would be gone within seconds. */
-export type VehicleOverrides = Record<string, { coord?: LngLat; rotation?: number; fahrer?: string }>
+/** Per-vehicle operator overrides, persisted in the workspace blob. `fahrer` and `herkunft` are
+ *  here rather than in the entity's own fields because a live vehicle is REBUILT from the GPS feed
+ *  on every poll — anything written onto the entity itself would be gone within seconds. Merged
+ *  per field (mergeWorkspace · MERGE_POLICY.vehicleOverrides): one device naming the Fahrer while
+ *  another sets the Herkunft keeps both. */
+export type VehicleOverrides = Record<string, { coord?: LngLat; rotation?: number; fahrer?: string; herkunft?: string }>
 
 export interface VehicleLayer {
   /** raw live GPS entities from the backend (drives the "live" map badge) */
@@ -31,6 +34,17 @@ export interface VehicleLayer {
   gpsAgeMs: number | null
 }
 
+/** The feed's fields plus the operator's Fahrer and Herkunft (a blank one adds nothing). */
+export function withOverrideFields(fields: Entity['fields'], ov: VehicleOverrides[string]): Entity['fields'] {
+  const fahrer = ov.fahrer?.trim(), herkunft = ov.herkunft?.trim()
+  if (!fahrer && !herkunft) return fields
+  return {
+    ...fields,
+    ...(fahrer ? { Fahrer: fahrer } : {}),
+    ...(herkunft ? { [appConfig.symbols.originField]: herkunft } : {}),
+  }
+}
+
 /** `live` false: no GPS poll at all (useVehiclePositions · enabled) – the overrides still load */
 export function useVehicleLayer(initOverrides: VehicleOverrides, live = true): VehicleLayer {
   const gps = useVehiclePositions(live)
@@ -47,9 +61,9 @@ export function useVehicleLayer(initOverrides: VehicleOverrides, live = true): V
       symbolSvg: ov.rotation != null ? vehicleSymbolSvg(v.label ?? '', rotation ?? 0) : v.symbolSvg,
       // aiming a vehicle by hand IS stating a direction — the rebuilt glyph gets the arrow
       directed: ov.rotation != null ? true : v.directed,
-      // the Fahrer joins the feed's own readings, so it shows on the symbol caption and prints
-      // on the Kroki exactly like a placed vehicle's Fahrer does
-      fields: ov.fahrer?.trim() ? { ...v.fields, Fahrer: ov.fahrer.trim() } : v.fields,
+      // the Fahrer and the Herkunft join the feed's own readings, so they show on the symbol
+      // caption and print on the Kroki exactly like a placed vehicle's do
+      fields: withOverrideFields(v.fields, ov),
     }
   }), [gps.vehicles, overrides])
   const liveIds = useMemo(() => new Set(gps.vehicles.map((v) => v.id)), [gps.vehicles])

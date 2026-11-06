@@ -22,8 +22,9 @@ export const SKIZZE = 'skizze'
  */
 const memory = new Map<string, string>()
 const idbKey = (incidentId: string) => `kp-front-tafel-page:${incidentId}`
-/** every mounted `useTafelPage`, so a page set from outside the Whiteboard (`setTafelPage`, the
- *  Präsentationsmodus following the presenter's page) shows at once */
+/** every mounted `useTafelPage`, so a page set from outside the Whiteboard (`setTafelPage`: the
+ *  Präsentationsmodus following the presenter's page, the Verlauf's «von der Tafel» opening the
+ *  «Aufträge / Pendenzen» page) shows at once */
 const listeners = new Set<(key: string) => void>()
 
 /** Put this device on `page` of the Tafel – what the page strip does, from elsewhere. */
@@ -55,6 +56,7 @@ export function useTafelPage(incidentId: string | undefined, fallback: string = 
     }).catch(() => {})
     return () => { live = false }
   }, [key])
+  // …and a page set from outside the Tafel (setTafelPage) while it is mounted
   useEffect(() => {
     const hear = (k: string) => { if (k === key) setPageState(memory.get(k) ?? null) }
     listeners.add(hear)

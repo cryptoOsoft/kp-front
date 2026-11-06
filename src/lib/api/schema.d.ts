@@ -5409,6 +5409,8 @@ export interface components {
             vehicles?: components["schemas"]["FleetVehicle"][];
             /** Attributelists */
             attributeLists?: components["schemas"]["FleetAttributeList"][];
+            /** Origins */
+            origins?: string[];
             /** Vehicletypes */
             vehicleTypes?: string[];
             /** Lueftertypes */

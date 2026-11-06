@@ -88,6 +88,21 @@
 .cl-milestone :global(.i) { width: 12px; height: 12px; }
 /* completion metadata is secondary — small & muted, not a bright green banner (feedback: too prominent) */
 .cl-tickinfo { font-family: var(--mono); font-size: var(--fs-micro); color: var(--ink-faint); font-weight: var(--fw-medium); }
+/* a `problems` list (05.11.2026, owner pick 7A): a tick is «ist ein Problem», not «erledigt» – the
+   text keeps its ink, the card says «on the Tafel» in the choice tint. The Tendenz stands at the end
+   of the item's OWN line (staging review 06.11.2026, owner: «we don't need this much empty space»
+   – it was a line of its own under the text, +60px per ticked item): the segment is the shared
+   44px control, as tall as the tick row it sits beside, so a ticked item is no taller than an
+   open one. The word «Tendenz» before it where there is room; the phone keeps the arrows (the
+   segment's aria-label and each option's title still name them). */
+.cl-item.problem { background: var(--blue-8); box-shadow: 0 0 0 1px var(--sel); }
+.cl-ontafel { font-size: var(--fs-micro); font-weight: var(--fw-bold); color: var(--sel); }
+.cl-trend { flex: none; align-self: center; display: flex; align-items: center; gap: var(--sp-2); }
+.cl-trend-label { font-size: var(--fs-1); color: var(--ink-dim); }
+@media (--phone) { .cl-trend-label { display: none; } }
+.cl-trend-glyph { font-size: var(--fs-4); line-height: 1; }
+.cl-trend :global(.useg-btn:not(.on)) .cl-trend-glyph[data-trend='up'] { color: var(--red-strong); }
+.cl-trend :global(.useg-btn:not(.on)) .cl-trend-glyph[data-trend='down'] { color: var(--green); }
 /* the deep link (Zeichnen / Verlauf / Plan): its glyph alone in a --tap square, so the item's text
    keeps the row (27.10.2026, owner pick 11A); the word is its aria-label and title */
 .cl-deeplink { flex: none; align-self: center; display: grid; place-items: center; width: var(--tap); height: var(--tap);

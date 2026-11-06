@@ -3,7 +3,7 @@
 
 import type { Copy, Localizable } from '../index'
 
-export const journalCopy: Localizable<Pick<Copy, 'journal' | 'errors'>> = {
+export const journalCopy: Localizable<Pick<Copy, 'journal' | 'tafelPendenzen' | 'errors'>> = {
   journal: {
     delivery: {
       failedTitleOne: '1 entrée non transmise',
@@ -59,6 +59,7 @@ export const journalCopy: Localizable<Pick<Copy, 'journal' | 'errors'>> = {
     audioImportedNote: 'Enregistrement audio externe ({duration})',
     audioDiscardImport: 'Supprimer le fichier audio',
     audioUploading: 'Téléversement …',
+    photoLocating: 'Lecture de la position …',
     audioOffline: 'Le téléversement audio nécessite une connexion. Resélectionner le fichier plus tard.',
     audioTooLarge: 'Fichier audio trop volumineux. Maximum : {max} MB.',
     audioUnsupported: 'Ce format audio n’est pas pris en charge.',
@@ -144,6 +145,9 @@ export const journalCopy: Localizable<Pick<Copy, 'journal' | 'errors'>> = {
     markDoneTitle: 'Marquer comme fait',
     againChip: '{mins} min',
     againTitle: 'Rappeler dans {mins} minutes',
+    againSet: '↻ fixé dans {mins} min',
+    againToast: 'Rappel fixé dans {mins} min',
+    againWithdrawn: 'Rappel retiré : {text}',
     legend: 'Légende',
     legendPendenzOpen: 'Point ouvert',
     legendPendenzUrgent: 'Point ouvert – urgent',
@@ -211,6 +215,34 @@ export const journalCopy: Localizable<Pick<Copy, 'journal' | 'errors'>> = {
     ageToggle: 'Basculer heure / ancienneté',
     openState: 'ouvert',
     openReminderGo: 'Aller à l\'entrée',
+    pinnedWer: 'Qui : {wer}',
+    fromTafel: 'depuis le tableau',
+    fromTafelTitle: 'Saisi au tableau – toucher ouvre la page',
+  },
+  tafelPendenzen: {
+    createdLog: 'Point en suspens du tableau ({page}) : {text}',
+    createdWer: ' · Qui : {wer}',
+    createdUrgent: ' · urgent',
+    editLog: 'Modifié au tableau ({text}) : {changes}',
+    editWas: 'Quoi : {v}',
+    editWer: 'Qui : {v}',
+    editWerCleared: 'Qui retiré',
+    editUrgent: 'Prio. 1 (urgent)',
+    editNotUrgent: 'sans prio.',
+    doneLog: 'Fait au tableau : {text}',
+    reopenLog: 'Rouvert au tableau : {text}',
+    erteilt: 'Donné',
+    erledigt: 'Fait',
+    erinnerung: 'Rappel',
+    overdue: 'en retard',
+    prio: 'Prio. 1 – urgent',
+    prioOff: 'Mettre prio. 1 (urgent)',
+    prioOn: 'Prio. 1 (urgent) – toucher pour retirer',
+    toVerlauf: 'Afficher dans le journal',
+    saved: 'Inscrit au journal comme point en suspens · {t}{by}',
+    newRow: 'Nouveau point …',
+    empty: 'Aucun point en suspens. Une ligne écrite ici devient un point du journal – et chaque point du journal figure ici.',
+    emptyRo: 'Aucun point en suspens dans le journal.',
   },
   errors: {
     invalidValue: 'Valeur non valable',

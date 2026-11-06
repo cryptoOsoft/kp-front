@@ -17,6 +17,7 @@ Response contract (both GET and PUT return the SAME projection ``DeploymentConfi
                              "color": ..., "nightColor": ..., "opacity": ...,
                              "maxzoom": ..., "attribution": ... } ],
       "fleet": { "attributeLists": [ {"symbol": ..., "field": ..., "options": [...]} ],
+                 "origins": [str],                                                  # «Herkunft»
                  "vehicleTypes": [], "luefterTypes": [], "kleinloeschTypes": [],   # legacy
                  "partner": {"feuerwehr": [], "sanitaet": [], "polizei": [],
                              "chemiewehr": [], "zivilschutz": []} },

@@ -123,6 +123,18 @@ describe('Journal · the Pendenzen block', () => {
     expect(box.querySelector('[data-ev]')).toBeNull()
   })
 
+  // mock 6A, Verlauf side: who an item is for, and that it was typed on the Tafel — a tap opens it
+  it('says «Wer» under an item that has one, and «von der Tafel» opens the page', () => {
+    const onOpenTafel = vi.fn()
+    setup({ openReminders: [pendenz('p3', 'Gemeinde informieren', { assignee: 'EL', origin: 'tafel' }), pendenz('p4', 'Lüfter holen')], onOpenTafel })
+    const rows = document.querySelectorAll('.jr-pinned-row')
+    expect(rows[0].querySelector('.jr-pinned-wer')?.textContent).toBe('Wer: EL')
+    expect(rows[0].querySelector('.jr-pinned-meta .jr-pinned-from')?.textContent).toBe('von der Tafel')
+    expect(rows[1].querySelector('.jr-pinned-meta')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: /von der Tafel/ }))
+    expect(onOpenTafel).toHaveBeenCalledTimes(1)
+  })
+
   // Nothing open ⇒ no box, and the log has the whole drawer. That is the state most of an
   // Einsatz is in, and an empty amber frame standing over it would cost height for no content.
   it('draws no box at all when nothing is open', () => {
@@ -347,6 +359,24 @@ describe('Journal · the classification column', () => {
     expect(document.querySelectorAll('[data-ev="d1"] .jr-again-btn')).toHaveLength(0)
     // the row that raised it is open again, and says so
     expect(document.querySelector('[data-ev="c1"] .jr-ring-open')).toBeTruthy()
+  })
+
+  // a one-time action (05.11.2026: a double tap raised two) – while the item it raised is open,
+  // the done row says so instead of offering the chips again
+  it('a done row whose «wieder in» is still open shows ✓ «↻ in 30 min gesetzt», no chips', () => {
+    setup({
+      events: [
+        { id: 'n1', t: '', at: new Date(1_040_000).toISOString(), icon: 'bell', kind: 'reminder',
+          text: 'Erinnerung gesetzt: Lagerapport durchführen',
+          reminder: { op: 'created', id: 'p3', dueAt: new Date(1_040_000 + 30 * 60_000).toISOString(), text: 'Lagerapport durchführen', again: 'p2' } },
+        { id: 'd1', t: '', at: new Date(1_030_000).toISOString(), icon: 'check', kind: 'reminder',
+          text: 'Pendenz erledigt: Lagerapport durchführen', reminder: { op: 'done', id: 'p2' } },
+      ],
+      openReminders: [pendenz('p3', 'Lagerapport durchführen', { rowId: 'n1' })],
+      onReminderAgain: vi.fn(),
+    })
+    expect(document.querySelectorAll('[data-ev="d1"] .jr-again-btn')).toHaveLength(0)
+    expect(document.querySelector('[data-ev="d1"] [role="status"]')?.textContent).toContain('↻ in 30 min gesetzt')
   })
 
   it('renders no «wieder in» chips when the handler is absent', () => {

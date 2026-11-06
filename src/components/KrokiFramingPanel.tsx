@@ -20,6 +20,7 @@ import { OnOff, Segmented } from './Segmented'
 import { IconButton } from './Button'
 import { Slider } from './Slider'
 import { krokiEntity, krokiSymbolMul } from '../lib/krokiPayload'
+import { drawnPumpEntities } from '../lib/linePumps'
 import { forkBearing, pxPerM, shapePx, symPx, worldPx } from '../lib/mapView'
 import { ensureHatchImage, ensureHatchImages, hatchImageColor } from '../lib/draw'
 import {
@@ -186,7 +187,8 @@ export function KrokiFramingPanel({ scene, initial, atMs = null, atBusy = false,
 
   const layerVisible = (id: string) => scene.layers.find((l) => l.id === id)?.visible ?? true
   const drawingsVisible = layerVisible(appConfig.defaults.drawingLayerId)
-  const shown = scene.entities.filter((e) => Array.isArray(e.coord) && layerVisible(e.layer))
+  // …with the Motorspritzen a Leitung draws (lib/linePumps), which the payload prints the same way
+  const shown = [...scene.entities, ...drawnPumpEntities(scene.drawings)].filter((e) => Array.isArray(e.coord) && layerVisible(e.layer))
 
   const bounds = useMemo(() => {
     const pts = operationalExtentPoints(scene.center, scene.entities, drawingsVisible ? scene.drawings : [], false)

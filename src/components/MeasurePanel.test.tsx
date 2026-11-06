@@ -200,18 +200,6 @@ describe('MeasurePanel · Wassertransport', () => {
     expect(screen.queryByText(R.pumps)).toBeNull()
   })
 
-  it('«Pumpen als Symbole setzen» hands over every pump at once', () => {
-    const onPlacePumps = vi.fn()
-    // ~2.3 km flat: two automatic pumps
-    render(<MeasurePanel {...base} coords={[[7.55, 47.5], [7.58, 47.5]]} relay={relay(true)} onPlacePumps={onPlacePumps} />)
-    fireEvent.click(fold())
-    fireEvent.click(screen.getByRole('button', { name: R.placePumps }))
-    expect(onPlacePumps).toHaveBeenCalledTimes(1)
-    const [coords] = onPlacePumps.mock.calls[0] as [LngLat[]]
-    expect(coords).toHaveLength(screen.getAllByRole('button', { name: /^Pumpe \d$/ }).length)
-    expect(coords.length).toBeGreaterThan(1)
-  })
-
   it('«Als Leitung auf die Karte» is the panel\'s adopt', () => {
     const onAdopt = vi.fn()
     render(<MeasurePanel {...base} relay={relay(true)} onAdopt={onAdopt} />)
@@ -224,7 +212,6 @@ describe('MeasurePanel · Wassertransport', () => {
     render(<MeasurePanel {...base} relay={relay(true)} />)
     fireEvent.click(fold())
     expect(screen.queryByRole('button', { name: R.adoptLine })).toBeNull()
-    expect(screen.queryByRole('button', { name: R.placePumps })).toBeNull()
   })
 
   // the pump's one adjustable number, in a bubble at the pump – portalled, never in the panel's flow

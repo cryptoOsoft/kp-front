@@ -113,6 +113,11 @@ export interface DeploymentFleet {
   vehicles?: FleetVehicle[]
   /** Data-driven per-symbol suggestion lists (the editable surface going forward). */
   attributeLists?: FleetAttributeList[]
+  /** The «Herkunft» list – where a vehicle that is not the own Feuerwehr comes from
+   *  (Stützpunkt, Zivilschutz, Wache Nord …). ONE list for every vehicle symbol and every live
+   *  GPS vehicle (lib/symbols · symbolFieldOptions); free typing stays possible. Absent or empty
+   *  = no suggestions. */
+  origins?: string[]
   // ── legacy fixed lists (pre-attributeLists) — still read as a fallback so existing
   // stored configs keep working; the admin editor migrates them into attributeLists on
   // first edit. Don't add new code paths against these. ──

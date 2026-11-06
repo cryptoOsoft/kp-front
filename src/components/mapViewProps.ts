@@ -191,6 +191,10 @@ export interface MapTacticalProps {
   onDrawingVertexDelete?: (id: string, index: number) => void
   /** an Absperrkreis's radius in metres, dragged on its ring grip — phased like onDrawingEdit */
   onDrawingRadius?: (id: string, radiusM: number, phase: 'start' | 'move' | 'end') => void
+  /** a pump a Leitung draws («Pumpen auf Karte», lib/linePumps) dragged along it and released:
+   *  the line's new hose/relay pair (the pin), as one edit of THAT line — it need not be selected.
+   *  Absent (read-only) the drawn pumps only select their Leitung. */
+  onLinePumpPin?: (id: string, patch: Pick<Drawing, 'hose' | 'relay'>) => void
   /** Commit one armed endpoint attach/retarget/detach gesture. */
   onDrawingAttachment?: (id: string, endpoint: LineEndpoint, attachment: LineAttachment | undefined, fallback: LngLat) => void
   /** drag a line's distance/text label to a GEOREFERENCED anchor (WGS84 [lng,lat]), so it

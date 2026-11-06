@@ -260,6 +260,9 @@ export function MapStage({
           selectedDrawing={selectedDrawing}
           onDrawingEdit={editDrawingCoords}
           onDrawingRadius={editDrawingRadius}
+          // a pump a Leitung draws, dragged along it: its pin as an edit of that line – one undo
+          // step, no Verlauf row (a pin is planning, lib/drawingEdit)
+          onLinePumpPin={tacticalLocked ? undefined : patchDrawingById}
           onDrawingVertexInsert={insertDrawingVertex}
           onDrawingVertexDelete={deleteDrawingVertex}
           onDrawingAttachment={setDrawingAttachment}

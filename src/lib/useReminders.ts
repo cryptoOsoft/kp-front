@@ -27,6 +27,9 @@ interface Copy {
   pendenzReopenLog: string
 }
 
+/** the four row wordings of a tick and its taking-back */
+export type DoneWords = Pick<Copy, 'doneLog' | 'pendenzDoneLog' | 'reopenLog' | 'pendenzReopenLog'>
+
 /**
  * «Erledigt» with the house confirm-with-undo (decided 23.09.2026, option A of the UX review).
  *
@@ -46,7 +49,7 @@ interface Copy {
  * ⚠️ The toast's «Rückgängig» does the inverse itself and DROPS the timeline entry, so the act
  * is never undoable twice (docs/undo.md · confirm-with-undo).
  */
-export function completeReminder(r: OpenReminder, deps: {
+export function completeReminder(r: Pick<OpenReminder, 'id' | 'text' | 'dueAt'>, deps: {
   append: (ev: ReminderEvent) => void
   /** is this item open RIGHT NOW — read at step time, never at push time */
   isOpen: (id: string) => boolean
@@ -55,13 +58,32 @@ export function completeReminder(r: OpenReminder, deps: {
   /** the toast; `onUndo` is its «Rückgängig» */
   announce?: (text: string, onUndo: () => void) => void
 }): void {
+  flipReminder(r, true, deps)
+}
+
+/**
+ * The same act the other way: an «Erledigt» taken back by un-ticking it (the Tafel's «Aufträge /
+ * Pendenzen» page, 05.11.2026). A `reopened` row with confirm-with-undo; ↶ / «Rückgängig» append
+ * a fresh `done` row. Does nothing when the item is already open.
+ */
+export function reopenReminder(r: Pick<OpenReminder, 'id' | 'text' | 'dueAt'>, deps: Parameters<typeof completeReminder>[1]): void {
+  flipReminder(r, false, deps)
+}
+
+/** `close`: tick off (done row) or take back (reopened row) — each the other's inverse. */
+function flipReminder(r: Pick<OpenReminder, 'id' | 'text' | 'dueAt'>, close: boolean, deps: Parameters<typeof completeReminder>[1]): void {
   const { append, isOpen, copy, timeline, announce } = deps
   // ⚠️ Two wordings, picked off the item itself: an undatierte Pendenz never called itself an
   // Erinnerung, so «Erinnerung erledigt: Absperrmaterial» would name a thing that never existed.
   const doneText = (r.dueAt ? copy.doneLog : copy.pendenzDoneLog).replace('{text}', r.text)
   const reopenText = (r.dueAt ? copy.reopenLog : copy.pendenzReopenLog).replace('{text}', r.text)
-  const close = () => append({ icon: 'check', text: doneText, reminder: { op: 'done', id: r.id } })
-  close()
+  // each direction checks the item's live state first and declines (false) when it already
+  // stands where the step would put it (see completeReminder)
+  const done = () => {
+    if (!isOpen(r.id)) return false
+    append({ icon: 'check', text: doneText, reminder: { op: 'done', id: r.id } })
+    return true
+  }
   // 'undo', the glyph of a taking-back; the Bereich still comes from the `reminder` payload
   // (report · journalArea answers «Pendenz» before it ever looks at the icon)
   const reopen = () => {
@@ -69,15 +91,12 @@ export function completeReminder(r: OpenReminder, deps: {
     append({ icon: 'undo', text: reopenText, reminder: { op: 'reopened', id: r.id } })
     return true
   }
-  const redo = () => {
-    if (!isOpen(r.id)) return false
-    close()
-    return true
-  }
+  const [act, back, label] = close ? [done, reopen, doneText] : [reopen, done, reopenText]
+  if (!act()) return
   // ⚠️ `touches: []` — both directions APPEND a Verlauf row and write nothing of the workspace, so
   // no workspace merge can invalidate them; each checks the item's live state itself (isOpen)
-  const drop = timeline?.push({ domain: 'pendenz', label: doneText, touches: () => [], undo: reopen, redo }) ?? (() => {})
-  announce?.(doneText, () => { if (reopen()) drop() })
+  const drop = timeline?.push({ domain: 'pendenz', label, touches: () => [], undo: back, redo: act }) ?? (() => {})
+  announce?.(label, () => { if (back()) drop() })
 }
 
 /** Same ids in the same order — the due set is derived from an ordered `open`, so order is stable. */
@@ -119,15 +138,18 @@ export function useReminders(
 
   // confirm-with-undo — see completeReminder above
   const { doneLog, pendenzDoneLog, reopenLog, pendenzReopenLog } = copy
-  const markDone = useCallback((r: OpenReminder) => {
-    completeReminder(r, {
+  /** tick off (`done`) or take back an item, in the given words (the Tafel page says where it
+   *  happened — «Erledigt auf der Tafel: …») or the Verlauf's own */
+  const setDone = useCallback((r: Pick<OpenReminder, 'id' | 'text' | 'dueAt'>, done: boolean, words?: DoneWords) => {
+    ;(done ? completeReminder : reopenReminder)(r, {
       append: (ev) => onEventRef.current(ev),
       isOpen: (id) => openRef.current.some((o) => o.id === id),
-      copy: { doneLog, pendenzDoneLog, reopenLog, pendenzReopenLog },
+      copy: words ?? { doneLog, pendenzDoneLog, reopenLog, pendenzReopenLog },
       timeline: undo,
-      announce: (text, onUndo) => toast(text, { icon: 'check', action: { label: appConfig.copy.undo, onClick: onUndo } }),
+      announce: (text, onUndo) => toast(text, { icon: done ? 'check' : 'undo', action: { label: appConfig.copy.undo, onClick: onUndo } }),
     })
   }, [doneLog, pendenzDoneLog, reopenLog, pendenzReopenLog, undo])
+  const markDone = useCallback((r: OpenReminder) => setDone(r, true), [setDone])
 
   // ⚠️ 'bell', not 'clock' (23.08.). On the Verlauf the 26px disc IS the Bereich now, and 'clock'
   // was also the glyph the QR poster writes on an Anwesenheits-Zeitenzeile — one glyph, two
@@ -149,7 +171,7 @@ export function useReminders(
     [open, enabled, copy.dueTitle, onDue],
   )
 
-  return { open, due, openCount: open.length, dueCount: due.length, markDone, snooze, host }
+  return { open, due, openCount: open.length, dueCount: due.length, markDone, setDone, snooze, host }
 }
 
 /**
