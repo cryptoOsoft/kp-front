@@ -25,9 +25,10 @@ import s from './Atemschutz.module.css'
 //    «Sicherungstrupp einsetzen» (the board's existing Sicherungstrupp, its ordinary Eintritt).
 //  · `AtemschutzNotfallMeldungen` — the same, as the TOP row of the Meldeleiste on every other
 //    surface (MELDUNG_RANK.notfall = 0, above the überfällig row and a fresh dispatch).
-//  · `NotfallPageHead` — on the link board the Notfall Trupp's own page IS the Notfall: its head.
+//  · `NotfallPageHead` / `NotfallPageSafety` — on the link board the Notfall Trupp's own page IS
+//    the Notfall: its head (information) and its Sicherungstrupp act (at the page's foot, E3).
 //  · `NotfallStrip` — on any other tab of the link board, the red strip that leads to it.
-// The banner and the page head offer the Sicherungstrupp through ONE act (`safetyAct`).
+// The banner and the page offer the Sicherungstrupp through ONE act (`safetyAct`).
 // The wording is deliberately neutral and short — it mirrors the AS emergency procedure
 // (FwDV 7 / FKS) and the station's AS instructors check it (copy · atemschutz.notfall).
 
@@ -273,44 +274,61 @@ export function NotfallBanner({ t, now, place, dense = false, wide = false, onGo
 /**
  * The head of the Notfall Trupp's OWN page on the handed-over phone board (Atemschutz-Link
  * redesign, owner pick R1, 30.10.2026: «r1 is good but we don't need the triangle thing. red and
- * notfall is already enough»). The whole page is the Notfall — the board paints it red down the
- * left with a red tint (AtemschutzView · `.bodyFocusNf`) — and its head says it in words: «NOTFALL
- * SEIT 12:12», the name big and red, BOTH clocks named («seit Notfall», «seit letztem Kontakt»,
- * because two bare clocks on one page are a guess), then the Sicherungstrupp act (`safetyAct`) —
- * with «Anderer ⌄» beside «Sicherungstrupp einsetzen» (`otherSafety`, the board's candidate
- * menu: any other crew, a busy one included). The Trupp's own tiles follow on the page.
+ * notfall is already enough»; reduced by owner pick E3, 06.11.2026). The board paints the page's
+ * left edge red (AtemschutzView · `.bodyFocusNf`, no wash on the ground) and the head is the
+ * information only: the name big and red, the crew line right under it (`crew`, TruppCard's own
+ * `crewLine`, so it stays the door to the Trupp sheet), then BOTH clocks named («seit Notfall» red,
+ * «seit letztem Kontakt», because two bare clocks on one page are a guess). No «NOTFALL SEIT …»
+ * eyebrow (E3): the red name and the «seit Notfall» clock say it. What to press – the
+ * Sicherungstrupp act – stands at the page's foot with the Trupp's tiles (`NotfallPageSafety`).
+ * Used by TruppCard as its `pageHead(crew)`.
  * ⚠️ No ⚠ glyph here, nor in the strip: red and the word «Notfall» carry it (owner). The TAB keeps
  * its ⚠, because the tab has no word «Notfall».
  */
-export function NotfallPageHead({ t, now, sinceContactSec, otherSafety, ...safety }: SafetyActProps & {
+export function NotfallPageHead({ t, now, sinceContactSec, crew }: {
   t: Trupp
   now: number
   /** the contact clock (TruppLive · sinceContactSec) — the second clock the page names */
   sinceContactSec: number | null
-  /** the board's «Anderer ⌄» menu around its trigger — offered beside a ready Sicherungstrupp */
-  otherSafety?: (trigger: ReactElement) => ReactNode
+  /** the card's crew line (TruppCard · crewLine), drawn under the name */
+  crew?: ReactNode
 }) {
   const nf = appConfig.copy.atemschutz.notfall
   const f = notfallFacts(t, now)
-  const act = safetyAct(safety)
-  const other = otherSafety && safety.canEdit && safety.inside.length === 0 && safety.ready.length > 0
   return (
     <div className={s.nfPage}>
-      {t.notfallAt && <span className={s.nfPageEyebrow}>{fillTemplate(nf.stateWord, { time: formatTime(new Date(t.notfallAt)) })}</span>}
       <h3 className={s.nfPageName}>{truppHeadName(t)}</h3>
+      {crew}
       <div className={s.nfPageClocks}>
         <span className={s.nfPageSince}>{fmtClock(f.sinceSec)}<small>{nf.pageSince}</small></span>
         {sinceContactSec != null && <span className={s.nfPageContact}>{fmtClock(sinceContactSec)}<small>{nf.pageContact}</small></span>}
       </div>
-      {act && (
-        <div className={s.nfPageAct}>
-          {act}
-          {other && otherSafety(
-            <button type="button" className={s.nfOther} aria-label={nf.sitrOtherLabel} title={nf.sitrOtherLabel}>
-              <span>{nf.sitrOther}</span><Icon id="chevron-down" />
-            </button>,
-          )}
-        </div>
+    </div>
+  )
+}
+
+/**
+ * The Sicherungstrupp act on the Notfall Trupp's own page (`safetyAct`, or its note) — with
+ * «Anderer ⌄» beside «Sicherungstrupp einsetzen» (`otherSafety`, the board's candidate menu: any
+ * other crew, a busy one included). Since owner pick E3 (06.11.2026) it stands in the page's
+ * controls at the foot, right above «Notfall beendet» – everything to press in thumb reach
+ * (TruppCard · `pageSafety`, `.pageActs`). Null when there is nothing to say.
+ */
+export function NotfallPageSafety({ otherSafety, ...safety }: SafetyActProps & {
+  /** the board's «Anderer ⌄» menu around its trigger — offered beside a ready Sicherungstrupp */
+  otherSafety?: (trigger: ReactElement) => ReactNode
+}) {
+  const nf = appConfig.copy.atemschutz.notfall
+  const act = safetyAct(safety)
+  const other = otherSafety && safety.canEdit && safety.inside.length === 0 && safety.ready.length > 0
+  if (!act) return null
+  return (
+    <div className={s.nfPageAct}>
+      {act}
+      {other && otherSafety(
+        <button type="button" className={s.nfOther} aria-label={nf.sitrOtherLabel} title={nf.sitrOtherLabel}>
+          <span>{nf.sitrOther}</span><Icon id="chevron-down" />
+        </button>,
       )}
     </div>
   )

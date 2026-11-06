@@ -1566,12 +1566,17 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 .tabCrit { background: color-mix(in srgb, var(--red) 20%, transparent); }
 .tabCrit .tabClock { color: var(--red-strong); }
 /* the open tab is «where you are» — a soft ink wash on the flat bar (R1 30.10.2026; the ink pill
-   of 29.09.2026 was a filled chip in a row of framed chips). Its line takes the ink too. A Notfall
-   (red) tab stays RED when it is the open one, filled, so «this page is the Notfall» reads from
-   the bar as well as from the page. Doubled class so it outranks `.tabWarn` / `.tabCrit`. */
+   of 29.09.2026 was a filled chip in a row of framed chips). Its line takes the ink too. A red tab
+   (Alarmdruck, überfällig) stays RED when it is the open one, filled. Doubled class so it outranks
+   `.tabWarn` / `.tabCrit`. */
 .tab.tabOn { background: color-mix(in srgb, var(--ink) 16%, transparent); color: var(--ink); }
 .tab.tabOn .tabClock { color: inherit; }
 .tab.tabOn.tabCrit { background: var(--nf-fill); color: var(--on-accent-ink); }
+/* …but the NOTFALL Trupp's own tab, while you are on its page, is the plain open tab with its name
+   in red (owner pick E3, 06.11.2026): the page itself says «Notfall», a red block under it said it
+   a third time. On any other page the tab keeps the red tint of `.tabCrit` (settled R1). */
+.tab.tabOn.tabNf { background: color-mix(in srgb, var(--ink) 16%, transparent); color: var(--ink); }
+.tab.tabOn.tabNf .tabName { color: var(--red-strong); }
 /* «+ Trupp» — one more cell of the SAME grid, so it is exactly as wide as a chip and as tall as
    its row (05.09.). Before this it was a 44px square in a fixed column of its own beside the
    strip: the only thing on the rail that matched neither the width nor the height of a tab, and
@@ -1616,7 +1621,15 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 /* Druck | Kontakt — the radio-check pair the thumb works all Einsatz long — a step taller */
 .focusCard .pageActs .trowActs > .kontaktBtn { min-height: 64px; }
 .focusCard .trowHead { margin: 0 -16px; padding: var(--sp-4) var(--sp-4) var(--sp-2); }
-.focusCard .vfoot { margin: var(--sp-3) -16px 0; background: transparent; }
+/* the foot line runs edge to edge (its hairline), its text on the page's content edge: the row and
+   the opened Verlauf's rows take the page's inset (`--page-in`, 16; 24 on a Notfall page) instead of
+   the card's 12 (`.trowCard .vrow`, `.vrowTerse`). `> .trow.trowCard >` outranks the card's own
+   `.trowCard .vfoot` margins (hill climb r32 – the page's 4px offset used to be that rule winning
+   by source order). */
+.focusCard > .trow.trowCard { --page-in: var(--sp-4); }
+.focusCard > .trow.trowCard > .vfoot { margin: var(--sp-3) calc(-1 * var(--sp-4)) 0 calc(-1 * var(--page-in)); background: transparent; }
+.focusCard > .trow.trowCard > .vfoot :is(.vrow, .zonePanel, .logList) { padding-left: var(--page-in); }
+.focusCard > .trow.trowCard > .vfoot :is(.zonePanel, .logList) { padding-right: var(--sp-4); }
 /* every page opens with its NAME big (the scale's 32px; the mock's 30), the Notfall Trupp's
    included (NotfallPageHead) */
 .focusCard .trowHead .trowNameTxt { font-size: var(--fs-6); line-height: 1.1; }
@@ -2268,18 +2281,19 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
    card below it and is the port's scroll padding for every scroll-into-view. */
 .nfStack { position: sticky; top: 0; z-index: 3; display: grid; gap: var(--sp-2); margin: 0 0 var(--sp-3); }
 
-/* ── The link board's Notfall (Atemschutz-Link redesign, owner pick R1, 30.10.2026) ───────────────
-   On the Notfall Trupp's OWN tab the whole page is the Notfall: a red rail down the left and a red
-   tint (`.bodyFocusNf`), and its head (AtemschutzNotfall · NotfallPageHead) says it in words —
-   «NOTFALL SEIT 12:12», the name big and red, both clocks named, the Sicherungstrupp act. On any
-   other tab a solid red strip under the header leads to it (`.nfStrip`). No ⚠ in either (owner:
-   «red and notfall is already enough»). */
-.bodyFocusNf { background: color-mix(in srgb, var(--red) 10%, transparent); box-shadow: inset 6px 0 0 var(--red); }
-/* the page's content clears the 6px rail: 24px in, the foot's rule still reaching the edge */
-.bodyFocusNf .focusCard > .trow.trowCard { padding-left: var(--sp-5); }
-.bodyFocusNf .focusCard .vfoot { margin-left: calc(-1 * var(--sp-5)); }
+/* ── The link board's Notfall (Atemschutz-Link redesign, owner pick R1, 30.10.2026; reduced by owner
+   pick E3, 06.11.2026) ────────────────────────────────────────────────────────────────────────────
+   On the Notfall Trupp's OWN tab the whole page is the Notfall: a red rail down the left
+   (`.bodyFocusNf` – no red wash on the ground since E3), and its head (AtemschutzNotfall ·
+   NotfallPageHead) is the information: the name big and red, the crew under it, both clocks named
+   – no «NOTFALL SEIT …» eyebrow (E3). The Sicherungstrupp act stands with the tiles at the foot
+   (NotfallPageSafety in `.pageActs`). On any other tab a solid red strip under the header leads to
+   it (`.nfStrip`). No ⚠ in either (owner: «red and notfall is already enough»). */
+.bodyFocusNf { box-shadow: inset 6px 0 0 var(--red); }
+/* the page's content clears the 6px rail: 24px in (`--page-in`, which the foot's row takes too),
+   the foot's rule still reaching the edge */
+.bodyFocusNf .focusCard > .trow.trowCard { --page-in: var(--sp-5); padding-left: var(--page-in); }
 .nfPage { padding: var(--sp-4) 0 var(--sp-2); }
-.nfPageEyebrow { display: block; margin-bottom: 4px; font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--red-strong); }
 .nfPageName { margin: 0; font: var(--fw-heavy) var(--fs-6)/1.1 var(--body); color: var(--red-strong); overflow-wrap: anywhere; }
 .nfPageClocks { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: var(--sp-2) 0 var(--sp-3); }
 .nfPageSince, .nfPageContact { display: flex; flex-direction: column; font-family: var(--mono); font-weight: var(--fw-heavy); line-height: 1; font-variant-numeric: tabular-nums; }
@@ -2287,7 +2301,7 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
 .nfPageContact { align-items: flex-end; font-size: var(--fs-5); color: var(--ink); }
 .nfPageSince small, .nfPageContact small { margin-top: 4px; font: var(--fw-bold) var(--fs-1) var(--body); }
 .nfPageContact small { color: var(--ink-dim); }
-.nfPageAct { display: flex; gap: var(--sp-2); margin-bottom: 12px; }
+.nfPageAct { display: flex; gap: var(--sp-2); }
 .nfPageAct > :first-child { flex: 1 1 auto; min-width: 0; }
 /* «Anderer ⌄» — the candidate menu beside a ready Sicherungstrupp (any other crew, a busy one too) */
 .nfOther { flex: none; display: inline-flex; align-items: center; gap: 4px; min-height: 48px; padding: 0 12px;
