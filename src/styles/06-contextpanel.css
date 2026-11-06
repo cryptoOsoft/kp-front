@@ -601,13 +601,15 @@
    `--fs-micro` 11 it stood a size under the sentence and the ruler labels), tabular. Same type as
    the Pendenzen clock (.jr-when), same 44px column. On the SENTENCE's line height and lead (r11),
    so it shares the first line's centre instead of floating between lines.
-   ⚠️ Two inks, one per minute (hill climb r28, Opus 3: seven «19:05» in a row at one weight read
-   as a stuck column): the FIRST stamp of a minute in the secondary ink, every stamp below it that
-   prints the same clock (`data-same`, Journal) in the faint one – each row keeps its stamp, the
-   eye lands on where the minute changes. */
-.hist-ev .t { width: 44px; padding-top: var(--jr-lead); font: var(--fw-regular) var(--fs-1)/calc(var(--fs-2) * var(--lh-2)) var(--mono);
+   ⚠️ Two steps, one per minute (hill climb r28, Opus 3: seven «19:05» in a row at one weight read
+   as a stuck column): the FIRST stamp of a minute bold in the secondary ink, every stamp below it
+   that prints the same clock (`data-same`, Journal) regular in the faint one – each row keeps its
+   stamp, the eye lands on where the minute changes. By WEIGHT as well as ink (r29, Opus 2): the
+   two inks alone sit too close to tell apart (both have to clear 4.5:1 on the drawer). Bold, not
+   600 – 600 is no step on the weight scale (01-tokens). */
+.hist-ev .t { width: 44px; padding-top: var(--jr-lead); font: var(--fw-bold) var(--fs-1)/calc(var(--fs-2) * var(--lh-2)) var(--mono);
   color: var(--ink-dim); font-variant-numeric: tabular-nums; }
-.hist-ev .t[data-same] { color: var(--ink-faint); }
+.hist-ev .t[data-same] { font-weight: var(--fw-regular); color: var(--ink-faint); }
 /* timeline node + connector. 24px with a 12px glyph and the --border hairline (owner pick A6,
    05.11.2026: round 11 had grown it to 28/16, and the size was never what told two rows apart —
    the kind colour carries the difference). A ring, not a bare fill, since r11 (at --border-soft
