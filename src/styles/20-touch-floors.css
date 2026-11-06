@@ -63,8 +63,14 @@
   .ip-switch-btn, .tb-einsatzuhr, .tb-weather { min-height: var(--tap); }
   /* the Einsatz card's row of actions (40) and the menu's «Abmelden» (30) — its sync mark is a --tap
      square at every width since 29.09.2026 (13-incident · .ip-card-sync). (`.ip-btn` stood here
-     too; THE button is --tap tall on every pointer since 08.10.2026, 13-incident · «THE button».) */
-  .ip-card-act, .ip-menu-logout { min-height: var(--tap); }
+     too; THE button is --tap tall on every pointer since 08.10.2026, 13-incident · «THE button».)
+     ⚠️ The card's actions wear `.head-tile.sm` (36px, 13-incident), which is (0,2,0) — a bare
+     `.ip-card-act` here lost to it and Bearbeiten · Teilen · Abschliessen stood 36px under a finger
+     (hill climb r34). Named with the tile's classes, so the floor outranks it in any order. */
+  .ip-card-act.head-tile.sm, .ip-menu-logout { min-height: var(--tap); }
+  /* the latched hold's two targets (Sprachnotiz · Foto, 10-journal) take the button's height,
+     and the button is --tap under a finger (`.tb-act` above) – they stood at 42 */
+  .hold-target { min-height: var(--tap); }
   /* (the plan's trust chips along its foot — Einsatzobjekt · Massstab · Karte verknüpfen — were 29px
      and stood --tap here; since 26.09.2026 they are --float-h at every width, 09-whiteboard) */
   /* (the Rapport's pencil on the Einsatzdaten card stood here at 26px; gone since 31.10.2026, the
@@ -82,6 +88,13 @@
   .cv-missing-go { min-height: var(--tap); }
   /* the Verlauf's «wieder in …» offers on a closed Pendenz (≈24px), side by side 5px apart */
   .jr-again-btn { min-height: var(--tap); }
+  /* A segmented option (06-contextpanel · .useg) is --tap less the track's 3px on each side, so
+     the CONTROL is 44 but each option answered for 38 of it (Einstellungen Tag/Nacht, the
+     Einsatzdaten Übung Ja/Nein; hill climb r34). The pad reaches over the track's own 3px, top
+     and bottom only — the options are 3px apart, so sideways a pad would answer for the
+     neighbour; there the option grows to a tap wide instead («Ja» was 39). */
+  .useg-btn { position: relative; min-width: var(--tap); }
+  .useg-btn::after { content: ''; position: absolute; inset: -3px 0; }
 }
 
 /* ---- The drawing controls stay as they are — decided, not overlooked ------------------------

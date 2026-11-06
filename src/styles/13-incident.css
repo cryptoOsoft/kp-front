@@ -2336,8 +2336,9 @@ summary.ip-group-head > .chev { flex: none; width: 16px; height: 16px; margin-le
 .ip-loc svg { width: 15px; height: 15px; flex: none; }
 .ip-loc.set svg { color: var(--blue); }
 .ip-loc-txt { flex: 1; min-width: 0; }
+/* 24px square, the pointer floor (it was 19, hill climb r34); --tap under a finger (20-touch-floors) */
 .ip-loc-clear { display: grid; place-items: center; border: none; background: none; cursor: pointer;
-  color: var(--ink-faint); padding: 2px; border-radius: var(--r-sm); }
+  color: var(--ink-faint); width: 24px; height: 24px; padding: 0; border-radius: var(--r-sm); }
 @media (hover: hover) {
   .ip-loc-clear:hover { background: var(--hover-strong); color: var(--ink); }
 }

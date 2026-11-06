@@ -13,7 +13,8 @@
 //     --ink-faint (a grey badge)                                                             4.5
 //   · the «where you are» pill (--here-fill) against the rails' glass                     2
 //   · a «strong» hue on its own 16 % tint over --surface (the ÜBUNG badge, the overdue «Kontakt»,
-//     the selected chip)                                                                    4.5
+//     the selected chip), and the green one over the Einsatz card's grey tile (13-incident ·
+//     .ip-card: its «Gespeichert» pill, 4.05:1 by day until hill climb r35)                   4.5
 //   · --on-fill on --green-fill and --red-fill – the green «go» button, the red rec buttons, the
 //     running chip (24.10.2026, sweep Q1: white on the day --green / --red was 4.4 and 4.2)  4.5
 // It also holds the ONE primary (sweep G.2): a control is never filled with --ink – the near-white
@@ -144,6 +145,15 @@ describe('token contrast (WCAG AA)', () => {
           if (c < 4.5) low.push(`--${hue}-strong on --${hue}-16: ${round(c)}`)
         }
         expect(low).toEqual([])
+      })
+
+      // «Gespeichert» on the Einsatz card (13-incident · .ip-card-pill.ip-status-synced). The card's
+      // tile is `color-mix(--ink 4 %, --fill-soft)` over the menu's --surface; laid on in turn it
+      // lands within a level of the measured pixel (#ebeaec by day).
+      it('«Gespeichert» reads on the Einsatz card', () => {
+        const tile = over(colour(theme, '--fill-soft'), over(colour(theme, '--ink'), colour(theme, '--surface'), 0.04))
+        const pill = over(colour(theme, '--green'), tile, 0.16)
+        expect(round(contrast(colour(theme, '--green-strong'), pill))).toBeGreaterThanOrEqual(4.5)
       })
     })
   }

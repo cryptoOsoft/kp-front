@@ -163,8 +163,9 @@
   --blue-strong: #1a5fd0;
   /* green/amber/red were #137a40 / #b4690a / #c43122: 4.4, 3.7 and 4.4:1 on their own 16 % tint
      (a selected chip, the ÜBUNG badge, the overdue «Kontakt»). Darkened just enough to clear 4.5
-     there (tokenContrast.test.ts). */
-  --green-strong: #12743d;
+     there (tokenContrast.test.ts). Green once more to #0f6a37 (hill climb r35): #12743d was 4.05:1
+     where its tint lands on the Einsatz card's grey tile (13-incident · .ip-card, «Gespeichert»). */
+  --green-strong: #0f6a37;
   --amber-strong: #8a5007;   /* #9e5c08 until 04.11.2026: 3.8:1 on --app-bg, 4.4:1 on the Verlauf button's wash */
   --red-strong: #bd2f21;
   --red-solid-hover: #cf2c1f; /* hover bg on a solid-red (warn) button */
@@ -507,7 +508,7 @@
   --on-btn-primary: var(--on-fill);
   /* accents flip lighter so a hover-bg / tint-text role still reads on dark */
   --blue-strong: #8cbcff;
-  --green-strong: #5fd68c;
+  --green-strong: #66dc93;   /* #5fd68c until r35: 4.46:1 on its tint on the Einsatz card's tile */
   --amber-strong: #f0b04a;
   --red-strong: #ff8a7d;
   --red-solid-hover: #ff7567;

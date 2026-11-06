@@ -419,9 +419,11 @@
 .spread-unit > .spread-btn:last-child { border-radius: 0 calc(var(--r-sm) - 1px) calc(var(--r-sm) - 1px) 0; }
 .spread-unit > .spread-btn + .spread-btn { border-left: 1px dashed var(--border); }
 /* each half a full 44px target; the drawn glyph at 22px, the bar a touch heavier than the arrow
-   so the thin stroke still reads as «stopped» */
-.spread-btn { width: 44px; height: 44px; padding: 0; border: none; background: transparent; color: var(--ink);
+   so the thin stroke still reads as «stopped». The pad reaches over the capsule's 1px border, top
+   and bottom: on a fractional row offset the bare 44 measured 43 (hill climb r34). */
+.spread-btn { position: relative; width: 44px; height: 44px; padding: 0; border: none; background: transparent; color: var(--ink);
   cursor: pointer; display: grid; place-items: center; transition: background .14s var(--ease), color .14s var(--ease); }
+.spread-btn::after { content: ''; position: absolute; inset: -1px 0; }
 .spread-btn .i { width: 22px; height: 22px; stroke-width: 2.4; }
 .spread-btn.grenze .i { stroke-width: 3; }
 .spread-btn:focus-visible { outline-offset: -2px; }

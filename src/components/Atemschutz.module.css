@@ -817,20 +817,22 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 .comboDotPresent { background: var(--green); }
 .comboDotOff { background: var(--ink-faint); opacity: .4; }
 /* «Gast» on a roster option — somebody recorded on this Einsatz who is not on the
-   Mannschaftsliste (lib/guests). ⚠️ The SAME blue mark the Anwesenheit screen gives them
-   (.guestBadge in Anwesenheit.module.css): one thing, one look for it, on every screen. It
-   states a fact, it does not disable anything — a Nachbarwehr's AdF is pickable like anyone. */
-.comboGuest { flex: none; font: var(--fw-heavy) var(--fs-micro) var(--body); letter-spacing: .02em; color: var(--blue);
+   Mannschaftsliste (lib/guests). It states a fact, it does not disable anything — a Nachbarwehr's
+   AdF is pickable like anyone. The word is --blue-strong, the token for text on a faint tint of
+   its hue: plain --blue on this 14 % tint was 3.9:1 by day, 4.2 at night (hill climb r34).
+   (Anwesenheit's .guestBadge wears neutral ink on grey – the two marks have drifted apart.) */
+.comboGuest { flex: none; font: var(--fw-heavy) var(--fs-micro) var(--body); letter-spacing: .02em; color: var(--blue-strong);
   background: color-mix(in srgb, var(--blue) 14%, var(--surface)); border-radius: 5px; padding: 2px var(--sp-1); }
 .comboHint { flex: none; font-size: var(--fs-micro); color: var(--ink-faint); }
 /* The Dienstgrad chip, the option's name cell and the sticky search row are the SKINLESS parts
    of this control — identical here and in the global `.combo-*` copy, so ComboMenu draws them
    from ComboMenu.module.css and neither stylesheet names them any more. */
 
-/* "nur Offiziere" toggle pinned above the roster list */
+/* "nur Offiziere" toggle pinned above the roster list — an option row, so --tap tall like the
+   rows under it (.comboOpt; it was 40, hill climb r34) */
 .comboToggle {
   color: var(--ink-dim); font-weight: var(--fw-bold); border-bottom: 1px solid var(--glass-edge);
-  margin-bottom: 2px; min-height: 40px;
+  margin-bottom: 2px;
 }
 .comboToggle :global(.i) { width: 15px; height: 15px; color: var(--accent); }
 /* --blue: this is a SELECTED state, and --accent is the brand red — the note two rules up in
@@ -930,6 +932,11 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
      with the selection callout — which eats the gesture and leaves a highlighted name */
   user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .chipPick:disabled { cursor: default; }
+/* ⚠️ The CHIP is --tap tall, so its two buttons inside its 1px border were 42 (hill climb r34). A
+   pad over that border, top and bottom, gives each its full 44 without moving the chip a pixel;
+   sideways the two meet each other, and the next chip is a grid gap away. */
+.chipPick, .chipX { position: relative; }
+.chipPick::after, .chipX::after { content: ''; position: absolute; inset: -1px 0; }
 /* ⚠️ The CHIP washes, not the name (24.09.2026, field report «ugly hover»): on `.chipPick` the
    grey stopped before the ✕ and rounded its own corners mid-chip. A tap on the name crowns, so
    the chip is the control and the whole of it answers; the ✕ has its own nested state below. */

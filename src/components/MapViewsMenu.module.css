@@ -71,7 +71,9 @@
 .hasNote { align-items: flex-start; }
 .hasNote .ico { margin-top: 2px; }
 
-.mini { flex: none; width: 40px; height: 44px; display: grid; place-items: center; border: none;
+/* a --tap square (it was 40 wide, hill climb r34): two of them sit 2px apart at a row's end, so
+   they grow rather than take a pad that would answer for the neighbour */
+.mini { flex: none; width: var(--tap); height: var(--tap); display: grid; place-items: center; border: none;
   background: transparent; border-radius: var(--r-sm); color: var(--ink-faint); cursor: pointer;
   transition: background .12s var(--ease), color .12s var(--ease); }
 @media (hover: hover) { .mini:hover { background: var(--ink-8); color: var(--ink); } }
