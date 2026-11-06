@@ -898,7 +898,7 @@
           "v": 1,
           "tpl": {
             "id": "fks-erste-fuehrung",
-            "version": 2,
+            "version": 3,
             "title": {
               "de": "FKS – Erste Führung",
               "fr": "CSSP – Première Conduite",
@@ -1599,7 +1599,7 @@
           "v": 1,
           "tpl": {
             "id": "fks-erste-fuehrung",
-            "version": 2,
+            "version": 3,
             "title": {
               "de": "FKS – Erste Führung",
               "fr": "CSSP – Première Conduite",

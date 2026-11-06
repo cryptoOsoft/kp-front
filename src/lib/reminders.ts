@@ -4,13 +4,17 @@
 // lifecycle is a SEQUENCE of events sharing one `reminder.id`:
 //   - `created`  → carries the text, and a `dueAt` only if it is a timed Erinnerung
 //   - `note`     → a later row reporting what happened, without closing it. It MAY carry a new
-//                  `dueAt` — a Meldung that moves the Wiedervorlage («Werkhof meldet 20 Minuten»)
+//                  `dueAt` — a Meldung that moves the Wiedervorlage («Werkhof meldet 20 Minuten»).
+//                  One carrying `edit` is no Meldung but a CORRECTION of Was / Wer (+ `urgent`)
+//                  from the Tafel's «Aufträge / Pendenzen» page (05.11.2026): latest wins per
+//                  field, and it is kept out of the item's thread
 //   - `snoozed`  → a later row with a new `dueAt` (timed Erinnerungen only)
 //   - `done`     → a later row that closes it
 //   - `reopened` → a later row that takes a `done` back («Rückgängig» on the erledigt toast, or ↶,
 //                  23.09.2026). The done row STAYS — the record says it was ticked off and then
 //                  reopened, in that order — and the item is open again with the due it had.
-// The open set, each item's *effective* due time and its latest Meldung are derived here — never
+// The open set (`deriveReminders`), every item open or done (`pendenzLedger`), each item's *effective*
+// due time and its Meldungen are derived here (`foldPendenzen`) — never
 // stored as mutable fields. This keeps everything correct under offline merge + replay for free.
 //
 // ⚠️ Two kinds live in one list, and the difference that matters is the `dueAt`:
@@ -59,6 +63,115 @@ export interface OpenReminder {
   notes: PendenzNote[]
   /** surface it was raised on, for the Verlauf chip / jump */
   surface?: Surface
+  /** raised by a row typed on the Tafel's «Aufträge / Pendenzen» page — the Verlauf's block says
+   *  «von der Tafel» (types · reminder.origin) */
+  origin?: 'tafel'
+}
+
+type Reminder = NonNullable<TimelineEvent['reminder']>
+
+/** One item's whole lifecycle, folded off the stream — what both readings below are made of. */
+interface Folded {
+  created: TimelineEvent
+  op: 'created' | 'snoozed' | 'done' | 'reopened'
+  dueAt?: string
+  /** when the latest `done` closed it (ISO; '' when that row had no `at`) — set only while done */
+  doneAt?: string
+  urgent?: boolean
+  notes: PendenzNote[]
+  /** the latest correction of the item's own words (a `note` carrying `edit`), per field */
+  text?: string
+  assignee?: string
+}
+
+/**
+ * THE fold of the Pendenz lifecycle: every item by id, its events applied oldest first, so the
+ * latest op wins regardless of how the (newest-first) timeline is stored or merged. A row that
+ * stands before its item's `created` (a merge can put it there) is applied once that lands.
+ * `deriveReminders` (what is open) and `pendenzLedger` (every item) are two readings of it.
+ */
+function foldPendenzen(timeline: readonly TimelineEvent[]): Map<string, Folded> {
+  const items = new Map<string, Folded>()
+  const early = new Map<string, [TimelineEvent, Reminder][]>()
+  const apply = (e: TimelineEvent, r: Reminder, f: Folded) => {
+    // Urgency is taken from whatever event carries it, latest wins — the same append-only pattern
+    // as `snoozed`/`dueAt`. The composer writes it on `created` only: re-ranking an item from one
+    // of its Meldungen was tried and pulled (see types · reminder.urgent). The Tafel page's «Prio.»
+    // is the action of its own that tolerance was kept for, and rides on an `edit` note.
+    if (r.urgent !== undefined) f.urgent = r.urgent
+    if (r.op === 'note') {
+      // ⚠️ Does NOT touch the item's OP. A Meldung reports on an item; it never opens or closes
+      // one, and it must not resurrect an item that a later `done` already closed.
+      // …but it may carry a new `dueAt` — «Werkhof meldet 20 Minuten» is exactly when the
+      // Wiedervorlage moves. That is a snooze in everything but the row it rides on, and it has to
+      // ride on the note: a separate snooze row would take the sentence out of the item's thread.
+      if (r.dueAt) f.dueAt = r.dueAt
+      // ⚠️ A correction of the item's own words (the Tafel page, types · reminder.edit) is not a
+      // Meldung: it changes what the item SAYS, so it is not listed in the thread. Its row stays
+      // in the Verlauf where it happened, like every row.
+      if (r.edit) {
+        if (typeof r.edit.text === 'string' && r.edit.text.trim()) f.text = r.edit.text.trim()
+        if (typeof r.edit.assignee === 'string') f.assignee = r.edit.assignee.trim()
+        return
+      }
+      f.notes.push({ rowId: e.id, text: e.text, at: e.at ?? '' })
+      return
+    }
+    if (r.op === 'created') return
+    // a snooze without an explicit dueAt keeps the previous due — and so do `done` and
+    // `reopened`, which is what hands a reopened Erinnerung back the Fälligkeit it had
+    f.op = r.op
+    if (r.dueAt) f.dueAt = r.dueAt
+    f.doneAt = r.op === 'done' ? e.at ?? '' : undefined
+  }
+  for (let i = timeline.length - 1; i >= 0; i--) {
+    const e = timeline[i]
+    const r = e.reminder
+    if (!r) continue
+    if (r.op === 'created') {
+      const f: Folded = { created: e, op: 'created', dueAt: r.dueAt, urgent: r.urgent, notes: [] }
+      items.set(r.id, f)
+      for (const [x, xr] of early.get(r.id) ?? []) apply(x, xr, f)
+      early.delete(r.id)
+      continue
+    }
+    const f = items.get(r.id)
+    if (f) apply(e, r, f)
+    else early.set(r.id, [...(early.get(r.id) ?? []), [e, r]])
+  }
+  return items
+}
+
+function itemOf(id: string, f: Folded): OpenReminder {
+  const c = f.created
+  const assignee = f.assignee ?? c.reminder?.assignee
+  return {
+    id, rowId: c.id, text: f.text ?? bareText(c), dueAt: f.dueAt, createdAt: c.at ?? '',
+    urgent: f.urgent || undefined,
+    assignee: assignee || undefined,
+    notes: f.notes,
+    surface: c.surface,
+    ...(c.reminder?.origin === 'tafel' ? { origin: 'tafel' as const } : {}),
+  }
+}
+
+/** An item of the Einsatz, open or done — one row of the Tafel's «Aufträge / Pendenzen» page. */
+export interface PendenzItem extends OpenReminder {
+  /** when it was ticked off (ISO; '' when that row lacked `at`) — ABSENT while it is open */
+  doneAt?: string
+}
+
+/**
+ * EVERY Pendenz and Erinnerung the Einsatz raised, open and done, in the order they were raised —
+ * the Tafel's «Aufträge / Pendenzen» page (components/TafelPendenzen), which is a paper form: it
+ * lists what was ordered and keeps what was done, struck through, where it stood.
+ * ⚠️ Not `deriveReminders`: that one answers «what is still open» and sorts dringend first, a
+ * working order. No closure expiry either — the page is a record, not an alarm.
+ */
+export function pendenzLedger(timeline: readonly TimelineEvent[]): PendenzItem[] {
+  return [...foldPendenzen(timeline)]
+    .map(([id, f]): PendenzItem => (f.op === 'done' ? { ...itemOf(id, f), doneAt: f.doneAt ?? '' } : itemOf(id, f)))
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id))
 }
 
 /**
@@ -74,59 +187,13 @@ export interface OpenReminder {
  * one thing somebody has to take away from the Einsatz.
  */
 export function deriveReminders(timeline: readonly TimelineEvent[], closedAt?: string | null): OpenReminder[] {
-  const created = new Map<string, TimelineEvent>()
-  const latest = new Map<string, { op: 'created' | 'snoozed' | 'done' | 'reopened'; dueAt?: string }>()
-  const urgency = new Map<string, boolean>()
-  const notes = new Map<string, PendenzNote[]>()
-
-  for (let i = timeline.length - 1; i >= 0; i--) {
-    const e = timeline[i]
-    const r = e.reminder
-    if (!r) continue
-    // Urgency is taken from whatever event carries it, latest wins — the same append-only pattern
-    // as `snoozed`/`dueAt`. ⚠️ Only `created` writes it today: re-ranking an item from one of its
-    // Meldungen was tried and pulled (see types · reminder.urgent). The tolerance stays, so the
-    // action can be given its own control later without a second reducer.
-    if (r.urgent !== undefined) urgency.set(r.id, r.urgent)
-    if (r.op === 'note') {
-      // ⚠️ Does NOT touch the item's OP. A Meldung reports on an item; it never opens or closes
-      // one, and it must not resurrect an item that a later `done` already closed.
-      // …but it may carry a new `dueAt` — «Werkhof meldet 20 Minuten» is exactly when the
-      // Wiedervorlage moves. That is a snooze in everything but the row it rides on, and it has to
-      // ride on the note: a separate snooze row would take the sentence out of the item's thread.
-      const st = latest.get(r.id)
-      if (r.dueAt && st) latest.set(r.id, { ...st, dueAt: r.dueAt })
-      const list = notes.get(r.id) ?? []
-      list.push({ rowId: e.id, text: e.text, at: e.at ?? '' })
-      notes.set(r.id, list)
-      continue
-    }
-    if (r.op === 'created') {
-      created.set(r.id, e)
-      latest.set(r.id, { op: 'created', dueAt: r.dueAt })
-    } else {
-      // a snooze without an explicit dueAt keeps the previous due — and so do `done` and
-      // `reopened`, which is what hands a reopened Erinnerung back the Fälligkeit it had
-      latest.set(r.id, { op: r.op, dueAt: r.dueAt ?? latest.get(r.id)?.dueAt })
-    }
-  }
-
   const closedMs = closedAt ? Date.parse(closedAt) : NaN
   const open: OpenReminder[] = []
-  for (const [id, c] of created) {
-    const st = latest.get(id)
-    if (!st || st.op === 'done') continue
-    const dueAt = st.dueAt ?? c.reminder?.dueAt
+  for (const [id, f] of foldPendenzen(timeline)) {
+    if (f.op === 'done') continue
     // expired by closure — timed Erinnerungen only (see the doc comment)
-    if (dueAt && Number.isFinite(closedMs) && Date.parse(dueAt) < closedMs) continue
-    const mine = notes.get(id) ?? []
-    open.push({
-      id, rowId: c.id, text: bareText(c), dueAt, createdAt: c.at ?? '',
-      urgent: urgency.get(id) || undefined,
-      assignee: c.reminder?.assignee,
-      notes: mine,
-      surface: c.surface,
-    })
+    if (f.dueAt && Number.isFinite(closedMs) && Date.parse(f.dueAt) < closedMs) continue
+    open.push(itemOf(id, f))
   }
   // dringend first, then the OLDEST first: the position carries the age, so the time column can
   // stay a plain clock. Undated and dated sort together — one list, one question («was ist offen»).

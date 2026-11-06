@@ -24,6 +24,8 @@ import { Menu } from '../lib/overlays'
 import { BoardSignature } from './BoardSignature'
 import { ShellLoader } from './ShellLoader'
 import MiniKarte, { type MiniKarteProps } from './MiniKarte'
+import { TafelPendenzen } from './TafelPendenzen'
+import type { PendenzenPort } from '../lib/pendenzenPage'
 import s from './TafelFormPage.module.css'
 
 /**
@@ -110,8 +112,9 @@ interface CellProps {
   onMove?: (dir: -1 | 1, draft: string, changed: boolean) => void
 }
 
-/** One cell: an auto-growing textarea that commits once (see the file header for the keys). */
-function Cell({ k, kn, value, label, readOnly, time = false, placeholder, className, last = false, draftKey, onCommit, onNav, onClash, onMove }: CellProps) {
+/** One cell: an auto-growing textarea that commits once (see the file header for the keys).
+ *  Also the cell of the «Aufträge / Pendenzen» page (TafelPendenzen). */
+export function Cell({ k, kn, value, label, readOnly, time = false, placeholder, className, last = false, draftKey, onCommit, onNav, onClash, onMove }: CellProps) {
   const T0 = T()
   const [draft, setDraft] = useState(() => (draftKey ? readDraft<string | null>(draftKey, null) : null) ?? value)
   /** typed since the focus (or a kept draft came back): the one thing that makes a cell write */
@@ -455,6 +458,8 @@ export interface TafelFormPageProps {
   scene?: MiniKarteProps
   /** a tap on the mini Karte opens the Karte */
   onOpenKarte?: () => void
+  /** what a live `pendenzen` section lists and writes (lib/pendenzenPage) — the Verlauf's */
+  pendenzen?: PendenzenPort
   /** px the floating chrome covers: top bar + page strip, the rails */
   inset: { top: number; left: number; right: number; bottom: number | string }
 }
@@ -463,7 +468,7 @@ export interface TafelFormPageProps {
 const hasChecklistEntry = (d: BoardFormData) => Object.values(d.values).some((v) =>
   (v.rows ?? []).some((r) => r.src === 'checklist') || Object.values(v.lines ?? {}).some((ls) => ls.some((l) => l.src === 'checklist')))
 
-export function TafelFormPage({ pageKey, title, data, readOnly, isPhone, onChange, onRemove, onConflict, onPrint, pageCount = 1, printing = false, scene, onOpenKarte, inset }: TafelFormPageProps) {
+export function TafelFormPage({ pageKey, title, data, readOnly, isPhone, onChange, onRemove, onConflict, onPrint, pageCount = 1, printing = false, scene, onOpenKarte, pendenzen, inset }: TafelFormPageProps) {
   const t = T()
   const page = data.page
   const sections = shownSections(page)
@@ -1021,7 +1026,8 @@ export function TafelFormPage({ pageKey, title, data, readOnly, isPhone, onChang
             <section key={sec.id} className={cx(s.sec, sec.type === 'text' && s.secText)} data-sec={sec.id}
               style={{ gridColumn: cols > 1 && sec.span === 2 ? '1 / -1' : undefined }}>
               {sec.type !== 'text' && heading(labelText(sec.title), labelText(sec.subtitle))}
-              {sec.type === 'quad' ? quad(sec) : sec.type === 'table' ? table(sec) : sec.type === 'text' ? text(sec) : map(sec)}
+              {sec.type === 'quad' ? quad(sec) : sec.type === 'table' ? table(sec) : sec.type === 'text' ? text(sec)
+                : sec.type === 'live' ? <TafelPendenzen Cell={Cell} sec={sec} port={pendenzen} isPhone={isPhone} pageTitle={title ?? labelText(page.title)} /> : map(sec)}
             </section>
           ))}
         </div>

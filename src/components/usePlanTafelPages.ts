@@ -117,7 +117,7 @@ export function usePlanTafelPages({ onTafel, pages, titles, page, setPageSel, re
     try {
       const { printTafelPages, TafelPrintOffline } = await import('../lib/tafelPrint').catch(() => { throw new OfflineChunk() })
       try {
-        await printTafelPages(list.map((a) => ({ ...a, form: viewOf(a) })), { id: incidentId, title: tafel?.title?.() ?? '' }, tafel?.scene, titles)
+        await printTafelPages(list.map((a) => ({ ...a, form: viewOf(a) })), { id: incidentId, title: tafel?.title?.() ?? '' }, tafel?.scene, titles, tafel?.pendenzen?.timeline)
       } catch (e) {
         if (e instanceof TafelPrintOffline) throw new OfflineChunk()
         throw e

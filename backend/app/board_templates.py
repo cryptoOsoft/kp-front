@@ -201,7 +201,43 @@ class TextSection(_Section):
         return self
 
 
-Section = Annotated[QuadSection | MapSection | TableSection | TextSection, Field(discriminator="type")]
+#: what a `live` section can show, and the columns each source has (src/lib/boardTemplate ·
+#: LIVE_COLUMNS) — a station renames, reorders, re-weighs or hides them, never invents one
+LIVE_COLUMNS: dict[str, tuple[str, ...]] = {"pendenzen": ("was", "wer", "prio", "status", "zeit")}
+
+
+class LiveColumn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: Ident
+    label: Label
+    #: relative width (default 1)
+    w: Annotated[float, Field(gt=0, le=20)] | None = None
+    hidden: bool | None = None
+
+
+class LiveSection(_Section):
+    """A table DERIVED from the Einsatz, not written on the page (05.11.2026): `pendenzen` lists
+    every Pendenz and Erinnerung of the Verlauf. A build that predates it keeps the page and draws
+    it without this section."""
+
+    type: Literal["live"]
+    source: Literal["pendenzen"]
+    columns: Annotated[list[LiveColumn], Field(min_length=1)]
+
+    @model_validator(mode="after")
+    def _cols(self) -> LiveSection:
+        _unique([c.id for c in self.columns], "Spalte")
+        known = LIVE_COLUMNS[self.source]
+        stray = [c.id for c in self.columns if c.id not in known]
+        if stray:
+            raise ValueError(
+                f"Abschnitt «{self.id}»: unbekannte Spalte {', '.join(stray)} – möglich sind {', '.join(known)}"
+            )
+        return self
+
+
+Section = Annotated[QuadSection | MapSection | TableSection | TextSection | LiveSection, Field(discriminator="type")]
 
 
 class TemplatePage(BaseModel):

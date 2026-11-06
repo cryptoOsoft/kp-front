@@ -151,6 +151,21 @@ the same rows:
 - **Swiping away (✕), take-over navigation, «Zum Trupp»** write nothing – view, not
   content. Taking over an alarm itself writes through its existing path.
 
+## The Tafel's «Aufträge / Pendenzen» page (05.11.2026) writes Verlauf rows, never page values
+
+The page is a view on the Pendenzen and Erinnerungen (`lib/pendenzenPage`,
+[`board-templates.md`](board-templates.md#the-aufträge--pendenzen-page)), so each act on it is a
+row here, on the Tafel's sheet (`surface: 'plan'`, `planId: 'tafel'`), with its audit event:
+
+- a row typed on the page → **«Pendenz von der Tafel (Aufträge / Pendenzen): … · Wer: …»**, a
+  `created` row with `origin: 'tafel'` (`reminder.create`). The Pendenzen block marks the item
+  «von der Tafel».
+- Was / Wer / Prio. changed → **«Auf der Tafel geändert (…): Wer: …»**, a `note` row carrying
+  `edit` (+ `urgent`) (`reminder.note`). It is a correction, not a Meldung: the item's thread does
+  not list it. ↶ appends the correction back.
+- Erledigt ticked / un-ticked → **«Erledigt auf der Tafel: …» / «Auf der Tafel wieder offen: …»**,
+  the same `done` / `reopened` rows (and confirm-with-undo) as the ring here.
+
 ## Drawings: creating, naming and deleting are on the record – arranging is not
 
 The review of 21.08. noted that the word **«Fläche»** did not appear on this page. The finding
