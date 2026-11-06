@@ -123,6 +123,18 @@ describe('Journal · the Pendenzen block', () => {
     expect(box.querySelector('[data-ev]')).toBeNull()
   })
 
+  // mock 6A, Verlauf side: who an item is for, and that it was typed on the Tafel — a tap opens it
+  it('says «Wer» under an item that has one, and «von der Tafel» opens the page', () => {
+    const onOpenTafel = vi.fn()
+    setup({ openReminders: [pendenz('p3', 'Gemeinde informieren', { assignee: 'EL', origin: 'tafel' }), pendenz('p4', 'Lüfter holen')], onOpenTafel })
+    const rows = document.querySelectorAll('.jr-pinned-row')
+    expect(rows[0].querySelector('.jr-pinned-wer')?.textContent).toBe('Wer: EL')
+    expect(rows[0].querySelector('.jr-pinned-meta .jr-pinned-from')?.textContent).toBe('von der Tafel')
+    expect(rows[1].querySelector('.jr-pinned-meta')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: /von der Tafel/ }))
+    expect(onOpenTafel).toHaveBeenCalledTimes(1)
+  })
+
   // Nothing open ⇒ no box, and the log has the whole drawer. That is the state most of an
   // Einsatz is in, and an empty amber frame standing over it would cost height for no content.
   it('draws no box at all when nothing is open', () => {

@@ -132,6 +132,8 @@ import { assignedPersonIds, linkTrupps, rosterIdByName as rosterIdByNameOf, trup
 import { rosterWithGuests } from './lib/guests'
 import type { Item } from './lib/checklists'
 import { warmTemplates } from './lib/checklists'
+import { TAFEL_ID, findForms } from './lib/boardForm'
+import { hasProblems, type TickWrite } from './lib/problemLink'
 import { primeKeyboard } from './lib/keyboardPrime'
 import { createPortal, flushSync } from 'react-dom'
 import type { NoteSize } from './types'
@@ -156,6 +158,7 @@ import { useSessionRole, useWorkspaceFlags } from './workspace/access'
 import { useOfflinePrefetch } from './workspace/useOfflinePrefetch'
 import { loadReportPreflight, loadWhiteboard, requestReportStep } from './workspace/lazySurfaces'
 import { useTafelPages } from './workspace/useTafelPages'
+import { useTafelPendenzen } from './workspace/useTafelPendenzen'
 import type { OneShotRows, WorkspaceMode } from './workspace/types'
 import { WorkspaceMeldungen } from './workspace/WorkspaceMeldungen'
 import { WorkspaceSheets } from './workspace/WorkspaceSheets'
@@ -1747,6 +1750,7 @@ export function IncidentWorkspace({
 
   // the Tafel's pages (10.10.2026): the template set, the pre-fill, the live mini Karte — not for a
   // link session (bound to one object)
+  const tafelTickWrites = useRef<(w: readonly TickWrite[]) => void>(() => {})
   const tafel = useTafelPages({
     enabled: !linkScoped,
     title: incidentMeta.title, address: incidentMeta.address,
@@ -1755,6 +1759,9 @@ export function IncidentWorkspace({
     mapEntities, drawings, layers: mapLayers, isVisible, byName: sym.byName, center: incidentView.center,
     symMul: symbolScale.map, captionMode: symbolCaptions, trupps: effTrupps,
     openKarte: () => setMode('map'),
+    // the checklist problems on the Tafel (lib/problemLink); the tick writer is set below
+    checklists, writeTicks: (w) => tafelTickWrites.current(w),
+    history: { group: () => undoHist.group('plan'), top: () => undoHist.peekUndo(), undo: () => stepHistory('undo') },
   })
 
   // --- Georeferenz: which plans are tied to the ground, and how — lib/useGeorefFits -------------
@@ -2163,6 +2170,12 @@ export function IncidentWorkspace({
     focusEntity, incidentMeta, incidentView, doc, tacticalLocked, replayActive, stepLabelRef: stepLabel, commit, emit,
     log, setSelectedDrawingId, setSelectedId, mode, pushEvent, composerOpenedAtRef: composerOpenedAt, activePlanId,
     uploadPhotoForRow, uploadMediaForRow, setComposerOpen, setNoteOn, player, timeline, running, undoHist, journal,
+  })
+  // …and the Tafel's «Aufträge / Pendenzen» page, a view on those same Wiedervorlagen
+  const tafelPendenzen = useTafelPendenzen({
+    tafel, timeline, reminders, pushEvent, emit, canWrite: !readOnly, author: user?.display_name,
+    setJournalOpen, setJournalLandOn, undoHist, incidentId: incidentMeta.id, board,
+    showPlan: (planId) => { setJournalOpen(false); if (mode !== 'plans') clearMapUi(); setMode('plans'); setPanel(null); setActivePlanId(planId) },
   })
 
   // --- Atemschutzüberwachung (SCBA monitoring): Trupp mutations live in useTruppActions ---
@@ -2719,7 +2732,10 @@ export function IncidentWorkspace({
   // canEditRecord, not canEditIncident (07.09.): ticking is record-keeping — the el role
   // and an editor's Führungsansicht keep it; the backend enforces the same boundary.
   const canTick = canEditRecord
-  const { toggleTick, setBranch, describeStep: describeChecklistStep } = useChecklistActions({ canTick, checklists, setChecklists: checklistSet, authorName: user?.display_name, log, emit })
+  const { toggleTick, setTrend, applyTickWrites, setBranch, describeStep: describeChecklistStep } = useChecklistActions({ canTick, checklists, setChecklists: checklistSet, authorName: user?.display_name, log, emit })
+  useEffect(() => { tafelTickWrites.current = applyTickWrites })
+  // the Checkliste says whether a ticked problem already stands on a Tafel page (lib/problemLink)
+  const problemsOnTafel = findForms(board?.[TAFEL_ID] ?? []).some((a) => hasProblems(a.form))
   // in an effect, not during render: it is read only when a step is TAKEN, long after this commit
   useEffect(() => { checklistDescribeRef.current = describeChecklistStep })
   // Deep links: an item's `action` jumps to the matching surface (best-effort, reusing
@@ -3191,7 +3207,7 @@ export function IncidentWorkspace({
         setPickerOpen, symbolScale, symbolCaptions, mapSuppressedCaptions, georefFits, mapActions,
         replayBoard, replayBuilding, store, trails, deleteGhostTrail, armTrailDrop, building, gebaeude, logPlan,
         roster, addRecent, user, emit, planStacks, planFocus, effTrupps, truppCounterNames, teamNameTaken,
-        azAlarm, truppActions, newTruppFromMarker, showTrupp, planScale, setPlanScale, tafel,
+        azAlarm, truppActions, newTruppFromMarker, showTrupp, planScale, setPlanScale, tafel: tafelPendenzen.tafel,
         truppFinder: { open: () => setFindTruppOpen(true), disabled: placed.length === 0 },
         readingsChip: replayActive ? null : <ReadingsChip points={readingPoints} compact={isPhone} onGo={goToReading} />,
       }} />
@@ -3212,6 +3228,8 @@ export function IncidentWorkspace({
           canTick={canTick}
           incidentTitle={incidentMeta.title}
           onTick={toggleTick}
+          onTrend={setTrend}
+          problemsOnTafel={problemsOnTafel}
           onBranch={setBranch}
           onAction={checklistAction}
           // «Zeichnen» arms the Karte's line tool, which a locked device disarms on arrival
@@ -3266,7 +3284,7 @@ export function IncidentWorkspace({
         setJournalOpen, setJournalLandOn, journalFromRapport, setJournalFromRapport, openRapport, readOnly,
         enterReplay, reminders, setNoteOn, setComposerOpen, reRaisePendenz, media, setPlayer, photoOnMap,
         tacticalLocked, placePhotos, showPhotoOnMap, player, isEditor, addPlayerEntry, composerOpen,
-        addJournal, noteOn, roleReadOnly, linkScoped,
+        addJournal, noteOn, roleReadOnly, linkScoped, openTafelPendenzen: linkScoped ? undefined : tafelPendenzen.openPage,
       }} />
       {sharePick && (
         <SharePositionSheet

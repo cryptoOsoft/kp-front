@@ -41,12 +41,28 @@ export function useTafelPage(incidentId: string | undefined, fallback: string = 
     }).catch(() => {})
     return () => { live = false }
   }, [key])
+  // …and a page asked for from outside the Tafel (showTafelPage) while it is mounted
+  useEffect(() => {
+    const on = (k: string, p: string) => { if (k === key) setPageState(p) }
+    listeners.add(on)
+    return () => { listeners.delete(on) }
+  }, [key])
   const setPage = useCallback((p: string) => {
     memory.set(key, p)
     setPageState(p)
     if (key) void idbSet(idbKey(key), p)
   }, [key])
   return [page ?? fallback, setPage]
+}
+
+const listeners = new Set<(key: string, page: string) => void>()
+
+/** Make `page` the one this device shows on the Einsatz's Tafel — from outside the Whiteboard (the
+ *  Verlauf's «von der Tafel» opens the «Aufträge / Pendenzen» page). The caller opens the Tafel. */
+export function showTafelPage(incidentId: string, page: string): void {
+  memory.set(incidentId, page)
+  void idbSet(idbKey(incidentId), page)
+  for (const on of listeners) on(incidentId, page)
 }
 
 /** test seam */

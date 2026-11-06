@@ -19,7 +19,7 @@ import { canBeDone, offersDone, doneOf } from '../lib/objectDone'
 import { withResolvedPhotos } from '../lib/photoGeo'
 import type { AssignableRole } from '../lib/roleAssignment'
 import { SHAPE_MIN_M, SHAPE_MAX_M, SHAPE_DEFS, rotationRun, ROTATION_MAX_M, rotationBox, ROTATION_W_M, shapeAspect } from '../lib/shapes'
-import { readingPatch, symbolControls, symbolTitleOptions, symbolFieldOptions, symbolPresetFieldKeys } from '../lib/symbols'
+import { readingPatch, symbolControls, symbolTitleOptions, symbolFieldOptions, symbolPresetFieldKeys, vehicleOriginOptions } from '../lib/symbols'
 import { truppForLine, truppIsOut } from '../lib/truppLines'
 import type { useSymbols } from '../lib/useSymbols'
 import type { VehicleOverrides } from '../lib/useVehicleLayer'
@@ -325,6 +325,18 @@ export function MapDetailPanels({
                 // Nachbarwehr driver onto it as a Gast (assignTypedName)
                 assignTypedName(v, 'fahrer', fillTemplate(appConfig.copy.anwesenheit.roleFahrer, { vehicle: selected.label ?? '' }).trim())
               },
+            }
+            : undefined}
+          // …and where it comes from (05.11.2026): the feed cannot say that either. Same map,
+          // same locked read-out; the list is the station's ONE Herkunft list (lib/symbols).
+          origin={selected.live && selected.kind !== 'person'
+            ? tacticalLocked ? { value: vehicleOverrides[selected.id]?.herkunft ?? '' } : {
+              value: vehicleOverrides[selected.id]?.herkunft ?? '',
+              options: vehicleOriginOptions(),
+              onChange: (v: string) => setVehicleOverrides((m) => ({
+                ...m,
+                [selected.id]: { ...m[selected.id], herkunft: v.trim() || undefined },
+              })),
             }
             : undefined}
           // each row says what tells the lines apart — «Linie · 42 m → Hydrant H-142» (K11)

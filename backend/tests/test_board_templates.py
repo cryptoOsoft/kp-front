@@ -35,7 +35,15 @@ def _fks() -> dict:
 def test_the_bundled_fks_set_is_a_valid_board_template():
     t = parse_board_template(BUNDLED.read_bytes())
     assert t.id == "fks-erste-fuehrung"
-    assert [p.id for p in t.pages] == ["ef", "problem-tendenz", "mittel", "verbindungen", "konzept", "rapport"]
+    assert [p.id for p in t.pages] == [
+        "ef",
+        "problem-tendenz",
+        "mittel",
+        "verbindungen",
+        "konzept",
+        "rapport",
+        "pendenzen",
+    ]
 
 
 @repo_only
@@ -72,6 +80,13 @@ def test_the_committed_schema_is_what_the_model_generates():
         (lambda t: t["pages"][0].update(title={"fr": "Première"}), "de"),
         (lambda t: t["pages"][0].update(id="Erste Führung"), "pattern"),
         (lambda t: t["pages"][0]["sections"][1].update(type="sketch"), "sketch"),
+        # a live section shows its source's own columns and nothing else, and only a known source
+        (
+            lambda t: t["pages"][-1]["sections"][0]["columns"].append({"id": "ort", "label": "Ort"}),
+            "unbekannte Spalte ort",
+        ),
+        (lambda t: t["pages"][-1]["sections"][0].update(source="problems"), "source"),
+        (lambda t: t["pages"][-1]["sections"][0]["columns"][0].update(type="time"), "type"),
     ],
 )
 def test_a_broken_template_names_what_is_wrong(patch, where):

@@ -27,7 +27,13 @@ recorded group from either stack, including a group reduced to one part before i
   **Zeitplan**). Always through a **ref**: the entry outlives the render that pushed it.
 - *Closure* – the entry carries its own inverse, for a domain with no stack: the
   Atemschutz-Tafel, the Gebäude one-shots (floor add/remove, building replace, Drehung),
-  Rapport-Beilagen, Ansichten (`rememberOneShot`).
+  Rapport-Beilagen, Ansichten (`rememberOneShot`), a Pendenz corrected on the Tafel's «Aufträge /
+  Pendenzen» page (its inverse is another appended correction, `workspace/useTafelPendenzen`).
+- *Grouped* – one act over the Tafel and the Checklisten (05.11.2026, `lib/problemLink`): a
+  problem's Tendenz set on a page writes the checklist's, a checklist problem deleted on a page un-ticks
+  it – the board write and the slice write are ONE step (`UndoTimeline.group('plan')`,
+  `usePlanTafelPages · editPage`). The bin's toast «… gelöscht · Rückgängig» takes back the step
+  on top of ↶ (the same `stepHistory`), and declines once that is no longer its step.
 - *Confirm-with-undo toast* – the fast door beside the header pair, for a one-shot that
   destroys something (a Geschoss, a Beilage, an Anwesenheits-Block, a Pendenz's «Erledigt» —
   whose inverse is an APPENDED `reopened` row, since 23.09.2026; and the **Abschluss** itself,

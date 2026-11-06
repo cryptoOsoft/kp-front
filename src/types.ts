@@ -560,6 +560,17 @@ export interface TimelineEvent {
      *  text there stuttered the time and the word «Erinnerung» twice per line.
      *  Optional: rows written before this existed fall back to the stripped `text`. */
     text?: string
+    /** `created` only: the item was typed as a row on the Tafel's «Aufträge / Pendenzen» page
+     *  (05.11.2026) — the Verlauf's Pendenzen block marks it «von der Tafel». Absent = the composer. */
+    origin?: 'tafel'
+    /** `note` only: a CORRECTION of the item's own words from the Tafel page (05.11.2026) — Was
+     *  and/or Wer as they stand now, latest wins per field ('' clears the Wer; `{}` when only the
+     *  Prio. changed — its presence is what marks the row a correction). Rides on `note`
+     *  (with `urgent` for the page's «Prio.») because that op is the safe one for an older
+     *  client: it reads the row as one more Meldung and never as a change of open/closed — a new
+     *  op would have been taken for «not done» and reopened a closed item there. The reducer
+     *  (lib/reminders · foldPendenzen) applies it and keeps it out of the item's thread. */
+    edit?: { text?: string; assignee?: string }
   }
   /**
    * A record divergence and its answer — the same append-only lifecycle the `reminder` above

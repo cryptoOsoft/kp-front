@@ -16,6 +16,7 @@ replaces the bundled one.
 | `src/lib/boardFormNav.ts` | The keyboard, as a pure function. |
 | `src/lib/boardTemplates.ts` | Loads `tafel:*` datasets through IndexedDB, with the bundled set as the fallback. The Whiteboard reads it when the Tafel is first shown, never at boot. |
 | `src/components/TafelFormPage.tsx`, `TafelPageStrip.tsx`, `MiniKarte.tsx` | The page, the strip and the Lagekarte box. |
+| `src/components/TafelPendenzen.tsx`, `src/lib/pendenzenPage.ts`, `src/workspace/useTafelPendenzen.ts` | The «Aufträge / Pendenzen» page: a `live` section, its Verlauf rows and its print. |
 | `backend/app/board_templates.py` | The pydantic contract (`extra="forbid"`). |
 | `docs/board-template.schema.json` | The JSON Schema generated from that contract (`just board-template-schema`). A pytest pins the two together. |
 | `backend/app/admin_board_templates.py` | The `schema \| example \| validate \| load \| push \| show` CLI. |
@@ -34,8 +35,8 @@ replaces the bundled one.
   pageTitles`; the numbers close up when one is removed). Each instance has its own values, its
   own ↶ steps, its own sheet in the print, and the remembered page works per instance. The
   bundled set repeats **Konzept** (several concepts) and **Rapport** (the next Rapport); the
-  Erste Führung, the Problemerfassung, Mittel and Verbindungen are one per Einsatz — what does
-  not fit on them continues on the «Fortsetzung».
+  Erste Führung, the Problemerfassung, Mittel, Verbindungen and Aufträge / Pendenzen are one per
+  Einsatz — what does not fit on them continues on the «Fortsetzung».
 - A page's header carries its title only; which template file and version it came from stays in
   its data and on the paper's footer.
 - **Its timeline** stands under the page's last box and in the paper's footer, right corner:
@@ -77,6 +78,39 @@ replaces the bundled one.
   (`visibilitychange`, `pagehide`) and when it unmounts. On a closed Einsatz the draft is parked
   on the device (`lib/draftKeep`) instead of written.
 - **Removing a page** asks first when something is written on it. ↶ brings it back either way.
+- **Deleting a row** (05.11.2026, owner pick 7A): a bin stands at the end of the row one is in –
+  every written table row, and every line of a problem box – in a column of its own, outside the
+  ruled cells (`TafelFormPage · BinButton`, 44 px, shown while the row holds the focus; its press
+  keeps the focus, so iOS does not take the row away under the finger). One ↶ step; a toast says
+  what went, with «Rückgängig». A pre-printed row has no bin: it belongs to the template.
+
+### The Einsatz's problems (05.11.2026)
+
+The Erste Führung's Problemerfassung box, the page «Problemerfassung» and a `problems` checklist
+(CONFIGURATION.md §9f) show ONE list of problems (`lib/problemLink`, owner pick 7A):
+
+- A section takes part with `problems: true` – a `quad` (each box is a **Bereich**: its id is the
+  Bereich's id) or a `table` (its first text column is the problem, its trend column the
+  Tendenz, its `area` column the Bereich). The bundled pages: `ef › problem` and
+  `problem-tendenz › probleme`, which got a «Bereich» column (Front / Ordnung / Sanität /
+  Spezielles – the ids of the four boxes).
+- A row typed on the page stands in the box of its Bereich, a line typed in a box stands on the
+  page with its Bereich, and a ticked checklist item stands on both. Each problem lives in ONE
+  place (its tick, its line, its row); every other surface shows it in a **view** built at draw
+  time (`problemView`), so a page added later shows everything ticked or written before it, and
+  an un-tick or a deletion takes the problem off every page at once. An edit on a view is split
+  back (`splitProblemEdit`): words, Tendenz and Bereich go to the problem's home; the page's own
+  columns for it (Reaktion, Priorität, its place in the order, a box's Stichwort) stay on the
+  page as a **satellite** – a row or line stored under the problem's view id (`ck~…`, `ln~…`,
+  `rw~…`). Everything is a form cell or a checklist key, so it merges per cell and per item.
+- A problem from the checklist wears the checklist icon, and its words are the checklist's
+  (read-only, like a pre-printed cell; its Bereich is its phase's). Its Tendenz writes the checklist's
+  (`TemplateState.trends`, beside the tick, so an un-tick keeps it for the re-tick).
+  Deleting it on the Tafel un-ticks it – «„…" gelöscht – Haken in der Checkliste entfernt ·
+  Rückgängig». A problem typed on the Tafel is never matched to, nor written into, the checklist.
+  The page's legend says it: «aus der Checkliste – Löschen nimmt dort den Haken weg».
+- Printed (the page's «Drucken», the Rapport) as drawn: the view, the Bereich as its word.
+- A page added before the link (its snapshot has no `problems`) keeps showing its own entries.
 
 ### The keyboard (like a spreadsheet)
 
@@ -140,6 +174,37 @@ It is cheap on purpose:
 In the Rapport, the box gets a server-side Kroki render of the scene at print time,
 auto-framed and without captions.
 
+### The «Aufträge / Pendenzen» page
+
+Bundled since 05.11.2026 (owner pick 6A): the BGV form's columns as our own page, without its
+branding — **Was · Wer · Prio. · Status · Zeit**. Its one section is `live` (`source:
+"pendenzen"`): a **view on the Verlauf**, not a form. It lists every Pendenz and Erinnerung of the
+Einsatz since its start (`lib/reminders · pendenzLedger`), open and done, in the order they were
+raised; a done row is struck through and stays. Nothing of it lives in the page's values — the
+anno carries the snapshot only — so a Pendenz from the composer is on the page the moment it is
+written, and a tick on either side is the same tick.
+
+- **Status** is two ticks: «Erteilt» with the creation time, ticked by itself (owner, 05.11.: no
+  new state), and «Erledigt» with its time — the Verlauf's own tick, confirm-with-undo; un-ticking
+  takes it back (`reopened`). **Prio.** 1 = «dringend», a tap sets or clears it. **Zeit** is an
+  Erinnerung's time with a bell, red «überfällig» once past and open. **Wer** is the item's
+  assignee.
+- **A row typed on the page** becomes a Pendenz in the Verlauf when the row is left (Enter, Tab
+  off «Wer», a tap elsewhere) — one `created` row with Was, Wer and Prio. together, marked
+  `origin: 'tafel'` — and says once «Als Pendenz im Verlauf eingetragen · 14:31 · Name». The
+  Verlauf's Pendenzen block marks it «von der Tafel»; a tap there opens the page.
+- **Changing Was / Wer / Prio.** of an item appends a correction (a `note` row carrying `edit`,
+  types · `reminder.edit`), never a mutation. ↶ appends the correction back. An emptied Was keeps
+  its words.
+- **◷** at the end of «Was» opens the Verlauf on the item's row. No grip: the order is the order
+  of issue. **No bin** either (unlike the other tables, above): a row here is a Verlauf record,
+  which is never deleted — what is done is ticked off, and stays on the page struck through.
+- Who may tick or write is who may write the Verlauf (editor, el); a viewer reads the page.
+- ⚠️ A build from before 05.11.2026 keeps the page as it keeps any section type it does not know
+  (`isUsableSection`): the page stays, syncs and prints its title, the section is not drawn —
+  never dropped. The Verlauf rows it reads as before: a correction is one more Meldung there.
+- Every act's Verlauf row: [`verlauf-coverage.md`](verlauf-coverage.md).
+
 ## Printing a page
 
 «Drucken» in a page's header (next to the delete; also on a closed Einsatz) makes a PDF of that
@@ -163,7 +228,11 @@ Einsatz-Link session cannot print it (the pages carry names, like the Rapport).
 ## The Rapport
 
 - **Pages.** Each form page prints on a sheet of its own, in its own layout, right after the
-  Aufträge. The Erste Führung prints as the A3 poster on A4 portrait, which has the same
+  Aufträge. The «Aufträge / Pendenzen» page prints as a plain table of its columns (rows from the
+  Verlauf at print time, ruled empty rows under them), but in the Rapport **only while its
+  «Aufträge / Pendenzen» section is switched off**: that section is the same list from the same
+  source, with the Meldungen, printed right before the Tafel — twice would be the same list
+  twice (`reportPdfDirect · tafelPayload`). «Drucken» on the page always prints it. The Erste Führung prints as the A3 poster on A4 portrait, which has the same
   proportions. Sheet 8.1 prints landscape.
 - **Empty boxes** print as ruled empty boxes, so the paper can still be filled in by hand.
 - **Overflow.** Nothing written is cut off. A box shrinks its type down to 6.5 pt, and whatever
@@ -253,16 +322,18 @@ required and is the fallback.
 
 | `type` | What | Keys |
 |---|---|---|
-| `quad` | Boxes with one problem per line (Problemerfassung) | `cells[]` (`id`, `label`, 1–4 of them, row-major). Switches: `trend` (➚ = ➘ per line), `tag` («Stichwort» per line). |
+| `quad` | Boxes with one problem per line (Problemerfassung) | `cells[]` (`id`, `label`, 1–4 of them, row-major). Switches: `trend` (➚ = ➘ per line), `tag` («Stichwort» per line), `problems` (the Einsatz's problems, above). |
 | `map` | The Lagekarte: the live mini Karte on screen, a snapshot on paper | – |
-| `table` | Rows × columns | `columns[]` (see below), `fixedRows[]` (`id`, `cells` = the pre-printed values of the fixed columns, `hidden`), `addRows` (default: yes unless fixed rows exist), `seed: "vehicles"` (pre-fills the first typed column with the vehicles the Einsatz knows), switch `done` (an «Erledigt» tick per row). |
+| `table` | Rows × columns | `columns[]` (see below), `fixedRows[]` (`id`, `cells` = the pre-printed values of the fixed columns, `hidden`), `addRows` (default: yes unless fixed rows exist), `seed: "vehicles"` (pre-fills the first typed column with the vehicles the Einsatz knows), switches `done` (an «Erledigt» tick per row) and `problems` (the Einsatz's problems, above). |
 | `text` | Free text fields (Konzept, Antrag …) | `fields[]` (`id`, `label`, `tone`, `type`), `layout`. |
+| `live` | A table derived from the Einsatz, not written on the page | `source` (`pendenzen`: the Verlauf's Pendenzen and Erinnerungen), `columns[]` (`id`, `label`, `w`, `hidden`) — the source's own column ids only (`was`, `wer`, `prio`, `status`, `zeit`): rename, reorder, re-weigh or hide them, never invent one. |
 
 **Table columns** have `id`, `label` and these optional keys:
 
 | Key | Meaning |
 |---|---|
-| `type` | `text`, `time` (Wann), `trend`, `symbol` (a printed Signatur, see below) or `index` (a numbered disc). |
+| `type` | `text`, `time` (Wann), `trend`, `symbol` (a printed Signatur, see below), `index` (a numbered disc) or `area` (a problem's Bereich: a menu of `options`). |
+| `options` | An `area` column's choices: `[{ "id", "label" }]`, the ids of the problem quad's boxes. Required with `area`, refused without. |
 | `fixed` | The value is pre-printed by the row. |
 | `w` | Relative width. On a phone it also scales a text column's minimum: by its weight over the table's narrowest text column, between 1.25× and 2.5× the width a head needs; time, trend, Signatur and index columns keep 1×. The table scrolls sideways (28.10.2026, `boardTemplate · colMinScale`). |
 | `hidden` | When true, the column is not shown. |
@@ -299,11 +370,12 @@ that is **off** — except the trend ➚ = ➘ per problem, which the owner want
 | Page | Source | Layout |
 |---|---|---|
 | Erste Führung | FKS Plakat A3 V 1.0/10.09.2019 (DE/FR/IT) | 2 × 3 boxes, as the poster |
-| 8.1 Problemerfassung | Handbuch p. 145 | landscape table: Problem/Ereignis · Entwicklungstendenz ➚ = ➘ · Notwendige Reaktion · Priorität |
+| 8.1 Problemerfassung | Handbuch p. 145 | landscape table: Bereich (ours, 05.11.2026) · Problem/Ereignis · Entwicklungstendenz ➚ = ➘ · Notwendige Reaktion · Priorität |
 | 8.6 Mittel | Handbuch p. 153 | table: Formation · Personal/Mittel · Auftrag/Wo · Wann, 23 rows |
 | 8.8 Verbindungen | Handbuch p. 155 | table: Funktion/Standort/Name · Kanal · Rufname/Telefon-Nr. · Wann |
 | 8.9 Konzept | Handbuch p. 156 | Auftrag · Eigene Mittel · Auflagen · Variante 1/2 (+ / –) · Antrag · Begründung |
 | 8.11 Rapport | Handbuch p. 158 | the eight Traktanden + Wer, and Datum / Zeit of the next Rapport |
+| Aufträge / Pendenzen | the BGV form «Aufträge / Pendenzen», our own layout (no BGV branding) | `live` table: Was · Wer · Prio. · Status (Erteilt / Erledigt + time) · Zeit, from the Verlauf |
 
 - The French and Italian words come from the FKS posters and the FR/IT editions of the Handbuch.
 - The English is our own translation.

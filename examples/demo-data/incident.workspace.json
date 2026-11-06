@@ -898,7 +898,7 @@
           "v": 1,
           "tpl": {
             "id": "fks-erste-fuehrung",
-            "version": 1,
+            "version": 3,
             "title": {
               "de": "FKS – Erste Führung",
               "fr": "CSSP – Première Conduite",
@@ -930,6 +930,7 @@
                 },
                 "height": 11,
                 "trend": true,
+                "problems": true,
                 "tag": false,
                 "cells": [
                   {
@@ -1598,7 +1599,7 @@
           "v": 1,
           "tpl": {
             "id": "fks-erste-fuehrung",
-            "version": 1,
+            "version": 3,
             "title": {
               "de": "FKS – Erste Führung",
               "fr": "CSSP – Première Conduite",

@@ -71,6 +71,8 @@ export interface JournalLayerProps {
   /** a link session (access · linkScoped): every link is refused the audio peaks, so its player
    *  draws the flat bar without asking */
   linkScoped: boolean
+  /** the Verlauf's «von der Tafel»: open the «Aufträge / Pendenzen» page (workspace/useTafelPendenzen) */
+  openTafelPendenzen?: () => void
 }
 
 export function JournalLayer({
@@ -79,7 +81,7 @@ export function JournalLayer({
   setJournalOpen, setJournalLandOn, journalFromRapport, setJournalFromRapport, openRapport, readOnly,
   enterReplay, reminders, setNoteOn, setComposerOpen, reRaisePendenz, media, setPlayer, photoOnMap,
   tacticalLocked, placePhotos, showPhotoOnMap, player, isEditor, addPlayerEntry, composerOpen, roleReadOnly,
-  addJournal, noteOn, linkScoped,
+  addJournal, noteOn, linkScoped, openTafelPendenzen,
 }: JournalLayerProps) {
   return (
     <>
@@ -112,6 +114,7 @@ export function JournalLayer({
           onTranscript={!readOnly ? (id, transcript) => journal.appendPatch(id, { transcript: transcript.trim() }) : undefined}
           onReplay={!replayActive ? () => { setJournalOpen(false); enterReplay() } : undefined}
           openReminders={reminders.open}
+          onOpenTafel={openTafelPendenzen}
           onReminderDone={!readOnly ? reminders.markDone : undefined}
           // tap a Pendenz → write a Meldung on it. The Verlauf steps aside so the composer is
           // not stacked on a drawer the operator can no longer see behind it.

@@ -47,6 +47,23 @@ describe('fleet attributeLists → symbol option resolution', () => {
   })
 })
 
+// 05.11.2026 (owner pick 3A): ONE station list for the «Herkunft» of every vehicle symbol
+describe('fleet.origins → the Herkunft of every vehicle', () => {
+  it('every driven vehicle offers the same station list, and only vehicles carry the field', () => {
+    cfg.current = { fleet: { origins: ['Stützpunkt', ' ', 'Zivilschutz'] } }
+    for (const v of ['VKF Fahrzeug', 'VKF Drehleiter', 'VKF Hubretter', 'Grosslüfter', 'FW Boot']) {
+      expect(symbolFieldOptions(v, undefined, ['Meier'])['Herkunft'], v).toEqual(['Stützpunkt', 'Zivilschutz'])
+    }
+    expect(symbolFieldOptions('VKF Luefter mobil', undefined, [])).not.toHaveProperty('Herkunft')
+  })
+
+  it('no list configured = no suggestions (station data is never bundled), free typing stays', () => {
+    expect(symbolFieldOptions('VKF Fahrzeug', undefined, [])['Herkunft']).toEqual([])
+    cfg.current = { fleet: { origins: {} as unknown as string[] } } // a hand-edited config
+    expect(symbolFieldOptions('VKF Fahrzeug', undefined, [])['Herkunft']).toEqual([])
+  })
+})
+
 describe('symbolConfigurableFields — the viewer attribute model', () => {
   it('exposes Funktion and Name for the Offizier, flagging Name as a roster field', () => {
     const fields = symbolConfigurableFields('FW Offizier')

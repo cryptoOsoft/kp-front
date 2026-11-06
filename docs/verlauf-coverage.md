@@ -124,6 +124,7 @@ the clock. Sound and system notification deliberately do **not** hang off it.
 |---|---|
 | Zeitplan / shifts | `src/lib/useShiftActions.ts` · `useShiftActions` (doc comment): *«attendance is a RECORD … a plan is not, and logging each nudge of a chip would bury the operational journal under bookkeeping»* |
 | Checklists | only milestones create a row (`src/lib/useChecklistActions.ts` · `milestoneRow`): «☑ …» on a tick, and since 23.09.2026 the appended correction «Meilenstein zurückgenommen: …» (↶ glyph, Bereich «Checkliste») on an un-tick – by tap and by ↶ alike (`describeStep`), one row per step, ☑ again on a re-tick or ↷ |
+| Problemerfassung (a `problems` checklist ↔ the Tafel, 05.11.2026) | a problem is ticked, given a Tendenz, written in a box or a row, or deleted by the bin – none of it writes a row: a problem tick is not a milestone (the doctrine above), a Tafel cell never wrote one (only a page added or removed does), and the problem stands on the Tafel and in the printed Rapport's Tafel pages anyway. Audit only: `checklist.tick` (`from: 'tafel'` for an un-tick by the bin), `checklist.trend`, `board.edit` with the cells. A ↶ / ↷ of such a step writes the usual «… rückgängig gemacht» |
 | Editing drawings (color, style, geometry) | operator action, not an event – see the doctrine note below |
 
 The doctrine lives in the AdFU workflow description: *«Der Verlauf ist keine automatische
@@ -149,6 +150,21 @@ the same rows:
   new – the alarm's Verlauf row is created once per cycle as before (see above).
 - **Swiping away (✕), take-over navigation, «Zum Trupp»** write nothing – view, not
   content. Taking over an alarm itself writes through its existing path.
+
+## The Tafel's «Aufträge / Pendenzen» page (05.11.2026) writes Verlauf rows, never page values
+
+The page is a view on the Pendenzen and Erinnerungen (`lib/pendenzenPage`,
+[`board-templates.md`](board-templates.md#the-aufträge--pendenzen-page)), so each act on it is a
+row here, on the Tafel's sheet (`surface: 'plan'`, `planId: 'tafel'`), with its audit event:
+
+- a row typed on the page → **«Pendenz von der Tafel (Aufträge / Pendenzen): … · Wer: …»**, a
+  `created` row with `origin: 'tafel'` (`reminder.create`). The Pendenzen block marks the item
+  «von der Tafel».
+- Was / Wer / Prio. changed → **«Auf der Tafel geändert (…): Wer: …»**, a `note` row carrying
+  `edit` (+ `urgent`) (`reminder.note`). It is a correction, not a Meldung: the item's thread does
+  not list it. ↶ appends the correction back.
+- Erledigt ticked / un-ticked → **«Erledigt auf der Tafel: …» / «Auf der Tafel wieder offen: …»**,
+  the same `done` / `reopened` rows (and confirm-with-undo) as the ring here.
 
 ## Drawings: creating, naming and deleting are on the record – arranging is not
 
