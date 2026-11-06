@@ -488,9 +488,12 @@
   /* …but «where you are» needs an EDGE the raised surface does not have: #2b3545 on the rails'
      night glass is 1.4:1, a faint grey lift whose glyph was the same grey-white as every other
      (hill climb r13, Opus 3). A plate lighter by a clear step – 2.3:1 against the rail – and the
-     glyph full white on it (7.7:1); the unselected glyphs keep --ink. */
-  --here-fill: #46546c;
-  --here-fill-hover: #505f79;
+     glyph full white on it (7.7:1); the unselected glyphs keep --ink. One more step in r32 (Opus r31 2):
+     #46546c on the phone bars' #161c26 measured 2.2:1 – under the 3:1 a state mark wants, so at
+     arm's length «Karte» / «Auswahl» read selected only by the white label. #56657f ≈ 2.8:1, the
+     white glyph on it still ≈ 6:1. */
+  --here-fill: #56657f;
+  --here-fill-hover: #60708b;
   --on-here: #fff;
   /* The primary button INVERTS at night instead of tracking --ink-fill. Its label was never the
      problem — #f5f8fc on #2b3545 measures 11.6:1 — the BUTTON was: #2b3545 against the #232c3a
