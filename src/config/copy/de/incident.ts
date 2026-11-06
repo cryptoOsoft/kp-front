@@ -219,9 +219,9 @@ export const incidentCopy = {
     registeredTitle: 'Noch angemeldet',
     registeredStandDown: 'Als «nicht eingesetzt» schliessen',
     // Trupps, die beim Abschluss noch DRIN sind: eine eigene, erste Frage
-    insideOne: '1 Trupp ist noch drin: {list}.',
-    insideMany: '{n} Trupps sind noch drin: {list}.',
-    insideTrupp: 'Trupp {name}',
+    insideOne: '1 Trupp ist noch drin:',
+    insideMany: '{n} Trupps sind noch drin:',
+    insideTrupp: 'Trupp {no}',
     insideClose: 'Trotzdem abschliessen',
     insideTitle: 'Trupps noch drin',
     // die sichere, fokussierte Antwort auf der Liste der offenen Punkte

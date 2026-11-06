@@ -22,9 +22,11 @@
    Passung's buttons began at the card's edge while the note stood under the title). */
 .note, .body, .actions { padding-left: var(--sp-6); /* 2px + the 18px glyph + the 12px gap */ }
 .note { margin: 0; padding-right: 2px; color: var(--ink-dim); font: var(--fw-medium) var(--fs-1)/1.45 var(--body); }
-/* the section's own action(s) – full-width --tap buttons, the Passung's recipe */
+/* the section's own action(s) – full-width --tap buttons, the Passung's recipe, at THE button's
+   14px (r35, 06.11.2026: the dock `.btn`'s 12.5 on a 44px sheet button was a third size) */
 .actions { display: grid; gap: 8px; }
-.actions :global(.btn) { width: 100%; min-height: var(--tap); display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2); }
+.actions :global(.btn) { width: 100%; min-height: var(--tap); display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  font-size: var(--fs-2); }
 .actions :global(.btn) > :global(.i) { width: 15px; height: 15px; flex: none; }
 /* the embedded Passung (GeorefQuality · embedded) gives up its card padding and width here –
    a class and a type deep, so it outranks that panel's own single-class rules whichever loads last */

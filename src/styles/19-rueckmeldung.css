@@ -81,7 +81,7 @@ p.fb-prompt-q { margin: 0; font: var(--fw-bold) var(--fs-2) var(--body); color: 
 .fb-privacy { display: flex; align-items: center; gap: var(--sp-2); margin: 0;
   font: var(--fw-regular) var(--fs-1) var(--body); color: var(--ink-faint); }
 .fb-privacy svg { width: 14px; height: 14px; flex: none; }
-.fb-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+/* (`.fb-actions` went with r35, 06.11.2026: the buttons are the Sheet's own foot now) */
 
 /* install steps rendered INSIDE the Offline-Bereitschaft sheet (not behind a second modal):
    the guide's own top margin would double up against the card above it */
