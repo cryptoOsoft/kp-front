@@ -167,6 +167,18 @@ def test_the_nearby_object_warning_distance_defaults_to_25_m_and_is_bounded():
     assert doc.doctrine.nearbyObjectWarnM == 25
 
 
+def test_the_hose_defaults_survive_a_save_and_a_relay_never_starts_on_40():
+    """Owner 05.11.2026: a plain Linie is 40 mm, a Wassertransport 75 mm – both station doctrine
+    (src/lib/hydraulics · hoseDefaults). Unset serves nothing, so the shipped values apply."""
+    cfg = DeploymentConfigIn.model_validate({"doctrine": {"defaultLineHose": "55", "defaultRelayHose": "2x75"}})
+    assert (cfg.doctrine.defaultLineHose, cfg.doctrine.defaultRelayHose) == ("55", "2x75")
+    unset = DeploymentConfigIn.model_validate({"doctrine": {}})
+    assert (unset.doctrine.defaultLineHose, unset.doctrine.defaultRelayHose) == (None, None)
+    for doctrine in ({"defaultLineHose": "90"}, {"defaultRelayHose": "40"}, {"defaultLineHose": 75}):
+        with pytest.raises(ValidationError):
+            DeploymentConfigIn.model_validate({"doctrine": doctrine})
+
+
 @pytest.mark.parametrize("doctrine", [{"contactIntervalMin": 0}, {"contactIntervalMin": 31}, {"contactGraceSec": 301}])
 def test_the_contact_clock_stays_in_the_station_range(doctrine):
     """1–30 min and 0–300 s (owner, 26.10.2026, audit F02): refused on a save, degraded to the

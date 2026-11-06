@@ -8,6 +8,7 @@ import { Segmented } from './Segmented'
 import { TickRow } from './TickRow'
 import { fillTemplate, formatTime } from '../lib/format'
 import { appConfig } from '../config/appConfig'
+import type { FormTrend } from '../lib/boardForm'
 import s from './Checklists.module.css'
 
 // Ticks store a full ISO timestamp (append-only record); show only HH:MM inline. Guard
@@ -29,18 +30,20 @@ const actionIcon: Record<NonNullable<Item['action']>, string> = {
 const TREND_GLYPH = { up: '➚', same: '=', down: '➘' } as const
 
 /**
- * A ticked problem's Tendenz (owner pick 7A, 05.11.2026): the Tafel's ➚ = ➘ as one Segmented under
- * the item – none picked = a problem without a trend, the picked one again clears it. The arrows
- * wear the Tafel's colours (worse red, better green) so the two surfaces read alike.
+ * A ticked problem's Tendenz (owner pick 7A, 05.11.2026): the Tafel's ➚ = ➘ as one Segmented at the
+ * end of the item's line (06.11.2026: it was a line of its own under the item) – none picked = a
+ * problem without a trend, the picked one again clears it. The arrows wear the Tafel's colours
+ * (worse red, better green) so the two surfaces read alike. Drawn only while the item is ticked;
+ * the value outlives an un-tick (TemplateState.trends).
  */
-function TrendRow({ item, trend, canTick, onTrend }: { item: Item; trend: Tick['trend']; canTick: boolean; onTrend: (t: Tick['trend']) => void }) {
+function TrendRow({ item, trend, canTick, onTrend }: { item: Item; trend: FormTrend | undefined; canTick: boolean; onTrend: (t: FormTrend | undefined) => void }) {
   const CL = appConfig.copy.checklists
   const T = appConfig.copy.tafel
   const word = { up: T.trendUp, same: T.trendSame, down: T.trendDown }
   return (
     <div className={s['cl-trend']}>
       <span className={s['cl-trend-label']}>{CL.trendLabel}</span>
-      <Segmented<NonNullable<Tick['trend']>>
+      <Segmented<FormTrend>
         ariaLabel={fillTemplate(CL.trendAria, { text: item.text })}
         value={trend}
         onChange={(v) => onTrend(v === trend ? undefined : v)}
@@ -54,17 +57,19 @@ function TrendRow({ item, trend, canTick, onTrend }: { item: Item; trend: Tick['
 }
 
 function ItemRow({
-  item, checked, tickInfo, canTick, onToggle, onAction, problem, onTrend,
+  item, checked, tickInfo, trend, canTick, onToggle, onAction, problem, onTrend,
 }: {
   item: Item
   checked: boolean
   tickInfo?: Tick
+  /** a problem's Tendenz (TemplateState.trends) – drawn only while it is ticked */
+  trend?: FormTrend
   canTick: boolean
   onToggle: () => void
   onAction?: (a: NonNullable<Item['action']>) => void
   /** a `problems` list: a tick is a problem on the Tafel – `onTafel` says whether a page shows it */
   problem?: { onTafel: boolean }
-  onTrend?: (t: Tick['trend']) => void
+  onTrend?: (t: FormTrend | undefined) => void
 }) {
   const CL = appConfig.copy.checklists
   return (
@@ -89,7 +94,7 @@ function ItemRow({
           </span>
         </span>
       </TickRow>
-      {checked && problem && onTrend && <TrendRow item={item} trend={tickInfo?.trend} canTick={canTick} onTrend={onTrend} />}
+      {checked && problem && onTrend && <TrendRow item={item} trend={trend} canTick={canTick} onTrend={onTrend} />}
       {/* the deep link is its glyph alone, a --tap square at the row's right edge (27.10.2026,
           owner pick 11A: «Zeichnen ›» took a third of a phone row and broke the text into five
           lines); the word stays its name for the reader and the tooltip */}
@@ -110,7 +115,7 @@ function PhaseBlock({
   state: TemplateState
   canTick: boolean
   problem?: { onTafel: boolean }
-  onTrend?: (item: Item, t: Tick['trend']) => void
+  onTrend?: (item: Item, t: FormTrend | undefined) => void
   onToggle: (item: Item) => void
   onBranch: (phaseId: string, branchId: string) => void
   onAction: (item: Item, a: NonNullable<Item['action']>) => void
@@ -152,6 +157,7 @@ function PhaseBlock({
             item={it}
             checked={!!ticks[it.id]}
             tickInfo={ticks[it.id]}
+            trend={state.trends?.[it.id]}
             canTick={canTick}
             onToggle={() => onToggle(it)}
             onAction={it.action && offersAction?.(it.action) === false ? undefined : (a) => onAction(it, a)}
@@ -174,7 +180,7 @@ export function ChecklistRunner({
   state: TemplateState
   canTick: boolean
   /** a `problems` list's Tendenz under a ticked item (lib/useChecklistActions · setTrend) */
-  onTrend?: (item: Item, t: Tick['trend']) => void
+  onTrend?: (item: Item, t: FormTrend | undefined) => void
   /** a page that shows the Einsatz's problems is on the Tafel (lib/problemLink) */
   problemsOnTafel?: boolean
   onToggle: (item: Item) => void

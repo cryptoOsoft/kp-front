@@ -61,11 +61,11 @@ export const drawingCopy = {
     reverse: 'Richtung umkehren',
     // die Quellen der Rechnung, hinter dem ⓘ im Kopf (ein Popover, der Abschnitt bleibt gleich gross)
     sourcesLabel: 'Quellen der Rechnung',
-    sourcesNote: 'Reibung: AGV KB 06.06–06.08 · Höhe: 1 bar pro 10 m (FKS 06.29) · Pumpe ab {bar} bar Eingangsdruck (FKS 06.42)',
+    sourcesNote: 'Reibung: AGV KB 06.06–06.08, 40 mm: GVB Behelf TLF/MS · Höhe: 1 bar pro 10 m (FKS 06.29) · Pumpe ab {bar} bar Eingangsdruck (FKS 06.42)',
     hoseDiameter: 'Schlauch-Ø',
-    hoseLabels: { '55': '55 mm', '75': '75 mm', '2x75': '2× 75', '110': '110 mm' },
+    hoseLabels: { '40': '40 mm', '55': '55 mm', '75': '75 mm', '2x75': '2× 75', '110': '110 mm' },
     // die Segmente der «Schlauch»-Zeile im Linien-Editor – dort steht «Schlauch» schon davor
-    hoseShort: { '55': '55', '75': '75', '2x75': '2× 75', '110': '110' },
+    hoseShort: { '40': '40', '55': '55', '75': '75', '2x75': '2× 75', '110': '110' },
     flow: 'Wasser',
     flowUnit: 'l/min',
     // das Suchfeld der Wasser-Auswahl: dort wird jede andere Menge eingetippt

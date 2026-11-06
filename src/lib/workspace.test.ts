@@ -461,8 +461,8 @@ describe('sanitizeWorkspace — per-object shape gate', () => {
   })
 
   it('drawings: a Leitung with an unknown Ø loses the Ø, not the line (the relay plan would throw)', () => {
-    const g = sanitizeWorkspace({ drawings: [{ ...LINE, hose: '2x75' }, { ...LINE, id: 'odd', hose: '90' }] })
-    expect(g.ws?.drawings.map((d) => d.hose)).toEqual(['2x75', undefined])
+    const g = sanitizeWorkspace({ drawings: [{ ...LINE, hose: '2x75' }, { ...LINE, id: 'd40', hose: '40' }, { ...LINE, id: 'odd', hose: '90' }] })
+    expect(g.ws?.drawings.map((d) => d.hose)).toEqual(['2x75', '40', undefined])
     expect(g.dropped).toBe(1)
   })
 

@@ -204,11 +204,13 @@ export const symbolsCopy = {
   // canonical category — only the heading localizes. Palette falls back to the raw key.
   symbolCategories: {
     'Schadenlage': 'Schadenlage',
-    'Gefahren': 'Gefahren',
-    'Gebäude': 'Gebäude',
-    'Wasser': 'Wasser',
+    'Fahrzeuge / Mittel': 'Fahrzeuge / Mittel',
     'Führung': 'Führung',
     'Personen / Sanität': 'Personen / Sanität',
     'Partner': 'Partner',
+    'Gefahren': 'Gefahren',
+    'Wasser': 'Wasser',
+    'Gebäude': 'Gebäude',
+    'Karte': 'Karte',
   } as Record<string, string>,
 } as const

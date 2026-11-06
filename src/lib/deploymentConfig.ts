@@ -168,6 +168,11 @@ export interface DeploymentDoctrine {
   /** metres the nearest object with plans may lie from the Einsatzadresse before the Plan warns
    *  «nicht die Einsatzadresse» (useObjectPlans · objectNearbyOnly). Absent = 25. */
   nearbyObjectWarnM?: number | null
+  /** the Ø a Leitung that stores none reads as (lib/hydraulics · hoseDefaults). Absent = 40. */
+  defaultLineHose?: HoseSize | null
+  /** the Ø a Wassertransport in Messen starts on, never 40 (hydraulics · RELAY_HOSE_SIZES).
+   *  Absent = 75. */
+  defaultRelayHose?: HoseSize | null
 }
 
 /** One Dienstgrad in the station's ordered rank list. Mirrors backend `RankConfig`. Position
@@ -524,7 +529,7 @@ import { idbGet, idbSet } from './idb'
 import { wgs84ToLV95, lv95ToWgs84 } from './geo'
 import { appConfig } from '../config/appConfig'
 import { DEFAULT_ATTENDANCE_MERGE_GAP_MIN } from './attendanceIntervals'
-import type { LayerDef, PlanDocument } from '../types'
+import type { HoseSize, LayerDef, PlanDocument } from '../types'
 
 const CACHE_KEY = 'kp-front-deployment-config'
 

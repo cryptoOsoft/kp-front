@@ -42,10 +42,10 @@ describe('ChecklistRunner · a problems list', () => {
   it('a ticked item says where it stands and offers ➚ = ➘; the picked one again clears it', () => {
     const onTrend = vi.fn()
     const { getByRole, queryByRole, getByText } = render(
-      <ChecklistRunner template={problems} state={{ ticks: { f1: { t: '2026-11-05T14:14:00.000Z', trend: 'same' } } }} canTick problemsOnTafel
+      <ChecklistRunner template={problems} state={{ ticks: { f1: { t: '2026-11-05T14:14:00.000Z' } }, trends: { f1: 'same', f2: 'up' } }} canTick problemsOnTafel
         onToggle={() => {}} onBranch={() => {}} onAction={() => {}} onTrend={onTrend} />,
     )
-    expect(queryByRole('group', { name: 'Tendenz von «Brand»' })).toBeNull() // not a problem: no trend
+    expect(queryByRole('group', { name: 'Tendenz von «Brand»' })).toBeNull() // not ticked: no Tendenz, its kept one waits
     const seg = getByRole('group', { name: 'Tendenz von «Energieträger»' })
     expect(getByText('auf der Tafel')).toBeTruthy()
     fireEvent.click(within(seg).getByRole('button', { name: 'wird schlimmer' }))

@@ -728,8 +728,10 @@ def build() -> list[dict]:
     return [{"cat": c, "name": n, "svg": s} for c, n, s in syms]
 
 
-ORDER = ["Schadenlage", "Gefahren", "Führung", "Fahrzeuge / Mittel",
-         "Personen / Sanität", "Partner", "Wasser", "Gebäude", "Karte"]
+# palette section order (owner pick 05.11.2026); the Palette inserts «Formen» right after
+# Gefahren (Palette · FORMEN_AFTER_CAT), so the sheet reads … Gefahren · Formen · Wasser …
+ORDER = ["Schadenlage", "Fahrzeuge / Mittel", "Führung", "Personen / Sanität", "Partner",
+         "Gefahren", "Wasser", "Gebäude", "Karte"]
 
 
 def main() -> None:

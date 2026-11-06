@@ -30,7 +30,7 @@ recorded group from either stack, including a group reduced to one part before i
   Rapport-Beilagen, Ansichten (`rememberOneShot`), a Pendenz corrected on the Tafel's «Aufträge /
   Pendenzen» page (its inverse is another appended correction, `workspace/useTafelPendenzen`).
 - *Grouped* – one act over the Tafel and the Checklisten (05.11.2026, `lib/problemLink`): a
-  problem's Tendenz set on a page writes the tick, a checklist problem deleted on a page un-ticks
+  problem's Tendenz set on a page writes the checklist's, a checklist problem deleted on a page un-ticks
   it – the board write and the slice write are ONE step (`UndoTimeline.group('plan')`,
   `usePlanTafelPages · editPage`). The bin's toast «… gelöscht · Rückgängig» takes back the step
   on top of ↶ (the same `stepHistory`), and declines once that is no longer its step.
