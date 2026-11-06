@@ -12,11 +12,14 @@
 import { appConfig } from '../config/appConfig'
 import type { MiniKarteProps } from '../components/MiniKarte'
 import { formForPdf, pageStamp, type FormAnno } from './boardForm'
+import { pendenzenForPdf } from './pendenzenPage'
 import { isOnline } from './connectivity'
 import { downloadBlob } from './download'
 import { buildKrokiPayload } from './krokiPayload'
 import { linkSessionHeaders } from './linkMode'
 import { formatDateTime } from './report'
+import type { LiveSection } from './boardTemplate'
+import type { TimelineEvent } from '../types'
 
 const BASE = import.meta.env.VITE_KP_RUECK_URL ?? ''
 
@@ -31,9 +34,12 @@ export function tafelPrintPayload(
   now: Date = new Date(),
   /** what each page is called (lib/boardForm · pageTitles — «Konzept 2») */
   titles?: ReadonlyMap<string, string>,
+  /** the Verlauf — what the «Aufträge / Pendenzen» page lists (lib/pendenzenPage) */
+  timeline: readonly TimelineEvent[] = [],
 ): Record<string, unknown> {
   const T = appConfig.copy.tafel
-  const boardPages = pages.map((a) => formForPdf(a.form, { up: T.trendUp, same: T.trendSame, down: T.trendDown }, undefined, T.head, titles?.get(a.id), pageStamp(a.form, T)))
+  const live = (s: LiveSection, base: Record<string, unknown>) => pendenzenForPdf(s, base, timeline, now.getTime())
+  const boardPages = pages.map((a) => formForPdf(a.form, { up: T.trendUp, same: T.trendSame, down: T.trendDown }, undefined, T.head, titles?.get(a.id), pageStamp(a.form, T), live))
   // the Lagekarte box: the scene as the Rapport prints it — auto-framed, no captions
   const wantsMap = pages.some((a) => a.form.page.sections.some((x) => x.type === 'map' && !x.hidden))
   const map = wantsMap && scene
@@ -60,10 +66,11 @@ export async function printTafelPages(
   incident: { id: string; title: string },
   scene?: MiniKarteProps,
   titles?: ReadonlyMap<string, string>,
+  timeline?: readonly TimelineEvent[],
 ): Promise<void> {
   if (!isOnline()) throw new TafelPrintOffline()
   const form = new FormData()
-  form.append('payload', JSON.stringify(tafelPrintPayload(pages, incident, scene, new Date(), titles)))
+  form.append('payload', JSON.stringify(tafelPrintPayload(pages, incident, scene, new Date(), titles, timeline)))
   let res: Response
   try {
     res = await fetch(`${BASE}/api/incidents/${encodeURIComponent(incident.id)}/tafel/pdf`, {

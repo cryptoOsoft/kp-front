@@ -15,6 +15,7 @@ import { safeHref, thumbUrl } from '../lib/mediaUrl'
 import { isHandWritten, isNachtrag, rowGlyph, rowPhotos, rowTarget, rowText, rowTime, type ArtTone } from '../lib/verlauf'
 import { journalDisc } from '../lib/report'
 import type { OpenReminder } from '../lib/reminders'
+import { DoneChip } from './DoneChip'
 import type { JournalProps } from './Journal'
 
 /** What the disc draws for a Pendenz, or null on every other row.
@@ -86,9 +87,13 @@ type JournalRowProps = Pick<JournalProps,
   openMap: ReadonlyMap<string, OpenReminder>
   /** how many times this row's state was re-stated in a run (lib/verlauf · repeatRuns); 1 = once */
   repeated: number
+  /** the row above it prints the same clock: this one's stamp steps back (`.t[data-same]`) */
+  sameMinute: boolean
   /** reminder id → the item's own words, and → the row that raised it (a Meldung's anchor) */
   pendenzTitles: ReadonlyMap<string, string>
   pendenzRowIds: ReadonlyMap<string, string>
+  /** closed item id → minutes ahead of its still-open re-raise (lib/reminders · openReRaises) */
+  reRaised: ReadonlyMap<string, number>
   audioWindows: readonly AudioWindow[]
   /** this row's recording is the one sounding */
   playing: boolean
@@ -110,7 +115,7 @@ type JournalRowProps = Pick<JournalProps,
 /** One Verlauf row: time, disc, the sentence, its trail of footnotes/media/controls, and the
  *  transcript lines and inline editors under it. Rendered by Journal once per shown row. */
 export function JournalRow({
-  e, plans, live, closedAt, now, replayAtMs, openMap, repeated, pendenzTitles, pendenzRowIds, audioWindows, playing,
+  e, plans, live, closedAt, now, replayAtMs, openMap, repeated, sameMinute, pendenzTitles, pendenzRowIds, reRaised, audioWindows, playing,
   editTx, editRow, marked, jumpToRow, onTogglePlay, onOpenDetail, setEditTx, setEditRow, saveTranscript, saveRowText,
   onSelect, onSeekTo, onTranscript, onEditText, onOpenPlayer, onReminderDone, onReminderAgain, mediaStatusOf,
 }: JournalRowProps) {
@@ -186,7 +191,7 @@ export function JournalRow({
       onClick={onRow}
       onKeyDown={onRow ? (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); onRow() } } : undefined}
     >
-      <span className="t">{rowTime(e)}</span>
+      <span className="t" data-same={sameMinute || undefined}>{rowTime(e)}</span>
       {/* ⚠️ The ring is the tick-off, HERE as well as in the pinned block. It was taken
           off the row on the grounds that two controls did the same thing and this one
           scrolls away — but a Pendenz is met in the log at least as often as in the
@@ -223,7 +228,7 @@ export function JournalRow({
         <span className={`jr-text ${remDone ? 'jr-rem-struck' : ''}`}>{marked(rowText(e), e.subjectId)}</span>
         {hasMeta && (
           <span className="jr-meta">
-            {/* Footnotes ABOUT the row — «Nachtrag», «korrigiert HH:MM», «6×». They say
+            {/* Footnotes ABOUT the row — «Nachtrag», «Korrigiert HH:MM», «Insgesamt 6×». They say
                 that the append-only record holds more than the row shows, which is worth
                 keeping and worth reading last: a footnote belongs after the thing it
                 annotates, not in front of it. */}
@@ -277,7 +282,15 @@ export function JournalRow({
                 newest: re-raising an hours-old Pendenz from where it was closed is the use.
                 Under the sentence, not beside it (27.10.2026, lead on #12): beside it the two
                 pills squeezed «Pendenz erledigt: …» into seven lines on a phone. */}
-            {closedRow && onReminderAgain && (
+            {/* …and a one-time action (docs/ui-conventions.md · One-time actions, 05.11.2026):
+                while the item it raised is open, the chips give way to ✓ «↻ in 30 min gesetzt»
+                (lib/reminders · openReRaises) – a double tap raised two. Its own done row offers
+                the next one. */}
+            {closedRow && onReminderAgain && (e.reminder && reRaised.has(e.reminder.id) ? (
+              <span className="jr-again">
+                <DoneChip>{fillTemplate(C.againSet, { mins: String(reRaised.get(e.reminder.id)) })}</DoneChip>
+              </span>
+            ) : (
               <span className="jr-again">
                 {[30, 60].map((m) => (
                   <button
@@ -288,7 +301,7 @@ export function JournalRow({
                   >↻ {fillTemplate(C.againChip, { mins: String(m) })}</button>
                 ))}
               </span>
-            )}
+            ))}
           </span>
         )}
       </span>
@@ -361,7 +374,7 @@ export function JournalRow({
         {/* ── Der Stift ist von der Zeile gezogen (29.08., Variante 2) ──
             Correcting a hand-written line stays exactly what it was — an appended
             `textEdit` patch, both wordings in the record and in the hash chain, the
-            line says «korrigiert HH:MM» — but the pen now lives in the row's detail
+            line says «Korrigiert HH:MM» — but the pen now lives in the row's detail
             sheet (tap the row), not as an inline icon. It is paperwork, not a 3am
             action. Still NEVER on system rows («Trupp 2 eingerückt» is the app
             reporting an action), and NOT on audio rows (their words live in the

@@ -4,10 +4,13 @@
    it wore the tool docks' solid --ink-fill in both themes. A menu you pick from is not an armed
    mode; dark in both themes is the Trupp marker bar's alone (the docks went light 20.10.). Tokens only below.
    256px, not 232 (sweep K14): the last row carries the ⓘ at its end now, and at 232 «Ansicht
-   speichern» ellipsised beside it («Enregistrer la vue» worse). */
+   speichern» ellipsised beside it («Enregistrer la vue» worse).
+   THE menu shell (docs/ui-conventions · «One look per overlay kind», hill climb r36): --r-bar over
+   an even --bar-pad and --e4 – it was the one menu with a 12px corner and 8px of padding. The
+   glass stays (K8), so it takes the glass variant of the shell: the 1px --glass-line edge. */
 .pop { z-index: var(--z-floating-card); width: 256px; max-width: calc(100vw - 16px); max-height: calc(100dvh - 32px); overflow-y: auto;
-  background: var(--float-bg); backdrop-filter: var(--float-blur); box-shadow: var(--float-edge);
-  color: var(--ink); border-radius: var(--r-surface); padding: 8px; }
+  background: var(--float-bg); backdrop-filter: var(--float-blur); box-shadow: inset 0 0 0 1px var(--glass-line), var(--e4);
+  color: var(--ink); border-radius: var(--r-bar); padding: var(--bar-pad); }
 /* No entry animation: the `animation: popIn` this rule used to carry never ran (a module
    localizes the name, so the global keyframes were unreachable), and the menu is opened dozens
    of times an Einsatz — 150 ms before it is usable, every time, is not worth the flourish. */
@@ -72,7 +75,9 @@
 .hasNote { align-items: flex-start; }
 .hasNote .ico { margin-top: 2px; }
 
-.mini { flex: none; width: 40px; height: 44px; display: grid; place-items: center; border: none;
+/* a --tap square (it was 40 wide, hill climb r34): two of them sit 2px apart at a row's end, so
+   they grow rather than take a pad that would answer for the neighbour */
+.mini { flex: none; width: var(--tap); height: var(--tap); display: grid; place-items: center; border: none;
   background: transparent; border-radius: var(--r-sm); color: var(--ink-faint); cursor: pointer;
   transition: background .12s var(--ease), color .12s var(--ease); }
 @media (hover: hover) { .mini:hover { background: var(--ink-8); color: var(--ink); } }

@@ -67,6 +67,13 @@ body {
    size, weight and line-height stay the UA's until a rule sets them, so no control changes size
    here. A control never needs its own `font-family: inherit` again. */
 button, input, select, textarea { font-family: inherit; }
+/* ONE placeholder, app-wide (council 04.11.2026): the UA's own grey (WebKit/Blink `darkGray`,
+   Firefox the text at .54) is a neutral, warmish grey that at night read DULLER than the labels
+   around it, so an empty form looked like a row of disabled fields. The cool --ink-faint tier
+   instead (AA on --surface in both themes, tokenContrast.test.ts), at regular weight, so a hint
+   never wears the weight of a value. `opacity: 1` undoes Firefox's fade. A field that wants
+   its own (the title inputs, the note pill) still sets it on its class. */
+::placeholder { color: var(--ink-faint); font-weight: var(--fw-regular); opacity: 1; }
 /* only the map + plan get raw multi-touch (their own JS owns the zoom) */
 #map, .maplibregl-map, .maplibregl-canvas, .wb-stage, .wb-canvas { touch-action: none; }
 .app { position: fixed; inset: 0; }

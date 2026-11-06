@@ -106,15 +106,18 @@ describe('the mini sheets', () => {
   })
 
   /* ③ — the opened PHONE card's facts are chips (TruppCard · facts): each a door, the ⋯ last, the
-   * missing Auftrag a dashed «+ Auftrag», and nothing for a missing Leitung. */
-  it('lays the phone card\'s facts out as chips — crew · Auftrag · Ziel · Kanal · Kürzel · ⋯ — each a door', () => {
+   * missing Auftrag a dashed «+ Auftrag», and nothing for a missing Leitung. The crew is no chip
+   * since 05.11.2026 (owner pick A3): its own line under the name, still the Trupp sheet's door. */
+  it('lays the phone card\'s facts out as chips — Auftrag · Ziel · Kanal · Kürzel · ⋯ — each a door, the crew a line', () => {
     vi.mocked(useIsPhone).mockReturnValue(true)
     const editTrupp = vi.fn()
     mount({ trupps: [{ ...withFacts(), equipment: ['wbk'] }], editTrupp })
     fireEvent.click(document.querySelector(`.${s.trow}`)!)
     const card = document.querySelector('[data-az-open]') as HTMLElement
-    const chips = [...card.querySelectorAll(`.${s.facts} > *`)]
-    expect(chips.map((c) => c.textContent)).toEqual(['Huber', 'Löschen · Test', fillTemplate(az.lineChip, { n: 1 }), `${az.funkkanalUnit} 11`, 'WBK'])
+    const chips = [...card.querySelectorAll(`.${s.facts} .${s.fact}`)]
+    expect(chips.map((c) => c.textContent)).toEqual(['Löschen · Test', fillTemplate(az.lineChip, { n: 1 }), `${az.funkkanalUnit} 11`, 'WBK'])
+    const crew = card.querySelector(`.${s.crewLine}`)!
+    expect([crew.tagName, crew.textContent]).toEqual(['BUTTON', 'Huber'])
     // every chip is a button; the ⋯ is NOT a chip — it ends the foot line (29.09.2026, owner pick B)
     expect(chips.every((c) => c.tagName === 'BUTTON')).toBe(true)
     expect(card.querySelector(`.${s.vfootRow}`)!.lastElementChild!.getAttribute('aria-label')).toBe(az.cardMenu)
@@ -123,7 +126,7 @@ describe('the mini sheets', () => {
     // the Kanal chip opens the pad, the Auftrag chip the Auftrag sheet
     fireEvent.click(within(card).getByRole('button', { name: `${az.funkkanalUnit} 11` }))
     expect(screen.getByRole('dialog', { name: new RegExp(`^${az.funkkanalUnit}`) })).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: az.cancel }))
+    fireEvent.click(screen.getByRole('button', { name: appConfig.copy.closeDialog }))
     fireEvent.click(within(card).getByRole('button', { name: 'Löschen · Test' }))
     expect(screen.getByRole('dialog', { name: new RegExp(`^${az.editFieldLabels.auftrag}`) })).toBeTruthy()
   })
@@ -157,7 +160,7 @@ describe('the mini sheets', () => {
 
   /* ④ — the Trupp sheet: the form's crew picker and the Ausrüstung toggles in one short sheet,
    * saved through editTrupp with the crew and the Ausrüstung replaced and nothing else touched. */
-  it('the crew chip opens the Trupp sheet; ✕ on a member and Speichern write the smaller crew', async () => {
+  it('the crew line opens the Trupp sheet; ✕ on a member and Speichern write the smaller crew', async () => {
     vi.mocked(useIsPhone).mockReturnValue(true)
     const editTrupp = vi.fn()
     mount({ trupps: [{ ...withFacts(), equipment: ['wbk'] }], editTrupp })
@@ -342,9 +345,10 @@ describe('the handed-over board on a phone (focus mode)', () => {
   })
 
   /* ── The Notfall on the link board (R1, 30.10.2026: «red and notfall is already enough») ────
-   * Its own tab: the page IS the Notfall — head «Notfall seit …», both clocks named, the
-   * Sicherungstrupp act with «Anderer ⌄» — and no banner over it. Any other tab: a red strip
-   * whose tap goes back to the Notfall's page. */
+   * Its own tab: the page IS the Notfall — the red name, both clocks named, no «Notfall seit …»
+   * eyebrow, and the Sicherungstrupp act with «Anderer ⌄» down in the page's controls, first of them
+   * (owner pick E3, 06.11.2026); its own tab is the plain open tab — and no banner over it. Any
+   * other tab: a red strip whose tap goes back to the Notfall's page. */
   it('makes the Notfall Trupp\'s page the Notfall, and leads back to it from every other tab', () => {
     vi.mocked(useIsPhone).mockReturnValue(true)
     const nf = az.notfall
@@ -359,6 +363,12 @@ describe('the handed-over board on a phone (focus mode)', () => {
     expect(screen.getByText(nf.pageContact)).toBeTruthy()
     expect(screen.getByRole('button', { name: new RegExp(nf.sitrDeploy) }).textContent).toContain('Willi Wache')
     expect(screen.getByRole('button', { name: nf.sitrOtherLabel })).toBeTruthy()
+    expect(document.querySelector(`.${s.nfPageAct}`)?.parentElement?.classList.contains(s.pageActs)).toBe(true)
+    expect(document.querySelector(`.${s.pageActs}`)!.firstElementChild!.classList.contains(s.nfPageAct)).toBe(true)
+    expect(document.querySelector(`.${s.nfPage}`)!.textContent).not.toMatch(/Notfall seit/)
+    // the crew line right under the red name, before the clocks
+    expect(document.querySelector(`.${s.nfPageName} + .${s.crewLine}`)!.textContent).toBe('Huber')
+    expect(screen.getByRole('tab', { name: /Nora Notfall/ }).classList.contains(s.tabNf)).toBe(true)
     expect(document.querySelector(`.${s.nfBanner}`)).toBeNull()
 
     fireEvent.click(screen.getByRole('tab', { name: /Ida Innen/ }))

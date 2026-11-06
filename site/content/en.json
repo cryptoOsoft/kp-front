@@ -104,7 +104,7 @@
         "time": "03:12",
         "tag": "Teams",
         "h3": "Team 1 goes in.",
-        "p": "Cylinder pressure, turnaround time and contact clock run per team. The app speaks up\n            before it gets tight – even when nobody happens to be watching the clock."
+        "p": "Cylinder pressure, turnaround time and contact clock run per team. The app speaks up\n            before it gets tight – even when nobody happens to be watching the clock.\n            KP Front issues relevant warnings directly in the app, visually and audibly. When several synchronised\n            devices are in use, the warning states are aligned over the existing network connection. Audible\n            warnings can be switched off if needed."
       },
       {
         "time": "03:18",
@@ -295,8 +295,8 @@
   },
   "sibling": {
     "eyebrow": "Related project",
-    "h2": "KP Front commands at the front. KP Rück keeps the overview behind it.",
-    "p": "<strong>KP Rück</strong> is the digital version of the magnetic board in the rear\n          command post: one board for personnel, vehicles and equipment. Its own app, the same\n          handwriting – both take the same alarm\n          from the dispatch system, and neither needs the other.",
+    "h2": "KP Front brings tactical depth at the incident site. KP Rück brings operational breadth across the overall situation.",
+    "p": "<strong>KP Rück</strong> is the digital version of the magnetic board in the rear\n          command post: one board for personnel, vehicles and equipment. Its own app, the same\n          handwriting – both take the same alarm\n          from the dispatch system, and neither needs the other. Both apps can be used in parallel and independently of each other for the same situation.",
     "cta": "Take a look at KP Rück",
     "setup": {
       "h3": "Running both – without setting everything up twice",
@@ -348,7 +348,7 @@
       },
       {
         "q": "Does KP Front work without an internet connection?",
-        "a": "Yes. As an installed app, KP Front runs on the device: map, plans, teams and log\n          stay usable even when the network drops. The app loads the maps and plans around an\n          incident by itself, shortly after it is opened – and the <strong>readiness check</strong>\n          shows before an incident whether the required data is on the device. After an\n          interruption, changes are synchronised again as soon as a connection is available;\n          whatever was recorded in the meantime is kept."
+        "a": "Yes. KP Front can generally be used offline. Maps and other required data are stored locally. The app\n          loads the maps and plans around an incident by itself, shortly after it is opened – and the\n          <strong>readiness check</strong> shows before an incident whether the required data is on the device.\n          Offline, weather and other time-dependent external data reflect the state of the last update. Several\n          devices can be synchronised over an existing network connection, if needed also within your own local\n          network without internet access. After an interruption, changes are synchronised again as soon as a\n          connection is available; whatever was recorded in the meantime is kept."
       },
       {
         "q": "Can we adapt it to how we work?",

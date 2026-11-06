@@ -123,6 +123,18 @@ describe('Journal · the Pendenzen block', () => {
     expect(box.querySelector('[data-ev]')).toBeNull()
   })
 
+  // mock 6A, Verlauf side: who an item is for, and that it was typed on the Tafel — a tap opens it
+  it('says «Wer» under an item that has one, and «von der Tafel» opens the page', () => {
+    const onOpenTafel = vi.fn()
+    setup({ openReminders: [pendenz('p3', 'Gemeinde informieren', { assignee: 'EL', origin: 'tafel' }), pendenz('p4', 'Lüfter holen')], onOpenTafel })
+    const rows = document.querySelectorAll('.jr-pinned-row')
+    expect(rows[0].querySelector('.jr-pinned-wer')?.textContent).toBe('Wer: EL')
+    expect(rows[0].querySelector('.jr-pinned-meta .jr-pinned-from')?.textContent).toBe('von der Tafel')
+    expect(rows[1].querySelector('.jr-pinned-meta')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: /von der Tafel/ }))
+    expect(onOpenTafel).toHaveBeenCalledTimes(1)
+  })
+
   // Nothing open ⇒ no box, and the log has the whole drawer. That is the state most of an
   // Einsatz is in, and an empty amber frame standing over it would cost height for no content.
   it('draws no box at all when nothing is open', () => {
@@ -360,6 +372,24 @@ describe('Journal · the classification column', () => {
     expect(document.querySelector('[data-ev="c1"] .jr-ring-open')).toBeTruthy()
   })
 
+  // a one-time action (05.11.2026: a double tap raised two) – while the item it raised is open,
+  // the done row says so instead of offering the chips again
+  it('a done row whose «wieder in» is still open shows ✓ «↻ in 30 min gesetzt», no chips', () => {
+    setup({
+      events: [
+        { id: 'n1', t: '', at: new Date(1_040_000).toISOString(), icon: 'bell', kind: 'reminder',
+          text: 'Erinnerung gesetzt: Lagerapport durchführen',
+          reminder: { op: 'created', id: 'p3', dueAt: new Date(1_040_000 + 30 * 60_000).toISOString(), text: 'Lagerapport durchführen', again: 'p2' } },
+        { id: 'd1', t: '', at: new Date(1_030_000).toISOString(), icon: 'check', kind: 'reminder',
+          text: 'Pendenz erledigt: Lagerapport durchführen', reminder: { op: 'done', id: 'p2' } },
+      ],
+      openReminders: [pendenz('p3', 'Lagerapport durchführen', { rowId: 'n1' })],
+      onReminderAgain: vi.fn(),
+    })
+    expect(document.querySelectorAll('[data-ev="d1"] .jr-again-btn')).toHaveLength(0)
+    expect(document.querySelector('[data-ev="d1"] [role="status"]')?.textContent).toContain('↻ in 30 min gesetzt')
+  })
+
   it('renders no «wieder in» chips when the handler is absent', () => {
     setup({
       events: [
@@ -381,7 +411,7 @@ describe('Journal · the classification column', () => {
     expect(document.querySelector('[data-ev="n1"] .ic use')?.getAttribute('href')).toBe('#type')
   })
 
-  // «Nachtrag» / «korrigiert HH:MM» / «6×» are footnotes on the row: they belong UNDER the
+  // «Nachtrag» / «Korrigiert HH:MM» / «Insgesamt 6×» are footnotes on the row: they belong UNDER the
   // sentence – in front of it they pushed the text off its axis, beside it (in the trail) they
   // took half a phone row and broke «Audionotiz» mid-word (27.10.2026, #12).
   it('puts the footnotes under the sentence, not in the trail', () => {
@@ -389,7 +419,7 @@ describe('Journal · the classification column', () => {
     setup({ events: [{ ...events[0], correctedAt: at }, ...events.slice(1)] })
     const row = document.querySelector('[data-ev="r3"]')!
     const foot = row.querySelector('.jr-foot')!
-    expect(foot.textContent).toMatch(/^korrigiert \d{1,2}:\d{2}$/)
+    expect(foot.textContent).toMatch(/^Korrigiert \d{1,2}:\d{2}$/)
     expect(foot.closest('.jr-main')).toBeTruthy()
     expect(foot.closest('.jr-trail')).toBeNull()
     expect(row.querySelector('.jr-text')!.compareDocumentPosition(foot) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
@@ -445,7 +475,7 @@ describe('Journal · correcting a line (append-only)', () => {
   it('marks a corrected line with the time of the correction', () => {
     const at = new Date(1_060_000).toISOString()
     setup({ events: [{ ...events[0], correctedAt: at }, ...events.slice(1)] })
-    expect(screen.getByText(/^korrigiert \d{1,2}:\d{2}$/)).toBeTruthy()
+    expect(screen.getByText(/^Korrigiert \d{1,2}:\d{2}$/)).toBeTruthy()
   })
 })
 
@@ -597,7 +627,7 @@ describe('Journal · the search in the head', () => {
     const field = screen.getByRole('textbox', { name: 'Im Verlauf suchen' })
     expect(document.activeElement).toBe(field)
     // the head is still there, and the lens in it is lit
-    expect(screen.getByText(/Verlauf · 3/)).toBeTruthy()
+    expect(document.querySelector('.journal-title')?.textContent).toBe('Verlauf · 3')
     expect(screen.getAllByRole('button', { name: 'Suche schliessen' })[0].classList.contains('on')).toBe(true)
     fireEvent.change(field, { target: { value: 'feuer' } })
     expect(rows()).toEqual(['r3'])
@@ -606,7 +636,7 @@ describe('Journal · the search in the head', () => {
     const closers = screen.getAllByRole('button', { name: 'Suche schliessen' })
     fireEvent.click(closers[closers.length - 1])
     expect(screen.queryByRole('textbox')).toBeNull()
-    expect(screen.getByText(/Verlauf · 3/)).toBeTruthy()
+    expect(document.querySelector('.journal-title')?.textContent).toBe('Verlauf · 3')
     expect(rows()).toEqual(['r3', 'r2', 'r1'])
   })
 

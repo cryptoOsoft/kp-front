@@ -5,9 +5,9 @@
 //   - independent additions to different objects all survive (ordered by server appearance);
 //   - edits to the SAME object are last-writer-wins (the device flushing later wins) — except
 //     Trupps, which merge field-level (mergeTrupp) because an SCBA record must never lose a
-//     pressure reading to a concurrent radio contact, and Anwesenheit entries and Zeitplan
-//     shifts, which merge per field (mergeFields) so two devices saving different fields of one
-//     record in the same second both keep their edit;
+//     pressure reading to a concurrent radio contact, and Anwesenheit entries, Zeitplan shifts
+//     and a live vehicle's override row, which merge per field (mergeFields) so two devices
+//     saving different fields of one record in the same second both keep their edit;
 //   - a delete BEATS a concurrent edit — the object stays gone, no resurrection;
 //   - two devices that minted the same «Trupp N» at once end with ONE holder of the number, the
 //     others renumbered from the one counter (lib/truppNumbers — the last step of mergeWorkspace).
@@ -179,8 +179,8 @@ export interface RecordConflict {
   theirs: unknown
 }
 
-/** Three-way merge of a plain key→value record (vehicleOverrides by entity id, checklists by
- *  template id, attendance by Person id, planScale by plan id, and the flat settings/reportMeta
+/** Three-way merge of a plain key→value record (vehicleOverrides by entity id, a checklist's
+ *  ticks by item id, attendance by Person id, planScale by plan id, and the flat settings/reportMeta
  *  singletons). Per key: a delete (present in base, gone on one side) wins; otherwise the side
  *  that actually CHANGED the value relative to the ancestor wins, and if both changed it's
  *  last-writer-wins (mine). Crucially, a key the resolver left untouched takes the server's value
@@ -559,6 +559,29 @@ const withoutNoteAt = (v: unknown): unknown => {
 const byId = (b: unknown, m: unknown, t: unknown) => mergeById(asList(b), asList(m), asList(t))
 const byKey = (b: unknown, m: unknown, t: unknown) => mergeRecord(asRecord(b), asRecord(m), asRecord(t))
 
+/**
+ * The Checklisten tick state, merged PER TICK (05.11.2026). It merged per template (`byKey`), so a
+ * device ticking «Energieträger» while another ticked «Personenbelegung» in the same list was
+ * «both changed one record» → mine, and the other device's tick was gone – on the Problemerfassung,
+ * where two officers tick at once and every tick is a line on the Tafel. Now each template's
+ * `ticks`, `activeBranch` and `trends` merge key by key (mergeRecord): ticks on different items
+ * both stand, the same item changed on both keeps mine. A problem's Tendenz lives in `trends`, not
+ * on its tick (06.11.2026), so an un-tick on one device and a Tendenz set on another both stand –
+ * the re-tick finds it. Every other key of a template state rides with mine.
+ */
+export function mergeChecklists(b: unknown, m: unknown, t: unknown): Record<string, unknown> {
+  const [B, M, T] = [asRecord(b), asRecord(m), asRecord(t)]
+  const out: Record<string, unknown> = {}
+  for (const k of new Set([...Object.keys(T), ...Object.keys(M)])) {
+    const [sb, sm, st] = [asRecord(B[k]), asRecord(M[k]), asRecord(T[k])]
+    const byItem = (key: 'activeBranch' | 'trends') => (key in sm || key in st
+      ? { [key]: mergeRecord(asRecord(sb[key]), asRecord(sm[key]), asRecord(st[key])) } : {})
+    const ticks = mergeRecord(asRecord(sb.ticks), asRecord(sm.ticks), asRecord(st.ticks))
+    out[k] = { ...st, ...sm, ticks, ...byItem('activeBranch'), ...byItem('trends') }
+  }
+  return out
+}
+
 /** Every field of the blob and how it merges (see FieldPolicy). The functions run in this order,
  *  which is also the order their keys are appended to the merged blob. */
 export const MERGE_POLICY = {
@@ -603,8 +626,12 @@ export const MERGE_POLICY = {
     return !tv || (mv && mv <= tv) ? mi : th
   }),
   board: (_b, _m, _t, cx) => cx.views.board,
-  vehicleOverrides: byKey, // by entity id
-  checklists: byKey, // by template id
+  // by entity id — and PER FIELD when both sides changed one vehicle's override: the Fahrer named
+  // on the tablet and the Herkunft set on the phone in the same second both stand (05.11.2026).
+  // The position is one fact, so `coord` stays one field; a field both changed keeps mine.
+  vehicleOverrides: (b, m, t) => mergeRecord(asRecord(b), asRecord(m), asRecord(t), undefined,
+    (a, mi, th) => (isObj(a) && isObj(mi) && isObj(th) ? mergeFields(a, mi, th).merged : mi)),
+  checklists: mergeChecklists, // per tick, within each template (mergeChecklists)
   // records/singletons that ALSO need three-way merging so a concurrent edit in another domain
   // (the "task-scoped multi-editor" case) isn't clobbered by the resolver's whole blob:
   // per-Person presence — a prime parallel-editor surface. A divergence is REPORTED only when the

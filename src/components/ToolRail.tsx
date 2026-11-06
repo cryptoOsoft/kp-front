@@ -185,7 +185,7 @@ export function ToolRail({ primary, tools, active, open = false, onPick, toolRef
           }
           // a sentinel entry renders a group divider so the rail reads as clusters
           // (selection · symbol · create · annotate) instead of one undifferentiated stack
-          if (t.sep) return <span key={t.id} className="vrail-sep" aria-hidden />
+          if (t.sep) return <span key={t.id} className="vrail-sep rail-sep" aria-hidden />
           return toolButton(t)
         })}
         {extras}
@@ -194,7 +194,7 @@ export function ToolRail({ primary, tools, active, open = false, onPick, toolRef
 
       {/* PHONE: the view controls are the folded bar's pinned end (15-mobile · .vrail-nav) */}
       {phone && <>
-        <div className="vrail-sep vrail-sep-foot" />
+        <div className="vrail-sep vrail-sep-foot rail-sep" />
         <div className="vrail-nav">{controls}</div>
       </>}
 

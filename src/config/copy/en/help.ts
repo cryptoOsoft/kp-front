@@ -258,7 +258,7 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
         ],
       },
       {
-        id: 'verlauf', title: 'Log & entry', icon: 'history',
+        id: 'verlauf', title: 'Log & entry', icon: 'verlauf',
         blocks: [
           { kind: 'lead', text: 'A shared, running log across Situation and Plan – the incident chronicle.' },
           { kind: 'list', items: [

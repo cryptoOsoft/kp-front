@@ -133,16 +133,40 @@
 /* the pill goes somewhere — a small, quiet chevron, never the pill's own weight */
 .wb-scale-chip .wb-chip-chev { width: 12px; height: 12px; flex: none; color: var(--ink-faint); margin-left: -2px; }
 /* ── The pill row's lamp ───────────────────────────────────────────────────────────────────────
-   The Objekt chip (on the Gebäude: the building chip) carries ONE 9px Ampel dot since sweep
+   The Objekt chip (on the Gebäude: the building chip) carries ONE Ampel dot since sweep
    28.10.2026 (#8) – the worse of Karte link and Massstab – in the SAME three tones the
    georeference's own lamp uses (GeorefMode.module.css · .dot / .sdot); the Plan sheet behind the
    tap (PlanFactsSheet) repeats each fact's own dot with its word. Tones are decided in TS —
    planScale · planFactsTone / scaleLampTone and georefMode · georefChipTone — never here, so the
-   chip and the sheet behind it can never disagree about whether a reference is good. */
-.wb-lamp { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+   chip and the sheet behind it can never disagree about whether a reference is good.
+   On the chip it stands RIGHT AFTER the name, 8px from the word (hill climb r21, Opus 3 + Sol 2):
+   cut into the glyph's top-right corner (r13) the ring and the building read as one odd glyph.
+   Close to the word, not at the chip's trailing edge, so it reads as the name's state – a 9px ring
+   out at the edge (before r13) read as a radio button, a control.
+   ONE lamp, chip and sheet: an 8px disc when lit; UNLIT a 10px BROKEN ring – 1.5px of --ink-dim,
+   four long arcs with ~2.3px gaps on the diagonals – in the chip's GLYPH colour (`.wb-scale-chip svg`), not its
+   text ink; its middle on the name's x-height middle (hill climb r23, Opus 1: r22's solid 10px /
+   1.5px ring on the cap-height middle read as a capital «O», «Gebäude O»; a solid 8px / 2px ring on
+   the x-height – tried first in r23 – was exactly the bold lowercase «o» of the word beside it.
+   No letter is dashed, so the broken ring reads as a mark: «not set yet». Four arcs since r24, Opus
+   4: r23's eight 2px dashes read as a loading spinner; four arcs read as an outline with gaps).
+   ⚠️ The Rapport's open mark shares the arcs but differs ON PURPOSE since r26: 12px, amber – a
+   pending task; an unset «Gebäude» is not. The sheet's dot stands before its status word, 8px (PlanFactsSheet.module.css ·
+   .status gap). */
+/* translate: the row centres the box on the name's line box, whose middle stands 1px above the
+   x-height middle (Sora at --fs-1, measured r23) */
+.wb-lamp { width: 8px; height: 8px; border-radius: 50%; flex: none; translate: 0 1px; }
 .wb-lamp[data-tone='red'] { background: var(--red); }
-/* «not yet» — no scale, no link (29.09.2026, sweep K10): grey, never red at rest */
-.wb-lamp[data-tone='grey'] { background: var(--ink-faint); }
+/* «not yet» — no scale, no link (29.09.2026, sweep K10): grey, never red at rest. An UNLIT lamp
+   (05.11.2026, hill climb r13): a filled grey disc after «Gebäude» read as a decoration with no
+   meaning; the empty ring says «nothing set yet», the sheet behind the tap says which.
+   The arcs are a MASK over the token colour, so the ring follows the theme; `pathLength` 26.8 (the
+   r 4.25 circumference, 26.7) makes the 4.4 + 2.3 pattern close on itself in exactly four arcs, butt
+   caps; the 2.2 offset centres each gap on a diagonal (45°), so none sits at 12 o'clock. Gaps of 2
+   blurred shut at 1x on the diagonal pixels; at 2.5 the arcs read as four dashes of a square. */
+.wb-lamp[data-tone='grey'] { width: 10px; height: 10px; background: var(--ink-dim);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Ccircle cx='5' cy='5' r='4.25' fill='none' stroke='black' stroke-width='1.5' pathLength='26.8' stroke-dasharray='4.4 2.3' stroke-dashoffset='2.2'/%3E%3C/svg%3E") center / 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Ccircle cx='5' cy='5' r='4.25' fill='none' stroke='black' stroke-width='1.5' pathLength='26.8' stroke-dasharray='4.4 2.3' stroke-dashoffset='2.2'/%3E%3C/svg%3E") center / 100% no-repeat; }
 .wb-lamp[data-tone='amber'] { background: var(--amber); }
 .wb-lamp[data-tone='green'] { background: var(--green); }
 /* a read-out with nowhere to go (a link-scoped viewer is bound to ONE object) is not greyed out
@@ -306,26 +330,52 @@
    via the canvas grid: now that the board's box grows past the viewport when
    zoomed, grid `place-items: center` mis-centers the oversized item, which broke
    zoom-to-cursor. The pan offset rides on top of the centering translate. */
-.wb-board { position: absolute; left: 50%; top: 50%; transform-origin: center center; will-change: transform; box-shadow: var(--e3); background: var(--board-bg); }
+.wb-board { position: absolute; left: 50%; top: 50%; transform-origin: center center; will-change: transform; background: var(--board-bg);
+  /* an ink hairline INSIDE the edge: the e3 ring is black, and at night a black ring on the dark
+     stage left the sheet with no edge at all (04.11.2026) */
+  box-shadow: inset 0 0 0 1px var(--ink-16), var(--e3); }
+/* …a Gebäude stack's outline is its storey dividers' line (.wb-floor below), day (hill climb r15) and
+   night (r17, Sol 3: at night the 1px --ink-16 edge was quieter than the 2px dividers inside it, and
+   the stack read as loose bands instead of one building) */
+.wb-board-stack { box-shadow: inset 0 0 0 1.5px var(--ink-45), var(--e3); }
+:root[data-theme="night"] .wb-board-stack { box-shadow: inset 0 0 0 2px var(--ink-28), var(--e3); }
 /* (.wb-pdf-base / .wb-pdf-refine migrated → PdfViewport.module.css) */
 
 /* floor-stack ("Gebäude" doc) — a vertical stack of footprint sheets. Each tile
    sized inline (top/height/width in board px); the footprint is contained at its
-   true aspect, with a corner storey label. */
-/* the dashed line between two storeys is INK-derived, not a frozen slate: frozen, it vanished
-   into the night board (--board-bg #1c2330) and the stack read as one tall sheet */
-/* ⚠️ ONE left inset for the whole stack (18.09.2026). The header label and the folded strip used
-   to carry their own paddings (10+9px vs 12px), so a folded storey's chip sat visibly out of the
-   column its neighbours above and below formed. Both read this one value now, and the header's
-   soft plate bleeds by its own padding so that the CHIP — not the plate — stands on the inset.
-   The strip's right-hand action uses the same value on the other side. */
-.wb-board { --wb-floor-inset: 12px; --wb-floor-plate-pad: 4px; }
+   true aspect, with its storey label in the gutter left of the stack. */
+/* the line between two storeys is INK-derived, not a frozen slate: frozen, it vanished into the
+   night board (--board-bg #1c2330) and the stack read as one tall sheet. SOLID since 04.11.2026:
+   the faint dash still let neighbouring storeys run together at night. */
+/* `--wb-floor-inset`: the folded strip's left and right padding inside the stack.
+   `--wb-floor-plate-pad`: the storey label plate's padding.
+   `--wb-label-lane`: the storey-label gutter left of the stack (= lib/whiteboard · STACK_LABEL_LANE,
+   which the fit keeps free). */
+/* plate pad 8px all round (hill climb r7 + owner pick A8, 05.11.2026): at 4px the plate was 22px tall
+   and read as an annotation beside the 44px «+ OG» buttons; 30px now says «control». The sides grew
+   from 4px to 8px too (on a phone «3. OG ⌄» touched its own edge), so the gutter grew 64 → 72px to
+   keep «3. OG ⌄» inside it and the stack moved 8px right.
+   `--wb-floor-plate-w`: ONE width for every storey plate, the widest standard name's («3. OG ⌄»,
+   ~70px) on the 4px grid – sized from their text, «EG» stood narrower and the column's edge
+   zig-zagged (hill climb r15, Opus 8). The lane is that plate + its 8px gap (80, was 72: «3. OG ⌄»
+   already reached 5px past it). A longer custom name still grows further left. Inside it the
+   label stands LEFT at the 8px padding and the ⌄ is pinned 8px from the plate's RIGHT edge
+   (.wb-floor-menu > .i), the free room between them (hill climb r24, Opus 6): centred as a group
+   (r16) the chevrons wandered – «EG ⌄» ~8px left of «3. OG ⌄» – and the column was ragged; now
+   names start on one line and the chevrons form one. */
+.wb-board { --wb-floor-inset: 12px; --wb-floor-plate-pad: var(--sp-2); --wb-floor-plate-w: 72px; --wb-label-lane: 80px; }
 /* `container-type: inline-size` makes the tile the query container for its own header: the board
    is zoomed by LAYOUT (the tile's width is set in rendered px), so the tile's inline size IS the
    rendered width — nothing is counter-scaled and no viewport media query could see it. */
 .wb-floor { position: absolute; left: 0; display: flex; align-items: center; justify-content: center;
   container-type: inline-size;
-  border-bottom: 1px dashed var(--ink-28); }
+  border-bottom: 1.5px solid var(--ink-45); }
+/* day: 1.5px --ink-45 (there is no --border-strong; this is the strong hairline tier) – at 1px
+   --ink-22 the white storeys ran together in sunlight (hill climb r15, Opus 10); the stack's outline
+   wears the same (.wb-board-stack), at night too. Night: 2px and a step brighter – on the dark board the 1px rule
+   was still the faintest line on the sheet, fainter than the drawings inside a storey (hill climb
+   r5, 04.11.2026) */
+:root[data-theme="night"] .wb-floor { border-bottom: 2px solid var(--ink-28); }
 /* the storey a dragged selection would land on (useWbBodyDrag / useWbSelectionBar · setDropFloor) */
 .wb-floor-drop { background: var(--sel-wash); box-shadow: inset 0 0 0 2px var(--sel); }
 .wb-floor-fp { flex: none; } /* width/height set inline (px), fit to the tile preserving aspect */
@@ -342,41 +392,62 @@
 /* never wraps: on a zoomed-out stack the tile is ~330px or less and «1. OG» broke after «1.» */
 .wb-floor-name { font-weight: var(--fw-bold); flex: none; white-space: nowrap; }
 .wb-floor-svg polygon { fill: var(--blue-5); stroke: var(--ink-faint); stroke-width: 1.5; stroke-linejoin: round; }
+/* …at night 12 % of the (night) blue: 5 % on the dark board was no fill at all, the footprint a bare
+   ring where the day plate shows a pale blue area (hill climb r21, Opus 6) */
+:root[data-theme="night"] .wb-floor-svg polygon { fill: var(--blue-12); }
 /* the storey's Geschossplan page under the outline – quiet, the outline stays legible over it */
 .wb-floor-page { opacity: 1; }
 .wb-floor-noplan { font: var(--fw-medium) var(--fs-2) var(--body); fill: var(--ink-faint); }
 /* Preserve the drawing's footprint while Shell trail reports the pending raster. */
 .wb-floor-page-wait { fill: var(--ink-5); }
-.wb-floor-label { position: absolute; top: 8px; left: calc(var(--wb-floor-inset) - var(--wb-floor-plate-pad)); display: flex; align-items: center; gap: var(--sp-2); z-index: 1;
-  flex-wrap: nowrap; white-space: nowrap;
-  font-family: var(--body); font-weight: var(--fw-bold); font-size: var(--fs-2); line-height: 1; color: var(--ink-dim);
-  background: var(--label-soft); border-radius: var(--r-xs); padding: var(--wb-floor-plate-pad); user-select: none; -webkit-user-select: none; }
+/* The storey label stands OUTSIDE its tile, its plate right-aligned in the gutter left of the
+   stack, centred on the storey's band (hill climb r18, Opus 2: hung 8px under the divider above
+   it, «EG» read as a tag for that line rather than a name for the floor below it; was level with
+   the storey's top since r3, 04.11.2026). On the tile a note dropped in the middle hid
+   «EG» completely and a symbol crowded «3. OG». The tile is still its parent, so it rides the
+   storey's band and the zoom; a longer custom name simply grows further left. A compact surface
+   plate, because it stands on the stage now.
+   A note is never drawn into the gutter (lib/notes · stackNoteShiftPx, hill climb r4 – a phone's
+   wide note ran its text under «EG»). z 4: above a resting anno (z 3) that still hangs out into it –
+   a symbol's caption at the stack's edge – so the storey's name always wins; under a selected one
+   (z 6), which is being moved. */
+.wb-floor-label { position: absolute; top: 50%; translate: 0 -50%; right: calc(100% + var(--sp-2)); display: flex; align-items: center; justify-content: flex-start; gap: var(--sp-1); z-index: 4;
+  min-width: var(--wb-floor-plate-w); flex-wrap: nowrap; white-space: nowrap;
+  font-family: var(--body); font-weight: var(--fw-bold); font-size: var(--fs-2); line-height: 1; color: var(--ink);
+  background: var(--surface); box-shadow: inset 0 0 0 1px var(--border); border-radius: var(--r-xs);
+  padding: var(--wb-floor-plate-pad); user-select: none; -webkit-user-select: none; }
 /* The label IS the storey's door (29.09.2026, sweep K5): a tap opens «Ausblenden · Geschoss
    entfernen» (Whiteboard · the storey Menu). The per-storey eye and the red bin in the tile's
    corner left the canvas — delete is the rarest act on this surface and was its loudest shape,
    four bins at once on a tablet, half of each phone tile. The plate stays the plate; a small ⌄
-   says it opens something, and its hit area grows to --tap past the 21px plate (the eye's pad). */
+   says it opens something, and its hit area grows to --tap past the 30px plate (the eye's pad). */
 /* ⚠️ z 6 – but only while a create tool's capture layer (.wb-ink, z 5) is mounted: with the Wand
    armed – and it stays armed – a click on the label went to the ink, so «Kopieren nach …» was out
-   of reach with a mouse (round 2, 27.10.2026). Otherwise the plate keeps its z 1, under the sheet's
-   symbols and their names: lifted always, its plate covered a neighbouring symbol's label («Druck»,
-   the plan-tablet baseline, 28.10.2026). Still under a selected anno (also z 6, later in the board). */
+   of reach with a mouse (round 2, 27.10.2026). Still under a selected anno (also z 6, later in the
+   board). */
 .wb-floor-menu { border: none; cursor: pointer; }
 .wb-stage:has(.wb-ink) .wb-floor-menu { z-index: 6; }
 .wb-floor-menu::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: var(--tap); transform: translateY(-50%); }
-.wb-floor-menu > .i { width: 12px; height: 12px; stroke-width: 2.2; margin-left: -2px; color: var(--ink-faint); }
+/* the ⌄ at the top bar's «5:00 ⌄» size (18-audio · .tb-einsatzuhr .i, a 16px box) at a 1.75px stroke
+   (2.625 of the glyph's 24 units), in --ink-dim (hill climb r22, Opus 7: a 12px box at 1.1px of
+   --ink-faint drew an 8px hairline beside the 15/700 name, noise on the night plate). The chevron
+   ink fills the box's middle half, so -4px either side keeps «3. OG ⌄» inside the plate's 72px
+   (--wb-floor-plate-w). The NAME's `margin-right: auto` pushes the ⌄ to the plate's right edge
+   (r24, Opus 6 – a margin on the name, not on the glyph: an auto margin on the glyph would drop its
+   -4px and grow the widest plate past 72). `translate` (no layout, so the plate's width stays)
+   moves the ink -1px to stand 8px from the plate's edge (its round-capped stroke reaches ~0.9px
+   past the box's middle half) and 1.5px down onto the name's cap-height middle: `align-items:
+   center` puts it on the 1-high line box's middle, which at --fs-2 Sora stands 1.5px above the
+   caps' (measured). */
+.wb-floor-menu > .wb-floor-name { margin-right: auto; }
+.wb-floor-menu > .i { width: 16px; height: 16px; stroke-width: 2.625; margin-inline: -4px; translate: -1px 1.5px; color: var(--ink-dim); }
 @media (hover: hover) {
   .wb-floor-menu:hover { color: var(--ink); }
 }
 .wb-floor-menu:active { background-image: linear-gradient(var(--press), var(--press)); }
 .wb-floor-menu[data-popup-open] { color: var(--ink); }
-/* …and on a narrow stack the top storey's label steps down out from under «+ OG» (which straddles
-   the stack's top edge, centred): a door that sits under another button is no door (phone,
-   29.09.2026) */
-@container (max-width: 359px) {
-  .wb-floor-under-add > .wb-floor-label,
-  .wb-floor-under-add > .wb-floor-menu-host > .wb-floor-label { top: calc(var(--tap) / 2 + 4px); }
-}
+/* (the top storey's label no longer steps down out from under «+ OG»: the pill stands outside
+   the stack, centred, so it never meets the gutter — hill climb r1, 04.11.2026) */
 /* …and what it leaves behind: a strip where the storey belongs, which says what it is and how to
    get it back. Sits at the seam between the two drawn tiles, so the stack still reads in order. */
 /* ⚠️ ONE line, whatever the strip is wide (18.09.2026). The row is as wide as the sheet, which on
@@ -412,27 +483,35 @@
   .wb-floor-folded:hover { background: color-mix(in srgb, var(--board-bg) 70%, var(--ink) 10%); }
 }
 /* add-storey control (mirrors the floating zoom) */
-/* add-storey pills positioned like a real building section: OG above the stack, UG below */
+/* add-storey pills positioned like a real building section: OG above the stack, UG below —
+   OUTSIDE it, one --sp-3 off the edge (hill climb r1, 04.11.2026). Straddling the edge they sat
+   on the end storeys' labels and symbols («3. OG», a «Druck» caption). The fit reserves the room
+   (lib/whiteboard · STACK_VPAD); `--folded-h` (inline) steps past that end's folded strips. */
 .wb-floor-add { position: absolute; left: 50%; transform: translateX(-50%); z-index: 8;
   /* a full --tap tall (3am test r3, 25.09.2026: they were 34px); still straddling the edge, by half.
      28.09.2026: the ONE «add» look (13-incident `.cv-btn-add`) — framed «+ word», the one corner
-     (it was the last --r-pill add), ink, 12.5/700 compact; it keeps the glass because it floats
-     over the plan. */
+     (it was the last --r-pill add), ink, 12.5/700 compact.
+     FLAT on the storey plates' level (hill climb r20, Opus 7): the plate's surface and its 1px
+     --border, no shadow – a raised glass tile with a drop shadow outweighed the «3. OG ⌄» plates
+     it stands beside, and adding a storey is the rarest act on this stack. Its 12.5px word under
+     the plates' 14px keeps it a step below them; the hit area stays --tap. */
   display: inline-flex; align-items: center; gap: 4px; min-height: var(--tap); padding: 0 var(--sp-4) 0 var(--sp-3); border-radius: var(--r-sm);
-  border: 1px solid var(--glass-line); background: var(--glass); box-shadow: var(--e3);
+  border: 1px solid var(--border); background: var(--surface); box-shadow: none;
   color: var(--ink); font: var(--fw-bold) var(--fs-1) var(--body); line-height: 1; cursor: pointer;
   user-select: none; -webkit-user-select: none; }
 @media (hover: hover) {
-  .wb-floor-add:hover { background: var(--surface); color: var(--ink); }
+  .wb-floor-add:hover { background-image: linear-gradient(var(--hover), var(--hover)); }
 }
+.wb-floor-add:active { background-image: linear-gradient(var(--press), var(--press)); }
 .wb-floor-add .i { width: 13px; height: 13px; stroke-width: 2.4; }
-.wb-floor-add-up { top: calc(var(--tap) / -2); }     /* straddle the top edge of the stack */
-.wb-floor-add-down { bottom: calc(var(--tap) / -2); } /* straddle the bottom edge of the stack */
+.wb-floor-add-up { bottom: calc(100% + var(--sp-3) + var(--folded-h, 0px)); }
+.wb-floor-add-down { top: calc(100% + var(--sp-3) + var(--folded-h, 0px)); }
 
 /* the Gebäude's Messungen (ReadingParts · StackReadings, owner pick W2 27.10.2026): a column left of
    the stack, each storey's card at its own storey's height, inside the board so it pans and zooms
-   with the paper. 252px + the 16px gap = STACK_READINGS_LANE, which the fit keeps free. */
-.wb-readings { position: absolute; top: 0; bottom: 0; right: calc(100% + var(--sp-4)); width: 252px; z-index: 8; pointer-events: none; }
+   with the paper. 252px + the 16px gap = STACK_READINGS_LANE, which the fit keeps free – beyond the
+   storey-label gutter (`--wb-label-lane`). */
+.wb-readings { position: absolute; top: 0; bottom: 0; right: calc(100% + var(--wb-label-lane) + var(--sp-4)); width: 252px; z-index: 8; pointer-events: none; }
 .wb-readings section { position: absolute; left: 0; right: 0; overflow-y: auto; padding: var(--sp-1) 0;
   border-radius: var(--r-sm); background: var(--glass); border: 1px solid var(--glass-line); box-shadow: var(--e3); pointer-events: auto; }
 .wb-readings h4 { margin: 0; padding: var(--sp-1) var(--sp-3); font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-faint); }
@@ -557,11 +636,15 @@ textarea.wb-text-input { resize: none; overflow: hidden; display: block; font-si
   background: var(--team); border-radius: var(--r-xs); padding: 2px var(--sp-2); }
 /* selection now reads as a coloured ring (in the team's own colour) + lift */
 .wb-anno.sel .wb-resource-pill { box-shadow: 0 0 0 2px var(--team), var(--e2); }
-/* a Trupp marked «raus» (Atemschutz board): dim the chip + strike the name, and show a
-   small grey raus tag so the plan reflects that the team is out. «raus» is GONE, not disabled:
-   the ONE done dim (01-tokens · --done-opacity, 28.09.2026 — it was .5 plus a greyed name) */
-.wb-resource-pill.raus { opacity: var(--done-opacity); }
-.wb-resource-pill.raus b { text-decoration: line-through; }
+/* a Trupp marked «raus» (Atemschutz board): dim the chip and show a small grey raus tag so the
+   plan reflects that the team is out. «raus» is GONE, not disabled: the ONE done dim (01-tokens ·
+   --done-opacity, 28.09.2026 — it was .5 plus a greyed name), and nothing on top of it — the
+   struck-through name went 05.11.2026 (hill climb r13: a second «gone» mark over the dim).
+   ⚠️ The dim is on what the pill CARRIES, never on the pill itself (hill climb r15, Opus 1): on the
+   whole pill it made the plate see-through, and a line under it crossed the name. The plate stays
+   the opaque surface underlay; cap, name, raus tag and time recede on it – every map/plan plate of
+   an out Trupp follows this (.team-dot.raus, the trail times below). */
+.wb-resource-pill.raus > * { opacity: var(--done-opacity); }
 .wb-resource-raus { font-size: var(--fs-micro); font-weight: var(--fw-bold); letter-spacing: .04em; text-transform: uppercase;
   color: var(--ink-dim); background: var(--fill-soft); border-radius: var(--r-xs); padding: 2px var(--sp-1); }
 
@@ -587,9 +670,9 @@ textarea.wb-text-input { resize: none; overflow: hidden; display: block; font-si
 /* ── Geister-Spuren: der abgesuchte Bereich ohne seinen Marker (lib/truppTrails) ──────────────
    Grey and read-only wherever it is drawn — it is a record, not a Trupp. The dots are the same
    `.wb-trail-mark` a live trail leaves; only the label chip is new, and it is the hit target:
-   tapping it offers «Spur löschen» with the same confirm the live trail has. */
+   tapping it offers «Spur löschen» with the same confirm the live trail has. Its times are a live
+   trail's (.wb-trail-dot i / .map-trail-dot i – already the faint ink since hill climb r33). */
 .wb-ghost-trail-dot .wb-trail-mark, .map-ghost-trail .wb-trail-mark { background: var(--ink-dim); opacity: .7; }
-.wb-ghost-trail-dot i, .map-ghost-trail i { color: var(--ink-dim); }
 .wb-ghost-label { position: absolute; z-index: 6; transform: translate(-50%, -150%);
   display: inline-flex; align-items: center; gap: 4px; min-height: 24px; padding: 2px var(--sp-2);
   border: 1px dashed var(--ink-dim); border-radius: var(--r-ctl);
@@ -654,10 +737,15 @@ span.wb-ghost-label { cursor: default; }
    now, so their sizes read against the viewport rather than the board. */
 .wb-trupp-pick.ui-dialog, .wb-cal-pop.ui-dialog {
   position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: var(--z-dialog); }
-/* "Welcher Trupp?" quick picker shown when placing a team chip on the plan */
-.wb-trupp-pick { width: min(300px, calc(100vw - 32px)); max-height: 70dvh; overflow-y: auto; background: var(--surface);
+/* "Welcher Trupp?" quick picker shown when placing a team chip on the plan. THE sheet material
+   (13-incident · .ip-sheet: --glass + blur, --e4, the one corner – r35, 06.11.2026; it was opaque
+   --surface, at night a #232c3a slab beside the #141a24 sheets) and THE sheet head: the question is
+   its title, 16/800 in ink, 16 from the top and 24 from the side (the card's 12 + the head's 4/12) –
+   it was a 12.5/700 caption in --ink-dim, the one dialog without a title. */
+.wb-trupp-pick { width: min(300px, calc(100vw - 32px)); max-height: 70dvh; overflow-y: auto;
+  background: var(--glass); backdrop-filter: blur(16px);
   border-radius: var(--r-surface); box-shadow: var(--e4); padding: var(--sp-3); display: flex; flex-direction: column; gap: var(--sp-2); }
-.wb-trupp-pick-head { font-size: var(--fs-1); font-weight: var(--fw-bold); color: var(--ink-dim); padding: var(--sp-1) var(--sp-2) var(--sp-2); }
+.wb-trupp-pick-head { font: var(--sheet-title); color: var(--ink); padding: var(--sp-1) var(--sp-3) var(--sp-2); }
 .wb-trupp-opt { display: flex; align-items: center; gap: var(--sp-2); border: 1px solid var(--glass-edge); background: var(--surface-2, #fff);
   border-radius: var(--r-ctl); cursor: pointer; padding: var(--sp-3); font: var(--fw-bold) var(--fs-2) var(--body); color: var(--ink); min-height: 48px; text-align: left; }
 @media (hover: hover) {
@@ -670,42 +758,88 @@ span.wb-ghost-label { cursor: default; }
 .wb-trupp-opt i { font-style: normal; font-size: var(--fs-1); font-weight: var(--fw-medium); color: var(--ink-faint); }
 /* «AS» — the Trupp in this row is under Atemschutz. A FACT about the crew, not an alarm, so it
    wears the quiet status tone; amber and red belong to a clock running out and must never turn
-   up on a picker. Same mark, same tone, as the Trupp-Suche's row (TruppFinder.module.css). */
+   up on a picker. ONE tag look for a crew fact (r35, 06.11.2026): ink on grey, the Trupp-Suche's
+   «AS» (TruppFinder.module.css · .tag, since 29.09.2026) and the Anwesenheit's «Gast» – it was a
+   blue pill here, plain --blue on --blue-12 at 3.9:1 by day. */
 .wb-trupp-as { flex: none; font: var(--fw-heavy) var(--fs-micro) var(--body); padding: 2px var(--sp-2); border-radius: var(--r-pill);
-  background: var(--blue-12); color: var(--blue); }
+  background: var(--fill-soft); color: var(--ink-dim); }
 /* already placed on this surface: visible (so you can see WHY it is not offered) but inert —
    picking it would move the existing marker, not add a second one */
 .wb-trupp-opt.placed { opacity: var(--disabled); cursor: default; }
 @media (hover: hover) {
   .wb-trupp-opt.placed:hover { border-color: var(--glass-edge); }
 }
-.wb-trupp-cap { width: 5px; height: 22px; border-radius: 3px; background: var(--blue); }
+/* the Trupp's identity: its colour as a hollow RING (owner pick C5 – the board's `.trowDot`,
+   Atemschutz.module.css, at the picker's 14px: 10px across, a 2.5px line), drawn in `color`, which
+   the row sets from the Trupp's colour (useTruppActions · truppColors). It was a 4px blue bar on
+   every row, which read as a selection (hill climb r36). The 1px down: centred on the name's line
+   box it stands 1px above the x-height middle (.wb-lamp, Sora, measured r23). A «schon hier» row
+   keeps the row's dim (`.placed`). */
+.wb-trupp-ring { width: 10px; height: 10px; flex: none; border-radius: var(--r-pill);
+  box-shadow: inset 0 0 0 2.5px currentColor; translate: 0 1px; }
 .wb-trupp-generic { color: var(--ink-dim); font-weight: var(--fw-medium); }
 .wb-trupp-generic .i { width: 16px; height: 16px; }
 
 /* team trail breadcrumbs — counter-scaled dot centred on the point, with the
    timestamp floated beside it (absolute, so it doesn't shift the dot off-point) */
 .wb-trail-dot { position: absolute; left: 0; top: 0; transform-origin: 0 0; z-index: 2; pointer-events: none; }
-.wb-trail-mark { display: block; width: 9px; height: 9px; border-radius: 50%; border: 2px solid #fff; box-shadow: var(--e1); }
+/* the dot's shadow is the plates' contact step (--e0): in a cluster the e1 spread ran into a fringe
+   (hill climb r13, Sol 2 – ONE plate treatment for every map/plan label) */
+.wb-trail-mark { display: block; width: 9px; height: 9px; border-radius: 50%; border: 2px solid #fff; box-shadow: var(--e0); }
+/* a breadcrumb's time is a record, one step under the Trupp's name (hill climb r13, Opus 2 – it was
+   full ink + e1, the loudest thing near the marker): the mono at the regular weight in the faint
+   ink, on a BARE opaque --label-bg fill – no --label-plate edge, no shadow (hill climb r33, Opus 3:
+   on the name's plate a trail read as a stack of equal plates; the name keeps the plate, the times
+   are the quieter text under it). The fill stays, so a line under «12:25» never crosses the
+   digits. Same read as the Lage's .map-trail-dot i below. */
 .wb-trail-dot i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-family: var(--mono); font-style: normal;
-  font-size: var(--fs-micro); font-weight: var(--fw-bold); color: var(--ink); background: var(--label-bg); border-radius: var(--r-xs); padding: 1px var(--sp-1);
-  white-space: nowrap; box-shadow: var(--e1); }
+  font-size: var(--fs-micro); font-weight: var(--fw-regular); color: var(--ink-faint); background: var(--label-bg); border-radius: var(--r-xs); padding: 1px var(--sp-1);
+  white-space: nowrap; }
+/* an OUT Trupp's track: THE done dim on dots and times – like its marker (.wb-resource-pill.raus /
+   .team-dot.raus) – grayscale on the colour carrier (the dot). The time's PLATE stays opaque: the
+   dim sits on its ink (the inner span, MapMarkers / Whiteboard), or a line under «12:25» crossed
+   the digits (hill climb r15, Opus 1). */
+:is(.wb-trail-dot, .map-trail-dot).raus :is(.wb-trail-mark, i > span) { opacity: var(--done-opacity); }
+:is(.wb-trail-dot, .map-trail-dot).raus .wb-trail-mark { filter: var(--done-filter); }
+/* …and its polyline (WbControls · WbInkLayer; the Lage's l-team-trails paints the same in GL):
+   grey for the grayscale, the dim on top of the line's own .85 */
+.wb-trail-line.raus { stroke: var(--ink-faint); opacity: calc(.85 * var(--done-opacity)); }
 /* the same breadcrumbs on the Lage map — the MapLibre Marker centres the dot on the coord,
    so only the floating timestamp needs positioning (shares .wb-trail-mark for the dot) */
 .map-trail-dot { position: relative; pointer-events: none; }
+/* ⚠️ held to lib/mapView · CRUMB_LABEL_STYLE (the label pass books this box before it is drawn,
+   and drops the time when it would cover another label – mapView.labelCss.test.ts)
+   A time is a record, the name the Trupp: the names wear the --label-plate (edge + contact
+   shadow), the times one step quieter (hill climb r33, Opus 3 – on the same plate at the names'
+   size a trail read as a stack of equal plates): the next step down (--fs-micro), the mono at the
+   regular weight in the faint ink, on a bare opaque --label-bg fill with a tighter 1px/4px pad –
+   no edge, no shadow. The fill is what keeps it legible over a line and both basemaps. */
 .map-trail-dot i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-family: var(--mono); font-style: normal;
-  font-size: var(--fs-micro); font-weight: var(--fw-bold); color: var(--ink); background: var(--label-bg); border-radius: var(--r-xs); padding: 1px var(--sp-1);
-  white-space: nowrap; box-shadow: var(--e1); }
+  font-size: var(--fs-micro); font-weight: var(--fw-regular); line-height: 1.25; color: var(--ink-faint); background: var(--label-bg); border-radius: var(--r-xs); padding: 1px var(--sp-1);
+  white-space: nowrap; }
 /* a selected team marker on the map rings its pill like the plan board's selection */
 .marker.sel .wb-resource-pill { box-shadow: 0 0 0 2px var(--team), var(--e2); }
 /* resting team marker — compact team-coloured dot + name; the full pill only on selection */
 .team-dot { display: inline-flex; align-items: center; gap: var(--sp-2); }
-.team-dot i { width: 13px; height: 13px; border-radius: 50%; background: var(--team);
-  border: 2px solid #fff; box-shadow: var(--e1); flex: none; }
-.team-dot b { font-size: var(--fs-micro); font-weight: var(--fw-bold); color: var(--ink); background: var(--label-bg);
-  border-radius: var(--r-xs); padding: 1px var(--sp-1); white-space: nowrap; box-shadow: var(--e1); }
-.team-dot.raus { opacity: var(--done-opacity); }
-.team-dot.raus b { text-decoration: line-through; }
+/* ⚠️ held to lib/mapView · TEAM_DOT_PX (16): the dot's BOX is what sits on the coordinate and what
+   the label pass books. An INSIDE Trupp's dot fills it – 16px with a 2px halo (white by day, the
+   surface tone at night) and the plates' contact step (--e0, hill climb r13 Sol 2: with e1 a cluster
+   ran into one dark fringe). At 13px it was the smallest object on the map (hill climb r15, Opus 4). */
+.team-dot i { width: 16px; height: 16px; border-radius: 50%; background: var(--team);
+  border: 2px solid var(--surface); box-shadow: var(--e0); flex: none; }
+.team-dot b { font-size: var(--fs-1); font-weight: var(--fw-bold); line-height: 1.25; color: var(--ink); background: var(--label-bg);
+  border-radius: var(--r-xs); padding: 2px var(--sp-2); white-space: nowrap; box-shadow: var(--label-plate); }
+/* out: THE done dim, and the map's grayscale (01-tokens · --done-filter, as a done symbol's
+   `.ts-done`) on the dot – the colour carrier. Not on the name: the night filter's brightness
+   lifts the dark plate and the name read LESS gone. No strike-through — see .wb-resource-pill.raus.
+   The dim sits on the dot and on the INK of the plates (the inner spans, EntityMarker / PlanAnno),
+   never on a plate: the plates stay opaque, nothing under them shows through (r15, Opus 1).
+   The out dot keeps its 13px look – in vs out reads by size too – drawn scaled inside the same 16px
+   box, so the coordinate and the name's place do not move when a Trupp comes out. */
+.team-dot.raus i { scale: calc(13 / 16); opacity: var(--done-opacity); filter: var(--done-filter); }
+.team-dot.raus :is(b, .team-floor) > span { opacity: var(--done-opacity); }
+/* …and its track wears the same (.map-trail-dot.raus, with the Plan's breadcrumbs above): the whole
+   out-Trupp group recedes together, not a dim marker beside a live-looking «15:15» */
 .wb-resource-input { border: none; outline: none; background: var(--blue-8); border-radius: var(--r-xs); font-family: var(--body);
   font-size: var(--fs-1); font-weight: var(--fw-bold); color: var(--ink); width: 76px; padding: 2px var(--sp-1); }
 /* the ✕ that empties the name field — pill-sized (the form's 44px ClearableInput would be
@@ -915,11 +1049,11 @@ span.wb-ghost-label { cursor: default; }
 .wb-sw-grid { display: grid; grid-template-columns: repeat(2, auto); gap: var(--sp-2); }
 
 /* tool rail (right) — uses the shared .vrail look; floats over the canvas exactly
-   like the Lage tool rail (absolute, vertically centred, content-height) */
+   like the Lage tool rail (absolute, hung from --rail-top, content-height) */
 /* top-anchored + scroll/pinned-footer split, identical to the map's .tool-rail so
    both surfaces' right edges read as a pair (tools scroll, zoom/fit pinned below) */
-.wb-tools { position: absolute; right: 16px; top: 88px; bottom: 16px; height: max-content; margin-block: auto;
-  z-index: var(--z-dock); max-height: calc(100dvh - 104px); }
+.wb-tools { position: absolute; right: 16px; top: var(--rail-top); bottom: 16px; height: max-content; margin-block: 0 auto;
+  z-index: var(--z-dock); max-height: calc(100dvh - var(--rail-top) - 16px); }
 /* (the current-zoom % readout is gone: 100% meant «eingepasst», not a real-world scale, so
    the number read as a precision the plan does not have. «Einpassen» states the one view
    that matters.) */
@@ -963,7 +1097,7 @@ span.wb-ghost-label { cursor: default; }
    draggable (labelDx/labelDy) to nudge it off the ink */
 .wb-line-label { position: absolute; padding: 2px var(--sp-2); border-radius: var(--r-xs); font-size: var(--fs-micro); font-weight: var(--fw-bold);
   text-align: center; line-height: 1.25; white-space: nowrap; background: var(--surface); color: var(--ink);
-  box-shadow: var(--e1); touch-action: none; }
+  box-shadow: var(--label-plate); touch-action: none; }
 /* area (Sektor/Abschnitt) label — sits at the polygon centroid; may wrap, unlike a line label */
 .wb-area-label { white-space: normal; max-width: 42%; }
 /* plan-side wrapper for FKS line decorations (fork / content chip / number badge) in board px */
@@ -989,13 +1123,22 @@ span.wb-ghost-label { cursor: default; }
 
 /* FKS hose-line decorations — shared by the Lage map (in a Marker) and the Plan (wb-line-deco) */
 .line-fork { display: block; }
-/* ⚠️ `--on-accent-ink`, NOT `--surface` (31.08.): text and border are the LINE's own colour, which
-   is chosen to read on a map, not against a night-mode panel — a blue «S» on the dark `--surface`
-   was unreadable at night, on the one tag that says which Leitung this is. The plate is the same
-   near-white the tactical-symbol chip uses (.ts-rot.white), so glyph and tag read alike in both
-   themes and the line keeps its identity colour instead of being flattened to `--ink`. */
-.line-end-tag { display: inline-grid; place-items: center; padding: 2px var(--sp-1); border: 1.5px solid currentColor;
-  border-radius: 4px; background: var(--on-accent-ink); font: var(--fw-heavy) var(--fs-micro)/1 var(--body); white-space: nowrap; }
+/* The end tag is a MAP LABEL PLATE like «Roth Anna» or «Dach» – the plates' --label-bg (white by
+   day, slate at night), --ink text at their --fs-1/700 – and only its EDGE is the line's own colour
+   (`--tag-ink`, set inline by lib/lineDecor · EndTag), 1.5px in place of --label-plate's neutral
+   hairline, so it still says which line it belongs to (hill climb r22, Opus 3: blue letters in a
+   thin blue pill read as the smallest, faintest type on the map – a second label kind). The paper
+   crop (.kf-paper) pins the day tokens itself (17-rapport), so the tag prints as paper.
+   ⚠️ held to lib/mapView · END_TAG_LABEL_STYLE and lib/endTagSpots · tagSize (mapView.labelCss.test.ts):
+   the label plates' type and their small-label corner (--r-xs); 2px/4px + the 1.5px edge = a ~20px
+   plate with ~6px of side room (hill climb r17, Sol 2 / Opus 8: at 800 on 1px/4px and a 4px corner it
+   was the most cramped text on the map; r13 had taken it off --fs-micro, the printed Kroki draws it
+   at 12px). Under the plates' one contact step (--e0, hill climb r16 Sol 2). Where it stands:
+   lib/endTagSpots · endTagOffset, short of the line's end so the arrowhead stays visible (r16, Opus 4). */
+.line-end-tag { --tag-plate: var(--label-bg);
+  display: inline-grid; place-items: center; padding: 2px var(--sp-1); border: 1.5px solid var(--tag-ink);
+  border-radius: var(--r-xs); background: var(--tag-plate); color: var(--ink); font: var(--fw-bold) var(--fs-1)/1 var(--body); white-space: nowrap;
+  box-shadow: var(--e0); }
 /* ⚠️ `inline-grid` gives every text run its own ROW, so «1 · +2 ·» and the Trupp name stack —
    compact over a live hose, and not what the sheet does: kroki.py joins every part with « · »
    on one line. The print crop asks for the paper's shape. */
@@ -1004,13 +1147,12 @@ span.wb-ghost-label { cursor: default; }
    the box filled a little, so the state reads without decoding the colour of a thin line. NO
    animation — a pulsing hose was tried and rejected: the Atemschutz board is the surface that
    raises the alarm, this is the picture telling you WHERE those people are. */
-.line-end-tag.tone-warn { background: color-mix(in srgb, var(--amber) 14%, var(--on-accent-ink)); }
-.line-end-tag.tone-crit { background: color-mix(in srgb, var(--red) 16%, var(--on-accent-ink)); }
+.line-end-tag.tone-warn { background: color-mix(in srgb, var(--amber) 14%, var(--tag-plate)); }
+.line-end-tag.tone-crit { background: color-mix(in srgb, var(--red) 16%, var(--tag-plate)); }
 /* The Trupp is out. The tag stays (it is the record of who worked this Leitung until the next
-   Trupp takes it) but steps back to the same read as that Trupp's marker on the map: dashed box,
-   dimmed, name struck through. */
-.line-end-tag.tone-muted { border-style: dashed; opacity: .55; }
-.line-end-tag.tone-muted .line-end-trupp { text-decoration: line-through; }
+   Trupp takes it) but steps back to the same read as that Trupp's marker on the map: THE done dim
+   (01-tokens · --done-opacity), and a dashed box. No strike-through (05.11.2026, as the marker). */
+.line-end-tag.tone-muted { border-style: dashed; opacity: var(--done-opacity); }
 
 /* Plan-Maßstab + Messen overlays — match the Lage map's measure tool exactly: a dashed blue
    path (#1f6feb), 10 % blue fill, and white nodes with a 3 px blue ring. */
@@ -1120,7 +1262,10 @@ span.wb-ghost-label { cursor: default; }
    ⚠️ A DOCK, not a popover. The board underneath stays live and un-dismissing, so a tap on a
    symbol is a tap on that symbol — not a press that the overlay swallows to close itself. */
 .wb-georef-dock { position: absolute; left: calc(var(--rail-w) + 28px); bottom: calc(16px + var(--float-h) + var(--float-gap)); z-index: 9;
-  border-radius: var(--r-surface); border: 1px solid var(--glass-line); background: var(--surface);
+  /* THE sheet tone laid opaque, no edge, --e4 – the Gebäude card's recipe beside it (BuildingFloat ·
+     .pop, owner 27.10.2026: a card of text over a drawn plan lets nothing through). r35, 06.11.2026:
+     it was --surface with a --glass-line ring, at night a #232c3a slab beside #141a24 sheets. */
+  border-radius: var(--r-surface); background: linear-gradient(var(--glass), var(--glass)) var(--surface);
   box-shadow: var(--e4); }
 @media (--phone) {
   /* ⚠️ Its height is NOT fixed — `.qActions` is a 2-column grid of 2 or 3 rows (Neu ausrichten /
@@ -1135,7 +1280,7 @@ span.wb-ghost-label { cursor: default; }
      hugs its content up to the sheet cap and pays the bottom inset itself. */
   .wb-georef-dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: var(--z-drawer);
     max-height: min(72dvh, calc(100dvh - 84px - env(safe-area-inset-top))); overflow-y: auto;
-    border-width: 1px 0 0; border-radius: var(--r-hero) var(--r-hero) 0 0;
+    border-radius: var(--r-hero) var(--r-hero) 0 0;
     padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     animation: sheetUp .22s var(--ease); }
   .wb-georef-dock > .ui-sheet-grab { margin-bottom: -4px; }

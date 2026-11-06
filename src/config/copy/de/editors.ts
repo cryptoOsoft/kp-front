@@ -110,6 +110,8 @@ export const editorsCopy = {
     // and the placeholder is the cheapest place to settle it, since it costs nothing to ignore.
     fieldPlaceholders: {
       'Kapazität': 'z. B. 80 m³',
+      // the Herkunft of a vehicle: empty IS the answer «ours», so the box says so (05.11.2026)
+      'Herkunft': 'Eigene Feuerwehr',
     } as Record<string, string>,
     // two fields with the same label collapse into one on save – {key} = that label
     duplicateField: '«{key}» gibt es schon – nur der letzte Wert bleibt erhalten.',
@@ -183,6 +185,9 @@ export const editorsCopy = {
     // an ICON-ONLY 44px button (the Absperrkreis tool's own ⊙), so this is its accessible name
     // and the hold-tooltip — it says what appears, where «Übernehmen» only said that something did
     ergAdopt: 'Absperrkreis übernehmen',
+    ergAdopted: 'Absperrkreis gesetzt',
+    ergAdoptedShort: 'gesetzt',
+    ergAdoptedToast: 'Absperrkreis {r} gesetzt',
     ergRingsLabel: 'Radius auf der Karte',
     ergRingsOff: 'Aus',
     ergRingsSmall: 'Klein',

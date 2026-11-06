@@ -480,11 +480,11 @@ button.hydRow.lit:global(.list-row):not(:disabled) { background-color: var(--sel
 .search.libSearch :global(.ui-search-input) { text-overflow: ellipsis; }
 .search.libSearch :global(.ui-search-input)::placeholder { font-size: var(--fs-2); }
 
-/* the hairline between the surfaces and the rest: the phone bar's │ before the map tools (mockup
-   a-map) and the tablet rail's line over a selected object's plans (mockup t-obj, «unter dem
-   Strich»). The shared .nav-sep is spacing only (05-navrail); these two paint it. */
+/* the hairline between the surfaces and the rest on the phone bar: the │ before the map tools
+   (mockup a-map). The tablet rail's line over a selected object's plans (mockup t-obj, «unter dem
+   Strich») is the shared rail hairline (04b-rail · .rail-sep, 05.11.2026); this one only centres
+   the bar's vertical divider (15-mobile · .nav-sep sizes it). */
 :global(.nav-sep).barSep { background: var(--border); align-self: center; }
-:global(.nav-sep).railSep { height: 1px; margin: var(--sp-1) var(--sp-2); background: var(--border); }
 
 /* ── «Alarm auf diesem Gerät» (3am sweep §1, 23.10.2026 · AlarmReadiness) ─────────────────── */
 /* the line and its rows: at the top of «Auf diesem Gerät» and under Einstellungen › Gerät */

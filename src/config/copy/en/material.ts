@@ -89,6 +89,10 @@ export const materialCopy: Localizable<Pick<Copy, 'mittel' | 'checklists'>> = {
     // reads, and a tablet reads nothing — a lone glyph said «something», not what
     milestoneTag: 'noted in the log',
     milestoneUndone: 'Milestone taken back: {text}',
+    trendLabel: 'Trend',
+    trendAria: 'Trend of «{text}»',
+    onTafel: 'on the board',
+    forTafel: 'noted for the board',
     actionLabels: { journal: 'Log', plan: 'Plan', draw: 'Draw' },
     hazardLabels: { red: 'Fire', orange: 'Hazards', green: 'Traffic', yellow: 'Technical', blue: 'Water' },
     diagramAlt: 'Diagram page {page}',

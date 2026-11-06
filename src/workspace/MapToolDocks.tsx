@@ -80,10 +80,11 @@ export interface MapToolDocksProps {
   pickShape: (kind: ShapeKind) => void
   teamPick: LngLat | null
   trupps: Trupp[]
+  /** trupp id → the colour it wears on the Lage / plan (useTruppActions · truppColors) – the
+   *  «Welcher Trupp?» rows lead with it as the hollow identity ring */
+  truppColors: Record<string, string>
   placeTruppOnMap: (id: string, atCoord?: LngLat, revive?: { id: string; trail: GeoTrailPoint[] }) => string | undefined
   placeGenericTeam: (c: LngLat) => void
-  /** a Wassertransport's pumps put on the Karte as Motorspritzen (useMapActions · placePumpSymbols) */
-  placePumpSymbols: (coords: LngLat[]) => void
 }
 
 export function MapToolDocks({
@@ -92,7 +93,7 @@ export function MapToolDocks({
   measure, pendingShape, setPendingShape, setRotStart, rotStart, tacticalLocked, createLine,
   createArea, replayActive, railLabels, slimMapTools, pick, panel, layersPreset, togglePanel, viewsApi,
   view, readOnly, isEl, viewsOpen, sharePick, shareParent, toggleViews, coord, mapRef, paletteOpen,
-  sym, setPaletteOpen, pickShape, teamPick, trupps, placeTruppOnMap, placeGenericTeam, placePumpSymbols,
+  sym, setPaletteOpen, pickShape, teamPick, trupps, truppColors, placeTruppOnMap, placeGenericTeam,
 }: MapToolDocksProps) {
   return (
     <>
@@ -214,14 +215,13 @@ export function MapToolDocks({
       {mapUI && tool === 'measure' && (
         <MeasurePanel mode={measure.mode} coords={measure.path} profile={measure.profile} profileLoading={measure.loading}
           relay={measure.relay}
-          // the Strecke's pumps put on the Karte as Motorspritzen – not from a locked surface
-          onPlacePumps={tacticalLocked ? undefined : placePumpSymbols}
           // «Als Linie/Fläche übernehmen»: the measured points become a real line resp. Fläche
           // (createLine/createArea drop into Select with it active, so its editor opens straight
           // away). Hidden on a locked surface — there, Messen is a question the EL may ask, not a
           // way to draw — and while the measurement is still too short to be one. An opened
           // Wassertransport goes WITH the line: its hose, flow, source and the pumps moved by hand
-          // (never pump symbols – those are its own «Pumpen als Symbole setzen»). The same call is
+          // – and with «Pumpen auf Karte» on (useMeasure · adoptedRelay, owner 05.11.2026): the
+          // pumps Messen showed stay on the map as the Leitung's own (lib/linePumps). The same call is
           // the Wassertransport's «Als Leitung auf die Karte» (MeasurePanel · WaterRelay).
           onAdopt={!tacticalLocked && measure.path.length >= (measure.mode === 'line' ? 2 : 3)
             ? () => {
@@ -272,9 +272,12 @@ export function MapToolDocks({
                     live in the shared blob, which the el record slice never pushes. */}
                 <MapViewsButton api={viewsApi} bearing={view.bearing} readOnly={readOnly || isEl} variant="rail" btnClassName="vrail-nbtn vrail-views" activeClassName="on" glyphClassName="vrail-compass" label={appConfig.copy.mapViews.title} open={viewsOpen && !(sharePick && shareParent === 'views')} onOpenChange={toggleViews} coordsOn={coord.mode !== 'off'} onToggleCoords={coord.cycle} />
                 {/* zoom ±: mouse only (.vrail-zoom is hidden under 1024px and on a coarse
-                    pointer). Every touch form factor pinches. */}
-                <button className="vrail-nbtn vrail-zoom" title={c.zoomOut} aria-label={c.zoomOut} onClick={() => mapRef.current?.zoomOut()}><span className="vrail-glyph"><Icon id="minus" /></span><span className="vrail-label">{c.zoomOut}</span></button>
+                    pointer). Every touch form factor pinches. «+» first, as on every map (owner
+                    pick C9, 05.11.2026). The pair is its own group, split from the compass by the
+                    rails' one hairline (owner pick C12) – the view bar draws it before the first
+                    .vrail-zoom (07-toolrail), so it goes wherever the buttons go. */}
                 <button className="vrail-nbtn vrail-zoom" title={c.zoomIn} aria-label={c.zoomIn} onClick={() => mapRef.current?.zoomIn()}><span className="vrail-glyph"><Icon id="plus" /></span><span className="vrail-label">{c.zoomIn}</span></button>
+                <button className="vrail-nbtn vrail-zoom" title={c.zoomOut} aria-label={c.zoomOut} onClick={() => mapRef.current?.zoomOut()}><span className="vrail-glyph"><Icon id="minus" /></span><span className="vrail-label">{c.zoomOut}</span></button>
               </>
             )
           })()}
@@ -326,7 +329,7 @@ export function MapToolDocks({
                 key={t.id} className={`wb-trupp-opt${here ? ' placed' : ''}`} disabled={here}
                 onClick={() => { placeTruppOnMap(t.id, teamPick); setTeamPick(null); setTool('select') }}
               >
-                <span className="wb-trupp-cap" /><b>{t.name}</b>
+                <span className="wb-trupp-ring" style={{ color: truppColors[t.id] }} /><b>{t.name}</b>
                 {/* «AS» — see the plan's twin of this picker (Whiteboard · wb-trupp-as) */}
                 {isAtemschutzTrupp(t) && <span className="wb-trupp-as" title={appConfig.copy.atemschutz.kindAtemschutz}>{appConfig.copy.atemschutz.asMark}</span>}
                 {here

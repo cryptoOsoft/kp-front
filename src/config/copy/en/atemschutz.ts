@@ -22,6 +22,7 @@ export const atemschutzCopy: Localizable<Pick<Copy, 'atemschutz' | 'lineDecor'>>
     emptyHint: 'Create a team to start monitoring.',
     newTrupp: 'Register team',
     shareLink: 'Hand over monitoring',
+    shareLinkShort: 'Hand over',
     shareLinkOn: 'Hand over monitoring – a link is active',
     linkReentryHint: 'The link leads back to this board – if the page is closed by accident, simply open the QR code again.',
     /** the «+ Trupp» tab on the handed-over phone board (AtemschutzView · focusMode) */
@@ -131,6 +132,9 @@ export const atemschutzCopy: Localizable<Pick<Copy, 'atemschutz' | 'lineDecor'>>
     elapsed: 'Deployment time',
     outFor: 'Out for',
     outForPlain: 'No task for', // ⚠️ app only — see de/atemschutz.ts · outForPlain
+    // an OUT card's foot words (de/atemschutz.ts · footInside): «inside 29:00 min · out at 175 bar»
+    footInside: 'inside',
+    footOutAt: 'out at',
     estimated: 'Estimated pressure',
     // the short form for the one line the Sockel leaves standing (09.09., see de/atemschutz.ts)
     estimatedShort: 'Estimate',

@@ -63,11 +63,8 @@
 /* the two Ort glyphs, in the colours they carry on the row — read once, then the row is enough */
 .markOrt svg { width: 14px; height: 14px; color: var(--ink-dim); }
 .markOrtStation svg { color: var(--ink); }
-/* the three states as the row LOOKS in them (29.09.2026 — the row has no status dot any more):
-   a small row swatch — plain, green tint, dimmed. Overrides the round 9px mark above. */
-.markRow i.swatch { width: 14px; height: 10px; border-radius: 3px; border: 1px solid var(--glass-edge); background: var(--surface); }
-.markRow i.swatchPresent { background: color-mix(in srgb, var(--green) 14%, var(--surface)); }
-.markRow i.swatchLeft { opacity: var(--done-opacity); }
+/* (the three states wore a 14×10 swatch of the row's tint until r35, 06.11.2026 – beside the menu's
+   checkbox it read as a second one; they are words alone now, AnwesenheitView · stateEntries) */
 /* the ink dot that rides on the clock button when somebody has a Bemerkung — same size, same
    colour, so the filter row IS the mark rather than a description of it */
 .markNote i { width: 6px; height: 6px; background: var(--ink); }

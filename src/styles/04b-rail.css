@@ -19,6 +19,16 @@
    05-navrail rather than renumbering the whole manifest.
    ============================================================ */
 
+/* ── ONE top for both rails (hill climb r18, Opus 1): the top bar's bottom + 16px. The bar stands
+   16px down and is its controls (42px with a mouse, --tap on touch) + 2 × --bar-pad + its 1px
+   border top and bottom: 56px → 88, 58px → 90. Each rail HANGS from this line and ends where its
+   content ends (`margin-block: 0 auto` in .navrail / .tool-rail / .wb-tools). They used to be centred
+   in the band below the bar, each on its own height, so a 480px left rail and a 571px right one
+   started 46px apart. The Ebenen card (05-navrail · .layers-card) hangs from the same line.
+   The phone turns both rails into bottom bars and sets its own top/bottom (15-mobile). */
+:root { --rail-top: calc(88px + env(safe-area-inset-top)); }
+@media (pointer: coarse) { :root { --rail-top: calc(90px + env(safe-area-inset-top)); } }
+
 /* the glass shell. Each rail keeps its own `width` (it reads a different custom property)
    and its own placement — .navrail positions itself, .vrail is placed by its wrapper class. */
 .rail { display: flex; flex-direction: column; gap: 4px;
@@ -75,16 +85,39 @@
    (each reads its own variable); see the notes in 05-navrail.css. */
 .rail.labelled:not(.expanded):not(.dragging) { padding: 8px 4px; }
 
+/* ── A group boundary is ONE hairline, on both rails (owner pick C12, 05.11.2026: «same ui / styling /
+   hairline»). The left rail split its groups (Karte │ the plan tiles │ the rest) by 6px of air
+   (22.09.2026) while the right one drew a hairline above its foot (Ebenen · compass · zoom), so the
+   matched pair grouped two ways. One rule now: 1px of --border, 8px in from the rail's sides, 2px of
+   air either side on top of the scroller's 4px gap (13px from tile to tile). The per-rail names
+   (`nav-sep`, `vrail-sep`) stay as hooks: 15-mobile turns them into the bars' vertical dividers. */
+.rail-sep { height: 1px; flex: none; margin: 2px 8px; background: var(--border); }
+
 /* drag grip — pull it to resize the rail. Which EDGE it hangs off is per-rail. */
 .rail-grip { position: absolute; top: 0; width: 20px; height: 100%; border: 0; background: transparent; padding: 0;
   cursor: ew-resize; z-index: 3; display: flex; align-items: center; justify-content: center; touch-action: none; }
-.rail-grip::after { content: ""; width: 4px; height: 38px; border-radius: 3px; background: var(--border); transition: background .14s var(--ease); }
+/* The visible mark is a short pill in the rail's own padding, not the whole hit strip: at 38px tall
+   it was a grey bar at the rail's inner edge, which is where a scrollbar thumb sits, and it read as
+   one (04.11.2026, hill climb r11). The BUTTON keeps its full-height strip – only the mark shrank.
+   …and it GROWS while it is held (owner note on the r11 checkpoint, 05.11.2026): quiet at rest, a
+   longer, darker pill under the finger (`:active`) and for the whole drag (`.drag`), so the hand
+   can see it has the handle. */
+.rail-grip::after { content: ""; width: 4px; height: 20px; border-radius: var(--r-pill); background: var(--border);
+  transition: background .14s var(--ease), opacity .14s var(--ease), height .14s var(--ease); }
+:is(.rail-grip:active, .rail-grip.drag)::after { height: 48px; }
+/* …and with a mouse it is not drawn until the pointer is on the rail (or the grip has focus): a
+   handle that shows where the hand is, the way a desktop split view's does. Touch has no hover, so
+   there it stays, quiet, at rest. */
+@media (hover: hover) and (pointer: fine) {
+  .rail-grip::after { opacity: 0; }
+  :is(.rail:hover .rail-grip, .rail-grip:focus-visible, .rail-grip.drag)::after { opacity: 1; }
+}
 /* ⚠️ GRAY, not the app blue (owner, review 7: «the mobile pull … has an ugly blue color. Change
    this to clean gray for the expansion»). Blue is this app's SELECTED/active meaning — a rail
    being dragged wider is neither; it is the same hairline the grip rests in, just taken up a
    step so the finger can see it has the handle. One tint for both rails, both edges, and for
    hover as well as the live drag: the pointer that hovers it is about to drag it. */
-.rail-grip.drag::after { background: var(--ink-28); }
+:is(.rail-grip:active, .rail-grip.drag)::after { background: var(--ink-28); }
 @media (hover: hover) {
   .rail-grip:hover::after { background: var(--ink-28); }
 }
@@ -109,7 +142,7 @@
    alphabetic` makes the box the capital's height, so `top` IS the ink's top; a stem letter's
    (K · P · L …) ≈ 1px left side bearing is taken off `left`, and the round and diagonal ones
    (C · S · V) sit that pixel further out – their optical overshoot, as measured on the rendered
-   ink (Sora 11/500). At 6/6 the ink's corner stands 3.5px inside the tile's 12px
+   ink (Sora 11/400 – the regular weight, hill climb r29). At 6/6 the ink's corner stands 3.5px inside the tile's 12px
    curve (12 − 6·√2), so a hovered or armed tile's fill frames it evenly. The glyph keeps the
    tile's centre (the rail's one icon axis); the alarm / count / open dots all hang off the right.
      · expanded (word beside the glyph): vertically centred at the row's free end – the left rail's
@@ -117,14 +150,14 @@
        would stand alone, far from the glyph it names.
    A bare letter, no keycap (the 04.11.2026 hill-climb look): a framed chip in the corner was a
    second small object on top of the glyph that has to be recognised at a glance, and at the
-   corner it covered the Auswahl arrow's tip. The body face at 11/500, not the mono, whose narrow
+   corner it covered the Auswahl arrow's tip. The body face at 11px, regular, not the mono, whose narrow
    caps rendered thin at this size. On the armed ink tile it takes the tile's own text colour,
    muted, so it recedes there as it does on the resting tiles. */
 .rail-key { display: none; position: absolute; top: 6px; left: 5px;
-  font-family: var(--body); font-size: var(--fs-micro); font-weight: var(--fw-medium);
+  font-family: var(--body); font-size: var(--fs-micro); font-weight: var(--fw-regular);
   line-height: 1; text-box: trim-both cap alphabetic;
   color: var(--ink-faint); pointer-events: none; }
-:is(.nav-item, .vrail-tool, .vrail-nbtn).on .rail-key { color: color-mix(in srgb, var(--on-accent-ink) 70%, transparent); }
+:is(.nav-item, .vrail-tool, .vrail-nbtn).on .rail-key { color: color-mix(in srgb, var(--on-here) 70%, transparent); }
 .rail.expanded:not(.dragging) .rail-key { top: 50%; translate: 0 -50%; left: auto; right: 10px; }
 .vrail.expanded:not(.dragging) .rail-key { right: auto; left: 10px; }
 /* …and on the view bar's buttons that have a key (ToolRail · RailKey: Ebenen B, Einpassen 0) –

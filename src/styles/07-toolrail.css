@@ -2,16 +2,16 @@
    Tool rail — right edge (Lage map). Shares the .vrail look with the
    whiteboard tool rail (.wb-tools) so tools sit in the same place in both modes.
    ============================================================ */
-/* top-anchored to mirror the left NavRail (same top, same max-height); the inner
-   .vrail-scroll handles overflow. On a tablet or laptop its foot stands above the view bar
-   (below, `:has(+ .view-bar)`). */
-/* content-height, packed at the same compact spacing as the left NavRail (a matched pair).
-   top/bottom both set + margin-block:auto centres it vertically WHEN there's room, but lets it
-   grow downward (toward the bottom edge) to fit a long list before it has to scroll. The top
-   stays at 80px (clear of the top bar); only a list taller than the full height scrolls. */
+/* top-anchored to mirror the left NavRail: the same top (--rail-top · 04b-rail.css, the top bar's
+   bottom + 16px) and the same band; the inner .vrail-scroll handles overflow. Content-height,
+   packed at the same compact spacing as the left rail: `margin-block: 0 auto` hangs it from the
+   top and lets it end where its content ends; only a list taller than the band scrolls. (Centred
+   – `margin-block: auto` – each rail sat on its own height and their tops never lined up: hill
+   climb r18, Opus 1.) On a tablet or laptop its foot stands above the view bar (below,
+   `:has(+ .view-bar)`). */
 /* right-edge safe area — see the note on .navrail's `left` (05-navrail.css) */
-.tool-rail { position: absolute; right: max(16px, env(safe-area-inset-right)); top: 88px; bottom: 16px; height: max-content; margin-block: auto;
-  z-index: var(--z-dock); max-height: calc(100dvh - 104px); }
+.tool-rail { position: absolute; right: max(16px, env(safe-area-inset-right)); top: var(--rail-top); bottom: 16px; height: max-content; margin-block: 0 auto;
+  z-index: var(--z-dock); max-height: calc(100dvh - var(--rail-top) - 16px); }
 /* The shell, the scroller, its "scroll for more" chevrons, the expand toggle and the drag grip
    are the SHARED rail base (.rail-* · 04b-rail.css), which the left NavRail wears too. What is
    left here is this rail's own half: it is anchored to the RIGHT edge, so it opens leftward, its
@@ -40,8 +40,8 @@
   .vrail-nbtn:not(.on):hover:not(:disabled) { background: var(--hover); color: var(--ink); }
 }
 .vrail-nbtn:active:not(:disabled) { background-image: linear-gradient(var(--press), var(--press)); }
-.vrail-nbtn.on { background: var(--ink-fill); color: var(--on-accent-ink); }
-@media (hover: hover) { .vrail-nbtn.on:hover:not(:disabled) { background: var(--ink-fill-hover); } }
+.vrail-nbtn.on { background: var(--here-fill); color: var(--on-here); }
+@media (hover: hover) { .vrail-nbtn.on:hover:not(:disabled) { background: var(--here-fill-hover); } }
 .vrail-nbtn:disabled { opacity: var(--disabled); cursor: default; }
 /* zoom ± is a MOUSE affordance: every touch form factor pinches, so the two buttons only cost
    room. The phone's bar drops them (15-mobile.css); this covers the tablet band in between.
@@ -50,7 +50,6 @@
    they were removed for. The two conditions together mean: gone on anything you touch, kept on
    a mouse, whatever the window measures. */
 @media (max-width: 1023px), (pointer: coarse) { .vrail-zoom { display: none; } }
-.vrail-sep-foot { flex: none; margin: 2px 8px; }
 /* no transition: the needle is set on every rotate frame (MapViewsMenu · CompassGlyph) */
 .vrail-compass { display: grid; place-items: center; }
 /* expand toggle — the shared .rail-exp chrome, but row-reversed so the chevron sits in the
@@ -61,8 +60,10 @@
    for a frame or two, floating over the map. Clipped, it slides under the edge instead. */
 .vrail-exp { overflow: hidden; flex-direction: row-reverse; }
 /* state-driven via the ancestor `.vrail.expanded` (not aria-expanded, so the global `.chev`
-   rule stays out of it); the transition matches 02-base's chevron beat */
-.vrail-exp .i { width: 18px; height: 18px; transform: rotate(180deg); transition: transform .16s var(--ease); }
+   rule stays out of it); the transition matches 02-base's chevron beat.
+   22px like the left rail's (`.nav-exp .i`) and every tool glyph under it – one rail grammar (owner
+   pick C12, 05.11.2026); at 18 the right chevron was the smaller twin of the left one. */
+.vrail-exp .i { width: 22px; height: 22px; transform: rotate(180deg); transition: transform .16s var(--ease); }
 .vrail.expanded .vrail-exp .i { transform: rotate(0deg); }
 @media (prefers-reduced-motion: reduce) { .vrail-exp .i { transition: none; } }
 /* tool buttons mirror the left rail's nav-item: a fixed right-edge glyph column + a
@@ -117,22 +118,24 @@
 @media (hover: hover) {
   .vrail-tool:not(.on):hover:not(:disabled) { background: var(--hover); color: var(--ink); }
 }
-.vrail-tool.on { background: var(--ink-fill); color: var(--on-accent-ink); }
+/* the armed tool = «where you are», the nav rail's ink pill (01-tokens · --here-fill) */
+.vrail-tool.on { background: var(--here-fill); color: var(--on-here); }
 @media (hover: hover) {
-  .vrail-tool.on:hover:not(:disabled) { background: var(--ink-fill-hover); color: var(--on-accent-ink); }
+  .vrail-tool.on:hover:not(:disabled) { background: var(--here-fill-hover); color: var(--on-here); }
 }
 .vrail-tool:disabled { opacity: var(--disabled); cursor: default; }
 /* ⚠️ The tools are ONE list — no divider inside it (22.09.2026; the lists in config/copy carry no
    `sep` entries any more). The generic controls (Ebenen · compass · zoom) are set apart from the
-   tools that act on the surface by standing in their own bar (the view bar, below; the phone's
-   folded bar draws no seam at all, 15-mobile) — a real seam, where «select vs. create» was noise. */
-.vrail-sep { height: 1px; flex: none; background: var(--border); margin: 4px 8px; }
+   tools that act on the surface by standing in their own bar (the view bar, below) — a real seam,
+   where «select vs. create» was noise. The phone's folded bar keeps the foot's hairline (the
+   shared `.rail-sep`, 04b-rail.css, the same line the left rail draws between its groups), which
+   15-mobile turns into a vertical divider. */
 /* one-shot actions + the display-mode switch read as discrete push-buttons
    (faint resting fill + hairline), visually distinct from the flat, sticky modal
    tools above — so "press to do X" is never confused with "select a mode" */
 /* the grip hangs off the LEFT edge — this rail is anchored right and opens leftward (mirror of
    the nav-grip). The rest of it is the shared base. */
-.vrail-grip { left: -7px; }
+.vrail-grip { left: -13px; justify-content: flex-end; padding-right: 2px; }   /* off the tiles – see .nav-grip */
 
 /* ── The view bar (ToolRail · ViewBar; staging review 06.11.2026, S2 owner pick C) ─────────────
    Tablet and laptop: the surface's view controls — the Karte's Ebenen · Ansichten · − +, the
@@ -175,9 +178,10 @@
 .view-bar :not(.vrail-zoom) + .vrail-zoom { margin-left: var(--sp-2); }
 .view-bar :not(.vrail-zoom) + .vrail-zoom::before { content: ''; position: absolute; left: -6px; top: 25%; bottom: 25%;
   width: 1px; background: var(--border); }
-/* the rail's foot stands above the bar; it stays centred in the band that is left */
+/* the rail's foot stands above the bar; it still hangs from --rail-top and only a list taller
+   than the band that is left scrolls */
 :is(.tool-rail, .wb-tools):has(+ .view-bar) { bottom: var(--view-bar-reserve);
-  max-height: calc(100dvh - 88px - var(--view-bar-reserve)); }
+  max-height: calc(100dvh - var(--rail-top) - var(--view-bar-reserve)); }
 
 /* (.toputil / .tu-btn / .tu-divider / .compass migrated → MapUtility.module.css) */
 
@@ -253,6 +257,9 @@
   /* digits must not change width as they change value, or the ± buttons twitch under the finger */
   font-variant-numeric: tabular-nums; }
 /* tap the value to type a number directly */
+/* no value yet: the placeholder dash in the faint ink, regular – in full ink between «−» and «+» it
+   read as a third minus («− - +», hill climb r11, 04.11.2026) */
+.step-val.step-empty { color: var(--ink-faint); font-weight: var(--fw-regular); }
 .step-val-btn { position: relative; display: inline-grid; place-items: center; min-height: 44px; border: none; background: transparent; cursor: pointer; padding: 4px; border-radius: var(--r-sm); }
 /* a short value («1») leaves the button ~30px wide: a pad brings it to --tap under a finger. The ±
    buttons stand 8px away, so 7px a side never reaches them. */
@@ -301,15 +308,23 @@
 .uslider:active .uslider-thumb { background-image: linear-gradient(var(--press), var(--press)); }
 
 /* symbol search modal */
-.modal-backdrop { position: fixed; inset: 0; background: rgba(20, 28, 40, .45); backdrop-filter: blur(2px); z-index: var(--z-dialog-scrim);
+/* the scrim's paint is THE modal scrim (13-incident · «ONE modal scrim»); this is its layout */
+.modal-backdrop { position: fixed; inset: 0; z-index: var(--z-dialog-scrim);
   display: grid; place-items: center; animation: fade .12s ease; }
 @keyframes fade { from { opacity: 0; } }
 /* the Eintrag/Erinnerung composer is top-anchored on tablet/desktop so its mode toggle keeps
    the same vertical position when the two modes differ in height (centred, it jumped). On
    phones it stays a bottom sheet (see the ≤600px rule). */
 .sym-modal { width: min(760px, 92vw); height: min(620px, 86dvh); display: flex; flex-direction: column; gap: 12px;
-  background: var(--surface); border: 1px solid var(--glass-line);
-  border-radius: var(--r-hero); padding: 16px; box-shadow: var(--e5); animation: pop .16s var(--ease); }
+  /* the scrim is its SIBLING (Palette.tsx), so the sheet centres itself – `inset: 0` + auto
+     margins on a sized box, never a translate (the swipe-down writes `transform`) */
+  position: fixed; inset: 0; margin: auto; z-index: var(--z-dialog);
+  /* THE sheet tone, no edge, --e4 (r35, 06.11.2026 – it was --surface with a --glass-line edge and
+     the --e5 lift, at night a #232c3a slab beside the #141a24 sheets). Laid OPAQUE over --surface,
+     the Verlauf's recipe (10-journal): the section heads are sticky and must cover the cells that
+     scroll under them in the sheet's own tone – over see-through glass an opaque head is a band. */
+  background: linear-gradient(var(--glass), var(--glass)) var(--surface);
+  border-radius: var(--r-hero); padding: 16px; box-shadow: var(--e4); animation: pop .16s var(--ease); }
 /* `scale`, NOT `transform: scale()`. Two of the three cards that use this keyframe centre
    themselves with a transform (.journal-composer translateX(-50%), .confirm-card
    translate(-50%,-50%)); a `transform` keyframe REPLACES that translate for the length of the
@@ -317,20 +332,26 @@
    was the "janky open" — it was never the timing. The independent `scale` property composes with
    whatever transform the element already carries, so both cards now only grow in place. */
 @keyframes pop { from { scale: .97; opacity: 0; } }
-/* ⚠️ ONE height for the whole header row, and it is --tap. The pill used to take its height from
-   the input's line-box (16px text + 2×14px padding ≈ 47px) while the ✕ beside it was a 40px
-   square — so on a phone the close button read as a smaller control sunk below the search field.
-   Both are var(--tap) tall now, which is also the touch floor, so neither needs a pad to reach it.
-   The radii stay APART on purpose: the pill is a control (--r-ctl), the ✕ is a button (--r-sm) —
-   the house nesting, see the radius scale in 01-tokens.css. */
+/* ⚠️ ONE height for the whole header row, and it is --tap: the search pill's. It used to take its
+   height from the input's line-box (≈ 47px) while the ✕ beside it was a 40px square sunk below it.
+   The ✕ is THE sheet ✕ since r35 (36px over its 44px pad, below), centred on the row. */
 .sym-top { display: flex; align-items: center; gap: 8px; }
 /* the field is THE search (components/SearchField · `.ui-search`, 29.09.2026) — the palette's
    pill was its model; here it only takes the row's slack */
 .sym-search { flex: 1; }
-.sym-close { background: var(--fill-soft); border: none; border-radius: var(--r-sm); width: var(--tap); height: var(--tap); display: grid; place-items: center; color: var(--ink-dim); cursor: pointer; flex: none; }
+/* THE sheet ✕ (13-incident · .ip-x: 36px plate, --ink-8, 18px glyph, the 44px pad from 02-base) –
+   r35, 06.11.2026: it was a 44px --fill-soft square, the one ✕ in the app of that look. Centred on
+   the search row; 16px from the edge, the search field's own inset. */
+.sym-close { background: var(--ink-8); border: none; border-radius: var(--r-sm); width: 36px; height: 36px; display: grid; place-items: center; color: var(--ink-dim); cursor: pointer; flex: none; }
+@media (hover: hover) {
+  .sym-close:hover { background: var(--ink-12); color: var(--ink); }
+}
+.sym-close:active:not(:disabled) { background-image: linear-gradient(var(--press), var(--press)); }
 .sym-close .i { width: 18px; height: 18px; }
 .sym-scroll { flex: 1; overflow-y: auto; scrollbar-width: thin; }
-.sym-ghead { position: sticky; top: 0; background: var(--surface); backdrop-filter: blur(4px); z-index: 1;
+.sym-ghead { position: sticky; top: 0; z-index: 1;
+  /* the sheet's own tone, laid opaque so a scrolled row never shows through the head */
+  background: linear-gradient(var(--glass), var(--glass)), var(--surface);
   /* a section head is an EYEBROW (29.09.2026, K9 — docs/ui-conventions.md · Fields, titles, eyebrows) */
   font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-faint);
   padding: 12px 4px 8px; }

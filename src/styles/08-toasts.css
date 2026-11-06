@@ -439,7 +439,9 @@
   max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; box-sizing: border-box;
   background: var(--glass); backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-edge); border-radius: var(--r-hero); padding: var(--sp-5) var(--sp-5) var(--sp-4); box-shadow: var(--e4);
+  /* no edge (r35, 06.11.2026): the sheets draw none, --e4 is the outline. Its title's text stands
+     24 from the top and the side, where a sheet title beside its 36px ✕ stands too. */
+  border-radius: var(--r-hero); padding: var(--sp-5) var(--sp-5) var(--sp-4); box-shadow: var(--e4);
   animation: pop .16s var(--ease); }
 .confirm-title { margin: 0 0 var(--sp-2); font: var(--sheet-title); color: var(--ink); } /* the one sheet title (28.09.2026; was 19) */
 .confirm-msg { margin: 0 0 var(--sp-3); font: var(--fw-medium) var(--fs-2)/1.45 var(--body); color: var(--ink-dim); }
@@ -486,7 +488,22 @@
    27.10.2026: «Speichern» wrapped under «Weiterzeichnen · Verwerfen» on a desktop). The phone keeps
    its full-width stack (15-mobile). */
 .confirm-card-three { width: min(460px, 92vw); }
-.btn.primary { background: var(--btn-primary); border-color: var(--btn-primary); color: var(--on-btn-primary); }
+/* …and when the SAFE answer is the third one («Zur Tafel», «Raus melden» – ConfirmCard ·
+   safeAnswer 'alt'), ONE layout on every device (owner pick «Trupps noch drin» mock 4, 06.11.2026):
+   Abbrechen + the quiet «Trotzdem …» share the first row, each growing from its word's width, and
+   the filled, focused safe answer takes the whole row under them. Where the first row cannot hold
+   both words (a narrow phone) the three stack full width in the same order, the safe one last.
+   Two classes deep, so the phone's `wrap-reverse` (15-mobile · .confirm-actions) does not flip it. */
+.confirm-card-safe .confirm-actions { flex-wrap: wrap; }
+.confirm-card-safe .confirm-actions > .ip-btn { flex: 1 1 auto; }
+.confirm-card-safe .confirm-actions > .ip-btn:last-child { flex-basis: 100%; }
+/* a line that NAMES something (ConfirmCard · ConfirmLine, the crews still inside): the name in
+   the bold ink, the rest in the regular ink – no bullet, it is not an open point */
+.confirm-list li.confirm-line { padding-left: 0; font-weight: var(--fw-regular); }
+.confirm-list li.confirm-line::before { display: none; }
+.confirm-line b { font-weight: var(--fw-bold); }
+/* 800: the single action of its surface, like `.ip-btn.primary` (docs/ui-conventions · Type) */
+.btn.primary { background: var(--btn-primary); border-color: var(--btn-primary); color: var(--on-btn-primary); font-weight: var(--fw-heavy); }
 @media (hover: hover) {
   .btn.primary:hover { background: var(--btn-primary-hover); border-color: var(--btn-primary-hover); }
 }
@@ -569,9 +586,11 @@
 /* `overflow-wrap` is not optional here: the pill is capped at 180px, so a long unbroken token
    (a hydrant code, a chemical name, a pasted id) ran straight out of the paper and sat on the
    map as bare letters. White-space stays `normal` — «Einzeilig» is ONE line that simply runs
-   out of room at 180px, not a place to compose paragraphs; that is what «Textfeld» is for. */
+   out of room at 180px, not a place to compose paragraphs; that is what «Textfeld» is for.
+   A resting note sits on e1 like every other mark on the map (e2 until hill climb r8: its 10px
+   shadow merged with the plates around it); the selected one still lifts to e2. */
 .note-pill { background: var(--note-bg); border: 1px solid var(--note-border); color: var(--note-ink); font-size: var(--fs-1); font-weight: var(--fw-medium);
-  padding: 0.38em 0.7em; border-radius: 0.6em; box-shadow: var(--e2); max-width: 180px;
+  padding: 0.38em 0.7em; border-radius: 0.6em; box-shadow: var(--e1); max-width: 180px;
   overflow-wrap: break-word; }
 /* A coloured note in the PILL look tints its paper, not its ink: the picked colour has to be
    legible from across a KP, and coloured text on a yellow pill is neither. Mixed against the
@@ -838,3 +857,136 @@ textarea.note-pill-input { resize: none; overflow: hidden; display: block; line-
   font: var(--fw-medium) var(--fs-2)/1.35 var(--body);
   text-align: center; text-wrap: balance;
   box-shadow: var(--float-edge); }
+
+/* ── the Präsentationsmodus (components/Presentation, mock 8B, 05.11.2026; docs/presentation.md) ──
+   The pill stands bottom centre, in the floating family of the armed-tool pill (09-whiteboard):
+   the same glass, --tap high controls. On a tablet or laptop it rises past whatever overlaps it
+   sideways in its row – an armed tool's pill, the selection bar, the bottom-left chips
+   («Messungen», Gebäude, the page strip) – by the measured `--present-lift`
+   (components/Presentation · usePillLift; owner's laptop 06.11.2026). On a phone it stands on the
+   floating baseline (--float-bottom) and over the Eintrag-FAB's row, and the phone's chip row
+   rises above IT (lib/floatRow · OBSTACLE_SEL). The colour is the presenter's (--present): the
+   avatar, «Zeigen» on, the «Wieder folgen» chip. */
+.present-row { position: fixed; left: 50%; bottom: calc(28px + var(--present-lift, 0px)); transform: translateX(-50%); z-index: var(--z-map-util);
+  display: flex; flex-direction: column; align-items: center; gap: var(--sp-2); max-width: calc(100vw - 32px); pointer-events: none; }
+.present-pill { pointer-events: auto; display: flex; align-items: center; gap: var(--sp-2); min-width: 0; max-width: 100%;
+  padding: var(--sp-1) var(--sp-1) var(--sp-1) var(--sp-3); border-radius: var(--r-bar);
+  background: var(--float-bg); backdrop-filter: var(--float-blur); box-shadow: var(--float-edge); color: var(--ink); }
+.present-who { display: flex; flex-direction: column; min-width: 0; font-size: var(--fs-1); line-height: var(--lh-1); color: var(--ink-dim); white-space: nowrap; }
+.present-who b { font-size: var(--fs-2); line-height: var(--lh-2); color: var(--ink); font-weight: var(--fw-bold); overflow: hidden; text-overflow: clip; }
+/* «<Name> präsentiert» on one line, wrapping to two for a long name (never cut: the name is the
+   whole point of the line) */
+.present-who-line { flex-flow: row wrap; align-items: baseline; column-gap: var(--sp-1); row-gap: 0; white-space: normal;
+  font-size: var(--fs-2); line-height: var(--lh-2); color: var(--ink); }
+.present-who-line b { overflow: visible; }
+.present-av { display: grid; place-items: center; flex: none; width: 30px; height: 30px; border-radius: 50%;
+  background: var(--tone, var(--present)); color: var(--on-accent-ink); font-size: var(--fs-1); font-weight: var(--fw-bold);
+  box-shadow: 0 0 0 2px var(--surface); }
+.present-avs { display: flex; flex: none; }
+.present-avs .present-av { width: 26px; height: 26px; font-size: var(--fs-micro); margin-left: calc(var(--sp-2) * -1); }
+.present-avs .present-av:first-child { margin-left: 0; }
+.present-av-more { background: var(--ink-dim); }
+/* a link holder: a dashed edge and the chain badge – a self-chosen name, never an account */
+.present-av { position: relative; }
+.present-av[data-link] { box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--ink-dim); }
+.present-av-link { position: absolute; right: -6px; bottom: -6px; z-index: 1; display: grid; place-items: center; width: 18px; height: 18px;
+  border-radius: 50%; background: var(--ink-fill); color: var(--on-accent-ink); box-shadow: 0 0 0 2px var(--surface); }
+.present-av-link .i { width: 12px; height: 12px; }
+[data-tone='1'] { --tone: var(--present-1); }
+[data-tone='2'] { --tone: var(--present-2); }
+[data-tone='3'] { --tone: var(--present-3); }
+[data-tone='4'] { --tone: var(--present-4); }
+[data-tone='5'] { --tone: var(--present-5); }
+[data-tone='6'] { --tone: var(--present-6); }
+/* «Zeigen» is the shared Chip (a choice: on/off); on, it wears the presenter's colour instead of
+   the choice-blue – the mode it switches on is drawn in that colour too */
+.present-zeigen { height: var(--tap); flex: none; }
+.present-pill .present-zeigen[aria-pressed='true'] { background: color-mix(in srgb, var(--present) 12%, var(--surface)); color: var(--present);
+  box-shadow: inset 0 0 0 1.5px var(--present); }
+.present-end, .present-follow, .present-x { flex: none; min-height: var(--tap); }
+.present-x { width: var(--tap); padding: 0; justify-content: center; }
+/* a link holder's name, once: the question over the field, «Folgen» beside the field */
+.present-ask { display: flex; align-items: flex-end; gap: var(--sp-2); min-width: 0; padding: var(--sp-1) 0; }
+.present-ask-field { flex: 1 1 auto; gap: var(--sp-1); }
+.present-name { width: 220px; max-width: 100%; height: var(--tap); padding: 0 var(--sp-3); border: 1px solid var(--border); border-radius: var(--r-xs);
+  background: var(--surface); color: var(--ink); font: var(--fw-regular) var(--fs-3) var(--body); }
+/* the follow chip a panned follower's pill turns into: one tap jumps back */
+.present-again { pointer-events: auto; display: inline-flex; align-items: center; gap: var(--sp-2); height: var(--tap-lg);
+  padding: 0 var(--sp-4) 0 var(--sp-2); border: none; border-radius: var(--r-pill); background: var(--present); color: var(--on-accent-ink);
+  font: var(--fw-bold) var(--fs-3) var(--body); box-shadow: 0 0 0 3px var(--surface), var(--e4); cursor: pointer; }
+.present-again .present-av { box-shadow: 0 0 0 2px var(--on-accent-ink); background: var(--present); }
+.present-again:active { background-image: linear-gradient(var(--press), var(--press)); }
+.present-hint { padding: var(--sp-1) var(--sp-3); border-radius: var(--r-xs); background: var(--float-bg); box-shadow: var(--float-edge);
+  color: var(--ink); font-size: var(--fs-1); font-weight: var(--fw-medium); max-width: 100%; text-align: center; text-wrap: balance; }
+
+/* the rings: a named circle that fades (lib/presentation · RING_MS = 4 s; this animation is it) */
+.present-rings { position: absolute; inset: 0; pointer-events: none; z-index: 20; overflow: visible; }
+.present-ring { position: absolute; width: 0; height: 0; animation: present-ring-life 4s ease-out forwards; }
+/* ⚠️ border-box: the global `* { box-sizing }` does not reach a pseudo-element, and a content-box
+   44px circle with a 3px border is 50px from the same top-left – 3px off the tap (staging 06.11.) */
+.present-ring::before { content: ''; position: absolute; left: -22px; top: -22px; width: 44px; height: 44px; border-radius: 50%; box-sizing: border-box;
+  border: 3px solid var(--tone); background: color-mix(in srgb, var(--tone) 14%, transparent); }
+.present-ring-dot { position: absolute; left: -6px; top: -6px; width: 12px; height: 12px; border-radius: 50%; background: var(--tone);
+  box-shadow: 0 0 0 2px var(--surface); }
+.present-ring-name { position: absolute; left: 28px; top: -13px; padding: 2px var(--sp-2); border-radius: var(--r-pill); background: var(--tone);
+  color: var(--on-accent-ink); font-size: var(--fs-1); font-weight: var(--fw-bold); white-space: nowrap; box-shadow: var(--e1); }
+/* a ring close to another wears its tag on the left (and/or a row up or down – the inline
+   translateY): lib/presentation · placeTags keeps the tags off each other */
+.present-ring-name[data-side='left'] { left: auto; right: 28px; }
+@keyframes present-ring-life {
+  0% { opacity: 0; transform: scale(.6); }
+  8% { opacity: 1; transform: scale(1); }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
+}
+/* the lines («Zeigen»: press and drag): the person's colour on a light halo; a finished line fades
+   like a ring (the hook takes it off at RING_MS). On a plan the SVG spans the board in 0..1 units
+   (`viewBox`, non-scaling strokes); on the Karte and a form page it is the layer in px. */
+.present-line { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.present-line path { fill: none; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.present-line-halo { stroke: var(--surface); stroke-width: 8px; opacity: .85; }
+.present-line-ink { stroke: var(--tone); stroke-width: 4px; }
+.present-line[data-done], .present-line-tip[data-done] { animation: present-line-fade 4s ease-out forwards; }
+.present-line-tip { position: absolute; width: 10px; height: 10px; transform: translate(-50%, -50%); border-radius: 50%; background: var(--tone);
+  box-shadow: 0 0 0 2px var(--surface); }
+@keyframes present-line-fade { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
+/* a form page's layer: the page's visible band, clipping what is scrolled away (an edge arrow
+   stands for it) */
+.present-page-marks { overflow: hidden; }
+/* reduced motion: the global rule (03-map.css) would end the life at once and `forwards` would hold
+   it invisible – the ring stands still instead, and the hook takes it off at RING_MS */
+@media (prefers-reduced-motion: reduce) { .present-ring, .present-line, .present-line-tip { animation: none !important; } }
+
+/* the edge arrows: a ring or a line outside what this screen shows (owner pick 06.11.2026, «Fit +
+   edge arrows»), at the edge in the direction of it, with the name on the inside */
+.present-arrows { position: fixed; inset: 0; pointer-events: none; z-index: var(--z-map-util); }
+.present-arrow { position: absolute; width: 0; height: 0; }
+.present-arrow-head { position: absolute; left: -16px; top: -16px; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%;
+  background: var(--tone); color: var(--on-accent-ink); box-shadow: 0 0 0 2px var(--surface), var(--e2); }
+.present-arrow-head .i { width: 18px; height: 18px; }
+.present-arrow-name { position: absolute; top: -12px; left: 22px; padding: 2px var(--sp-2); border-radius: var(--r-pill); background: var(--tone);
+  color: var(--on-accent-ink); font-size: var(--fs-1); font-weight: var(--fw-bold); white-space: nowrap; box-shadow: var(--e1); }
+.present-arrow[data-side='left'] .present-arrow-name { left: auto; right: 22px; }
+
+/* «Präsentieren» in «Einsatz teilen», under the read link (ShareIncident · PresentCard) */
+.present-card { display: flex; align-items: center; gap: var(--sp-3); width: 100%; padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--surface); }
+.present-card-glyph { flex: none; color: var(--present); }
+.present-card-glyph .i { width: 22px; height: 22px; }
+.present-card-text { display: flex; flex-direction: column; flex: 1; min-width: 0; font-size: var(--fs-2); line-height: var(--lh-2); color: var(--ink-dim); }
+.present-card-text b { color: var(--ink); font-size: var(--fs-3); font-weight: var(--fw-bold); }
+.present-card .ip-btn { flex: none; }
+
+/* a phone, on every surface: on the floating baseline (the bars', --float-bottom) – never over
+   the nav bar of a module surface – and over the Eintrag-FAB's row or an armed tool's pill. The
+   name card takes the row's width (`data-asking`), the field the part «Folgen» leaves – «Vorname
+   Name» in Sora 16px must fit a 390px phone (owner's iPhone, 06.11.2026) */
+@media (--phone) {
+  .present-row { bottom: var(--float-bottom); max-width: calc(100vw - 16px); }
+  .app:has(.fab-entry) .present-row { bottom: calc(var(--float-bottom) + var(--float-h) + var(--float-gap)); }
+  .app.phone-tools:has(.armed-pill-row) .present-row { bottom: calc(var(--float-bottom) + var(--tap) + var(--sp-2)); }
+  .present-row[data-asking] { left: var(--sp-2); right: var(--sp-2); transform: none; max-width: none; align-items: stretch; }
+  .present-row[data-asking] .present-pill { padding-right: var(--sp-2); }
+  .present-row[data-asking] .present-ask { width: 100%; }
+  .present-row[data-asking] .present-name { width: 100%; }
+}

@@ -192,6 +192,9 @@ EXAMPLE_CONFIG: dict[str, Any] = {
                 "options": ["Of-Front", "Lüften", "Atemschutz", "Retten", "Logistik"],
             },
         ],
+        # «Herkunft»: ONE list for every vehicle symbol — where a vehicle that is not the own
+        # Feuerwehr comes from. Empty = no suggestions; free typing always stays possible.
+        "origins": ["Stützpunkt", "Nachbarwehr", "Zivilschutz"],
     },
     "doctrine": {
         "defaultFunkkanal": 1,

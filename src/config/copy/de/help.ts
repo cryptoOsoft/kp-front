@@ -285,7 +285,7 @@ export const helpCopy = {
         ],
       },
       {
-        id: 'verlauf', title: 'Verlauf & Eintrag', icon: 'history',
+        id: 'verlauf', title: 'Verlauf & Eintrag', icon: 'verlauf',
         blocks: [
           { kind: 'lead', text: 'Ein gemeinsames, fortlaufendes Protokoll über Karte und Plan – der Verlauf des Einsatzes.' },
           { kind: 'list', items: [
@@ -296,7 +296,7 @@ export const helpCopy = {
             'Wesentliche Aktionen (Symbol gesetzt, Zeichnung erstellt/entfernt …) landen automatisch im Verlauf.',
             '**Rückgängig/Wiederherstellen** gilt für Karte, Plan – und für die **Anwesenheit**: dort nimmt es den letzten Tipp zurück (am Telefon stehen die beiden Pfeile in der Kopfzeile der Anwesenheit).',
             'Ein Verlaufseintrag mit Ort springt beim Antippen zurück auf die Stelle in Karte oder Plan; Fotos und Sprachnotizen lassen sich direkt im Verlauf öffnen/abspielen.',
-            'Ein **Vertipper** lässt sich korrigieren: der **Stift** in der Zeile steht auf allem, was jemand selber getippt hat – nicht auf dem, was die App über eine Aktion geschrieben hat («Trupp 2 eingerückt»). Die Zeile trägt danach **korrigiert HH:MM**; der ursprüngliche Wortlaut bleibt im Protokoll und in der Prüfkette.',
+            'Ein **Vertipper** lässt sich korrigieren: der **Stift** in der Zeile steht auf allem, was jemand selber getippt hat – nicht auf dem, was die App über eine Aktion geschrieben hat («Trupp 2 eingerückt»). Die Zeile trägt danach **Korrigiert HH:MM**; der ursprüngliche Wortlaut bleibt im Protokoll und in der Prüfkette.',
             '**Wiedergabe starten** spielt Karte und Plan zu einem früheren Zeitpunkt ab (Zeitschieber; Bearbeiten ist dabei gesperrt).',
           ] },
           { kind: 'sub', text: 'Pendenzen' },

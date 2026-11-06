@@ -19,7 +19,7 @@ import { vehicleSymbolSvg } from '../lib/useVehiclePositions'
 import { placardSvgForSymbol } from '../lib/placard'
 import { TacticalSymbol, compositeSpec, compositePartGlyph, luefterVariant, isHubretter, HubretterBoom, floorBadge } from '../lib/symbolRender'
 import { doneBadge } from '../lib/objectDone'
-import { symbolCaptionText, isMeasuredSymbol } from '../lib/symbols'
+import { symbolCaptionText, symbolOriginText, isMeasuredSymbol } from '../lib/symbols'
 import { softHyphenateText } from '../lib/symbolWrap'
 import { markerZ } from '../lib/labelPass'
 import { noteScale, noteWPx } from '../lib/notes'
@@ -233,18 +233,20 @@ export function EntityMarker({
           // says a name is there. One tap on the marker brings it back — a selected object
           // is exempt from suppression.
           const nameHidden = !!e.label && !!suppressedLabels?.has(`team:${e.id}`)
+          // the inner spans carry an out Trupp's done dim, so the plates under them stay
+          // opaque (09-whiteboard · .team-dot.raus)
           return (
             <>
               <span className={`team-dot ${isRaus ? 'raus' : ''}${badge ? ' joined' : ''}`}
                 style={{ '--team': teamCol, ...(badge ? { '--line': badge.color } : null) } as React.CSSProperties}>
                 <i />
-                {!nameHidden && <b>{e.label}</b>}
+                {!nameHidden && <b><span>{e.label}</span></b>}
                 {/* the storey (18.09.2026) — only where the marker HAS one, which on the
                     Karte means its body was baked off a Gebäude chip (lib/tacticalObjects
                     · bakeGeoBody). A Trupp dropped straight onto the map is on no storey,
                     and a «0» there would assert an EG nobody stated. Tied to the name's
                     visibility: the label pass books one box for [dot][gap][name]. */}
-                {!nameHidden && e.floor != null && <em className="team-floor">{floorBadge(e.floor)}</em>}
+                {!nameHidden && e.floor != null && <em className="team-floor"><span>{floorBadge(e.floor)}</span></em>}
               </span>
             </>
           )
@@ -381,7 +383,9 @@ export function EntityMarker({
         // through softHyphenateText because a caption is a FIELD VALUE, not a symbol name
         // — «Salpetersäure, rauchend» has to break at the compound seam, not by syllable.
         const capText = symbolCaptionText(e, captionMode)
-        const capHidden = !!capText && !!suppressedLabels?.has(`cap:${e.id}`)
+        // …and the vehicle's Herkunft, the box's grey last line: booked with it (one box, one key)
+        const origin = symbolOriginText(e, captionMode)
+        const capHidden = !!(capText || origin) && !!suppressedLabels?.has(`cap:${e.id}`)
         // the vehicle glyph rotates its body internally, so the chip must NOT also rotate;
         // every other symbol (incl. a composite body) applies its stored rotation to the chip.
         return (
@@ -406,6 +410,7 @@ export function EntityMarker({
               // a vehicle's NAME is already in the glyph — symbolCaptionText drops it and
               // keeps the rest (Fahrer, eigene Felder, Notizen), which only 'Alle' prints
               caption={capHidden || !capText ? null : softHyphenateText(capText)}
+              origin={capHidden ? null : origin}
               measured={isMeasuredSymbol(e) ? e : undefined}
             />
             {/* boom AFTER the body → paints on top (mounted on the turntable / roof) */}

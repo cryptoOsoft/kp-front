@@ -186,8 +186,19 @@ test('surface tour: every surface, four laps — switch time and what each lap l
   const j = await open(page, baseURL!, 'surface-tour')
   await page.goto('/')
   await waitForWorkspace(page)
-  // lap 0 loads every lazy chunk and warms the caches; it is not timed
-  for (const [label, mode] of SURFACES) await goTo(page, label, mode)
+  // lap 0 loads every lazy chunk and warms the caches; it is not timed. It reads each surface as
+  // long as a timed lap does: a surface left before it painted has not decoded its CSS mask images
+  // yet, and each SVG mask is a small image document the renderer keeps (3 nodes for one circle).
+  // Two masks first painted in lap 1 (Gebäude's grey lamp, the Rapport's open mark) read as
+  // `dom_node_growth` 6, flat over laps 1–4 (06.11.2026). One read of 250ms was enough locally
+  // but not on the slower CI runner, so the warm-up walks twice – a one-time cost lands in it,
+  // a leak still grows over the four timed laps.
+  for (let warm = 0; warm < 2; warm++) {
+    for (const [label, mode] of SURFACES) {
+      await goTo(page, label, mode)
+      await page.waitForTimeout(250)
+    }
+  }
   await goTo(page, ...SURFACES[0])
   await page.waitForTimeout(1_000)
   const first = await retained(j.cdp)

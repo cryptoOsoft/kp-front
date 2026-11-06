@@ -1,7 +1,7 @@
 import { appConfig } from '../config/appConfig'
 import { fillTemplate, formatTime } from './format'
 import type { AbschlussStep } from './abschluss'
-import type { ConfirmItem } from './overlays/ConfirmCard'
+import type { ConfirmItem, ConfirmLine } from './overlays/ConfirmCard'
 import type { Trupp } from '../types'
 import type { ReportMeta } from './workspace'
 import { truppLogName } from './atemschutz'
@@ -198,16 +198,21 @@ export function controlChipLabel(open: number, hints: number): string {
 
 /**
  * The FIRST question in front of the Abschluss while crews are still inside (staging walk-through
- * 25.09.2026): «3 Trupps sind noch drin: Trupp 1 (…), Trupp 2 (…).» Every Trupp by its number and
- * its whole crew (truppLogName) — who is in the building is the one thing this sentence is for.
- * It used to be the 7th grey row of the paperwork list under a filled «Trotzdem abschliessen».
+ * 25.09.2026): «3 Trupps sind noch drin:» and under it ONE LINE PER TRUPP (owner pick mock 4,
+ * 06.11.2026 – it was one run-on sentence, «Trupp 1 (…), Trupp 2 (…).»): «**Trupp 1** – Muster Leo
+ * / Graf Eva». Every Trupp by its number and its whole crew (truppLogName) — who is in the building
+ * is the one thing this question is for. It used to be the 7th grey row of the paperwork list under
+ * a filled «Trotzdem abschliessen». A Trupp without a number is its crew alone.
  */
-export function insideAbschlussMessage(trupps: readonly Trupp[]): string {
+export function insideAbschlussSpec(trupps: readonly Trupp[]): { message: string; items: ConfirmLine[] } {
   const A = appConfig.copy.abschluss
-  const list = trupps.map((t) => fillTemplate(A.insideTrupp, { name: truppLogName(t) })).join(', ')
-  return trupps.length === 1
-    ? fillTemplate(A.insideOne, { list })
-    : fillTemplate(A.insideMany, { n: trupps.length, list })
+  return {
+    message: trupps.length === 1 ? A.insideOne : fillTemplate(A.insideMany, { n: trupps.length }),
+    items: trupps.map((t) => ({
+      head: typeof t.no === 'number' ? fillTemplate(A.insideTrupp, { no: t.no }) : undefined,
+      text: truppLogName({ ...t, no: undefined }),
+    })),
+  }
 }
 
 /**

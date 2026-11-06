@@ -9,11 +9,11 @@
    43 of this rail's 60px under the sensor housing, leaving 17px of tappable rail. The phone
    blocks now cover landscape too, so the inset reaches them; this stays unconditional because it
    is a no-op wherever there is no inset. */
-.navrail { position: absolute; left: max(16px, env(safe-area-inset-left)); top: 88px; bottom: 16px; height: max-content; margin-block: auto;
+.navrail { position: absolute; left: max(16px, env(safe-area-inset-left)); top: var(--rail-top); bottom: 16px; height: max-content; margin-block: 0 auto;
   z-index: var(--z-chrome);
-  /* vertically centred in the same band as the right .tool-rail (top 88 → bottom 16), so the two
-     side rails read as a matched pair instead of the left one hanging from the top. */
-  max-height: calc(100dvh - 104px);
+  /* hangs from the SAME top as the right .tool-rail (--rail-top · 04b-rail.css) and ends where its
+     content ends; a list taller than the band (top → 16px off the bottom) scrolls. */
+  max-height: calc(100dvh - var(--rail-top) - 16px);
   width: var(--rail-w); }
 /* the press wash is the LEFT rail's alone: its chevron pages a list of surfaces, which is a
    navigation act — the right rail's pages a tool list and has never carried one */
@@ -36,11 +36,8 @@
    right edge, which aligns their edges rather than their centres. */
 .nav-exp .i { width: 22px; height: 22px; }
 /* …and the flip is the app-wide `.chev` (02-base.css), off this button's aria-expanded */
-/* A group boundary is SPACING, not a hairline (22.09.2026 — the same rule the editor sheets
-   adopted on 18.09.): the lines above and below the plan tiles said nothing the 12px of air does
-   not, and beside the chips' own borders they read as a table. The element stays (it is where a
-   group starts, and the folded bar's test counts it); only its paint went. */
-.nav-sep { height: 6px; flex: none; }
+/* (a group boundary, `.nav-sep`, is the shared hairline `.rail-sep` (04b-rail.css) since 05.11.2026,
+   owner pick C12 – it was 6px of air here from 22.09.2026, a hairline on the right rail) */
 .nav-item { display: flex; align-items: center; gap: 8px; height: 46px; flex: none; border: 0; background: transparent; border-radius: var(--r-sm);
   cursor: pointer; color: var(--ink); font: inherit; padding: 0; width: 100%; position: relative; transition: background .14s var(--ease); }
 .navrail:not(.expanded) .nav-item, .navrail.dragging .nav-item { justify-content: center; }
@@ -48,8 +45,9 @@
   .nav-item:hover { background: var(--hover); }
 }
 .nav-item:active:not(:disabled) { background-image: linear-gradient(var(--press), var(--press)); }
-.nav-item.on { background: var(--ink-fill); color: var(--on-accent-ink); }
-@media (hover: hover) { .nav-item.on:hover { background: var(--ink-fill-hover); } }
+/* «where you are» = THE ink pill of every bar (01-tokens · --here-fill, lifted at night) */
+.nav-item.on { background: var(--here-fill); color: var(--on-here); }
+@media (hover: hover) { .nav-item.on:hover { background: var(--here-fill-hover); } }
 .nav-glyph { width: 46px; min-width: 46px; height: 46px; display: grid; place-items: center; font-size: var(--fs-3); font-weight: var(--fw-heavy); position: relative; }
 .nav-glyph .i { width: 22px; height: 22px; }
 .nav-glyph.mono { letter-spacing: -.02em; }
@@ -148,7 +146,7 @@
 .navrail.expanded:not(.dragging) .nav-mono-chip { min-width: 26px; min-height: 26px; padding: 1px 4px; white-space: nowrap; }
 .navrail.expanded:not(.dragging) .nav-glyph.nav-frac { font-size: var(--fs-4); }
 .nav-live { position: absolute; top: 6px; right: 6px; width: 9px; height: 9px; border-radius: 50%; background: var(--green); border: 2px solid #fff; }
-.nav-item.on .nav-live { border-color: var(--ink-fill); }
+.nav-item.on .nav-live { border-color: var(--here-fill); }
 /* ⚠️ A COUNT, not a dot — same family as .nav-live (same corner, same white ring, so the bar has
    one badge idiom), but it carries a figure and therefore needs a box that grows with it. The
    phone's «Einsatz» tile wears it with what the Rapport still has OPEN (26.09.2026 — the head
@@ -162,8 +160,16 @@
   box-sizing: border-box; border-radius: var(--r-xs); background: var(--ink-fill); color: var(--on-accent-ink);
   font: var(--fw-heavy) var(--fs-micro) var(--body); line-height: 12px; text-align: center; }
 /* the Rapport's «noch offen» is the chip's AMBER (13-incident · .rp-state.warn): a warning,
-   not an alarm (docs/ui-conventions.md · Buttons: amber = warning, red = danger) */
-.nav-live.nav-count.nav-open { background: var(--amber); color: var(--on-amber); }
+   not an alarm (docs/ui-conventions.md · Buttons: amber = warning, red = danger) – and HOLLOW, the
+   Rapport head's outlined «4 offen» chip: a 1.5px amber edge, --amber-strong figures on the
+   surface (hill climb r22, Opus 4: filled, the phone's tab-bar «4» was the top bar's Pendenzen «6»
+   300px away – one disc counting two things). The FILLED amber disc stays the Pendenzen count's
+   (10-journal · .tb-rem-count). 16px tall like it, the edge an inset shadow (a 1.5px border is
+   floored to 1px on a 1× screen) and the white / pill ring that cuts it off the glyph a 2px shadow
+   outside it. */
+.nav-live.nav-count.nav-open { border: 0; background: var(--surface); color: var(--amber-strong); line-height: 16px;
+  box-shadow: inset 0 0 0 1.5px var(--amber), 0 0 0 2px var(--glass); }
+.nav-item.on .nav-live.nav-count.nav-open { box-shadow: inset 0 0 0 1.5px var(--amber), 0 0 0 2px var(--here-fill); }
 /* Atemschutz cross-surface alarm dot: amber when fällig, red + pulse when überfällig */
 .nav-live.nav-alarm { background: var(--amber); }
 .nav-live.nav-alarm.crit { background: var(--red); animation: nav-alarm-pulse 1.4s infinite; }
@@ -172,11 +178,13 @@
    its tiles the box it is positioned in. */
 .nav-item { position: relative; }
 /* the grip hangs off the RIGHT edge — this rail is anchored left and opens rightward. The rest
-   of it (the bar, its drag colour, and its absence while the words are on) is the shared base. */
-.nav-grip { right: -7px; }
-/* The rail is TOP-anchored (top:88px) in every mode so it sits in the same place whatever
-   surface is active — previously non-plan modes vertically centred it (margin-block:auto),
-   which made the rail jump up/down between e.g. Plan and Checkliste. */
+   of it (the bar, its drag colour, and its absence while the words are on) is the shared base.
+   It covers the rail's padding and reaches out over the map, never over the tiles: at -7px it
+   took the outer 6px of every tile, so a tap on a tile's edge started a resize (04.11.2026). */
+.nav-grip { right: -13px; justify-content: flex-start; padding-left: 2px; }
+/* The rail is TOP-anchored (--rail-top) in every mode so it sits in the same place whatever
+   surface is active — centred (margin-block:auto) it jumped up/down between surfaces and never
+   lined up with the right rail. */
 
 /* Behind the Anwesenheit / Atemschutz / Checkliste surfaces, cover the live map with a solid
    app background: it shouldn't show through the inset card's margins, and a half-visible map
@@ -212,9 +220,9 @@ html.rail-dragging .layers-card { transition: none; }
 .layers-card { position: fixed; right: calc(var(--vrail-w, 60px) + 26px);
   /* hung under the top bar, never over it (owner 20.10.2026: centred, the tall card ran up over
      the bar's title and buttons); a long list scrolls in .lc-body instead */
-  top: calc(88px + env(safe-area-inset-top));
+  top: var(--rail-top);
   /* 320 (owner 20.10.: 264 felt tight next to Gefahrgut's 300) – the Karte's Gefahrgut card wears it too */
-  width: 320px; max-width: calc(100vw - 16px); max-height: calc(100dvh - 104px - env(safe-area-inset-top));
+  width: 320px; max-width: calc(100vw - 16px); max-height: calc(100dvh - var(--rail-top) - 16px);
   /* a column: the head stands, the body (.lc-body) scrolls — see .lc-title */
   display: flex; flex-direction: column; overflow: hidden;
   background: var(--float-bg); backdrop-filter: var(--float-blur); box-shadow: var(--float-edge);
@@ -228,7 +236,7 @@ html.rail-dragging .layers-card { transition: none; }
    rail and keeps the top.) */
 @media (--not-phone) {
   :root:has(.view-bar) :is(.lc-panel, .mv-dock) { top: auto; bottom: var(--view-bar-reserve); transform: none;
-    max-height: calc(100dvh - 88px - var(--view-bar-reserve) - env(safe-area-inset-top)); }
+    max-height: calc(100dvh - var(--rail-top) - var(--view-bar-reserve)); }
 }
 
 /* REPLAY (and any other view without the tool rail): both docks are positioned against

@@ -30,8 +30,10 @@ export const symColor = (svg: string): string => {
   return colours.find((c) => c !== '#000000') ?? DEFAULT_INK
 }
 
-// signed storey label for the badge: +2, -1, 0 (EG)
-export const floorBadge = (f: number) => (f > 0 ? `+${f}` : `${f}`)
+// signed storey label for the badge: +2, −1, 0 (EG). The minus is U+2212, not the hyphen: in the
+// badges' tabular figures it is as wide as the «+», so «+1» and «−1» are one width (hill climb r15,
+// Opus 7). Display only – nothing parses it back (the print, kroki.py · floor_badge, still hyphens).
+export const floorBadge = (f: number) => (f > 0 ? `+${f}` : f < 0 ? `\u2212${-f}` : '0')
 
 // ── Grosslüfter: a composite of a vehicle body + an overlaid fan, each independently
 // rotatable (the vehicle heading vs. the airflow direction). The two source glyphs are the
@@ -213,7 +215,7 @@ function SpreadArrows({ spread, color }: { spread: Spread; color: string }) {
 // different); see `storey` in TacticalSymbol for the one-storey cases
 const floorRangeBadge = (from: number, to: number) => `${floorBadge(from)}/${floorBadge(to)}`
 
-export function TacticalSymbol({ svg, sizePx, rotation = 0, overlay, count, floor, floorFrom, floorTo, spread, caption, measured, docked, done, className }: {
+export function TacticalSymbol({ svg, sizePx, rotation = 0, overlay, count, floor, floorFrom, floorTo, spread, caption, origin, measured, docked, done, className }: {
   svg: string
   /** rendered edge length in px (square) */
   sizePx: number
@@ -243,6 +245,10 @@ export function TacticalSymbol({ svg, sizePx, rotation = 0, overlay, count, floo
    *  caller decides the text + visibility (lib/symbols · symbolCaptionText, zoom gate); this
    *  just renders it as a sibling of the glyph so it never rotates with `rotation`. */
   caption?: string | null
+  /** a vehicle's «Herkunft» (lib/symbols · symbolOriginText): one small grey line at the foot of
+   *  the caption box – or the whole box, for a Fahrzeug whose name is in its glyph. Absent for the
+   *  own Feuerwehr. The label pass measures caption + this line together (symbolCaptionBoxText). */
+  origin?: string | null
   /** a MEASURED symbol's props (lib/symbols · isMeasuredSymbol, the Messpunkt): the mark is then
    *  one pill – a small Messgerät and the worst gas («CO 180») – instead of the glyph (owner pick
    *  S3, 27.10.2026). See ReadingPill. Never suppressed by the label pass, which books it as the
@@ -320,9 +326,10 @@ export function TacticalSymbol({ svg, sizePx, rotation = 0, overlay, count, floo
       {/* …and the fourth corner, top-left, is the «erledigt» time (lib/objectDone) */}
       {done && <span className="sym-done">{done}</span>}
       {measured && <ReadingPill props={measured} floor={storey} />}
-      {caption && (
+      {(caption || origin) && (
         <span className="sym-caption">
-          {caption.split('\n').map((line, i) => <span key={i}>{line}</span>)}
+          {caption?.split('\n').map((line, i) => <span key={i}>{line}</span>)}
+          {origin && <span className="sym-caption-origin">{origin}</span>}
         </span>
       )}
     </div>

@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import type { Drawing, Entity, LayerDef } from '../types'
 import { buildKrokiPayload, krokiEntity, krokiSymbolMul, shapeSvgString } from './krokiPayload'
 import { appConfig } from '../config/appConfig'
+import { RELAY_PUMP_SYMBOL } from './hydraulics'
+import { linePumpSpots } from './linePumps'
 
 const layers: LayerDef[] = [
   { id: 'base-carto', group: 'Basis', label: 'Carto', icon: 'map', base: true, visible: true, tiles: ['https://tiles/{z}/{x}/{y}.png'], maxzoom: 20, attribution: '© Test' },
@@ -139,6 +141,19 @@ describe('buildKrokiPayload', () => {
     expect(p!.center).toEqual([7.6, 47.6])
     expect(p!.zoom).toBe(16.5)
     expect(p!.bounds).toEqual([7.59, 47.59, 7.61, 47.61])
+  })
+
+  // screen = paper: a Leitung's «Pumpen auf Karte» (lib/linePumps) prints its Motorspritzen, and
+  // they hide with the drawings
+  it('prints the pumps a Leitung draws as Motorspritzen, with the drawings', () => {
+    const relayLine: Drawing = { id: 'd9', kind: 'line', coords: [[7.55, 47.5], [7.57, 47.5]], hose: '75', relay: { showPumps: true } }
+    const shown = buildKrokiPayload({ entities, drawings: [...drawings, relayLine], layers, byName: {}, center: [7.55, 47.51] })
+    const pumps = shown!.entities.filter((e) => e.symbol === RELAY_PUMP_SYMBOL)
+    expect(pumps.map((e) => e.coord)).toEqual(linePumpSpots(relayLine, null))
+    expect(pumps.length).toBeGreaterThan(0)
+    const hidden = layers.map((l) => (l.id === 'markup' ? { ...l, visible: false } : l))
+    expect(buildKrokiPayload({ entities, drawings: [relayLine], layers: hidden, byName: {}, center: [7.55, 47.51] })!
+      .entities.some((e) => e.symbol === RELAY_PUMP_SYMBOL)).toBe(false)
   })
 
   it('returns null without a raster base layer (nothing to render)', () => {

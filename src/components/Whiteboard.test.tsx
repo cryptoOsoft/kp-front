@@ -1602,6 +1602,27 @@ describe('das Geschoss einer Leitung ändern', () => {
   })
 })
 
+// The stack draws its symbols on the Lage's floor (lib/mapView · SYM_MIN): the board slider's 0.7
+// default is sized for Modul sheets and took them to ~20 px, under their own caption plates.
+describe('symbol size on the Gebäude stack', () => {
+  const pin: BoardAnno = { id: 's1', kind: 'symbol', symbol: 'P', x: 0.5, y: 0.5, floor: 0 }
+  const drawnPx = (symMul: number) => {
+    const { container } = render(<Whiteboard
+      plans={[gebaeudeDoc]} activeId="gebaeude" annos={[pin]} onChange={() => {}} symMul={symMul}
+      building={aBuilding} onSelectBuilding={() => {}} onAddFloor={() => {}} onRemoveFloor={() => {}}
+      sym={sym} onRecent={() => {}} log={() => {}} hist={{}} setHist={() => {}} focus={null}
+    />)
+    const px = parseFloat(container.querySelector<HTMLElement>('.ts-plan')!.style.width)
+    cleanup()
+    return px
+  }
+
+  it('never draws under the Lage floor, and still grows with the slider', () => {
+    expect(drawnPx(0.7)).toBe(28)
+    expect(drawnPx(1.5)).toBe(42)
+  })
+})
+
 // Folding a storey away is a way of LOOKING at the stack (16.09.2026): it never touches the
 // document, so it is offered on prepared packs and on read-only surfaces too — and the strip it
 // leaves behind is the whole way back.
@@ -1814,15 +1835,16 @@ describe('gesture contracts of the plan surface', () => {
     it('a Wand dragged onto the storey above goes there with its Durchgang – one step', () => {
       const { container, onCheckpoint } = mount([wand, tuer], twoStoreys)
       const hit = container.querySelector('polyline[stroke="transparent"]')!
-      // +0.15 across: both ends land well clear of the building outline, so nothing snaps
-      // (round 3) and the drop is exact
-      drag(hit, [[200, 300], [200, 250], [260, 100]])
+      // +0.2 across: both ends land well clear of the building outline (≈19 board px on the
+      // ~94 px wide stack this canvas fits, past the 14 px pull), so nothing snaps (round 3) and
+      // the drop is exact
+      drag(hit, [[200, 300], [200, 250], [280, 100]])
       expect(onCheckpoint).toHaveBeenCalledTimes(1)
       expect(find('w1').floor).toBe(1)
-      expect(find('w1').pts![0][0]).toBeCloseTo(0.35, 6)
+      expect(find('w1').pts![0][0]).toBeCloseTo(0.4, 6)
       expect(find('w1').pts![0][1]).toBeCloseTo(0.5, 6)
       expect(find('d1')).toMatchObject({ floor: 1, onWall: 'w1' })
-      expect(find('d1').x).toBeCloseTo(0.55, 6)
+      expect(find('d1').x).toBeCloseTo(0.6, 6)
       act(() => history.current!.undo())
       expect(find('w1')).toEqual(wand)
       expect(find('d1')).toEqual(tuer)

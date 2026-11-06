@@ -82,6 +82,7 @@ export const journalCopy = {
     audioImportedNote: 'Externe Audioaufnahme ({duration})',
     audioDiscardImport: 'Audiodatei verwerfen',
     audioUploading: 'Wird hochgeladen …',
+    photoLocating: 'Position wird gelesen …',
     audioOffline: 'Audio-Upload benötigt eine Verbindung. Datei später erneut auswählen.',
     audioTooLarge: 'Audiodatei ist zu gross. Maximum: {max} MB.',
     audioUnsupported: 'Dieses Audioformat wird nicht unterstützt.',
@@ -125,8 +126,9 @@ export const journalCopy = {
     mediaFailed: 'Nicht geladen',
     // rows appended after the Einsatzende (archive → reopen, the correction path)
     nachtrag: 'Nachtrag',
-    // a hand-written line corrected later (append-only patch — both wordings stay in the record)
-    corrected: 'korrigiert {t}',
+    // a hand-written line corrected later (append-only patch — both wordings stay in the record).
+    // The row's footnotes are sentence case (hill climb C13, 05.11.2026) — no uppercase eyebrow.
+    corrected: 'Korrigiert {t}',
     /**
      * Eine Zeile, die die App wiederholt hat, während sich nichts änderte — zusammengefasst auf
      * die erste, mit ihrer Zahl (lib/verlauf · repeatRuns).
@@ -136,7 +138,7 @@ export const journalCopy = {
      * dem Rapport steht für dieselbe Zeile «2×». Ein Wort für eine Zahl: hier wie dort ist es,
      * wie oft die Meldung insgesamt im Protokoll steht.
      */
-    repeated: 'insgesamt {n}×',
+    repeated: 'Insgesamt {n}×',
     repeatedTitle: 'So oft steht diese Meldung insgesamt im Protokoll – jede einzelne bleibt erhalten.',
     correctHint: 'Der ursprüngliche Wortlaut bleibt im Protokoll.',
     // die Zeile kam über den Atemschutz-Link herein — von einem Handy, das nur die Tafel
@@ -161,7 +163,7 @@ export const journalCopy = {
     // the FIRST wording, kept by the append-only patch chain (lib/journalStore · display)
     detailCorrectedFirst: 'zuerst: {text}',
     detailRepeated: 'Wiederholt',
-    detailRepeatedN: 'insgesamt {n}× bis {t}',
+    detailRepeatedN: 'Insgesamt {n}× bis {t}',
     detailNachtrag: 'Nachtrag',
     detailNachtragHint: 'nach Einsatzende erfasst',
     // system row appended when a three-way sync merge saw BOTH sides (KP tablet and
@@ -266,6 +268,9 @@ export const journalCopy = {
     dueSnooze: '+10 min',
     dueOpen: 'In Verlauf öffnen',
     openCount: '{n} offen',
+    // the Pendenzen box's foot strip while rows lie below its fold: how many («6 offen» above,
+    // three in view – «3 weitere» says where the other three are)
+    pinnedMoreBelow: '{n} weitere',
     // ⚠️ Offene Erinnerungen are held at the TOP of the Verlauf, out of chronological order.
     // Everything else in this list is where it happened, because the Verlauf is the record —
     // but a Wiedervorlage is the one row that is about the FUTURE, and on a busy Einsatz it
@@ -285,6 +290,9 @@ export const journalCopy = {
     // «wieder in …» auf der Erledigt-Zeile — legt eine NEUE Wiedervorlage mit gleichem Text an
     againChip: '{mins} min',
     againTitle: 'In {mins} Minuten wieder daran erinnern',
+    againSet: '↻ in {mins} min gesetzt',
+    againToast: 'Wiedervorlage in {mins} min gesetzt',
+    againWithdrawn: 'Wiedervorlage zurückgenommen: {text}',
     // ── Legende ───────────────────────────────────────────────────────────────────────────
     // The Verlauf row's 26px disc carries the Bereich (it replaced a chip that printed the same
     // word the sentence already carried). A glyph has to be LEARNED, so the drawer's head keeps
@@ -354,6 +362,41 @@ export const journalCopy = {
     ageLabelHours: '{n} h',
     ageToggle: 'Zeit / Alter umschalten',
     openState: 'offen',
+    // the Pendenzen block's line under an item: who it is for (its assignee), and the mark of an
+    // item typed on the Tafel's «Aufträge / Pendenzen» page — a tap opens that page
+    pinnedWer: 'Wer: {wer}',
+    fromTafel: 'von der Tafel',
+    fromTafelTitle: 'Auf der Tafel eingetragen – tippen öffnet die Seite',
+  },
+  // ── The Tafel's «Aufträge / Pendenzen» page (05.11.2026, lib/pendenzenPage) ────────────────
+  // A view on the Verlauf's Pendenzen and Erinnerungen: every act on the page appends a Verlauf
+  // row in these words, so the record says where it happened.
+  tafelPendenzen: {
+    createdLog: 'Pendenz von der Tafel ({page}): {text}',
+    createdWer: ' · Wer: {wer}',
+    createdUrgent: ' · dringend',
+    // a correction of Was / Wer / Prio. — `{changes}` joins the parts below with « · »
+    editLog: 'Auf der Tafel geändert ({text}): {changes}',
+    editWas: 'Was: {v}',
+    editWer: 'Wer: {v}',
+    editWerCleared: 'Wer entfernt',
+    editUrgent: 'Prio. 1 (dringend)',
+    editNotUrgent: 'ohne Prio.',
+    doneLog: 'Erledigt auf der Tafel: {text}',
+    reopenLog: 'Auf der Tafel wieder offen: {text}',
+    erteilt: 'Erteilt',
+    erledigt: 'Erledigt',
+    erinnerung: 'Erinnerung',
+    overdue: 'überfällig',
+    prio: 'Prio. 1 – dringend',
+    prioOff: 'Prio. 1 (dringend) setzen',
+    prioOn: 'Prio. 1 (dringend) – tippen zum Entfernen',
+    toVerlauf: 'Im Verlauf zeigen',
+    // shown once, under a row just typed on the page: `{by}` is « · Name» or nothing
+    saved: 'Als Pendenz im Verlauf eingetragen · {t}{by}',
+    newRow: 'Neue Pendenz …',
+    empty: 'Noch keine Pendenzen. Eine Zeile hier wird zur Pendenz im Verlauf – und jede Pendenz aus dem Verlauf steht hier.',
+    emptyRo: 'Noch keine Pendenzen im Verlauf.',
   },
   errors: {
     updateFailed: 'Aktualisierung fehlgeschlagen',

@@ -23,6 +23,12 @@ the module they concern (`lib/connectivity`, `lib/eventScope`, `lib/jsonEqual`,
   only tiny device flags (update banners, install prompts, once-per-device hints) and migration
   flags. UI copy/locale/defaults/storage keys live in `src/config/appConfig.ts`; the neutral
   fallback incident is `src/data/demoIncident.ts`.
+- **A Leitung's pumps keep their terrain offline** (05.11.2026). The pumps a Leitung draws
+  («Pumpen auf Karte», `lib/linePumps`) are planned on the swisstopo height profile of its path.
+  The page shares one in-memory copy per path (`lib/profile · loadProfile`); across a reload the
+  service worker's `height-profiles` cache answers the same URL offline (`vite.config` ·
+  runtimeCaching: network first, 4 s timeout, 300 paths / 30 days). A path never fetched online
+  has no profile and plans on flat ground, as the editor says («Ohne Höhenprofil gerechnet»).
 - **Saved means every operational queue is acknowledged.** Workspace, journal and client audit
   outboxes and the media upload queue contribute to the shared sync status. Preserve rejected
   entries for retry/export; a failed IndexedDB write must never claim local durability. Hydrate
@@ -129,6 +135,11 @@ the module they concern (`lib/connectivity`, `lib/eventScope`, `lib/jsonEqual`,
     a minute) until it is updated — nothing it sends lands.
   A Tafel page is ONE object but merges **atom by atom** (`lib/boardFormMerge`: a cell, a line,
   a field), the later edit (`t`, server clock) winning a true clash and writing a Verlauf row.
+  The Checklisten merge **per tick** (`mergeWorkspace · mergeChecklists`, 05.11.2026): two
+  devices ticking different items of one list both keep their tick (it was per list, and one
+  was lost). A problem's Tendenz sits beside the ticks (`trends`, merged per item too), so an
+  un-tick and a concurrent Tendenz on the same item both stand. The Tafel's problems are
+  derived from both, never copied (`lib/problemLink`) – so they need no merge of their own.
 - **IDs are prefixed timestamps, not UUIDs** – `newId(prefix)` from `src/lib/ids.ts`
   (`<prefix><ms>-<seq><rand>`) for EVERY record the app mints and syncs — Verlauf rows
   included (`newRowId(tag?)`), Mittel events, patch rows, Gäste, Pendenzen. A per-device
@@ -152,6 +163,18 @@ the module they concern (`lib/connectivity`, `lib/eventScope`, `lib/jsonEqual`,
   (vehicle presence, weather, Divera alarms) is recorded once by the scheduler
   ([`ARCHITECTURE.md`](ARCHITECTURE.md#the-server-observes-devices-never-write-observations)).
   What the devices still observe gets a derived id (below).
+
+## Live but never synced: the Präsentationsmodus (05.11.2026)
+
+A presentation is a way of LOOKING at the Einsatz together, so it has none of the machinery above:
+no synced field, no `MERGE_POLICY` row, no IndexedDB, no outbox – offline it is simply not there.
+Whether one runs rides the workspace follow: every workspace read, the 304 included, carries
+`X-Presentation` (the id or `none`), the poll sends the marker it holds (`presentation=`, answered
+at once when wrong), and a start or an end wakes the parked polls – like the lifecycle headers
+(`X-Incident-Open`). Only while that marker names one does a device run a third long poll
+(`live_wait` topic `presentation`), so an Einsatz nobody presents costs no request. It is held in
+the server's memory, and the record gets exactly two server rows, «Präsentation gestartet /
+beendet». The rules: [`presentation.md`](presentation.md).
 
 ## Review regression contracts (02.10.2026)
 
