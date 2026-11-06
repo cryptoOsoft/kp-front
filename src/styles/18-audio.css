@@ -349,8 +349,12 @@
   max-width: 100%; min-width: 0; overflow: hidden; }
 .jc-phrase-pendenz .jc-ring { width: 15px; height: 15px; border-width: 1.8px; flex: none;
   background: currentColor; box-shadow: inset 0 0 0 2.5px var(--surface); }
-/* the item's own words, truncated — the chip is a target, not the entry */
-.jc-phrase-pendenz { white-space: nowrap; text-overflow: ellipsis; }
+/* the item's own words, truncated — the chip is a target, not the entry. ⚠️ On their own span
+   (`.jc-phrase-text`): `text-overflow` does nothing on a flex container, so as bare text beside
+   the ring the words ran through the chip's right padding and were cut mid-glyph at its edge
+   (hill climb r36). The span ellipsises inside the padding. */
+.jc-phrase-pendenz { white-space: nowrap; }
+.jc-phrase-pendenz .jc-phrase-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 /* the picker's own list. It borrows the shared menu look (.rp-print-menu) and adds the one thing
    that surface never needed: a ceiling. Every open item is in here, and at a Lagerapport that is a
    dozen — each wrapping to as many lines as its Auftrag takes, because this is a list you pick
@@ -363,13 +367,22 @@
    fallback keeps this honest if a positioner ever stops setting it. */
 .jc-pendenz-menu { max-height: min(60vh, 460px, var(--menu-room, 60vh));
   overflow-y: auto; overscroll-behavior: contain; }
-/* ⚠️ centred, not flex-start (20.09.2026): the row is --tap tall and its one line of text is 18px,
-   so top-aligned content stood 5px above the middle of its own press wash – in «Erinnern» and in
-   the Pendenzen picker alike, since they share this skin. A label that wraps is centred against
-   its ring, which is how every other two-line row in the app sits. The per-glyph margin-tops that
-   used to fake a first-line alignment went with it. */
-.jc-pendenz-menu .rp-print-menu-item { align-items: center; white-space: normal; line-height: 1.35; gap: var(--sp-3); }
-.jc-pendenz-menu .jc-menu-label { flex: 1; min-width: 0; }
+/* The ring sits on its text's FIRST line, on that line's x-height middle (owner 05.11.2026: the
+   mark sits on its text's middle; hill climb r36 – centred on a 2–3-line Auftrag the ring floated
+   beside the second line). ⚠️ And a one-line row stays centred in its --tap (20.09.2026: top-aligned
+   content stood 5px above the middle of its own press wash). A GRID says both at once: the items
+   start-align in the one track, and `align-content: center` centres that track in the row – a
+   one-line row's track is its one line, a wrapped row's track fills the row. The ring is as tall
+   as the 14px line (19 vs 18.9px), so its middle is the line's; the 1px down is Sora's x-height
+   middle under the line box's (09-whiteboard · .wb-lamp, measured r23). Shared by «Erinnern» and
+   the Pendenzen picker. */
+/* `grid-auto-flow: column`: the trailing ✓ of the chosen row takes a third column only where it
+   is rendered, so the other rows keep the gap for their words. */
+.jc-pendenz-menu .rp-print-menu-item { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-auto-flow: column;
+  align-items: start; align-content: center; white-space: normal; line-height: 1.35; column-gap: var(--sp-3); }
+.jc-pendenz-menu .jc-menu-ring { translate: 0 1px; }
+/* the 15px ✓ on the same middle: 2px to the line's, 1px more to the x-height's */
+.jc-pendenz-menu .rp-print-menu-item > .i { translate: 0 3px; }
 /* the pinned rows at the foot of the picker (Menu · MenuActionItem.sticky). Opaque, or the list
    scrolling under them shows through; the first of them carries the rule that used to be a
    separator in the flow. */

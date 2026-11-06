@@ -767,7 +767,14 @@ span.wb-ghost-label { cursor: default; }
 @media (hover: hover) {
   .wb-trupp-opt.placed:hover { border-color: var(--glass-edge); }
 }
-.wb-trupp-cap { width: 5px; height: 22px; border-radius: 3px; background: var(--blue); }
+/* the Trupp's identity: its colour as a hollow RING (owner pick C5 – the board's `.trowDot`,
+   Atemschutz.module.css, at the picker's 14px: 10px across, a 2.5px line), drawn in `color`, which
+   the row sets from the Trupp's colour (useTruppActions · truppColors). It was a 4px blue bar on
+   every row, which read as a selection (hill climb r36). The 1px down: centred on the name's line
+   box it stands 1px above the x-height middle (.wb-lamp, Sora, measured r23). A «schon hier» row
+   keeps the row's dim (`.placed`). */
+.wb-trupp-ring { width: 10px; height: 10px; flex: none; border-radius: var(--r-pill);
+  box-shadow: inset 0 0 0 2.5px currentColor; translate: 0 1px; }
 .wb-trupp-generic { color: var(--ink-dim); font-weight: var(--fw-medium); }
 .wb-trupp-generic .i { width: 16px; height: 16px; }
 

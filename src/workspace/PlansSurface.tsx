@@ -213,6 +213,7 @@ export function PlansSurface({
           keysRef={planStacks.planKeys}
           focus={planFocus}
           trupps={effTrupps}
+          truppColors={truppActions.truppColors()}
           // the Karte's markers, the other plans' chips, the ghost trails and every Trupp ever
           // registered (its `trupps` prop leaves the removed ones out), for the one Trupp counter
           placedTeamNames={() => truppCounterNames()}
