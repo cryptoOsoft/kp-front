@@ -171,8 +171,10 @@ export function rosterFieldsToRefile(
   opts?: { force?: boolean },
 ): { key: string; value: string }[] {
   const had = (k: string) => (before?.[k] ?? '').trim()
+  // …except the «Herkunft»: no Bemerkung reads it, so naming where a vehicle came from must not
+  // re-state its Fahrer's Funktion (and re-open a presence somebody closed)
   const jobChanged = !!opts?.force
-    || Object.entries(fields).some(([k, v]) => !rosterFields.includes(k) && had(k) !== v.trim())
+    || Object.entries(fields).some(([k, v]) => !rosterFields.includes(k) && k !== appConfig.symbols.originField && had(k) !== v.trim())
   return Object.entries(fields)
     .filter(([k, v]) => rosterFields.includes(k) && !!v.trim() && (jobChanged || had(k) !== v.trim()))
     .map(([key, value]) => ({ key, value }))

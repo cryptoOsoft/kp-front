@@ -36,6 +36,9 @@ const OFFICER_ROSTER_SYMBOLS = new Set<string>(appConfig.symbols.officerRosterSy
 const EL_SYMBOLS = new Set<string>(appConfig.symbols.einsatzleiterSymbols)
 const EL_NAME = 'Name'
 const EL_STV = 'Stv.'
+// a vehicle's «Herkunft» (appConfig.symbols.originField) – a station-list field like any other
+// (FieldControl: the list with free typing); the key is named here for the live vehicle's own row
+const ORIGIN_FIELD = appConfig.symbols.originField
 
 function FieldControl({ fieldKey, value, kind, options, placeholder, officerFilter, rankOf, statusOf, onInput, onCommit }: {
   fieldKey: string
@@ -236,6 +239,9 @@ export interface ContextPanelProps {
    *  it is the one thing about a live vehicle only a human can say. Without `onChange` (a
    *  locked session) the row is a read-out. */
   driver?: { value: string; options?: string[]; onChange?: (v: string) => void }
+  /** …and its «Herkunft» (05.11.2026), the row under the Fahrer: same reason, same override map,
+   *  `options` = the station's `fleet.origins`. Without `onChange` a read-out. */
+  origin?: { value: string; options?: string[]; onChange?: (v: string) => void }
   connectedLines?: { id: string; label: string }[]
   /** Angedockte Gefahrentafel (SymbolProps.dockedTo, lib/docking): the host's display name.
    *  Rendered with a «Lösen» action when `onUndock` is wired — the panel is the one place the
@@ -303,7 +309,7 @@ function LinkBtn({ onClick, text }: { onClick: () => void; text: string }) {
   )
 }
 
-export function ContextPanel({ entity, svg, onClose, onCenter, onOriginal, originalLabel, onTitle, onTitleLive, onFields, onNotes, onFloorFrom, onFloorTo, onSpread, onCount, onRotate, onErgRings, ergCoord, onAdoptRadius, onRotate2, onCaption, captionDefault = 'auto', onAirflow, controls, titleOptions, fieldOptions, rosterRank, protectedKeys, onDelete, onDone, onStopSharing, readOnly, allowDelete = false, hasOverride, onPinGps, onResetGps, driver, personStatus, fieldHints, connectedLines = [], onFocusLine, dockedToLabel, onUndock, dockedTeams = [], onNoteSize, autoFocusNote = false, onNotePlain, onColor }: ContextPanelProps) {
+export function ContextPanel({ entity, svg, onClose, onCenter, onOriginal, originalLabel, onTitle, onTitleLive, onFields, onNotes, onFloorFrom, onFloorTo, onSpread, onCount, onRotate, onErgRings, ergCoord, onAdoptRadius, onRotate2, onCaption, captionDefault = 'auto', onAirflow, controls, titleOptions, fieldOptions, rosterRank, protectedKeys, onDelete, onDone, onStopSharing, readOnly, allowDelete = false, hasOverride, onPinGps, onResetGps, driver, origin, personStatus, fieldHints, connectedLines = [], onFocusLine, dockedToLabel, onUndock, dockedTeams = [], onNoteSize, autoFocusNote = false, onNotePlain, onColor }: ContextPanelProps) {
   // read per-render (not module-load) so the resolved locale is applied — see config/copy
   const C = appConfig.copy.contextPanel
   const N = appConfig.copy.notes
@@ -371,8 +377,13 @@ const GRENZE_GLYPH = { left: 'grenze-v', right: 'grenze-v', up: 'grenze-up', dow
   // "missing leads" — keeps a trailing preset field trailing (Einsatzleiter: Name before Stv.,
   // not Stv. hoisted above Name just because it was blank). Read-only uses the same rows: an
   // empty Fahrer field is still part of the literal source object's sidebar, shown as «–».
+  // A live vehicle's Fahrer and Herkunft ride in its fields too (lib/useVehicleLayer – for the
+  // caption and the Kroki), but here they have their own rows above: not a second time read-only.
+  const ownRows = new Set([driver && 'Fahrer', origin && ORIGIN_FIELD].filter(Boolean))
+  // the live row's text while it is typed (no station list → FieldControl's free-text field)
+  const [originDraft, setOriginDraft] = useState(origin?.value ?? '')
   const seedRows = (fields: Record<string, string> | undefined): Row[] => {
-    const base = toRows(fields)
+    const base = toRows(fields).filter((r) => !ownRows.has(r.k))
     if (!protectedKeys?.size) return base
     // normKey absorbs rows stored under a preset key's pre-dot spelling ('UN-Nr' →
     // 'UN-Nr.'): the value survives under the canonical key, and the next commit
@@ -869,6 +880,18 @@ const GRENZE_GLYPH = { left: 'grenze-v', right: 'grenze-v', up: 'grenze-up', dow
                 statusOf={personStatus}
                 onChange={driver.onChange}
               />
+            </label>
+          )}
+          {origin && !origin.onChange && (
+            <div className="field"><span className="kv-key-ro">{ORIGIN_FIELD}</span><b className="kv-val-ro">{origin.value || '–'}</b></div>
+          )}
+          {origin?.onChange && (
+            // the SAME control as a placed vehicle's preset «Herkunft» row below (FieldControl)
+            <label className="field">
+              <span className="kv-key-ro">{ORIGIN_FIELD}</span>
+              <FieldControl fieldKey={ORIGIN_FIELD} value={originDraft} options={origin.options}
+                placeholder={valuePlaceholder(ORIGIN_FIELD)}
+                onInput={setOriginDraft} onCommit={(v) => { setOriginDraft(v); if (v !== origin.value) origin.onChange?.(v) }} />
             </label>
           )}
           {/* ⚠️ `showFloorRange` belongs in this gate — it was the one stepper left out, so a

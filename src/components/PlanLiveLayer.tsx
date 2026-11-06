@@ -21,7 +21,7 @@ import { fillTemplate } from '../lib/format'
 import { vehicleSymbolSvg } from '../lib/useVehiclePositions'
 import { isRotatableSym, isVehicleSym, TEAM_DOT_PX } from '../lib/mapView'
 import { glyphFor, twinName } from '../lib/entityGlyph'
-import { symbolCaptionText, isMeasuredSymbol } from '../lib/symbols'
+import { symbolCaptionText, symbolOriginText, isMeasuredSymbol } from '../lib/symbols'
 import { softHyphenateText } from '../lib/symbolWrap'
 import { beginSheetPeek, endSheetPeek } from '../lib/sheetPeek'
 import { DRAG_DEADZONE_PX } from '../lib/useHoldToDrag'
@@ -82,6 +82,7 @@ export const PlanLiveLayer = memo(function PlanLiveLayer({ marks, byName, sW, sH
         const veh = isVehicleSym(e)
         const rot = veh || isRotatableSym(e) ? (e.rotation ?? 0) + m.rotationDeg : 0
         const caption = suppressedCaptions?.has(e.id) ? null : symbolCaptionText(e, captionMode)
+        const origin = suppressedCaptions?.has(e.id) ? null : symbolOriginText(e, captionMode)
         const title = fillTemplate(C.twinFromMap, { name })
         const movable = !!onMove && veh
         const report = (phase: 'start' | 'move' | 'end', dx: number, dy: number) => {
@@ -128,6 +129,7 @@ export const PlanLiveLayer = memo(function PlanLiveLayer({ marks, byName, sW, sH
               svg={veh ? vehicleSymbolSvg(name, rot, e.directed ?? true) : glyphFor(e, byName)}
               sizePx={sizePx} rotation={veh ? 0 : rot} count={e.count}
               caption={caption ? softHyphenateText(caption) : caption}
+              origin={origin}
               measured={isMeasuredSymbol(e) ? e : undefined} />
           </span>
         )

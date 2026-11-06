@@ -251,6 +251,11 @@ const base = {
     // It is the LAST field of every manned preset below, so the existing caption/field order is
     // untouched, and it marks the person present as «Bedienung Lüfter» (lib/roleAssignment).
     rosterFields: ['Name', 'Fahrer', 'Stv.', 'Bedienung'],
+    // «Herkunft» (05.11.2026): where a vehicle comes from when it is NOT the own Feuerwehr
+    // (Stützpunkt, Zivilschutz, Wache Nord …). The second field of every driven vehicle below and
+    // of a live GPS vehicle (lib/useVehicleLayer); its list is the station's `fleet.origins`,
+    // one list for all of them (lib/symbols · symbolFieldOptions). Empty = own Feuerwehr.
+    originField: 'Herkunft',
     // symbols whose roster picker offers a "nur Offiziere" filter + officer-first order
     // (leadership glyphs where you pick the FU/EL/officer by name) — same toggle as the
     // Einsatzleiter picker in the Rapport preflight.
@@ -539,21 +544,22 @@ const base = {
         'VKF Verkehrssperre ueberwacht': { controls: ['rotation'], fields: ['Bedienung'] },
         // ── Fahrzeuge / Mittel ── operator-named; directional ones rotate. The driven vehicles
         // (generic Fahrzeug, Drehleiter, Hubretter, Grosslüfter, Boot) also carry a Fahrer roster picker
-        // and NO Bedienung; every other device here carries «Bedienung» (14.09.) as its last field.
+        // and the «Herkunft» (originField) after it, and NO Bedienung; every other device here
+        // carries «Bedienung» (14.09.) as its last field.
         // Drehleiter: composite body + independently-slewing ladder — `rotation` aims the truck,
         // `rotation2` aims the ladder (own rotor + Drehung stepper). Synthesised like the Grosslüfter
         // (see lib/symbolRender COMPOSITES).
-        'VKF Drehleiter': { controls: ['rotation', 'rotation2'], fields: ['Fahrer'] },
+        'VKF Drehleiter': { controls: ['rotation', 'rotation2'], fields: ['Fahrer', 'Herkunft'] },
         // Hubretter: the truck body rotates on its own (`rotation` — normal rotor + Drehung stepper),
         // INDEPENDENT of the articulated boom, which is shaped by dragging the cage tip (a separate
         // on-canvas handle sets the boom bearing `rotation2` + reach `reachM`/`reachN`). Rotating the
         // truck doesn't move the boom and vice-versa. See MapMarkers / Whiteboard cage handle +
         // lib/symbolRender HubretterBoom.
-        'VKF Hubretter': { controls: ['rotation'], fields: ['Fahrer'] },
+        'VKF Hubretter': { controls: ['rotation'], fields: ['Fahrer', 'Herkunft'] },
         // Drohne: a hovering-asset marker — stays upright (no rotation), no fields.
         'VKF Drohne': { fields: ['Bedienung'] },
         // generic vehicle: user-named (see lib/symbols) — title + a Fahrer picker; type lists via config
-        'VKF Fahrzeug': { controls: ['rotation'], fields: ['Fahrer'] },
+        'VKF Fahrzeug': { controls: ['rotation'], fields: ['Fahrer', 'Herkunft'] },
         'VKF Pumpe Typ2': { fields: ['Bedienung'] },
         // ⚠️ The kit below carries a STOREY (11.08.). A Lüfter, ein Exhauster, eine Tauchpumpe,
         // ein Handlöscher and ein Innenhydrant are placed INSIDE a building as often as outside
@@ -568,10 +574,10 @@ const base = {
         // each with its own on-canvas rotor + Drehung stepper, PLUS the Lüfter airflow direction
         // (Einblasen / Absaugen — reverses the fan glyph, same as the mobile Lüfter). Synthesised
         // in lib/useSymbols.
-        'Grosslüfter': { controls: ['rotation', 'rotation2', 'airflow', 'floor'], fields: ['Fahrer'] },
+        'Grosslüfter': { controls: ['rotation', 'rotation2', 'airflow', 'floor'], fields: ['Fahrer', 'Herkunft'] },
         'FW Entrauchung': { controls: ['rotation', 'floor'], fields: ['Bedienung'] },
         'FW Kleinloeschgeraet': { controls: ['floor'], fields: ['Typ', 'Bedienung'] },
-        'FW Boot': { controls: ['rotation'], fields: ['Fahrer'] },
+        'FW Boot': { controls: ['rotation'], fields: ['Fahrer', 'Herkunft'] },
         'FW Sprungretter': { fields: ['Bedienung'] },
         'FW Leiter': { controls: ['rotation'], fields: ['Bedienung'] },
         // ── Wasser ── fixed supply points; the symbol is the info.
