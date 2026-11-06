@@ -439,7 +439,9 @@
   max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; box-sizing: border-box;
   background: var(--glass); backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-edge); border-radius: var(--r-hero); padding: var(--sp-5) var(--sp-5) var(--sp-4); box-shadow: var(--e4);
+  /* no edge (r35, 06.11.2026): the sheets draw none, --e4 is the outline. Its title's text stands
+     24 from the top and the side, where a sheet title beside its 36px ✕ stands too. */
+  border-radius: var(--r-hero); padding: var(--sp-5) var(--sp-5) var(--sp-4); box-shadow: var(--e4);
   animation: pop .16s var(--ease); }
 .confirm-title { margin: 0 0 var(--sp-2); font: var(--sheet-title); color: var(--ink); } /* the one sheet title (28.09.2026; was 19) */
 .confirm-msg { margin: 0 0 var(--sp-3); font: var(--fw-medium) var(--fs-2)/1.45 var(--body); color: var(--ink-dim); }

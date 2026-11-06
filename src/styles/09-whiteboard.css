@@ -735,10 +735,15 @@ span.wb-ghost-label { cursor: default; }
    now, so their sizes read against the viewport rather than the board. */
 .wb-trupp-pick.ui-dialog, .wb-cal-pop.ui-dialog {
   position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: var(--z-dialog); }
-/* "Welcher Trupp?" quick picker shown when placing a team chip on the plan */
-.wb-trupp-pick { width: min(300px, calc(100vw - 32px)); max-height: 70dvh; overflow-y: auto; background: var(--surface);
+/* "Welcher Trupp?" quick picker shown when placing a team chip on the plan. THE sheet material
+   (13-incident · .ip-sheet: --glass + blur, --e4, the one corner – r35, 06.11.2026; it was opaque
+   --surface, at night a #232c3a slab beside the #141a24 sheets) and THE sheet head: the question is
+   its title, 16/800 in ink, 16 from the top and 24 from the side (the card's 12 + the head's 4/12) –
+   it was a 12.5/700 caption in --ink-dim, the one dialog without a title. */
+.wb-trupp-pick { width: min(300px, calc(100vw - 32px)); max-height: 70dvh; overflow-y: auto;
+  background: var(--glass); backdrop-filter: blur(16px);
   border-radius: var(--r-surface); box-shadow: var(--e4); padding: var(--sp-3); display: flex; flex-direction: column; gap: var(--sp-2); }
-.wb-trupp-pick-head { font-size: var(--fs-1); font-weight: var(--fw-bold); color: var(--ink-dim); padding: var(--sp-1) var(--sp-2) var(--sp-2); }
+.wb-trupp-pick-head { font: var(--sheet-title); color: var(--ink); padding: var(--sp-1) var(--sp-3) var(--sp-2); }
 .wb-trupp-opt { display: flex; align-items: center; gap: var(--sp-2); border: 1px solid var(--glass-edge); background: var(--surface-2, #fff);
   border-radius: var(--r-ctl); cursor: pointer; padding: var(--sp-3); font: var(--fw-bold) var(--fs-2) var(--body); color: var(--ink); min-height: 48px; text-align: left; }
 @media (hover: hover) {
@@ -1246,7 +1251,10 @@ span.wb-ghost-label { cursor: default; }
    ⚠️ A DOCK, not a popover. The board underneath stays live and un-dismissing, so a tap on a
    symbol is a tap on that symbol — not a press that the overlay swallows to close itself. */
 .wb-georef-dock { position: absolute; left: calc(var(--rail-w) + 28px); bottom: calc(16px + var(--float-h) + var(--float-gap)); z-index: 9;
-  border-radius: var(--r-surface); border: 1px solid var(--glass-line); background: var(--surface);
+  /* THE sheet tone laid opaque, no edge, --e4 – the Gebäude card's recipe beside it (BuildingFloat ·
+     .pop, owner 27.10.2026: a card of text over a drawn plan lets nothing through). r35, 06.11.2026:
+     it was --surface with a --glass-line ring, at night a #232c3a slab beside #141a24 sheets. */
+  border-radius: var(--r-surface); background: linear-gradient(var(--glass), var(--glass)) var(--surface);
   box-shadow: var(--e4); }
 @media (--phone) {
   /* ⚠️ Its height is NOT fixed — `.qActions` is a 2-column grid of 2 or 3 rows (Neu ausrichten /
@@ -1261,7 +1269,7 @@ span.wb-ghost-label { cursor: default; }
      hugs its content up to the sheet cap and pays the bottom inset itself. */
   .wb-georef-dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: var(--z-drawer);
     max-height: min(72dvh, calc(100dvh - 84px - env(safe-area-inset-top))); overflow-y: auto;
-    border-width: 1px 0 0; border-radius: var(--r-hero) var(--r-hero) 0 0;
+    border-radius: var(--r-hero) var(--r-hero) 0 0;
     padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     animation: sheetUp .22s var(--ease); }
   .wb-georef-dock > .ui-sheet-grab { margin-bottom: -4px; }

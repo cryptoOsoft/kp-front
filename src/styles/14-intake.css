@@ -4,7 +4,7 @@
 
 /* The map-picker scrim: the Mittel remark below borrows it too (it opens OVER another sheet, so
    the pair sits at the blocking z-index 120/121, above the .ip-sheet 80/81). */
-.mp-backdrop { position: fixed; inset: 0; z-index: var(--z-blocking-scrim); background: rgba(10, 14, 20, .5); backdrop-filter: blur(2px); }
+.mp-backdrop { position: fixed; inset: 0; z-index: var(--z-blocking-scrim); }   /* paint: 13-incident · «ONE modal scrim» */
 
 /* The Mittel remark opens OVER the Mittel sheet, so it borrows the map-picker's scrim/z-pair.
    ⚠️ This MUST stay below `.ip-sheet.ui-dialog` in the file: both selectors weigh the same, so

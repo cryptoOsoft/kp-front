@@ -120,16 +120,19 @@ export function Palette({ sym, onPick, onClose, onPickShape, tools, onPickTool }
   // no such symbol
   const toolMatches = query ? sheetTools.filter((t) => t.label.toLowerCase().includes(query)) : []
   // portal to <body> so the backdrop escapes the .surface stacking context (z-index 20) and
-  // covers the left NavRail (z-index 35) instead of rendering beneath it
+  // covers the left NavRail (z-index 35) instead of rendering beneath it.
+  // Scrim and sheet are SIBLINGS, the shape Base UI gives every other dialog (r35, 06.11.2026): the
+  // sheet centres itself (07-toolrail · .sym-modal), and nothing the scroller clips under its edge
+  // counts as «inside» the scrim any more.
   return createPortal((
-    <div className="modal-backdrop" onClick={onClose}>
+    <>
+      <div className="modal-backdrop" onClick={onClose} />
       <div
         ref={modalRef}
         className="sym-modal"
         role="dialog"
         aria-modal="true"
         aria-label={appConfig.copy.symbolSearchPlaceholder}
-        onClick={(e) => e.stopPropagation()}
         onKeyDown={trapFocus}
         {...swipe}
       >
@@ -188,6 +191,6 @@ export function Palette({ sym, onPick, onClose, onPickShape, tools, onPickTool }
           )}
         </div>
       </div>
-    </div>
+    </>
   ), document.body)
 }

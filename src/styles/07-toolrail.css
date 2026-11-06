@@ -263,15 +263,23 @@
 .uslider:active .uslider-thumb { background-image: linear-gradient(var(--press), var(--press)); }
 
 /* symbol search modal */
-.modal-backdrop { position: fixed; inset: 0; background: rgba(20, 28, 40, .45); backdrop-filter: blur(2px); z-index: var(--z-dialog-scrim);
+/* the scrim's paint is THE modal scrim (13-incident · «ONE modal scrim»); this is its layout */
+.modal-backdrop { position: fixed; inset: 0; z-index: var(--z-dialog-scrim);
   display: grid; place-items: center; animation: fade .12s ease; }
 @keyframes fade { from { opacity: 0; } }
 /* the Eintrag/Erinnerung composer is top-anchored on tablet/desktop so its mode toggle keeps
    the same vertical position when the two modes differ in height (centred, it jumped). On
    phones it stays a bottom sheet (see the ≤600px rule). */
 .sym-modal { width: min(760px, 92vw); height: min(620px, 86dvh); display: flex; flex-direction: column; gap: 12px;
-  background: var(--surface); border: 1px solid var(--glass-line);
-  border-radius: var(--r-hero); padding: 16px; box-shadow: var(--e5); animation: pop .16s var(--ease); }
+  /* the scrim is its SIBLING (Palette.tsx), so the sheet centres itself – `inset: 0` + auto
+     margins on a sized box, never a translate (the swipe-down writes `transform`) */
+  position: fixed; inset: 0; margin: auto; z-index: var(--z-dialog);
+  /* THE sheet tone, no edge, --e4 (r35, 06.11.2026 – it was --surface with a --glass-line edge and
+     the --e5 lift, at night a #232c3a slab beside the #141a24 sheets). Laid OPAQUE over --surface,
+     the Verlauf's recipe (10-journal): the section heads are sticky and must cover the cells that
+     scroll under them in the sheet's own tone – over see-through glass an opaque head is a band. */
+  background: linear-gradient(var(--glass), var(--glass)) var(--surface);
+  border-radius: var(--r-hero); padding: 16px; box-shadow: var(--e4); animation: pop .16s var(--ease); }
 /* `scale`, NOT `transform: scale()`. Two of the three cards that use this keyframe centre
    themselves with a transform (.journal-composer translateX(-50%), .confirm-card
    translate(-50%,-50%)); a `transform` keyframe REPLACES that translate for the length of the
@@ -279,20 +287,26 @@
    was the "janky open" — it was never the timing. The independent `scale` property composes with
    whatever transform the element already carries, so both cards now only grow in place. */
 @keyframes pop { from { scale: .97; opacity: 0; } }
-/* ⚠️ ONE height for the whole header row, and it is --tap. The pill used to take its height from
-   the input's line-box (16px text + 2×14px padding ≈ 47px) while the ✕ beside it was a 40px
-   square — so on a phone the close button read as a smaller control sunk below the search field.
-   Both are var(--tap) tall now, which is also the touch floor, so neither needs a pad to reach it.
-   The radii stay APART on purpose: the pill is a control (--r-ctl), the ✕ is a button (--r-sm) —
-   the house nesting, see the radius scale in 01-tokens.css. */
+/* ⚠️ ONE height for the whole header row, and it is --tap: the search pill's. It used to take its
+   height from the input's line-box (≈ 47px) while the ✕ beside it was a 40px square sunk below it.
+   The ✕ is THE sheet ✕ since r35 (36px over its 44px pad, below), centred on the row. */
 .sym-top { display: flex; align-items: center; gap: 8px; }
 /* the field is THE search (components/SearchField · `.ui-search`, 29.09.2026) — the palette's
    pill was its model; here it only takes the row's slack */
 .sym-search { flex: 1; }
-.sym-close { background: var(--fill-soft); border: none; border-radius: var(--r-sm); width: var(--tap); height: var(--tap); display: grid; place-items: center; color: var(--ink-dim); cursor: pointer; flex: none; }
+/* THE sheet ✕ (13-incident · .ip-x: 36px plate, --ink-8, 18px glyph, the 44px pad from 02-base) –
+   r35, 06.11.2026: it was a 44px --fill-soft square, the one ✕ in the app of that look. Centred on
+   the search row; 16px from the edge, the search field's own inset. */
+.sym-close { background: var(--ink-8); border: none; border-radius: var(--r-sm); width: 36px; height: 36px; display: grid; place-items: center; color: var(--ink-dim); cursor: pointer; flex: none; }
+@media (hover: hover) {
+  .sym-close:hover { background: var(--ink-12); color: var(--ink); }
+}
+.sym-close:active:not(:disabled) { background-image: linear-gradient(var(--press), var(--press)); }
 .sym-close .i { width: 18px; height: 18px; }
 .sym-scroll { flex: 1; overflow-y: auto; scrollbar-width: thin; }
-.sym-ghead { position: sticky; top: 0; background: var(--surface); backdrop-filter: blur(4px); z-index: 1;
+.sym-ghead { position: sticky; top: 0; z-index: 1;
+  /* the sheet's own tone, laid opaque so a scrolled row never shows through the head */
+  background: linear-gradient(var(--glass), var(--glass)), var(--surface);
   /* a section head is an EYEBROW (29.09.2026, K9 — docs/ui-conventions.md · Fields, titles, eyebrows) */
   font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-faint);
   padding: 12px 4px 8px; }

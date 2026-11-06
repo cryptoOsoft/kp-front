@@ -760,7 +760,7 @@
      — it no longer sits sticky over the log, so the old «taller than its scrollport» trap this
      comment used to describe is gone with it.) */
   .jr-pinned { max-height: 40dvh; }
-  /* ⚠️ THE PHONE'S TEXT AXIS, 96px in from the sheet's inner edge (its 1px border), not 110 (hill
+  /* ⚠️ THE PHONE'S TEXT AXIS, 96px in from the sheet's edge (it wore a 1px border until r35), not 110 (hill
      climb r14, 05.11.2026: names with roles ran to three lines). The strip, the Pendenzen box and
      the log stand 8px in (the drawer's 12 less 4), the clock 16 (+ the row's 8) — on the title's
      x — and the two columns in front
@@ -913,9 +913,9 @@
   .confirm-actions { flex-wrap: wrap-reverse; }
   .confirm-actions .ip-btn { flex: 1 1 auto; }
   /* symbol search → bottom sheet (the grid is tall; bottom-aligning keeps the search
-     field + close reachable). Symbol picking is editor-only so this is rare on a phone. */
-  .modal-backdrop:not(.confirm-backdrop) { place-items: end center; }
-  .sym-modal { width: 100%; max-width: none; height: 92dvh;
+     field + close reachable). Symbol picking is editor-only so this is rare on a phone.
+     The sheet places itself (its scrim is a sibling since r35, Palette.tsx): flush with the foot. */
+  .sym-modal { inset: auto 0 0 0; margin: 0; width: 100%; max-width: none; height: 92dvh;
     border-radius: var(--r-hero) var(--r-hero) 0 0; }
   /* FOUR columns, not auto-fill (owner, 27.09.2026: «maybe change the symbol selection to 4
      columns?»). The tablet's `minmax(94px, 1fr)` gave a 390px phone three 114px cells with the

@@ -126,7 +126,7 @@ describe('the mini sheets', () => {
     // the Kanal chip opens the pad, the Auftrag chip the Auftrag sheet
     fireEvent.click(within(card).getByRole('button', { name: `${az.funkkanalUnit} 11` }))
     expect(screen.getByRole('dialog', { name: new RegExp(`^${az.funkkanalUnit}`) })).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: az.cancel }))
+    fireEvent.click(screen.getByRole('button', { name: appConfig.copy.closeDialog }))
     fireEvent.click(within(card).getByRole('button', { name: 'Löschen · Test' }))
     expect(screen.getByRole('dialog', { name: new RegExp(`^${az.editFieldLabels.auftrag}`) })).toBeTruthy()
   })

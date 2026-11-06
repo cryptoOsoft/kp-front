@@ -168,6 +168,19 @@ reopens, while the head's subtitle says when («Schadenlage · erledigt 10:57»)
   tap-toggle `DockInfo`/`InfoTip` also stay bespoke (free-type + in-menu toggle / a tablet tap
   model don't map cleanly to Base UI Select/Tooltip); the admin `Select` stays hand-rolled too,
   keyboard-driven and unportalled.
+- **One look per overlay kind** (hill climb r35, 06.11.2026 – converged on what most of them
+  already did). A **modal** dims the room with ONE scrim, `.ui-backdrop`'s rgba(20,28,40,.32) + 2px
+  blur (13-incident · «ONE modal scrim» paints `.modal-backdrop`, `.mp-backdrop`, `.help-scrim`
+  and `.journal-scrim` too; anchored menus and popovers have none). A **sheet or panel** is the
+  sheets' material: `--glass` + blur, no edge, `--e4`, the one corner – or, where a panel is READ
+  over a live map or plan (Verlauf, Hilfe, the Gebäude card, the Plan dock), that tone laid opaque
+  over `--surface` (`linear-gradient(var(--glass), var(--glass)) var(--surface)`), never
+  `--surface` itself (#232c3a at night beside the #141a24 sheets). Its head is the sheet title
+  (`--sheet-title`, 16/800 ink), 16 from the top and 24 from the side, no hairline under it. A
+  **menu or popover** is the menu shell: `--r-bar` over `--bar-pad`, opaque `--surface` + its 1px
+  `--glass-edge` (out of the top bar: the bar's glass + `--glass-line` instead), `--e4`; facts in it
+  that are read, not tapped, stand at a menu row's 12px text inset. A one-of-N row in a menu is a
+  trailing ✓ (`Menu` · radio), a pick-several row the checkbox.
 
 Three rules the primitives own, so no surface re-answers them (18.09.2026):
 
@@ -236,11 +249,13 @@ Three rules the primitives own, so no surface re-answers them (18.09.2026):
 - **Buttons follow one spec – don't invent a per-surface variant.** Decided 2026-07-28 after a
   sweep found 12 label type combos, 6 disabled opacities and 8 stray radii for one role.
   - *The ✕ that closes a sheet is 36px with an 18px glyph, everywhere* (`.ip-x`, `.journal-x`,
-    `.ctx-x` — one rule in 13-incident.css; it was 28/30/32). Beside a 44px search field it is
-    44px instead (Palette, Verlauf search), and it is the ordinary grey, never a filled «on».
-    The Verlauf's head is a row of 44px buttons (ⓘ, lens, funnel, ▶, ✕ – 30.10.2026, owner), so
-    its ✕ and ⓘ are 44 there too, for the same reason – and its ✕ wears ▶'s frame, not the grey
-    (hill climb r13, 05.11.2026: bare utilities, framed ▶ and a grey ✕ were three looks in one row).
+    `.ctx-x`, `.sym-close` — one rule in 13-incident.css; it was 28/30/32): the `--ink-8` plate,
+    the ordinary grey, never a filled «on», over a 44px hit pad. No exceptions since hill climb r35
+    (06.11.2026): beside a 44px search field (Palette, Verlauf search, Trupp finden) and in the
+    Verlauf's head of 44px buttons it is the same 36px plate, centred on its row – the 44px and
+    ▶-framed copies there read as a different button. It stands as far from the sheet's right
+    edge as the title from its left (24 on a sheet, 16 where a frame pads 16: composer, Palette,
+    Verlauf, the `.ctx` editors, Trupp finden; 12 on the Gebäude card).
   - *Radius – ONE corner (25.09.2026):* **every** rectangle is `var(--r-sm)` (12px) – button,
     field, status box, row, card, page card (tablet and desktop – a phone page has no card,
     [`phone-layout.md`](phone-layout.md) · «No page card on a phone»), sheet, dialog, message; `--r-ctl`/`--r-surface`/

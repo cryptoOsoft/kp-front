@@ -24,8 +24,11 @@
    `.ip-sheet` already answers in 13-incident.css; without one it falls back to 0px and this is
    the rule it always was. Stays at this specificity on purpose: the phone bottom-sheet override
    in 15-mobile.css replaces the max-height wholesale and must keep winning. */
+/* No edge (r35, 06.11.2026): the sheets draw none, --e4 is the outline – a 1px --glass-line ring
+   was this panel's alone among them. Its 16px inset (not the sheets' 24) is the editor rows': the
+   label column and the control edge need the width, so title and ✕ both stand 16 in. */
 .ctx { position: absolute; right: calc(var(--vrail-w, 60px) + 26px); top: var(--rail-top); width: 360px; background: var(--glass);
-  backdrop-filter: blur(14px) saturate(1.4); border: 1px solid var(--glass-line); border-radius: var(--r-hero); z-index: var(--z-chrome);
+  backdrop-filter: blur(14px) saturate(1.4); border-radius: var(--r-hero); z-index: var(--z-chrome);
   box-shadow: var(--e4); max-height: calc(100dvh - var(--rail-top) - 16px - env(safe-area-inset-bottom) - var(--kb-inset, 0px));
   display: flex; flex-direction: column; overflow: hidden; }
 /* A Plan's Ebenen list describes the projections in the selected object's detail panel, so both
@@ -53,7 +56,9 @@
    on phones only the grip + header stay pinned and everything else scrolls (the pinned
    desktop copy is hidden there, and vice versa). Rendered by all .ctx editors. */
 .ctx-footer-inline { display: none; }
-.ctx-head { padding: 16px 16px 12px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-soft); }
+/* no hairline under the head (r35, 06.11.2026): no other sheet draws one – its title and the 12px
+   below it already end the head */
+.ctx-head { padding: 16px 16px 12px; display: flex; align-items: center; gap: 12px; }
 .ph { width: 46px; height: 46px; border-radius: var(--r-ctl); border: 2px solid var(--blue); color: var(--blue);
   display: grid; place-items: center; font-family: var(--mono); font-size: var(--fs-1); background: var(--surface-2); flex: none; }
 .ph svg { width: 30px; height: 30px; }

@@ -464,11 +464,10 @@
    centring itself on a viewport the keyboard has halved, which is the complaint it answers. */
 .modal:global(.is-kb) { top: calc(max(12px, env(safe-area-inset-top)) + var(--vv-pan, 0px)); transform: translateX(-50%);
   height: min(760px, calc(100dvh - 24px - var(--kb-inset, 0px))); }
-/* ⚠️ Tighter than the standard .ip-head, and deliberately so: this form has a row that GROWS
-   — the drawn Leitungen wrap to a second line of chips as soon as a few hoses exist — and the
-   frame is sized to a tablet. The chrome pays for that line, not the fields. 800/17 keeps the
-   app-wide heading cut (a lighter weight reads as a different typeface, not a smaller heading). */
-.modalHead { flex: none; display: flex; align-items: center; gap: 12px; padding: var(--sp-3) var(--sp-5) var(--sp-2); }
+/* THE sheet head (.ip-head): 16 from the top, 24 from the side, the title centred on its 36px ✕
+   (r35, 06.11.2026 – it stood 12 from the top, 4px tighter than every other sheet, to buy room for
+   the form's growing Leitungen row; one head for every sheet won). */
+.modalHead { flex: none; display: flex; align-items: center; gap: 12px; padding: var(--sp-4) var(--sp-5) var(--sp-2); }
 .modalHead h3 { margin: 0; flex: 1 1 auto; font: var(--sheet-title); color: var(--ink); }
 
 /* two columns (Trupp · Druck + Weitere Angaben) so the create form fits without scrolling on a
@@ -793,10 +792,13 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 .comboType :global(.i) { width: 15px; height: 15px; }
 .comboEmpty { padding: 8px 12px; font-size: var(--fs-1); color: var(--ink-faint); }
 .comboMenu {
-  /* --menu-pad: the sticky search row is offset by the same number (ComboMenu.module.css · .searchRow) */
-  --menu-pad: 4px; position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 5; margin: 0; padding: var(--menu-pad); list-style: none;
+  /* THE menu shell (06-contextpanel · .combo-menu, every `Menu`): even --bar-pad and the corner of
+     its rows plus that gap, --r-bar (r35, 06.11.2026 – it was 4px and --r-ctl, the one picker in
+     another shape). --menu-pad: the sticky search row is offset by the same number
+     (ComboMenu.module.css · .searchRow). */
+  --menu-pad: var(--bar-pad); position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 5; margin: 0; padding: var(--menu-pad); list-style: none;
   max-height: 252px; overflow-y: auto; background: var(--surface); border: 1px solid var(--glass-edge);
-  border-radius: var(--r-ctl); box-shadow: var(--e4);
+  border-radius: var(--r-bar); box-shadow: var(--e4);
 }
 /* portalled to <body> (mirrors the global Combo): the scrolling modal/sheet the field sits in
    would otherwise clip the menu at its overflow boundary. Keep it above modal sheets (@80/81)
@@ -2116,7 +2118,7 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
   /* the Kanal pad keeps its cap on the phone too — same weight as the rule above, or it loses */
   .modal.miniSheet.miniSheetPad { max-height: min(60dvh, 520px); }
   /* the grab bar is the sheet's top gutter, and a head under a bar is the handle */
-  .miniSheet .modalHead { padding-top: 2px; touch-action: none; }
+  .miniSheet .modalHead { padding-top: var(--sp-1); touch-action: none; }   /* .ip-sheet's 4px under the bar (15-mobile) */
   .miniSheet .modalHead button { touch-action: auto; }
 }
 
@@ -2155,7 +2157,7 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
     border-radius: var(--r-hero) var(--r-hero) 0 0; }
   /* the grab bar is the sheet's top gutter now — the head needs none of its own (15-mobile.css
      · `.ui-sheet-grab`), and a head under a bar is the handle, as on every other bottom sheet */
-  .modalSheet .modalHead { padding-top: 2px; touch-action: none; }
+  .modalSheet .modalHead { padding-top: var(--sp-1); touch-action: none; }   /* .ip-sheet's 4px under the bar (15-mobile) */
   .modalSheet .modalHead button { touch-action: auto; }
   /* keyboard up: the top stands in the visible band too (+ --vv-pan), while the lift stands the foot
      on the keys (keyboardLift · --vv-foot) — with only the lift, iOS's pan slid the head off the
