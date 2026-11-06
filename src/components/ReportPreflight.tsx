@@ -63,7 +63,7 @@ import { CaptureUsageChip, type CaptureUsage } from './CaptureUsageChip'
 import { DateTimeField, TimeField } from './TimeField'
 import { Stepper } from './Stepper'
 import { Menu, Popover } from '../lib/overlays'
-import { CheckRow } from './ReportCheckRow'
+import { CheckRow, StatusMark } from './ReportCheckRow'
 import { dirtyFormMeta, formToMeta, geretteteMeta, numOrU, partnerFilled, partnersMeta, remoteForm, rueckMeta, type ReportForm } from './reportForm'
 import { normCount, normDtLocal, normList, normPartners, normText, useBlurTick, useSyncedField } from './useSyncedField'
 import { ReportSignatures } from './ReportSignatures'
@@ -75,10 +75,12 @@ import { PHONE_TABS, STEP_TAB, rapportKept, useReportPlace, type PhoneTab } from
 const NO_IDS = new Set<string>()
 const NO_SIGNATURES: ReportSignature[] = []
 /** The Rapport head's ladder (lib/pageHeadFit): «Ausdrucken» gives its word first, then
- *  «Abschliessen», then the Kontrolle chip keeps its ⚠ and its count («⚠ 4», the words stay its
- *  title), then the primary «Einsatzrapport (PDF)» shortens to «PDF ▾» (mockup 2), and last the
- *  title says what the nav calls this page, «Rapport». */
-const RP_FOLD = { print: 1, complete: 2, chip: 3, pdf: 4, title: 5 } as const
+ *  «Einsatz abschliessen» shortens to the word «Abschliessen» (never a bare glyph, 04.11.2026), then
+ *  the primary «Einsatzrapport (PDF)» shortens to «PDF ▾» (mockup 2), and last the title says what
+ *  the nav calls this page, «Rapport». The Kontrolle chip never folds: a bare «⚠ 4» beside the
+ *  close action had to be decoded (council round 3), so where «4 offen» does not fit the head takes
+ *  its second row instead — title + chip above, «Abschliessen» + «PDF» under it (13-incident.css). */
+const RP_FOLD = { print: 1, complete: 2, pdf: 3, title: 4 } as const
 
 // «Zeig mir diese offene Angabe» from outside the sheet — lives with the tabs (useReportPlace)
 export { requestReportStep } from './useReportPlace'
@@ -99,6 +101,14 @@ function clockOf(iso?: string): string {
 function ReadOut({ value }: { value?: string | null }) {
   const v = value?.trim()
   return <div className={cx('rp-readout', !v && 'report-meta-empty')}>{v || appConfig.copy.preflight.notRecorded}</div>
+}
+
+/** A dispatch fact the Rapport needs and the Einsatzdaten do not hold yet – Stichwort, Ort,
+ *  Alarmierung (owner pick C1, 05.11.2026): «Nicht erfasst» in the head chip's warning ink with
+ *  its ⚠, so the gap shows where it stands, not only through «4 offen». Optional facts (the
+ *  Alarmmeldung, which nobody writing is the common case) stay on faint ink. */
+function MissingFact() {
+  return <span className="report-meta-missing"><Icon id="warn" />{appConfig.copy.preflight.notRecorded}</span>
 }
 
 
@@ -1118,6 +1128,14 @@ export function ReportPreflight({
   // are warnings, they live beside the buttons they must be read before, and a header that also
   // mentioned them would be the second place to look for the same thing.
   const missing = missingSteps(facts)
+  /* Each form section's own open/done state, for the status mark after its eyebrow (StatusMark,
+   * hill climb r24): the same mark the round-up's CheckRows carry, read off the same `missing` list
+   * the head's «n offen» counts – a section is open while one of its Mindestangaben is. The
+   * Einsatzdaten card is open while a fact it draws as «Nicht erfasst» (MissingFact) is missing.
+   * «Zeiten» holds no Mindestangabe (Einsatzende is the Nachbearbeitung's), so it has no state and
+   * no mark. */
+  const sectionDone = (steps: readonly AbschlussStep[]) => !steps.some((st) => missing.includes(st))
+  const dispatchDone = !!incident.title && !!incident.address && !!alarmiert
   /* What is still open rides inside the ONE Kontrolle chip, at every width (23.09.2026, option B
    * of the UX review). It was a strip of 18px chips under the title on a wide head — the smallest
    * targets in the product, 5–7px apart — and this same popover only below 860px. Raising the
@@ -1172,9 +1190,9 @@ export function ReportPreflight({
   const guideNext = canEditIn && guideAt ? nextOpenStep(missing, guideAt) : null
 
   // ONE ROW (lib/pageHeadFit): the head folds its tiles' words — «Ausdrucken», «Abschliessen»,
-  // then «Einsatzrapport (PDF)» → «PDF» — until it fits; the Kontrolle chip's count is never cut
-  // (`data-fit-check`). It was a breakpoint (words above 1080px, icons below) and, on a phone, a
-  // second row under the title.
+  // then «Einsatzrapport (PDF)» → «PDF» — until it fits; the Kontrolle chip's words are never cut
+  // (`data-fit-check`). It was a breakpoint (words above 1080px, icons below). Where even that does
+  // not fit (a phone with something open) the head takes two rows: title + chip, then the actions.
   const headRef = useRef<HTMLElement>(null)
   usePageHeadFit(headRef, [
     missing.length, warnCount, checking, controlOk, !!onComplete, printStatus?.available, printStatus?.online,
@@ -1212,7 +1230,8 @@ export function ReportPreflight({
           gap around an inset card makes a form look like something floating over the map, and
           this surface is where somebody sits and writes. */}
       <div className="rp-backdrop" aria-hidden />
-      <div className={cx('report-preflight report-preflight-surface', surface.shell)}>
+      {/* `pageGrid`: the Trupps page's inset and gap (Surface.module.css · THE PAGE GRID) */}
+      <div className={cx('report-preflight report-preflight-surface', surface.shell, surface.pageGrid)}>
         {/* The same head every other surface wears (Anwesenheit, Mittel): a title, and under it
             one line of what is actually recorded. It carried a bare title and an ✕ — dialog
             chrome, which is what a page inherits when it used to be a sheet. No ✕ either: a
@@ -1284,12 +1303,11 @@ export function ReportPreflight({
                 popupClassName="rp-control"
                 ariaLabel={P.controlHead}
                 trigger={(
-                  <button type="button" className={cx('rp-state', 'head-tile', 'amber')} data-fold={RP_FOLD.chip}
+                  <button type="button" className={cx('rp-state', 'head-tile', 'amber')}
                     title={`${P.controlHead}: ${controlChipLabel(missing.length, checking ? 0 : warnCount)}`}>
                     <Icon id="warn" />
-                    <span className="rp-state-label fold-long" data-fit-check>{controlChipLabel(missing.length, checking ? 0 : warnCount)}</span>
-                    {/* folded: the ⚠ and ONE count — what is open plus the Hinweise, as the nav badge */}
-                    <span className="rp-state-label fold-short" aria-hidden="true">{missing.length + (checking ? 0 : warnCount)}</span>
+                    {/* always in words («4 offen · 1 Hinweis») — no folded bare count (RP_FOLD) */}
+                    <span className="rp-state-label" data-fit-check>{controlChipLabel(missing.length, checking ? 0 : warnCount)}</span>
                   </button>
                 )}
               >
@@ -1343,7 +1361,10 @@ export function ReportPreflight({
                 so what is dropped is the pixels, never the naming. */}
             {onComplete && (
               <button className="ip-btn head-tile" data-fold={RP_FOLD.complete} onClick={() => void complete()} aria-label={A.complete} title={A.complete}>
-                <Icon id="archive" /><span className="rp-btn-label fold-long">{A.complete}</span>
+                {/* folded it keeps a WORD, like «PDF» beside it: a bare archive box was the least
+                    recognisable tile on the row for its most consequential action (council 04.11.2026) */}
+                <Icon id="archive" className="fold-long" /><span className="rp-btn-label fold-long">{A.complete}</span>
+                <span className="rp-btn-short fold-short" aria-hidden="true">{A.completeShort}</span>
               </button>
             )}
             {printStatus?.available && (
@@ -1385,7 +1406,7 @@ export function ReportPreflight({
                     <Icon id="chevron-down" className="chev" />
                   </button>
                 }
-                popupClassName="rp-print-menu"
+                popupClassName="rp-print-menu rp-pdf-menu"
                 itemClassName={() => 'rp-print-menu-item'}
                 // «Abschnitte» used to be a fold ON the page — a section of the rapport that is
                 // not part of the rapport: it is neither recorded nor printed, it is how the
@@ -1507,9 +1528,12 @@ export function ReportPreflight({
         )}
         {/* PHONE ONLY — `display: none` from 601px up, so tablet and desktop are byte-identical
             to what they were. Outside the scrolling body on purpose: it is a flex item of the
-            surface, like the head, so it cannot scroll away from under the thumb. The dot marks
-            a tab holding a Mindestangabe that is still open — the same amber the head's chips
-            use, so «noch offen» means one thing on this page. */}
+            surface, like the head, so it cannot scroll away from under the thumb. A tab holding a
+            Mindestangabe that is still open carries the page's OPEN mark after its word – the
+            broken amber ring its section heads wear (StatusMark, hill climb r24/r26; an amber
+            corner dot until then read as a notification badge, a second language for «offen»).
+            The count stays the head's «n offen» chip's. A done tab carries nothing: a tab is a
+            way to a page, not a section, and discs on two of three tabs read as bullets. */}
         <PhoneTabBar<PhoneTab>
           ariaLabel={P.tabsLabel}
           value={phoneTab}
@@ -1520,7 +1544,7 @@ export function ReportPreflight({
             return {
               value: t,
               title: open ? `${P.tabs[t]} – ${P.headStillOpen}` : P.tabs[t],
-              label: <>{P.tabs[t]}{open && <span className="rp-tab-dot" aria-hidden />}</>,
+              label: <span>{P.tabs[t]}{open && <StatusMark done={false} />}</span>,
             }
           })}
         />
@@ -1577,16 +1601,16 @@ export function ReportPreflight({
                     e.preventDefault()
                     onEditDispatch()
                   }}>
-                  {P.fromDispatch}
+                  {P.fromDispatch}<StatusMark done={dispatchDone} />
                 </span>
-              ) : <span className="report-meta-dispatch-head">{P.fromDispatch}</span>}
+              ) : <span className="report-meta-dispatch-head">{P.fromDispatch}<StatusMark done={dispatchDone} /></span>}
               <dl className="report-meta-readout">
                 {/* Stichwort, Art and Ort first (owner, 18.09.2026): the block is what the Rapport
                     was opened FOR, and with the three pages behind one tile the reader must see
                     which Einsatz this is without going back to the Karte. */}
-                <div><dt>{P.stichwort}</dt><dd>{incident.title || <span className="report-meta-empty">{P.notRecorded}</span>}</dd></div>
+                <div><dt>{P.stichwort}</dt><dd>{incident.title || <MissingFact />}</dd></div>
                 {incident.type && <div><dt>{P.einsatzart}</dt><dd>{incident.type}</dd></div>}
-                <div><dt>{P.ort}</dt><dd>{incident.address || <span className="report-meta-empty">{P.notRecorded}</span>}</dd></div>
+                <div><dt>{P.ort}</dt><dd>{incident.address || <MissingFact />}</dd></div>
                 {/* The gateway hands us one field holding four different things (see
                     lib/alarmText). Shown verbatim it is mostly machinery — a marching order,
                     an object's notes, and a 300-character link this app minted itself — under
@@ -1615,7 +1639,7 @@ export function ReportPreflight({
                     </dd>
                   </div>
                 )}
-                <div><dt>{P.alarmierung}</dt><dd>{alarmiert ? formatDateTime(alarmiert) : <span className="report-meta-empty">{P.notRecorded}</span>}</dd></div>
+                <div><dt>{P.alarmierung}</dt><dd>{alarmiert ? formatDateTime(alarmiert) : <MissingFact />}</dd></div>
               </dl>
             </div>
           </section>
@@ -1625,7 +1649,7 @@ export function ReportPreflight({
               sections now, each named after the question it answers, in exactly the order they
               were already in (that order is the printed rapport's). */}
           <section className="report-pre-section report-pre-meta" data-tab="bericht">
-            <h3>{P.sectionBericht}</h3>
+            <h3 className="rp-marked">{P.sectionBericht}<StatusMark done={sectionDone(['kurzbericht', 'einsatzleiter', 'kontaktperson'])} /></h3>
             {/* after-arrival — editable inline (replaces the old Bearbeiten modal).
                 ⚠️ `data-sync` marks which Rapportangabe the caret is in, so a value arriving
                 from another device is never yanked out from under somebody typing here — it is
@@ -1757,17 +1781,19 @@ export function ReportPreflight({
                       <div className="rz-count"><span>{P.geretteteTiere}</span><b>{numOrU(geretteteT) ?? '–'}</b></div>
                     </div>
                   ))) : (
+                // an empty count is a BLANK well, not the stepper's «–» beside its «−» (two minus
+                // signs, hill climb r18) — «nicht erfasst», never «0» (17-rapport · .rz-count)
                 <div className="rz-counts">
                   <div className="rz-count" data-sync="geretteteP">
                     <span>{P.gerettetePersonen}</span>
-                    <Stepper value={numOrU(geretteteP) ?? null} min={0} max={999} seed={1} ariaLabel={P.gerettetePersonen}
+                    <Stepper value={numOrU(geretteteP) ?? null} min={0} max={999} seed={1} placeholder="" ariaLabel={P.gerettetePersonen}
                       readOnly={meta.geretteteNone}
                       onChange={(v) => { setGeretteteP(String(v)); persist(geretteteMeta(String(v), geretteteT)) }}
                       onClear={() => { setGeretteteP(''); persist(geretteteMeta('', geretteteT)) }} canClear={geretteteP !== ''} />
                   </div>
                   <div className="rz-count" data-sync="geretteteT">
                     <span>{P.geretteteTiere}</span>
-                    <Stepper value={numOrU(geretteteT) ?? null} min={0} max={999} seed={1} ariaLabel={P.geretteteTiere}
+                    <Stepper value={numOrU(geretteteT) ?? null} min={0} max={999} seed={1} placeholder="" ariaLabel={P.geretteteTiere}
                       readOnly={meta.geretteteNone}
                       onChange={(v) => { setGeretteteT(String(v)); persist(geretteteMeta(geretteteP, String(v))) }}
                       onClear={() => { setGeretteteT(''); persist(geretteteMeta(geretteteP, '')) }} canClear={geretteteT !== ''} />
@@ -1947,7 +1973,7 @@ export function ReportPreflight({
           </section>
 
           <section className="report-pre-section report-pre-meta" data-tab="bericht">
-            <h3>{P.sectionNachbearbeitung}</h3>
+            <h3 className="rp-marked">{P.sectionNachbearbeitung}<StatusMark done={sectionDone(['zeiten', 'rueckmeldung'])} /></h3>
             <label className="ip-field" data-sync="remarks">
               <span>{P.remarksLabel}</span>
               {canEdit ? (
@@ -2107,16 +2133,16 @@ export function ReportPreflight({
                   flagged inline — corrections go through the row's arrow (Anwesenheit) */}
               {attendanceCount > 0 && (
                 <div className="rp-check-extra">
-                  <div className="rp-people">
+                  <div className="rp-people rp-names">
                     {rows.map((r) => (
                       <span key={r.personId} className="rp-person">
-                        {r.name}
-                        {/* the job they had — «Einsatzleiter», «Fahrer TLF» — read straight off
-                            their Bemerkung, the same string the printed Personal-/Anwesenheits-
-                            blatt puts under the name. At the end of an Einsatz this list IS the
-                            check «wer war da, und als was», so the function belongs on it. */}
-                        {(attendance[r.personId]?.note ?? '').trim()
-                          && <i>{` · ${(attendance[r.personId]!.note ?? '').trim()}`}</i>}
+                        {/* ONE line: the name, with the departure time at its right edge so the
+                            times stand in one column (13-incident.css `.rp-person`). No Funktion
+                            here (owner pick A, 05.11.2026): as a second line it doubled the list's
+                            height and the card showed half the people – this list is the check
+                            «sind alle drauf», and that needs the names. The Bemerkung stays on the
+                            Anwesenheit tab and the printed Anwesenheitsblatt. */}
+                        <span className="rp-person-txt">{r.name}</span>
                         {/* only somebody who actually LEFT gets a time. hoursRows fills an open
                             block with the Einsatzende, which put «· bis 09:00» behind every name
                             on the list — the exception it exists to flag then read as the rule. */}
@@ -2131,15 +2157,18 @@ export function ReportPreflight({
               {mittelCount > 0 && (
                 <div className="rp-check-extra">
                   <div className="rp-people">
-                    {/* one line, three weights, same shape as the Anwesenheit list beside it:
-                        the amount is the value (bold), the unit and the material are the thing,
-                        and where it came from is the dim qualifier — «3 Sack Bindemittel · TLF».
-                        It used to set amount AND unit bold and print the Quelle in full ink, so
-                        four items read as one wall of equally loud text. */}
+                    {/* three weights, same shape as the Anwesenheit list beside it: the amount
+                        is the value (bold), the unit and the material are the thing (regular,
+                        `.rp-mittel`), and where it came from is the dim qualifier on the line
+                        under it — «3 Sack Bindemittel» / «TLF». It used to set amount AND unit
+                        bold and print the Quelle in full ink, so four items read as one wall of
+                        equally loud text. */}
                     {visibleMittel(mittel).map((l) => (
-                      <span key={l.key} className="rp-person">
-                        <b>{l.menge}</b> {unitLabel(l.unit)} {l.label}
-                        {l.sourceLabel && <i>{` · ${l.sourceLabel}`}</i>}
+                      <span key={l.key} className="rp-person rp-mittel">
+                        <span className="rp-person-txt">
+                          <b>{l.menge}</b> {unitLabel(l.unit)} {l.label}
+                        </span>
+                        {l.sourceLabel && <i>{l.sourceLabel}</i>}
                       </span>
                     ))}
                   </div>
@@ -2246,7 +2275,10 @@ export function ReportPreflight({
                       const more = [p.name, p.phone, p.note].map((v) => v?.trim()).filter(Boolean).join(' · ')
                       return (
                         <span key={i} className="rp-person">
-                          {p.org}{more && <i>{`${p.org ? ' · ' : ''}${more}`}</i>}
+                          {/* the organisation is line 1, contact and remark the dim line under
+                              it; a partner without an org shows its contact as the line itself */}
+                          <span className="rp-person-txt">{p.org || more}</span>
+                          {p.org && more && <i>{more}</i>}
                         </span>
                       )
                     })}

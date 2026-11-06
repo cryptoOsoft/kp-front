@@ -45,12 +45,26 @@ function plainWords(t: Trupp, lite: boolean) {
  *  the body face hard against its number, and the groups stand a third of an em apart — «3d 9h»,
  *  about two thirds the width. Every other clock passes through as it is. The card's foot draws its
  *  day-long Einsatzzeit / «Draussen seit» through here too, so one card never shows both spellings;
- *  mm:ss and «17:00 min» are untouched. */
+ *  mm:ss passes through, «17:00 min» goes to `UnitVal`. */
 export function ClockVal({ val }: { val: string }) {
   const m = /^(\d+) d (\d+) h$/.exec(val)
-  if (!m) return <>{val}</>
+  if (!m) return <UnitVal val={val} />
   // the space rides in the unit's small face, so the text (and what a screen reader reads) is «3d 9h»
   return <>{m[1]}<span className={s.clockUnit}>d </span><span className={s.clockGroup}>{m[2]}<span className={s.clockUnit}>h</span></span></>
+}
+
+/** A number with its unit, as the board draws it (owner pick C6, 05.11.2026): the figure stays in
+ *  the value's mono so the digits line up, the trailing unit («bar», «min», «h») goes in the body
+ *  face at 500 (`.valUnit`). The space rides INSIDE the unit's span (hill climb r20): in the mono it
+ *  was a full mono cell (~7.5px at 12.5), wider than the «·» gaps between the foot's items, so
+ *  «29:00 | min · raus» grouped wrongly; in the body face it is ~3px, under half of that, and the gap
+ *  stays clearly under the item gap. The text — and what a screen reader reads — is unchanged,
+ *  «29:00 min». A value without a trailing unit («2:00», «Verlauf») passes through.
+ *  Usage: `<b className={s.pairBar}><UnitVal val={`${bar} bar`} /></b>`. */
+export function UnitVal({ val }: { val: string }) {
+  const m = /^(.*\S) (bar|min|h)$/.exec(val)
+  if (!m) return <>{val}</>
+  return <>{m[1]}<span className={s.valUnit}> {m[2]}</span></>
 }
 
 export function TruppRow({
@@ -152,31 +166,41 @@ export function TruppRow({
 }
 
 /** The phone row's tone (left edge + wash) — the collapsed row's and, since 26.09.2026, the opened
- *  card's too, so a Trupp keeps its colour when it is opened. See TruppRow for why each is what it is. */
+ *  card's too, so a Trupp keeps its colour when it is opened. See TruppRow for why each is what it is.
+ *  `trowIn` (a crew under PA with its clock calm) draws nothing on the phone; on the grid it is the
+ *  card's green head band (hill climb r3) — fällig / überfällig take its place, never both. On the
+ *  grid only fällig / überfällig / angemeldet draw the left edge (r11); the grey ones have none. */
 function rowTone(t: Trupp, status: TruppLive['status'], sev: number): string {
   const inField = t.status === 'aktiv' || t.status === 'rueckzug'
   if (!isAtemschutzTrupp(t)) return status === 'raus' ? s.trowOut : status === 'angemeldet' ? s.trowIdle : s.trowPlain
-  return sev >= 2 ? s.trowCrit : sev === 1 ? s.trowWarn : inField ? '' : status === 'raus' ? s.trowOut : s.trowIdle
+  return sev >= 2 ? s.trowCrit : sev === 1 ? s.trowWarn : inField ? s.trowIn : status === 'raus' ? s.trowOut : s.trowIdle
 }
 
-/** The phone row's first line — dot · name, and the clock — drawn by the collapsed row AND by the
+/** The phone row's first line — ring · name, and the clock — drawn by the collapsed row AND by the
  *  opened card's head (26.09.2026, owner: «keep the same UI whether the card is collapsed or
  *  not»). One drawing, so opening a Trupp never moves, resizes or recolours the line the thumb
  *  just pressed; the chevron beside it is the caller's, because it points the other way. */
-function RowLine({ t, live, color, lite, act }: { t: Trupp; live: TruppLive; color?: string; lite: boolean
+function RowLine({ t, live, color, lite, act, headed = false }: { t: Trupp; live: TruppLive; color?: string; lite: boolean
   /** what stands in the clock's place while the Trupp is still at the door (see `waiting`) */
   act?: ReactNode
+  /** the card stands under a «Draussen» head (TruppCard · `headed`): its break clock's caption
+   *  would be that head's word a second time, so it goes */
+  headed?: boolean
 }) {
   const az = appConfig.copy.atemschutz
   const words = plainWords(t, lite)
-  const team = (t.members ?? []).filter(Boolean).join(' / ')
   const clock = collapsedClock(t, live)
   // ⚠️ Defence in depth: `collapsedClock`'s own `!isAtemschutzTrupp` branch already returns an
   // empty sub for a plain Trupp that is out (it has no break clock to show — see the function's
   // doc comment), so this swap is a no-op today. It stays here so a future edit to that branch
   // cannot silently leak «Draussen seit» onto a work squad's row without also failing the app-only
   // wording test below.
-  const clockSub = clock.sub === az.outFor ? words.outFor : clock.sub
+  // The caption — what the clock counts — shows ABOVE the clock on the wide grid's card and the
+  // link board's page (hill climb r2, 04.11.2026: an out card's break clock and an inside card's
+  // contact clock stood in one place with nothing saying which is which; above since 05.11.2026,
+  // owner pick A1/C7 — German reads «Draussen seit 4:25:20»); the phone row and its opened card
+  // hide it (CSS), their section heads say Drin / Draussen.
+  const clockSub = clock.sub === az.outFor ? (headed ? '' : words.outFor) : clock.sub
   const inNotfall = truppInNotfall(t)
   /* ⚠️ A Trupp still at the door has no clock — «–:––» was an empty time where the next act
    * belongs (owner, 30.10.2026: «for all trupps already show the next action (i.e. im einsatz)
@@ -197,8 +221,10 @@ function RowLine({ t, live, color, lite, act }: { t: Trupp; live: TruppLive; col
               carries no identity (round 2 review) — and an empty 11px slot would indent the name */}
           {/* ⚠️ a crew in a NOTFALL wears the banner's ⚠ in the dot's place (owner round 4,
               10.10.2026): the banner at the top and this card read as the same crew at a glance */}
+          {/* a hollow RING in the Truppfarbe (owner pick C5, 05.11.2026): a filled red disc read as
+              an alarm; the ring keeps the hue and drops the signal (`.trowDot` draws it in `color`) */}
           {inNotfall ? <Icon id="warn" className={s.nfGlyph} />
-            : color && <span className={s.trowDot} style={{ background: color }} />}
+            : color && <span className={s.trowDot} style={{ color }} />}
           <span className={s.trowNameTxt}>{truppHeadName(t)}</span>
           {/* ⚠️ «Rückzug» is a badge, not a chip (owner, 31.10.2026): an icon-only filled amber
               circle after the name — the Rückzug tile's own glyph — so it reads on the row, the
@@ -209,19 +235,19 @@ function RowLine({ t, live, color, lite, act }: { t: Trupp; live: TruppLive; col
               26.09. and 30.09.2026: «the group leader name needs more space … drop the number #»).
               The number stays in the TruppFinder and in the Verlauf's «Trupp N» rows. */}
         </span>
-        {team && <span className={s.trowTeam}>{team}</span>}
       </span>
       {/* one derivation with the card's band (collapsedClock) — the row used to freeze a work
           squad's Einsatzzeit after the exit and show «–:––» for an out crew's break clock */}
       <span className={s.trowClock}>
         {/* the tier is the digits' colour (red / amber) – no glyph since 30.10.2026; the word is the
             row's aria-label and the card's status line, for a screen reader */}
+        {/* the caption FIRST, so it is read (and drawn) before the time it names */}
         {waiting ? act : (
           <>
+            <span className={s.trowSub}>{clockSub}</span>
             <span className={s.trowClockLine}>
               <span className={s.trowClockVal}><ClockVal val={clock.val} /></span>
             </span>
-            <span className={s.trowSub}>{clockSub}</span>
           </>
         )}
       </span>
@@ -265,7 +291,7 @@ function TruppPair({ t, live, sev, nested = false, onPressure, onContact }: {
   const low = pressureAlarm(live.currentBar, alarmBarFor(t, atemschutzDoctrine()))
   const pressCls = cx(s.kontaktBtn, s.trowPressBtn)
   const kontaktCls = cx(s.kontaktBtn, s.trowKontakt, sev === 1 && s.kontaktWarn, sev >= 2 && s.kontaktCrit)
-  const press = <><Icon id="manometer" /><b className={cx(s.pairBar, low && s.pairBarLow)}>{live.currentBar} bar</b></>
+  const press = <><Icon id="manometer" /><b className={cx(s.pairBar, low && s.pairBarLow)}><UnitVal val={`${live.currentBar} bar`} /></b></>
   // the spoken name keeps the word the tile dropped («Druck 240 bar»)
   const pressName = `${az.actPressure} ${live.currentBar} bar`
   const kontakt = <><Icon id="radio" /><span>{az.actContact}</span></>
@@ -307,15 +333,17 @@ function TruppPair({ t, live, sev, nested = false, onPressure, onContact }: {
  * 26./27.09. and the owner reviewed that version, so it is the reference and the tablet takes it
  * whole, top to bottom:
  *
- *   1 line       dot · name · the clock (RowLine) — the collapse toggle on the phone board
+ *   1 line       ring · name · the clock with its caption above (RowLine) — the collapse toggle
+ *                on the phone board — and the crew on its own line under the name (`crewLine`)
  *   2 tiles      «⌓ 240 bar | Kontakt» (TruppPair), then Rückzug | Raus in the same tile shape
  *   3 state      the tier in words where colour alone would say it (`stateLine`)
  *   4 Hinweis    the Alarmdruck note, for the case where only the projection has crossed
- *   5 facts      crew · Auftrag · Kanal … as chips, each the door to its sheet (the ⋯ ends the foot)
+ *   5 facts      Auftrag · Kanal · Ausrüstung … as chips, each the door to its sheet (the ⋯ ends the foot)
  *   6 foot       Einsatzzeit · Schätzung, the whole line the Verlauf's toggle
  *
  * The link board's page (`page`) reads the same zones in another order — 1, 3, 4, 5, 6, then the
- * tiles at the page's foot (Notfall · Rückzug | Raus · Druck | Kontakt), see the return below.
+ * tiles at the page's foot ([Sicherungstrupp ·] Notfall · Rückzug | Raus · Druck | Kontakt), see
+ * the return below.
  *
  * What the tablet keeps because it has the room: every card open at once in a grid (the phone
  * opens one row at a time because a card is taller than its port), the hand-set order with ‹ ›
@@ -331,16 +359,19 @@ function TruppPair({ t, live, sev, nested = false, onPressure, onContact }: {
  * «Leitung» is exactly the knowledge that is gone after six months without practice.
  */
 export function TruppCard({
-  t, live, alarm, now, color, canEdit, intervalMin, frozen = false, focusNonce, focusScroll = true, flashSeen, onFlashed, onContact, onStatus, onStandDown, onAskExit, onAskPressure, onEdit, onQuick, onReenter, onDelete, onPlace, onShowPlan, onMove, onShowLine, hasLine, drawnLineNo, dockedAt, onCollapse, headed = false, lite = false, page = false, pageHead, onNotfall, onNotfallEnd, conflict = false,
+  t, live, alarm, now, color, canEdit, intervalMin, frozen = false, focusNonce, focusScroll = true, flashSeen, onFlashed, onContact, onStatus, onStandDown, onAskExit, onAskPressure, onEdit, onQuick, onReenter, onDelete, onPlace, onShowPlan, onMove, onShowLine, hasLine, drawnLineNo, dockedAt, onCollapse, headed = false, lite = false, page = false, pageHead, pageSafety, onNotfall, onNotfallEnd, conflict = false,
 }: {
   /** the card IS the page (the handed-over phone board, AtemschutzView · focusMode): drawn flat by
    *  the board, and a crew at the door says «Bereit» where its clock would stand (Atemschutz-Link
    *  redesign R1, 30.10.2026); its tiles stand at the page's foot, Druck | Kontakt lowest
    *  (31.10.2026, «read at the top, tap at the bottom») */
   page?: boolean
-  /** replaces the head line on such a page — the Notfall Trupp's own page wears
-   *  AtemschutzNotfall · NotfallPageHead, which also says the Notfall in words */
-  pageHead?: ReactNode
+  /** replaces the head line on such a page and places the card's crew line (`crew`) itself — the
+   *  Notfall Trupp's own page wears AtemschutzNotfall · NotfallPageHead (name, crew, both clocks) */
+  pageHead?: (crew: ReactNode) => ReactNode
+  /** the Notfall page's Sicherungstrupp act (AtemschutzNotfall · NotfallPageSafety): the first of
+   *  the page's tiles at the foot, right above «Notfall beendet» (owner pick E3, 06.11.2026) */
+  pageSafety?: ReactNode
   /** named by the double-assignment band (DoubleAssignmentBanner) — a steady amber ring */
   conflict?: boolean
   /** the held «Notfall» on a crew inside, and the held «Notfall beendet» on a crew in one (F1,
@@ -638,15 +669,22 @@ export function TruppCard({
    * would make this pass cost exactly the kind of number it exists to keep in view.
    * ⚠️ Built as data rather than markup so the separators are the LINE's business (CSS), not
    * four call sites each remembering to print a «·» — and so «what stays out» is one list to
-   * read when somebody asks that question again. */
-  const sockelLine: { key: string; label: string; value: string; alarm?: boolean; labelled?: boolean; title?: string }[] = [
+   * read when somebody asks that question again.
+   * ⚠️ An OUT card's two values carry a word each (owner pick C18, 05.11.2026): «drin 29:00 min ·
+   * raus mit 175 bar» — the finished Einsatzzeit and the pressure it came out with, which
+   * unworded read as a running clock and a live reading. In the line's one word style (the
+   * Schätzung's). Only out of a real run: a crew stood down at the door was never «drin».
+   * Those two joining words are `quiet` (hill climb r13/r27, 05.11.2026): dim ink, regular, so the
+   * values read first — never the Schätzung's word, which keeps full ink and weight (T2). */
+  const outWords = out && !neverDeployed
+  const sockelLine: { key: string; label: string; value: string; alarm?: boolean; labelled?: boolean; quiet?: boolean; title?: string }[] = [
     ...(monitored && t.entryTime
       // a DURATION that says so — «23:39» read at 23:58 was taken for a clock time (staging r4)
-      ? [{ key: 'elapsed', label: az.elapsed, value: fmtDuration(live.elapsedSec) }] : []),
+      ? [{ key: 'elapsed', label: outWords ? az.footInside : az.elapsed, value: fmtDuration(live.elapsedSec), labelled: outWords, quiet: outWords }] : []),
     ...(live.outSec != null && !out
       ? [{ key: 'out', label: words.outFor, value: fmtDuration(live.outSec), labelled: true }] : []),
     ...(monitored && !(canEdit && inField)
-      ? [{ key: 'bar', label: az.currentPressure, value: `${live.currentBar} bar`, alarm: pressureLow }] : []),
+      ? [{ key: 'bar', label: outWords ? az.footOutAt : az.currentPressure, value: `${live.currentBar} bar`, alarm: pressureLow, labelled: outWords, quiet: outWords }] : []),
     ...(estimate
       ? [{
         key: 'est',
@@ -732,19 +770,21 @@ export function TruppCard({
    * Leitung (it lives in the Auftrag sheet), no small-caps labels, no «#N» (dropped 30.09.2026, see TruppNo).
    * `chip(key, node, onTap, cls)`: a button when it has somewhere to go, a plain chip otherwise
    * (a viewer's card, the lite board's jumps).
-   * ⚠️ The crew chip wraps BETWEEN people (31.10.2026, owner: names are never cut): each name is
-   * its own nowrap span and the « · » is the break (`.crewName`), so the chip grows in lines.
+   * «Kanal 11» and the Ausrüstung after it stand in `.factsEnd`: on the grid that is the facts'
+   * own LAST row, so the Kanal keeps one address from card to card (hill climb r8, 04.11.2026);
+   * everywhere else the wrapper is `display: contents` and the chips wrap as before.
+   * ⚠️ The crew is NOT a chip since 05.11.2026 (owner pick A3): it is who the Trupp IS, not a fact
+   * about its job, so it is its own line under the name (`crewLine` below) and the chips are the
+   * Auftrag / Ziel, the jumps, the Kanal and the Ausrüstung only.
    * «Rückzug» is not a chip: it is the amber badge in the card head (RowLine · `rueckzug`), which
    * a viewer — who has no Rückzug tile — sees too. It also lowers the turn-back pressure
    * (alarmBarFor), so it is never colour alone. */
   const chip = (key: string, node: ReactNode, onTap?: () => void, cls?: string) => onTap
     ? <button key={key} type="button" className={cx(s.fact, cls)} onClick={onTap}>{node}</button>
     : <span key={key} className={cx(s.fact, cls)}>{node}</span>
+  const gear = equipmentTags.map(({ id, tag }) => chip(`eq-${id}`, tag, onQuick && (() => onQuick('trupp'))))
   const facts = (
     <div className={s.facts}>
-      {!!crewNames.length && chip('crew', <span className={s.crewTxt}>{crewNames.map((n, i) => (
-        <Fragment key={i}>{i > 0 && ' · '}<span className={s.crewName}>{n}</span></Fragment>
-      ))}</span>, onQuick && (() => onQuick('trupp')), s.factCrew)}
       {auftrag
         ? chip('auftrag', <span className={s.factTxt}>{auftrag}{t.ziel ? ` · ${t.ziel}` : ''}</span>, onQuick && (() => onQuick('auftrag')))
         : <>
@@ -755,10 +795,29 @@ export function TruppCard({
         lite ? undefined : () => onShowPlan(t.id), s.factGo)}
       {lineTag && chip('line', <>{fillTemplate(az.lineChip, { n: lineTag })}{hasLine && !lite && <Icon id="chevron" />}</>,
         hasLine && !lite ? () => onShowLine(t.id) : onQuick && (() => onQuick('auftrag')), hasLine && !lite ? s.factGo : undefined)}
-      {t.funkkanal != null && chip('kanal', `${az.funkkanalUnit} ${t.funkkanal}`, onQuick && (() => onQuick('kanal')))}
-      {equipmentTags.map(({ id, tag }) => chip(`eq-${id}`, tag, onQuick && (() => onQuick('trupp'))))}
+      {t.funkkanal == null ? gear : (
+        <div className={s.factsEnd}>
+          {chip('kanal', `${az.funkkanalUnit} ${t.funkkanal}`, onQuick && (() => onQuick('kanal')))}
+          {gear}
+        </div>
+      )}
     </div>
   )
+  /* ── The crew: its own line under the name (owner pick A3, 05.11.2026) ──────────────────────────
+   * The Trupp's `name` IS its leader (lib/atemschutz · truppHeadName), so this line lists the
+   * others — plain 14px ink, «Widmer Lukas · Wyss Urs», no chip. It wraps BETWEEN people (31.10.2026,
+   * owner: names are never cut): each name is a nowrap span and the « · » is the break. Still the
+   * door to the Trupp sheet the crew chip was — a button drawn as text, its 44px touch pad an
+   * invisible pseudo-element (`.crewLine`). On the grid and the Tafel it stands IN the head (the
+   * static head's third grid row, inside the band); on the phone's opened card, whose head is the
+   * collapse button, right under it — opening a row adds it below and moves nothing. On the link
+   * board's Notfall page the page head places it, under the red name (`pageHead(crewLine)`). */
+  const crewTxt = crewNames.map((n, i) => (
+    <Fragment key={i}>{i > 0 && ' · '}<span className={s.crewName}>{n}</span></Fragment>
+  ))
+  const crewLine = crewNames.length > 0 && (onQuick
+    ? <button type="button" className={s.crewLine} onClick={() => onQuick('trupp')}>{crewTxt}</button>
+    : <span className={s.crewLine}>{crewTxt}</span>)
   /* the card says in WORDS what its line and its Kontakt say in colour — one line under the tile
    * grid, red or amber with the tier (26.09.2026 — see `rowWord`) */
   const stateLine = rowWord && (rowWord.hidden
@@ -912,7 +971,7 @@ export function TruppCard({
           <span className={s.metaLine}>
             {sockelLine.length > 0 ? sockelLine.map((it) => (
               <span key={it.key} title={it.title}>
-                {it.labelled && <i>{it.label}</i>}
+                {it.labelled && <i className={cx(it.quiet && s.metaWordQuiet)}>{it.label}</i>}
                 {/* the Einsatzzeit / «Draussen seit» past a day in the head's compact «3d 10h» — one card, one spelling */}
                 <b className={cx(it.alarm && s.metaAlarm)}><ClockVal val={it.value} /></b>
               </span>
@@ -956,14 +1015,14 @@ export function TruppCard({
                     )}
                     {lowestShown && (
                       <div className={s.zonePanelRow}>
-                        <span>{az.lowestPressure}</span><b>{live.lowestBar} bar</b>
+                        <span>{az.lowestPressure}</span><b><UnitVal val={`${live.lowestBar} bar`} /></b>
                       </div>
                     )}
                     {timingShown && (
                       <>
                         <div className={s.zonePanelRow}><span>{az.lastContactAt}</span><b>{hm(lastContactAt!)}</b></div>
                         <div className={s.zonePanelRow}><span>{az.nextContactDue}</span><b>{hm(lastContactAt! + intervalMin * 60_000)}</b></div>
-                        <div className={s.zonePanelRow}><span>{az.contactIntervalLabel}</span><b>{fillTemplate(az.contactIntervalValue, { min: intervalMin })}</b></div>
+                        <div className={s.zonePanelRow}><span>{az.contactIntervalLabel}</span><b><UnitVal val={fillTemplate(az.contactIntervalValue, { min: intervalMin })} /></b></div>
                       </>
                     )}
                   </div>
@@ -992,7 +1051,7 @@ export function TruppCard({
                               {/* …and the same on the board: a Kontakt shows no bar, because the
                                   one it carries is the last reported value, not a fresh reading —
                                   and a Trupp without Atemschutz shows none at all (barShown) */}
-                              <span className={s.logBar}>{barShown(r) ? `${r.bar} bar` : ''}</span>
+                              <span className={s.logBar}>{barShown(r) ? <UnitVal val={`${r.bar} bar`} /> : ''}</span>
                               <span className={s.logKind}>{readingLabel(r, idx)}</span>
                             </li>
                           )
@@ -1025,15 +1084,17 @@ export function TruppCard({
    * ⚠️ …except the ORDER on the link board's page (`page`; owner pick «A – Tasten nach unten»,
    * 31.10.2026: «read at the top, tap at the bottom»): the head, the state words, the note, the
    * facts and the foot stand on top, and the SAME tiles at the page's foot, over the tab rail —
-   * Notfall first, then Rückzug | Raus (or whatever the state puts there), then «Druck | Kontakt»
-   * lowest, where the thumb rests. In the DOM, not by CSS `order`, so the tab order is the visual
-   * one. `.pageActs` (Atemschutz.module.css) pushes the group down with `margin-top: auto`. */
+   * Notfall first (in a Notfall: «Sicherungstrupp bestimmen / einsetzen» over «Notfall beendet»,
+   * owner pick E3, 06.11.2026), then Rückzug | Raus (or whatever the state puts there), then
+   * «Druck | Kontakt» lowest, where the thumb rests. In the DOM, not by CSS `order`, so the tab
+   * order is the visual one. `.pageActs` (Atemschutz.module.css) pushes the group down with
+   * `margin-top: auto`. */
   const pair = monitored && canEdit && inField && (
     <TruppPair t={t} live={live} sev={sev} onPressure={(id) => onAskPressure?.(id)} onContact={onContact} />
   )
   // a page has room to say the waiting state as a word where the row puts its «Im Einsatz»
   const pageAct = page ? <span className={s.pageReady}>{az.phoneSectionReady}</span> : undefined
-  const head = pageHead ?? (rowMode ? (
+  const head = pageHead ? pageHead(crewLine) : (rowMode ? (
     <button type="button" className={s.trowHead} aria-expanded="true" onClick={onCollapse}
       aria-label={`${t.name} — ${az.collapse}`}>
       <RowLine t={t} live={live} color={lite ? undefined : color} lite={lite} />
@@ -1041,23 +1102,31 @@ export function TruppCard({
     </button>
   ) : (
     <div className={cx(s.trowHead, s.trowHeadStatic)}>
-      <RowLine t={t} live={live} color={lite ? undefined : color} lite={lite} act={pageAct} />
+      <RowLine t={t} live={live} color={lite ? undefined : color} lite={lite} act={pageAct} headed={headed} />
+      {crewLine}
     </div>
   ))
+  // the static head and a page head carry the crew line themselves; the phone's collapse button cannot
+  const crewBelow = rowMode && !pageHead && crewLine
   return (
     <div ref={cardRef} data-az-open={rowMode ? '' : undefined} className={cx(s.trow, s.trowCard, rowTone(t, status, sev), conflict && s.cardConflict)}>
       {head}
+      {crewBelow}
       {page ? (
         <>
-          {/* the page head says the Notfall in words already («Notfall seit 12:12») */}
+          {/* the Notfall page's head and its red «seit Notfall» clock say the state already */}
           {!pageHead && stateLine}
           {noteZone}
           {facts}
           {footZone}
-          <div className={s.pageActs}>{actZone}{pair}</div>
+          {/* everything to press, at the foot: the Notfall's Sicherungstrupp act first (E3) */}
+          <div className={s.pageActs}>{pageSafety}{actZone}{pair}</div>
         </>
       ) : (
         <>
+          {/* ONE order on every card, in and out (owner 06.11.2026): the name (head), then all the
+              controls, then the facts (Auftrag, Kanal …) – the hill climb's r29 try with the facts
+              above the buttons on inside cards was reverted the same day */}
           {pair}
           {actZone}
           {stateLine}

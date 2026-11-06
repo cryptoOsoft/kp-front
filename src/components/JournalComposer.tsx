@@ -899,7 +899,7 @@ export function JournalComposer({ onSubmit, onClose, incidentStartAt, uploadAudi
                 title={C.linkPendenzTitle}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => onLinkPendenz?.({ id: r.id, text: r.text })}
-              ><span className="jc-ring" />{C.noteOnLabel}{r.text}</button>
+              ><span className="jc-ring" /><span className="jc-phrase-text">{C.noteOnLabel}{r.text}</span></button>
             ))}
           </div>
         )}

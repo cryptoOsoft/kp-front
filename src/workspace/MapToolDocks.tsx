@@ -79,6 +79,9 @@ export interface MapToolDocksProps {
   pickShape: (kind: ShapeKind) => void
   teamPick: LngLat | null
   trupps: Trupp[]
+  /** trupp id → the colour it wears on the Lage / plan (useTruppActions · truppColors) – the
+   *  «Welcher Trupp?» rows lead with it as the hollow identity ring */
+  truppColors: Record<string, string>
   placeTruppOnMap: (id: string, atCoord?: LngLat, revive?: { id: string; trail: GeoTrailPoint[] }) => string | undefined
   placeGenericTeam: (c: LngLat) => void
 }
@@ -89,7 +92,7 @@ export function MapToolDocks({
   measure, pendingShape, setPendingShape, setRotStart, rotStart, tacticalLocked, createLine,
   createArea, replayActive, railLabels, slimMapTools, pick, panel, layersPreset, togglePanel, viewsApi,
   view, readOnly, isEl, viewsOpen, sharePick, shareParent, toggleViews, coord, mapRef, paletteOpen,
-  sym, setPaletteOpen, pickShape, teamPick, trupps, placeTruppOnMap, placeGenericTeam,
+  sym, setPaletteOpen, pickShape, teamPick, trupps, truppColors, placeTruppOnMap, placeGenericTeam,
 }: MapToolDocksProps) {
   return (
     <>
@@ -269,9 +272,12 @@ export function MapToolDocks({
                 <MapViewsButton api={viewsApi} bearing={view.bearing} readOnly={readOnly || isEl} variant="rail" btnClassName="vrail-nbtn vrail-views" activeClassName="on" glyphClassName="vrail-compass" label={appConfig.copy.mapViews.title} open={viewsOpen && !(sharePick && shareParent === 'views')} onOpenChange={toggleViews} coordsOn={coord.mode !== 'off'} onToggleCoords={coord.cycle} />
                 {/* zoom ±: desktop only (.vrail-zoom is hidden under 1024px). Every touch form
                     factor pinches, and on a tablet the two buttons cost rail space that the
-                    tools above need more. */}
-                <button className="vrail-nbtn vrail-zoom" title={c.zoomOut} aria-label={c.zoomOut} onClick={() => mapRef.current?.zoomOut()}><span className="vrail-glyph"><Icon id="minus" /></span><span className="vrail-label">{c.zoomOut}</span></button>
+                    tools above need more. «+» on top, as on every map (owner pick C9, 05.11.2026).
+                    The pair is its own group, split from the compass by the rails' one hairline
+                    (owner pick C12) – a .vrail-zoom itself, so it goes wherever the buttons go. */}
+                <span className="vrail-sep rail-sep vrail-zoom" aria-hidden />
                 <button className="vrail-nbtn vrail-zoom" title={c.zoomIn} aria-label={c.zoomIn} onClick={() => mapRef.current?.zoomIn()}><span className="vrail-glyph"><Icon id="plus" /></span><span className="vrail-label">{c.zoomIn}</span></button>
+                <button className="vrail-nbtn vrail-zoom" title={c.zoomOut} aria-label={c.zoomOut} onClick={() => mapRef.current?.zoomOut()}><span className="vrail-glyph"><Icon id="minus" /></span><span className="vrail-label">{c.zoomOut}</span></button>
               </>
             )
           })()}
@@ -323,7 +329,7 @@ export function MapToolDocks({
                 key={t.id} className={`wb-trupp-opt${here ? ' placed' : ''}`} disabled={here}
                 onClick={() => { placeTruppOnMap(t.id, teamPick); setTeamPick(null); setTool('select') }}
               >
-                <span className="wb-trupp-cap" /><b>{t.name}</b>
+                <span className="wb-trupp-ring" style={{ color: truppColors[t.id] }} /><b>{t.name}</b>
                 {/* «AS» — see the plan's twin of this picker (Whiteboard · wb-trupp-as) */}
                 {isAtemschutzTrupp(t) && <span className="wb-trupp-as" title={appConfig.copy.atemschutz.kindAtemschutz}>{appConfig.copy.atemschutz.asMark}</span>}
                 {here

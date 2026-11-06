@@ -233,18 +233,20 @@ export function EntityMarker({
           // says a name is there. One tap on the marker brings it back — a selected object
           // is exempt from suppression.
           const nameHidden = !!e.label && !!suppressedLabels?.has(`team:${e.id}`)
+          // the inner spans carry an out Trupp's done dim, so the plates under them stay
+          // opaque (09-whiteboard · .team-dot.raus)
           return (
             <>
               <span className={`team-dot ${isRaus ? 'raus' : ''}${badge ? ' joined' : ''}`}
                 style={{ '--team': teamCol, ...(badge ? { '--line': badge.color } : null) } as React.CSSProperties}>
                 <i />
-                {!nameHidden && <b>{e.label}</b>}
+                {!nameHidden && <b><span>{e.label}</span></b>}
                 {/* the storey (18.09.2026) — only where the marker HAS one, which on the
                     Karte means its body was baked off a Gebäude chip (lib/tacticalObjects
                     · bakeGeoBody). A Trupp dropped straight onto the map is on no storey,
                     and a «0» there would assert an EG nobody stated. Tied to the name's
                     visibility: the label pass books one box for [dot][gap][name]. */}
-                {!nameHidden && e.floor != null && <em className="team-floor">{floorBadge(e.floor)}</em>}
+                {!nameHidden && e.floor != null && <em className="team-floor"><span>{floorBadge(e.floor)}</span></em>}
               </span>
             </>
           )

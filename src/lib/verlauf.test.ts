@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { groupByDay, isHandWritten, rowGlyph, isNachtrag, rowText, rowTime, rowPhotos, rowTarget, liveTargets, swapUrl, repeatRuns } from './verlauf'
+import { groupByDay, isHandWritten, rowGlyph, isNachtrag, rowText, rowTime, rowPhotos, rowTarget, liveTargets, swapUrl, repeatRuns, stripScale, stripRuns, pendenzenCut, pendenzenBelow } from './verlauf'
 import type { BoardAnno, TimelineEvent } from '../types'
 
 const row = (id: string, at?: string): TimelineEvent =>
@@ -382,5 +382,115 @@ describe('rowTarget', () => {
     expect(rowTarget({ ...base, surface: 'plan', planId: 'p1', annoId: 'gone', px: 0.4, py: 0.6 }, live)).toBeNull()
     // a plan no longer in the catalog (a Gebäude whose stack was removed)
     expect(rowTarget({ ...base, surface: 'plan', planId: 'geb', kind: 'symbol' }, live)).toBeNull()
+  })
+})
+
+describe('stripScale', () => {
+  const from = new Date('2026-07-02T14:33:00').getTime()
+  const to = new Date('2026-07-02T19:05:00').getTime()
+
+  it('labels every full hour, centred on its mark; a stamp an hour would collide with gives way', () => {
+    const s = stripScale(from, to, 330)
+    expect(s.marks).toHaveLength(5) // 15, 16, 17, 18, 19 h
+    expect(s.marks.every((m) => m.label)).toBe(true)
+    expect(s.marks[1].label).toMatch(/16.00/)
+    // 15:00 sits 33px in, over the start stamp; 19:00 6px before the end, over the end stamp
+    expect(s.marks[0].label).toMatch(/15.00/)
+    expect(s.marks[4].label).toMatch(/19.00/)
+    expect(s.start).toBeUndefined()
+    expect(s.end).toBeUndefined()
+  })
+
+  it('divides the hours into a rhythm that never crowds', () => {
+    // phone: 1.2px a minute – half hours (36px) and ten minutes (12px)
+    const phone = stripScale(from, to, 330)
+    expect(phone.minor.filter((m) => m.mid)).toHaveLength(4) // 15:30 … 18:30
+    expect(phone.minor).toHaveLength(22) // 14:40, 14:50 and five a full hour
+    // tablet: 1.8px a minute – quarter hours (28px) and five minutes (9px)
+    const tablet = stripScale(from, to, 500)
+    const at = (f: number) => new Date(Math.round((from + f * (to - from)) / 60_000) * 60_000).getMinutes()
+    expect(tablet.minor.filter((m) => m.mid).map((m) => at(m.frac))).toEqual(expect.arrayContaining([15, 30, 45]))
+    expect(tablet.minor.every((m) => at(m.frac) % 5 === 0 && at(m.frac) !== 0)).toBe(true)
+    expect(tablet.minor.some((m) => tablet.marks.some((k) => Math.abs(k.frac - m.frac) < 1e-9))).toBe(false)
+  })
+
+  it('keeps a stamp that clears the first and last hour', () => {
+    // 14:00 stands 75px in, 16:00 52px before the end: both stamps clear them
+    const s = stripScale(new Date('2026-07-02T13:10:00').getTime(), new Date('2026-07-02T16:50:00').getTime(), 330)
+    expect(s.marks.map((m) => m.label)).toEqual([/14.00/, /15.00/, /16.00/].map((t) => expect.stringMatching(t)))
+    expect(s.start).toMatch(/13.10/)
+    expect(s.end).toMatch(/16.50/)
+  })
+
+  it('drops a stamp that would stand within 32px of its neighbouring hour', () => {
+    // the phone strip of round 30: 14:08–19:05 on 365px – 15:00 stands 64px in, its clock 24px
+    // clear of the stamp's: «14:08 15:00» ran together, so the stamp gives way (never the hour)
+    const s = stripScale(new Date('2026-07-02T14:08:00').getTime(), to, 365)
+    expect(s.marks[0].label).toMatch(/15.00/)
+    expect(s.start).toBeUndefined()
+    // …while the tablet's 523px leaves 52px of air: the stamp stays
+    expect(stripScale(new Date('2026-07-02T14:08:00').getTime(), to, 523).start).toMatch(/14.08/)
+  })
+
+  it('never prints two labels closer than one label width', () => {
+    const s = stripScale(from, to, 120)
+    const lefts = s.marks.filter((m) => m.label).map((m) => m.frac * 120 - 23)
+    lefts.forEach((l, i) => { if (i) expect(l - lefts[i - 1]).toBeGreaterThanOrEqual(46) })
+    expect(s.marks.length).toBeLessThanOrEqual(3)
+  })
+
+  it('unmeasured, it draws a few unlabelled marks and no divisions', () => {
+    const s = stripScale(from, to, 0)
+    expect(s.marks.length).toBeLessThanOrEqual(6)
+    expect(s.minor).toEqual([])
+    expect(s.marks.every((m) => m.label === undefined)).toBe(true)
+    expect(s.start).toMatch(/14.33/)
+    expect(s.end).toMatch(/19.05/)
+  })
+})
+
+describe('pendenzenCut', () => {
+  // rows at 40, 90, 150, 230 in a 210px box; the foot band + border is 21px, so a cut must sit
+  // at or above 189 — the last row top there is 150, and the box ends 21px below it
+  it('ends the box at the top of the first row that does not fit whole', () => {
+    expect(pendenzenCut([40, 90, 150, 230], 210, 21)).toBe(171)
+  })
+
+  it('cuts exactly at a row top that leaves just the foot', () => {
+    expect(pendenzenCut([40, 90, 189], 210, 21)).toBe(210)
+  })
+
+  it('keeps the CSS cap when the first row alone is taller than the box', () => {
+    expect(pendenzenCut([40, 300], 210, 21)).toBeNull()
+  })
+})
+
+describe('pendenzenBelow', () => {
+  it('counts the rows that end below the fold, the one it slices included', () => {
+    expect(pendenzenBelow([86, 146, 226, 300, 380], 230)).toBe(2)
+    expect(pendenzenBelow([86, 146, 226, 300, 380], 200)).toBe(3)
+  })
+
+  it('treats a subpixel overshoot as a whole row', () => {
+    expect(pendenzenBelow([86, 146, 230.4], 230)).toBe(0)
+  })
+})
+
+describe('stripRuns', () => {
+  it('draws every stretch of 3px columns holding a row as one run, short lulls bridged, busy ones apart', () => {
+    // a 300px track over 300 s: 1px per second, columns of 3 s
+    const ticks = [0, 1000, 2000, 3000, 4000, 12_000, 150_000, 300_000]
+    expect(stripRuns(ticks, 0, 300_000, 300)).toEqual({
+      runs: [
+        { from: 0, to: 15 / 300 }, // columns 0, 1 and – over the two empty ones – 4
+        { from: 150 / 300, to: 153 / 300 },
+        { from: 297 / 300, to: 1 }, // the last moment stays in the last column, not one past it
+      ],
+      busy: [{ from: 0, to: 3 / 300 }], // three rows in column 0
+    })
+  })
+
+  it('unmeasured, every row is its own run', () => {
+    expect(stripRuns([0, 5, 10], 0, 10, 0)).toEqual({ runs: [{ from: 0, to: 0 }, { from: 0.5, to: 0.5 }, { from: 1, to: 1 }], busy: [] })
   })
 })

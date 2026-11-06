@@ -3207,6 +3207,7 @@ export function IncidentWorkspace({
         createArea, replayActive, railLabels, slimMapTools, pick, panel, layersPreset, togglePanel, viewsApi,
         view, readOnly, isEl, viewsOpen, sharePick, shareParent, toggleViews, coord, mapRef, paletteOpen,
         sym, setPaletteOpen, pickShape, teamPick, trupps, placeTruppOnMap, placeGenericTeam,
+        truppColors: truppColors(),
       }} />
 
       <PlansSurface {...{

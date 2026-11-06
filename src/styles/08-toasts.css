@@ -439,7 +439,9 @@
   max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; box-sizing: border-box;
   background: var(--glass); backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-edge); border-radius: var(--r-hero); padding: var(--sp-5) var(--sp-5) var(--sp-4); box-shadow: var(--e4);
+  /* no edge (r35, 06.11.2026): the sheets draw none, --e4 is the outline. Its title's text stands
+     24 from the top and the side, where a sheet title beside its 36px ✕ stands too. */
+  border-radius: var(--r-hero); padding: var(--sp-5) var(--sp-5) var(--sp-4); box-shadow: var(--e4);
   animation: pop .16s var(--ease); }
 .confirm-title { margin: 0 0 var(--sp-2); font: var(--sheet-title); color: var(--ink); } /* the one sheet title (28.09.2026; was 19) */
 .confirm-msg { margin: 0 0 var(--sp-3); font: var(--fw-medium) var(--fs-2)/1.45 var(--body); color: var(--ink-dim); }
@@ -486,7 +488,22 @@
    27.10.2026: «Speichern» wrapped under «Weiterzeichnen · Verwerfen» on a desktop). The phone keeps
    its full-width stack (15-mobile). */
 .confirm-card-three { width: min(460px, 92vw); }
-.btn.primary { background: var(--btn-primary); border-color: var(--btn-primary); color: var(--on-btn-primary); }
+/* …and when the SAFE answer is the third one («Zur Tafel», «Raus melden» – ConfirmCard ·
+   safeAnswer 'alt'), ONE layout on every device (owner pick «Trupps noch drin» mock 4, 06.11.2026):
+   Abbrechen + the quiet «Trotzdem …» share the first row, each growing from its word's width, and
+   the filled, focused safe answer takes the whole row under them. Where the first row cannot hold
+   both words (a narrow phone) the three stack full width in the same order, the safe one last.
+   Two classes deep, so the phone's `wrap-reverse` (15-mobile · .confirm-actions) does not flip it. */
+.confirm-card-safe .confirm-actions { flex-wrap: wrap; }
+.confirm-card-safe .confirm-actions > .ip-btn { flex: 1 1 auto; }
+.confirm-card-safe .confirm-actions > .ip-btn:last-child { flex-basis: 100%; }
+/* a line that NAMES something (ConfirmCard · ConfirmLine, the crews still inside): the name in
+   the bold ink, the rest in the regular ink – no bullet, it is not an open point */
+.confirm-list li.confirm-line { padding-left: 0; font-weight: var(--fw-regular); }
+.confirm-list li.confirm-line::before { display: none; }
+.confirm-line b { font-weight: var(--fw-bold); }
+/* 800: the single action of its surface, like `.ip-btn.primary` (docs/ui-conventions · Type) */
+.btn.primary { background: var(--btn-primary); border-color: var(--btn-primary); color: var(--on-btn-primary); font-weight: var(--fw-heavy); }
 @media (hover: hover) {
   .btn.primary:hover { background: var(--btn-primary-hover); border-color: var(--btn-primary-hover); }
 }
@@ -569,9 +586,11 @@
 /* `overflow-wrap` is not optional here: the pill is capped at 180px, so a long unbroken token
    (a hydrant code, a chemical name, a pasted id) ran straight out of the paper and sat on the
    map as bare letters. White-space stays `normal` — «Einzeilig» is ONE line that simply runs
-   out of room at 180px, not a place to compose paragraphs; that is what «Textfeld» is for. */
+   out of room at 180px, not a place to compose paragraphs; that is what «Textfeld» is for.
+   A resting note sits on e1 like every other mark on the map (e2 until hill climb r8: its 10px
+   shadow merged with the plates around it); the selected one still lifts to e2. */
 .note-pill { background: var(--note-bg); border: 1px solid var(--note-border); color: var(--note-ink); font-size: var(--fs-1); font-weight: var(--fw-medium);
-  padding: 0.38em 0.7em; border-radius: 0.6em; box-shadow: var(--e2); max-width: 180px;
+  padding: 0.38em 0.7em; border-radius: 0.6em; box-shadow: var(--e1); max-width: 180px;
   overflow-wrap: break-word; }
 /* A coloured note in the PILL look tints its paper, not its ink: the picked colour has to be
    legible from across a KP, and coloured text on a yellow pill is neither. Mixed against the

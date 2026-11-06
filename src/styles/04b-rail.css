@@ -19,6 +19,16 @@
    05-navrail rather than renumbering the whole manifest.
    ============================================================ */
 
+/* ── ONE top for both rails (hill climb r18, Opus 1): the top bar's bottom + 16px. The bar stands
+   16px down and is its controls (42px with a mouse, --tap on touch) + 2 × --bar-pad + its 1px
+   border top and bottom: 56px → 88, 58px → 90. Each rail HANGS from this line and ends where its
+   content ends (`margin-block: 0 auto` in .navrail / .tool-rail / .wb-tools). They used to be centred
+   in the band below the bar, each on its own height, so a 480px left rail and a 571px right one
+   started 46px apart. The Ebenen card (05-navrail · .layers-card) hangs from the same line.
+   The phone turns both rails into bottom bars and sets its own top/bottom (15-mobile). */
+:root { --rail-top: calc(88px + env(safe-area-inset-top)); }
+@media (pointer: coarse) { :root { --rail-top: calc(90px + env(safe-area-inset-top)); } }
+
 /* the glass shell. Each rail keeps its own `width` (it reads a different custom property)
    and its own placement — .navrail positions itself, .vrail is placed by its wrapper class. */
 .rail { display: flex; flex-direction: column; gap: 4px;
@@ -75,16 +85,39 @@
    (each reads its own variable); see the notes in 05-navrail.css. */
 .rail.labelled:not(.expanded):not(.dragging) { padding: 8px 4px; }
 
+/* ── A group boundary is ONE hairline, on both rails (owner pick C12, 05.11.2026: «same ui / styling /
+   hairline»). The left rail split its groups (Karte │ the plan tiles │ the rest) by 6px of air
+   (22.09.2026) while the right one drew a hairline above its foot (Ebenen · compass · zoom), so the
+   matched pair grouped two ways. One rule now: 1px of --border, 8px in from the rail's sides, 2px of
+   air either side on top of the scroller's 4px gap (13px from tile to tile). The per-rail names
+   (`nav-sep`, `vrail-sep`) stay as hooks: 15-mobile turns them into the bars' vertical dividers. */
+.rail-sep { height: 1px; flex: none; margin: 2px 8px; background: var(--border); }
+
 /* drag grip — pull it to resize the rail. Which EDGE it hangs off is per-rail. */
 .rail-grip { position: absolute; top: 0; width: 20px; height: 100%; border: 0; background: transparent; padding: 0;
   cursor: ew-resize; z-index: 3; display: flex; align-items: center; justify-content: center; touch-action: none; }
-.rail-grip::after { content: ""; width: 4px; height: 38px; border-radius: 3px; background: var(--border); transition: background .14s var(--ease); }
+/* The visible mark is a short pill in the rail's own padding, not the whole hit strip: at 38px tall
+   it was a grey bar at the rail's inner edge, which is where a scrollbar thumb sits, and it read as
+   one (04.11.2026, hill climb r11). The BUTTON keeps its full-height strip – only the mark shrank.
+   …and it GROWS while it is held (owner note on the r11 checkpoint, 05.11.2026): quiet at rest, a
+   longer, darker pill under the finger (`:active`) and for the whole drag (`.drag`), so the hand
+   can see it has the handle. */
+.rail-grip::after { content: ""; width: 4px; height: 20px; border-radius: var(--r-pill); background: var(--border);
+  transition: background .14s var(--ease), opacity .14s var(--ease), height .14s var(--ease); }
+:is(.rail-grip:active, .rail-grip.drag)::after { height: 48px; }
+/* …and with a mouse it is not drawn until the pointer is on the rail (or the grip has focus): a
+   handle that shows where the hand is, the way a desktop split view's does. Touch has no hover, so
+   there it stays, quiet, at rest. */
+@media (hover: hover) and (pointer: fine) {
+  .rail-grip::after { opacity: 0; }
+  :is(.rail:hover .rail-grip, .rail-grip:focus-visible, .rail-grip.drag)::after { opacity: 1; }
+}
 /* ⚠️ GRAY, not the app blue (owner, review 7: «the mobile pull … has an ugly blue color. Change
    this to clean gray for the expansion»). Blue is this app's SELECTED/active meaning — a rail
    being dragged wider is neither; it is the same hairline the grip rests in, just taken up a
    step so the finger can see it has the handle. One tint for both rails, both edges, and for
    hover as well as the live drag: the pointer that hovers it is about to drag it. */
-.rail-grip.drag::after { background: var(--ink-28); }
+:is(.rail-grip:active, .rail-grip.drag)::after { background: var(--ink-28); }
 @media (hover: hover) {
   .rail-grip:hover::after { background: var(--ink-28); }
 }
@@ -103,20 +136,60 @@
    more: a hint hidden until you already know the shortcut taught nothing. The phone's folded bar
    never wears them (its tiles are doors to groups, and a bar you touch needs no letter).
    Placement follows the tile's shape, because the badge must never sit on its glyph or its word:
-     · icon-only (default): the tile's bottom-right corner, small enough to leave the 22px glyph clear
-       (the alarm/count dot owns the top-right);
+     · icon-only (default): the glyph stays on the tile's centre, the ONE icon axis of the rail,
+       and the letter HANGS beside it as a subscript tag – 4–5px right of the glyph's ink, its
+       baseline on the glyph's foot line (hill climb r29, Opus 5: centred on the glyph's middle at
+       3px, r21, and at the glyph's weight, «TN» and «FT» fused into one word; set low and quieter
+       it reads as a tag OF the glyph, not as a second letter beside it – r21's centring had been
+       Sol's reply to r20's foot-line letter at the glyph's weight). ⚠️ The letter never moves its
+       glyph (hill climb r22, Opus 1: r21 stepped lettered glyphs 5px left to centre the pair, and
+       the icon column zig-zagged between lettered and unlettered rows); the alarm/count dot keeps
+       the top-right;
      · words under the glyph (`.labelled`): the TOP-LEFT corner – the word occupies the bottom half
        of the tile, the glyph only the middle of the top half, and the alarm / count / open dots
        all hang off the right;
      · expanded (word beside the glyph): vertically centred at the tile's far end – the left rail's
        right end, the right rail's left end – the free side of the row. */
-.rail-key { display: none; position: absolute; right: 3px; bottom: 3px; min-width: 16px; height: 16px;
-  box-sizing: border-box; padding: 0 4px; font-family: var(--mono); font-size: var(--fs-micro); font-weight: var(--fw-bold);
-  line-height: 14px; text-align: center; border-radius: var(--r-xs); border: 1px solid var(--border);
-  background: var(--fill-soft); color: var(--ink-faint); pointer-events: none; }
-:is(.nav-item, .vrail-tool).on .rail-key { border-color: color-mix(in srgb, var(--on-accent-ink) 45%, transparent);
-  color: var(--on-accent-ink); background: transparent; }
-.rail.labelled:not(.expanded):not(.dragging) .rail-key { top: 3px; bottom: auto; right: auto; left: 4px; }
-.rail.expanded:not(.dragging) .rail-key { top: 50%; bottom: auto; margin-top: -8px; right: 10px; }
+/* A bare letter, no keycap (04.11.2026, hill climb: the framed chip on every tile's corner added a
+   second small object exactly where the glyph has to be recognised at a glance). It is a hint for
+   whoever looks for it, so it is the quietest text in the rail: the faint ink, 11px (--fs-micro,
+   the smallest step) at the regular weight (r29; 500 until then, near the glyphs' own stroke).
+   ⚠️ Inset so the letter's ink stays ≥4px clear of the tile's curved corner (05.11.2026, hill
+   climb r13: at 4/2px it ran into the selected pill's radius); on the ink pill it takes the pill's
+   own text colour, muted (below). The body face, not the mono (hill climb r20, Opus 5): the mono's
+   narrow caps rendered ~8px and thin; Sora's are the bar's own letters, wide enough to read.
+   `text-box: trim-both cap alphabetic` makes the letter's box its cap height, so the box's bottom
+   IS the baseline: «bottom: 50% − 9px» stands it on the 22px glyph's foot line (the icon's ink
+   ends 9px under the tile's middle; measured ±1px on every lettered tile, r29).
+   ⚠️ The room for it comes from the TILE, not the glyph (hill climb r23, Opus 3: hung at 50% + 13px
+   in a 46px tile, the letter's ink ended ~2px from the selected ink pill's edge and read clipped).
+   The widest glyphs' ink ends 9px right of the tile centre; the letter starts 4–5px after it
+   (`left: 50% + 13px`, the cap's ≈ 1px side bearing included) and is ≤ 9px wide («M», «C», «U»),
+   so it ends at 50% + 22px – and wherever letters show, EVERY tile is 56px wide (1px at the
+   rail's sides instead of --bar-pad's 6 – 3px from r23 to r28, a 52px tile; the 60px rail
+   unchanged), leaving ≥ 6px from the letter to the pill's edge (measured r29). The tiles stay
+   46px tall; the expanded rail keeps its 6px, so its glyph column stays put.
+   On the ink pill the letter is the pill's own text colour at 70 %, so it recedes there as it does
+   on the resting tiles beside it. */
+.rail-key { display: none; position: absolute; left: calc(50% + 13px); bottom: calc(50% - 9px);
+  font-family: var(--body); font-size: var(--fs-micro); font-weight: var(--fw-regular);
+  font-variant-numeric: tabular-nums; line-height: 1; text-box: trim-both cap alphabetic;
+  color: var(--ink-faint); pointer-events: none; }
+:is(.nav-item, .vrail-tool).on .rail-key { color: color-mix(in srgb, var(--on-here) 70%, transparent); }
+.rail.labelled:not(.expanded):not(.dragging) .rail-key { top: 4px; bottom: auto; right: auto; left: 6px; }
+.rail.expanded:not(.dragging) .rail-key { left: auto; right: 10px; bottom: auto; top: 50%; translate: 0 -50%; }
 .vrail.expanded:not(.dragging) .rail-key { right: auto; left: 10px; }
-@media (hover: hover) and (pointer: fine) { .rail:not(.folded) .rail-key { display: block; } }
+@media (hover: hover) and (pointer: fine) {
+  .rail:not(.folded) .rail-key { display: block; }
+  /* the 56px tile (above) – for EVERY tile of a rail that shows letters, lettered or not (Pläne,
+     Präsentation, the expand chevron, the right rail's foot): ONE «where you are» plate, so the
+     selection keeps its silhouette as you switch surfaces (hill climb r33, Sol 1 – r30 had put the
+     unlettered tiles back to a 48px square, and Pläne's selected plate stood 8px narrower than
+     Karte's, Trupps' and Rapport's). Every glyph sits on the tile's centre, which is the rail's one
+     icon axis (measured 0px off, r33). The grips step out by the same 5px, so they still start at
+     the tiles' edge and never cover one (05-navrail · .nav-grip), and their mark, now flush with
+     the grip's inner edge, stays where it was – on the rail's border */
+  .rail:not(.folded):not(.labelled):not(.expanded):has(.rail-key) { padding-inline: 1px; }
+  .navrail:not(.folded):not(.labelled):not(.expanded):has(.rail-key) .nav-grip { right: -18px; padding-left: 0; }
+  .vrail:not(.folded):not(.labelled):not(.expanded):has(.rail-key) .vrail-grip { left: -18px; padding-right: 0; }
+}

@@ -539,9 +539,12 @@ export function AnwesenheitView({
   // carry one, so it rides ALONGSIDE the state rather than competing with it.
   const [noteOnly, setNoteOnly] = useState(false)
   const stateEntries = [
-    { key: 'frei', cls: [], mark: <i className={s.swatch} />, label: A.statusFrei },
-    { key: 'present', cls: [], mark: <i className={cx(s.swatch, s.swatchPresent)} />, label: A.statusPresent },
-    { key: 'left', cls: [], mark: <i className={cx(s.swatch, s.swatchLeft)} />, label: A.statusLeft },
+    // the three states carry NO mark (r35, 06.11.2026): a 14×10 swatch of the row's tint beside
+    // the menu's checkbox read as a second, empty checkbox, and the list itself has no status mark
+    // to echo. The word is the state; the two Ort glyphs below stand indented under it.
+    { key: 'frei', cls: [], mark: null, label: A.statusFrei },
+    { key: 'present', cls: [], mark: null, label: A.statusPresent },
+    { key: 'left', cls: [], mark: null, label: A.statusLeft },
     // the two places, under the state they refine — both mean «anwesend, und zwar dort»
     { key: 'scene', cls: [s.markOrt], mark: <Icon id="pin" />, label: A.ortScene },
     { key: 'station', cls: [s.markOrt, s.markOrtStation], mark: <Icon id="station" />, label: A.ortStation },

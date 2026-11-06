@@ -109,7 +109,7 @@ export function Stepper({ value, min, max, step = 1, seed, seedOnDec, snap, deci
           onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); else if (e.key === 'Escape') setEditing(false) }}
         />
       ) : (
-        <button className={`step-val step-val-btn${over ? ' step-over' : ''}`} onClick={startEdit} disabled={readOnly} title={st.typeToEnter}>{display}</button>
+        <button className={`step-val step-val-btn${over ? ' step-over' : ''}${has ? '' : ' step-empty'}`} onClick={startEdit} disabled={readOnly} title={st.typeToEnter}>{display}</button>
       )}
       <button className="step-btn" disabled={readOnly || (has && value >= max)} {...inc} aria-label={st.more}>+</button>
       {onClear && (

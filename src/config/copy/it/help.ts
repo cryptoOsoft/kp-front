@@ -256,7 +256,7 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
         ],
       },
       {
-        id: 'verlauf', title: 'Diario e voce', icon: 'history',
+        id: 'verlauf', title: 'Diario e voce', icon: 'verlauf',
         blocks: [
           { kind: 'lead', text: 'Un diario condiviso e continuo tra Situazione e Piano – la cronaca dell’intervento.' },
           { kind: 'list', items: [

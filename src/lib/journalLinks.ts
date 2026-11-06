@@ -40,7 +40,7 @@ export type MarkKind = LinkKind | 'url' | 'phone'
  * What a pass over an entry's text marks beyond the vocabulary and the addresses.
  *
  * ⚠️ `phone` is OFF by default, and that is deliberate — the on-screen Verlauf stays TEXT-ONLY on
- * phone numbers. The screen renders a non-`url` mark as a coloured bold term (`Journal.tsx` ·
+ * phone numbers. The screen renders a non-`url` mark as a medium-weight ink term (`Journal.tsx` ·
  * `.jr-link-*`), which is the app saying «this is one of the Einsatz's own words»; a phone number
  * is not, and dressing it up as one would be a lie about the vocabulary. A `tel:` anchor there
  * would also be a link that does nothing on the desktops the Verlauf is read on, and the composer

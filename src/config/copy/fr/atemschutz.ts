@@ -22,6 +22,7 @@ export const atemschutzCopy: Localizable<Pick<Copy, 'atemschutz' | 'lineDecor'>>
     emptyHint: 'Créez un binôme pour démarrer la surveillance.',
     newTrupp: 'Annoncer le binôme',
     shareLink: 'Transmettre la surveillance',
+    shareLinkShort: 'Transmettre',
     shareLinkOn: 'Transmettre la surveillance – un lien est actif',
     linkReentryHint: 'Le lien ramène à ce tableau – si la page est fermée par mégarde, il suffit d’ouvrir à nouveau le code QR.',
     /** the «+ Trupp» tab on the handed-over phone board (AtemschutzView · focusMode) */
@@ -129,6 +130,9 @@ export const atemschutzCopy: Localizable<Pick<Copy, 'atemschutz' | 'lineDecor'>>
     elapsed: 'Temps d’intervention',
     outFor: 'Sorti depuis',
     outForPlain: 'Sans mission depuis', // ⚠️ app only — see de/atemschutz.ts · outForPlain
+    // the foot words of an OUT card (de/atemschutz.ts · footInside)
+    footInside: 'dedans',
+    footOutAt: 'sorti à',
     currentPressure: 'Pression',
     lowestPressure: 'Le plus bas',
     lineField: 'Conduite',

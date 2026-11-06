@@ -4,11 +4,14 @@
 .wb-dock-tog:disabled { opacity: var(--disabled); cursor: default; }
 
 /* cumulative distance / area labels pinned to the live measure path */
-.measure-label { padding: 2px 8px; border-radius: var(--r-xs); font-size: var(--fs-micro); font-weight: var(--fw-bold);
+.measure-label { padding: 2px 8px; border-radius: var(--r-xs); font-size: var(--fs-1); font-weight: var(--fw-bold);
   font-family: var(--mono); white-space: nowrap; background: var(--label-bg); color: var(--ink);
-  box-shadow: var(--e1); pointer-events: none; }
+  box-shadow: var(--label-plate); pointer-events: none; }
 .measure-label.strong { background: var(--blue); color: var(--on-fill); }
 .measure-label.draw-label { text-align: center; line-height: 1.25; }
+/* a line's free text («Trupp Polizei evakuiert», an Abschnitt's Auftrag) in the names' sans; the
+   measured values on the same plate stay mono (lib/mapView · READOUT_WORDS_STYLE) */
+.measure-label.draw-label .dl-words { font-family: var(--body); }
 /* a line's distance/text label is draggable (nudge it off overlapping ink), so it must
    accept pointer events again and hint the move cursor */
 .measure-label.draw-label.draggable { pointer-events: auto; touch-action: none; }
@@ -20,19 +23,25 @@
    removed MapLibre text-field symbol layer (which needed a glyphs font source) */
 .draw-marker { font: var(--fw-heavy) var(--fs-2)/1 var(--mono); letter-spacing: .02em; pointer-events: none;
   text-shadow: 0 0 2px #fff, 0 0 2px #fff, 0 0 3px #fff, 0 0 3px #fff; }
-/* lock chip on a locked drawing — the only tap target on a click-through locked shape */
+/* lock chip on a locked drawing — the only tap target on a click-through locked shape.
+   ⚠️ An INK edge, not --glass-line (hill climb r18, Opus 6): by day --glass-line is white on the
+   white disc, so where the chip sits on a red Absperrkreis the disc had no edge of its own; --ink-16
+   flips with the theme, so it is a dark hairline by day and a light one at night. */
 .draw-lock-chip { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
-  background: var(--glass); border: 1px solid var(--glass-line); box-shadow: var(--e1);
-  color: var(--ink-dim); cursor: pointer; padding: 0; backdrop-filter: blur(8px);
+  background: var(--glass); border: 1px solid var(--ink-16); box-shadow: var(--e1);
+  color: var(--ink); cursor: pointer; padding: 0; backdrop-filter: blur(8px);
   transition: color .12s var(--ease), border-color .12s var(--ease); }
 .draw-lock-chip { position: relative; touch-action: none; }
 /* 44px hit pad — the chip is the ONLY tap target on a locked shape */
 .draw-lock-chip::after { content: ''; position: absolute; inset: -7px; border-radius: 50%; }
 @media (hover: hover) {
-  .draw-lock-chip:hover { color: var(--blue); border-color: color-mix(in srgb, var(--blue) 45%, var(--glass-line)); }
+  .draw-lock-chip:hover { color: var(--blue); border-color: color-mix(in srgb, var(--blue) 45%, var(--ink-16)); }
 }
-.draw-lock-chip > svg { width: 15px; height: 15px; }
-.draw-lock-chip.holding { color: var(--blue); border-color: color-mix(in srgb, var(--blue) 55%, var(--glass-line)); }
+/* the padlock at the rail icons' weight (hill climb r18, Opus 6): a 15px box drew its 11px-tall
+   lock with a 1.1px line, which read as a dot. 20px draws the lock itself ~12px wide, 13px tall, and 2 in the
+   24-unit viewBox is the 1.65px line a 22px rail glyph draws with .i's 1.8. */
+.draw-lock-chip > svg { width: 20px; height: 20px; stroke-width: 2; }
+.draw-lock-chip.holding { color: var(--blue); border-color: color-mix(in srgb, var(--blue) 55%, var(--ink-16)); }
 /* The hold progress is the shared ring (.node-del, tone-unlock), placed beside the chip by
    components/LockChip — not a bar in a floating card. See NodeDeleteChip for why all four
    holds wear one picture, and nodeHold for why the fill is JS and not a keyframe. */
@@ -338,9 +347,9 @@
    read as a hover, not as a mode. The blue ring around it keeps it in the bar's own family. The
    ring is drawn OUTSIDE the button and the fill arrives on a transition, so nothing moves and
    nothing flickers when a mode goes on or off. */
-.sel-bar-act.on { background: var(--ink-fill); color: var(--on-accent-ink);
+.sel-bar-act.on { background: var(--here-fill); color: var(--on-here);
   box-shadow: 0 0 0 2px var(--glass), 0 0 0 4px var(--blue); }
-@media (hover: hover) { .sel-bar-act.on:hover { background: var(--ink-fill-hover); } }
+@media (hover: hover) { .sel-bar-act.on:hover { background: var(--here-fill-hover); } }
 @media (prefers-reduced-motion: reduce) { .sel-bar-act { transition: none; } }
 .sel-bar-act .i { width: 19px; height: 19px; }
 

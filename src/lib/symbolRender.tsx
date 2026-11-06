@@ -30,8 +30,10 @@ export const symColor = (svg: string): string => {
   return colours.find((c) => c !== '#000000') ?? DEFAULT_INK
 }
 
-// signed storey label for the badge: +2, -1, 0 (EG)
-export const floorBadge = (f: number) => (f > 0 ? `+${f}` : `${f}`)
+// signed storey label for the badge: +2, −1, 0 (EG). The minus is U+2212, not the hyphen: in the
+// badges' tabular figures it is as wide as the «+», so «+1» and «−1» are one width (hill climb r15,
+// Opus 7). Display only – nothing parses it back (the print, kroki.py · floor_badge, still hyphens).
+export const floorBadge = (f: number) => (f > 0 ? `+${f}` : f < 0 ? `\u2212${-f}` : '0')
 
 // ── Grosslüfter: a composite of a vehicle body + an overlaid fan, each independently
 // rotatable (the vehicle heading vs. the airflow direction). The two source glyphs are the

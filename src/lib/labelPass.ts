@@ -48,6 +48,10 @@ export const LABEL_RANK = {
   readout: 5,
   /** an Absperrkreis radius */
   radius: 6,
+  /** the time beside a Trupp's recorded position (its trail breadcrumbs). Last of all: it is
+   *  history, and the newest crumb of each trail wins its own ties (04.11.2026 – before, every
+   *  crumb printed its time and a busy trail stacked into one illegible pile). */
+  crumb: 7,
 } as const
 
 export type LabelRank = (typeof LABEL_RANK)[keyof typeof LABEL_RANK]

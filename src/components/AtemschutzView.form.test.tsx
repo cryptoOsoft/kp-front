@@ -255,7 +255,7 @@ describe('the Ausrüstung of an Atemschutz-Trupp', () => {
 
   // the facts' last chips before the ⋯ (the Kennzeile's tags until 29.09.2026 — TruppCard · facts)
   it('prints the Kürzel as the last fact chips — and nothing when nothing was ticked', () => {
-    const tagsOf = () => [...document.querySelectorAll(`.${s.facts} > .${s.fact}`)].map((el) => el.textContent)
+    const tagsOf = () => [...document.querySelectorAll(`.${s.facts} .${s.fact}`)].map((el) => el.textContent)
       .filter((t) => (Object.values(az.equipmentShort) as string[]).includes(t ?? ''))
     mount({ trupps: [{ ...aktivTrupp(), equipment: ['retthaube', 'wbk'] }] })
     expect(tagsOf()).toEqual([az.equipmentShort.retthaube, az.equipmentShort.wbk])

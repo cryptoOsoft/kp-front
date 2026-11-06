@@ -78,22 +78,22 @@ describe('carryDocked', () => {
 // the map read these numbers: MapMarkers offsets the marker, MapView's label pass books the box.
 describe('dockSlotOffset (where a docked Trupp marker is drawn)', () => {
   it('puts the first one just under the tile, its dot flush with the tile\'s left edge', () => {
-    expect(dockSlotOffset(40, 0)).toEqual({ dx: -20 + 6.5, dy: 20 + 5 + 6.5 })
+    expect(dockSlotOffset(40, 0)).toEqual({ dx: -20 + 8, dy: 20 + 5 + 8 })
   })
 
   it('stacks the next ones DOWNWARDS, one pitch apart, on the same left edge', () => {
     const three = [0, 1, 2].map((i) => dockSlotOffset(40, i))
-    expect(three.map((s) => s.dx)).toEqual([-13.5, -13.5, -13.5])
-    expect(three.map((s) => s.dy)).toEqual([31.5, 31.5 + DOCK_SLOT_STEP_PX, 31.5 + 2 * DOCK_SLOT_STEP_PX])
+    expect(three.map((s) => s.dx)).toEqual([-12, -12, -12])
+    expect(three.map((s) => s.dy)).toEqual([33, 33 + DOCK_SLOT_STEP_PX, 33 + 2 * DOCK_SLOT_STEP_PX])
   })
 
   it('centres the strip under the tile once its width is known', () => {
     // a 60 px strip under a 40 px tile: the dot half a strip left of centre, same row
-    expect(dockSlotOffset(40, 0, 60)).toEqual({ dx: -30 + 6.5, dy: 20 + 5 + 6.5 })
+    expect(dockSlotOffset(40, 0, 60)).toEqual({ dx: -30 + 8, dy: 20 + 5 + 8 })
   })
 
   it('tracks the glyph: a bigger tile pushes the corner out with it', () => {
-    expect(dockSlotOffset(48, 0)).toEqual({ dx: -24 + 6.5, dy: 24 + 5 + 6.5 })
+    expect(dockSlotOffset(48, 0)).toEqual({ dx: -24 + 8, dy: 24 + 5 + 8 })
   })
 })
 

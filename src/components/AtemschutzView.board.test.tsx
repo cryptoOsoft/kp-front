@@ -608,6 +608,25 @@ describe('the Reihenfolge menu', () => {
     expect(names()).toEqual(['Drin', 'Wartet', 'Fertig'])
   })
 
+  // the wide grid wears the phone's state heads where the order already reads that way, and
+  // «Wie gesetzt» keeps one slot-keeping grid (hill climb r1, 04.11.2026)
+  it('stands the wide grid under Drin · Draussen for Dringlichkeit, never for «Wie gesetzt»', () => {
+    vi.mocked(useIsPhone).mockReturnValue(false)
+    const out: Trupp = { ...aktivTrupp(), id: 'tr0', name: 'Fertig', status: 'raus', exitTime: iso(60_000) }
+    const heads = () => [...document.querySelectorAll(`.${s.sectTitle}`)].map((e) => e.textContent)
+    mount({ order: 'dringlichkeit', trupps: [out, aktivTrupp()] })
+    expect(heads()).toEqual([az.phoneSectionIn, az.phoneSectionOut])
+    expect(names()).toEqual(['Steiner', 'Fertig'])
+    // the clock captions (hill climb r2): under the «Draussen» head the break clock goes unnamed
+    expect(screen.queryByText(az.outFor)).toBeNull()
+    expect(screen.getByText(az.sinceContact)).toBeTruthy()
+    cleanup()
+    mount({ order: 'manuell', trupps: [out, aktivTrupp()] })
+    expect(heads()).toEqual([])
+    expect(names()).toEqual(['Fertig', 'Steiner'])
+    expect(screen.getByText(az.outFor)).toBeTruthy()
+  })
+
   it('…and within one of those groups the Auftrag still orders the alphabet, with none last', () => {
     mount({ order: 'auftrag', trupps: [
       plain('t1', 'Ohne'),

@@ -108,6 +108,13 @@ export function IconSprite() {
       <symbol id="plus-bold" viewBox="0 0 24 24"><path d="M12 4v16M4 12h16" stroke-width="2.6" /></symbol>
       <symbol id="select" viewBox="0 0 24 24"><path d="M6 3.5 6 20 10.2 15.8 13 21 15.2 20 12.4 14.6 18.5 14.5z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" /></symbol>
       <symbol id="history" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></symbol>
+      {/* THE Verlauf (top bar on every device, the drawer's title, its empty state, the help topic,
+          a Checkliste item's «im Verlauf» link): #history's face and hands, its rim run back
+          counter-clockwise into an arrow at the upper left – Lucide `history` on this grid (hill
+          climb r27, Opus 1). The plain clock stood ~30px from the Einsatzuhr's hourglass in the
+          phone bar: two time glyphs side by side. #history keeps the plain face for its other
+          uses (Einsätze register, revisions, Rapport checklists). */}
+      <symbol id="verlauf" viewBox="0 0 24 24"><path d="M3.5 12a8.5 8.5 0 1 0 2.49-6.01L3.5 8.5" /><path d="M3.5 4v4.5H8" /><path d="M12 7.5V12l3 2" /></symbol>
       <symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" /><path d="M12 7v5l3.5 2" /></symbol>
       {/* Die Trupp-Tafel im Navigationsband. A stopwatch, not the #gauge it wore until 04.09.: a
           pressure dial named the cylinder, and the surface is about the CLOCKS — Kontaktuhr,
@@ -115,7 +122,10 @@ export function IconSprite() {
           Distinct from #clock and #history at 20px because of the crown and the side button: a
           stopwatch is a clock somebody STARTED, which is exactly what a Trupp is. */}
       <symbol id="stopwatch" viewBox="0 0 24 24"><circle cx="12" cy="13.5" r="7.5" /><path d="M9.5 2.5h5M12 2.5V6M12 13.5V9.2M18.6 7.5 20 6.1" /></symbol>
-      <symbol id="hourglass" viewBox="0 0 24 24"><path d="M6 4h12M6 20h12M8 4l4 8 4-8M8 20l4-8 4 8" /></symbol>
+      {/* The Einsatzuhr's «Dauer» (lib/einsatzuhr · CLOCK_ICON). Drawn to the size of #history beside it
+          in the top bar – 14×18 of the box, two rounded bulbs: the old two-V outline was 12×16 of hairline
+          diagonals and read as the smallest, thinnest mark in the bar (04.11.2026, hill climb r11). */}
+      <symbol id="hourglass" viewBox="0 0 24 24"><path d="M5 3h14M5 21h14M7 3v2.5a5 5 0 0 0 2.1 4.1L12 12l2.9-2.4A5 5 0 0 0 17 5.5V3M7 21v-2.5a5 5 0 0 1 2.1-4.1L12 12l2.9 2.4a5 5 0 0 1 2.1 4.1V21" /></symbol>
       <symbol id="check" viewBox="0 0 24 24"><path d="M5 12.5 10 17 19 7" stroke-width="2.2" /></symbol>
       {/* Am Einsatzort: the map's own position pin, so «vor Ort» on the crew list and a dot on
           the Lage read as the same idea. Deliberately NOT a flame — this says WHERE somebody is,
@@ -127,7 +137,16 @@ export function IconSprite() {
           filled by the caller (.teamCrownOn) once it is the state, so the leader reads as a
           fact rather than as one more button that could still be pressed. */}
       <symbol id="star" viewBox="0 0 24 24"><path d="m12 3.8 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" stroke-linejoin="round" /></symbol>
-      <symbol id="checklist" viewBox="0 0 24 24"><rect x="3.5" y="6.5" width="14" height="14" rx="2" /><path d="M8 3.5h10.5a2 2 0 0 1 2 2V16" /><path d="M6.8 12.4l1.5 1.5 2.7-3M13.2 13h2" /><path d="M6.8 17.2l1.5 1.5 2.7-3M13.2 17.8h2" /></symbol>
+      {/* Checklisten (rail, Karte, visits, admin): ONE clipboard with two ticks – #clipboard's
+          shape, 2 units wider so the ticks have room (hill climb r17, Opus 11: the old stacked sheets
+          with ticks and dashes went muddy at 20px beside the single-stroke stopwatch / people / box) */}
+      <symbol id="checklist" viewBox="0 0 24 24"><path d="M8.5 4.5h-2a1 1 0 0 0-1 1V20a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V5.5a1 1 0 0 0-1-1h-2" /><rect x="8.5" y="3" width="7" height="3.5" rx="1" /><path d="M8.8 12l2 2 4.4-4.6M8.8 17.4l2 2 4.4-4.6" /></symbol>
+      {/* The Verlauf's «Pendenzen» box head: the OPEN ring every Pendenz row wears, alone, at a
+          size under the rows' 20px (Journal · .jr-pinned-head draws it 10px across, 2px line, in
+          their amber). It wore #checklist, the rail's Checkliste clipboard, which said «a
+          Checkliste» about a list that is not one (r27); then a ring with two text bars, which at
+          16px read as a typed «o=» (r28, Opus 2) – the ring alone is the rows' own mark. */}
+      <symbol id="pendenzen" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6" /></symbol>
       {/* An Aufgaben list in the Checkliste rail and the Nachschlagen library (23.10.2026, sweep
           F.9): two EMPTY boxes with their lines – a list still to work through. It wore #check,
           which beside «0%» read as «done»; the glyph names the kind, not a state. */}
@@ -158,6 +177,11 @@ export function IconSprite() {
           anywhere) read as the milder one. The red chip says how bad; this says WHAT. */}
       <symbol id="storage" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="2.6" /><path d="M5 6v12c0 1.45 3.1 2.6 7 2.6s7-1.15 7-2.6V6" /><path d="M5 12c0 1.45 3.1 2.6 7 2.6s7-1.15 7-2.6" /></symbol>
       <symbol id="list" viewBox="0 0 24 24"><path d="M9 6.5h11M9 12h11M9 17.5h11" /><circle cx="4.8" cy="6.5" r="1.3" fill="currentColor" stroke="none" /><circle cx="4.8" cy="12" r="1.3" fill="currentColor" stroke="none" /><circle cx="4.8" cy="17.5" r="1.3" fill="currentColor" stroke="none" /></symbol>
+      {/* «Wiedergabe starten» in the Verlauf head (hill climb r23, Sol 1): the ⓘ's own ring (r 9, the
+          sprite's stroke) around a small filled ▶ whose centroid sits on the ring's centre. On the
+          phone the button is word-less among the bare ⓘ · lens · funnel, and the bare filled #play
+          was the smallest, least recognisable mark in that row; the transport controls keep #play. */}
+      <symbol id="play-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M10 8.6 15.8 12 10 15.4z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round" /></symbol>
       <symbol id="play" viewBox="0 0 24 24"><path d="M7 4.8 19 12 7 19.2z" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" /></symbol>
       <symbol id="pause" viewBox="0 0 24 24"><path d="M8 5h2.4v14H8zM13.6 5H16v14h-2.4z" fill="currentColor" /></symbol>
       <symbol id="chevron" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></symbol>
@@ -188,7 +212,15 @@ export function IconSprite() {
       <symbol id="polygon" viewBox="0 0 24 24"><path d="M12 3.5 20 9 17 19.5 7 19.5 4 9z" /><circle cx="12" cy="3.5" r="1.5" fill="currentColor" stroke="none" /><circle cx="20" cy="9" r="1.5" fill="currentColor" stroke="none" /><circle cx="17" cy="19.5" r="1.5" fill="currentColor" stroke="none" /><circle cx="7" cy="19.5" r="1.5" fill="currentColor" stroke="none" /><circle cx="4" cy="9" r="1.5" fill="currentColor" stroke="none" /></symbol>
       <symbol id="logout" viewBox="0 0 24 24"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4" /><path d="M9 12h11M16 8l4 4-4 4" /></symbol>
       <symbol id="swap" viewBox="0 0 24 24"><path d="M4 9h13l-3-3M20 15H7l3 3" /></symbol>
+      {/* an OUTLINE seen from above – OSM Umrisse, the Karte's objects and layer rows, ghost labels */}
       <symbol id="footprint" viewBox="0 0 24 24"><path d="M4 20V8h8V4h8v16z" /></symbol>
+      {/* THE building, seen from the street (hill climb r20, Opus 3): the Plan's chip on the Gebäude
+          stack names the building it shows, and #footprint's stepped outline at 16px read as a crop
+          mark. A tall block with a low wing on the right on a ground line, filling the box like
+          #warn beside it (18 × 18 of 24), at the sprite's one stroke. Two windows, not three rows
+          of ticks (r21, Sol 2): at 16px six 2.5-unit ticks drew as dots, the glyph more delicate
+          than the triangle and the nav icons. */}
+      <symbol id="building" viewBox="0 0 24 24"><path d="M3 21h18M4.5 21V3h9.5v18M14 10h5.5v11" /><path d="M7.5 8h3.5M7.5 13h3.5" /></symbol>
       {/* the Grundriss preset (27.10.2026): a Wand is a thick corner */}
       <symbol id="wall" viewBox="0 0 24 24"><path d="M5 19V5h14" strokeWidth="4" strokeLinecap="square" /></symbol>
       <symbol id="bell" viewBox="0 0 24 24"><path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4z" /><path d="M9.5 19a2.5 2.5 0 0 0 5 0" /></symbol>
