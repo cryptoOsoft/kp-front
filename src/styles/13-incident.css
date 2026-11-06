@@ -533,13 +533,15 @@
   transition: opacity .14s var(--ease); }
 /* ── ONE modal scrim (hill climb r35, 06.11.2026) ──
    Every modal dims what is behind it the same way: the sheets' wash and its 2px blur. There were
-   five – .45 on the ConfirmCard / composer / Palette, .5 on the Mittel remark and the map picker,
-   .34 on the Hilfe and .48 WITHOUT blur on the Verlauf – so one sheet opened from another changed
-   the room's light. The classes stay (each carries its own z-tier and layout), only the PAINT is
-   here, once. Anchored menus and popovers have no scrim; `.rp-backdrop` is the Rapport's
-   transparent click-catcher and `.photo-scrim` the photo viewer's dark room – neither is a modal
-   dim, so neither is in this list. */
-.ui-backdrop, .modal-backdrop, .mp-backdrop, .help-scrim, .journal-scrim {
+   four – .45 on the ConfirmCard / composer / Palette, .5 on the Mittel remark and the map picker,
+   .34 on the Hilfe – so one sheet opened from another changed the room's light. The classes stay
+   (each carries its own z-tier and layout), only the PAINT is here, once. Anchored menus and
+   popovers have no scrim; `.rp-backdrop` is the Rapport's transparent click-catcher and
+   `.photo-scrim` the photo viewer's dark room – neither is a modal dim, so neither is in this list.
+   ⚠️ Nor is `.journal-scrim` (10-journal): the Verlauf drawer is read BESIDE the live map, and its
+   unblurred .48 dim is an approved landing state (owner, checkpoint 1) – a blur there was tried in
+   r35 and taken back. */
+.ui-backdrop, .modal-backdrop, .mp-backdrop, .help-scrim {
   background: rgba(20,28,40,.32); backdrop-filter: blur(2px); }
 .ip-sheet.ui-dialog { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: var(--z-dialog); }
 /* Keyboard up — `is-kb` + `--kb-inset` come from lib/overlays (useKeyboardInset), and only then,

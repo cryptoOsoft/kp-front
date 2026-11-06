@@ -336,7 +336,11 @@
    The phone block (below) resets both to a full-width bottom sheet. */
 /* full-width scrim so the right tool rail is also blocked while the Verlauf drawer is open
    (the drawer sits at z61, above this) */
-.journal-scrim { position: fixed; inset: 0; z-index: var(--z-popover); }   /* paint: 13-incident · «ONE modal scrim» */
+/* ⚠️ its OWN paint, not THE modal scrim (13-incident · «ONE modal scrim»): a plain dim WITHOUT blur,
+   so the map beside the drawer stays sharp – the Verlauf is read against it, and this look is an
+   approved landing state (owner, checkpoint 1, 05.11.2026; r35 tried the sheets' .32 + blur and
+   took it back) */
+.journal-scrim { position: fixed; inset: 0; z-index: var(--z-popover); background: rgba(12, 18, 28, .48); }
 /* ⚠️ 620px and closer to the rail, up from 440 at right:112px. The Verlauf now carries the
    Pendenzen block as well as the log, and both are lines of prose: an item's text plus its
    Meldungen ellipsised after a handful of words. The 112px gutter was ~30px more than the rail
@@ -1022,8 +1026,8 @@ a.jr-link-url { color: var(--blue); text-decoration: underline; text-underline-o
    token; this one is simply matching it. */
 .tb-act.has-rem.on { color: var(--on-here); background: var(--here-fill); }
 /* ⚠️ NIGHT: the ink pill lifted through the scrim (05.11.2026, hill climb r13). `.on` only exists
-   while the drawer is open, i.e. always UNDER `.journal-scrim` (THE modal scrim since r35 – .32 + 2px
-   blur, 13-incident; it was .48 without blur – it covers the bar too). By day the dark pill survives the veil; at night --ink-fill on the dark glass came
+   while the drawer is open, i.e. always UNDER `.journal-scrim` (rgba(12,18,28,.48), which covers
+   the bar too). By day the dark pill survives the veil; at night --ink-fill on the dark glass came
    out a flat #1c2431 on #111720 — the open state read weaker than the amber closed one, the reverse
    of the day. Mixed toward its own ink just enough that, seen through the scrim, it lands near where
    the rails' unveiled night pill (01-tokens · --here-fill, 2.3:1 on the bar) stands – ~2:1 under the

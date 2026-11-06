@@ -170,8 +170,10 @@ reopens, while the head's subtitle says when («Schadenlage · erledigt 10:57»)
   keyboard-driven and unportalled.
 - **One look per overlay kind** (hill climb r35, 06.11.2026 – converged on what most of them
   already did). A **modal** dims the room with ONE scrim, `.ui-backdrop`'s rgba(20,28,40,.32) + 2px
-  blur (13-incident · «ONE modal scrim» paints `.modal-backdrop`, `.mp-backdrop`, `.help-scrim`
-  and `.journal-scrim` too; anchored menus and popovers have none). A **sheet or panel** is the
+  blur (13-incident · «ONE modal scrim» paints `.modal-backdrop`, `.mp-backdrop` and `.help-scrim`
+  too; anchored menus and popovers have none). The one exception is the Verlauf drawer's
+  `.journal-scrim`: a plain .48 dim without blur, so the map it is read beside stays sharp (an
+  approved landing state). A **sheet or panel** is the
   sheets' material: `--glass` + blur, no edge, `--e4`, the one corner – or, where a panel is READ
   over a live map or plan (Verlauf, Hilfe, the Gebäude card, the Plan dock), that tone laid opaque
   over `--surface` (`linear-gradient(var(--glass), var(--glass)) var(--surface)`), never
