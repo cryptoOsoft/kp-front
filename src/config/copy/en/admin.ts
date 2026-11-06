@@ -868,6 +868,10 @@ export const adminCopy: Localizable<Pick<Copy, 'admin'>> = {
       vehicleRemoveConfirm: 'Delete vehicle? Its row in the turnout-times grid disappears, and reported times no longer find its key.',
       vehicleIncomplete: 'Incomplete – the row is only stored once it has a label and a key.',
       vehicleDuplicate: 'That key already exists – this row is not stored.',
+      originsTitle: 'Vehicle origin',
+      originsTip: 'Where a vehicle comes from when it is not the own fire service – e.g. a support base, civil protection, a neighbouring brigade or, with several stations, «Station North». The list is offered in the «Herkunft» field of every vehicle symbol and every tracked vehicle; free text stays possible. Empty means the own fire service: nothing is shown on the map.',
+      originsLabel: 'Choices',
+      originsPlaceholder: 'e.g. Support base',
       attributesTitle: 'Symbol pick lists',
       cliHint: 'Read-only – the lists are edited under «Daten» → «Arbeitsmappe».',
       cliTip: 'On the «Symbolfelder» sheet, one row per option (symbol, field, option). Without a '
@@ -882,7 +886,7 @@ export const adminCopy: Localizable<Pick<Copy, 'admin'>> = {
       fieldGlossary: {
         Titel: 'Visible vehicle label, e.g. Engine 1.', Status: 'Context-specific state, e.g. rescued or valve open/closed.',
         Stoff: 'Hazardous substance name.', 'UN-Nr.': 'Four-digit UN dangerous-goods number.', Einheit: 'Organisation or deployed unit.',
-        Name: 'Person from the roster.', Funktion: 'Command assignment, e.g. sector or safety.', Fahrer: 'Driver from the roster.', Typ: 'Equipment or configuration type.',
+        Name: 'Person from the roster.', Funktion: 'Command assignment, e.g. sector or safety.', Fahrer: 'Driver from the roster.', Herkunft: 'Where the vehicle comes from – empty means the own fire service. The list is above under «Vehicle origin».', Typ: 'Equipment or configuration type.',
       },
       propsLabel: 'Properties',
       controls: {

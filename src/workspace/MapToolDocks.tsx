@@ -84,8 +84,6 @@ export interface MapToolDocksProps {
   truppColors: Record<string, string>
   placeTruppOnMap: (id: string, atCoord?: LngLat, revive?: { id: string; trail: GeoTrailPoint[] }) => string | undefined
   placeGenericTeam: (c: LngLat) => void
-  /** a Wassertransport's pumps put on the Karte as Motorspritzen (useMapActions · placePumpSymbols) */
-  placePumpSymbols: (coords: LngLat[]) => void
 }
 
 export function MapToolDocks({
@@ -94,7 +92,7 @@ export function MapToolDocks({
   measure, pendingShape, setPendingShape, setRotStart, rotStart, tacticalLocked, createLine,
   createArea, replayActive, railLabels, slimMapTools, pick, panel, layersPreset, togglePanel, viewsApi,
   view, readOnly, isEl, viewsOpen, sharePick, shareParent, toggleViews, coord, mapRef, paletteOpen,
-  sym, setPaletteOpen, pickShape, teamPick, trupps, truppColors, placeTruppOnMap, placeGenericTeam, placePumpSymbols,
+  sym, setPaletteOpen, pickShape, teamPick, trupps, truppColors, placeTruppOnMap, placeGenericTeam,
 }: MapToolDocksProps) {
   return (
     <>
@@ -216,14 +214,13 @@ export function MapToolDocks({
       {mapUI && tool === 'measure' && (
         <MeasurePanel mode={measure.mode} coords={measure.path} profile={measure.profile} profileLoading={measure.loading}
           relay={measure.relay}
-          // the Strecke's pumps put on the Karte as Motorspritzen – not from a locked surface
-          onPlacePumps={tacticalLocked ? undefined : placePumpSymbols}
           // «Als Linie/Fläche übernehmen»: the measured points become a real line resp. Fläche
           // (createLine/createArea drop into Select with it active, so its editor opens straight
           // away). Hidden on a locked surface — there, Messen is a question the EL may ask, not a
           // way to draw — and while the measurement is still too short to be one. An opened
           // Wassertransport goes WITH the line: its hose, flow, source and the pumps moved by hand
-          // (never pump symbols – those are its own «Pumpen als Symbole setzen»). The same call is
+          // – and with «Pumpen auf Karte» on (useMeasure · adoptedRelay, owner 05.11.2026): the
+          // pumps Messen showed stay on the map as the Leitung's own (lib/linePumps). The same call is
           // the Wassertransport's «Als Leitung auf die Karte» (MeasurePanel · WaterRelay).
           onAdopt={!tacticalLocked && measure.path.length >= (measure.mode === 'line' ? 2 : 3)
             ? () => {

@@ -5,7 +5,7 @@
 // IncidentWorkspace (E1, 09.10.2026) verbatim; `pushEvent` / `log` themselves stay in the
 // workspace, because half of it writes through them.
 
-import { type Dispatch, type SetStateAction, type RefObject, useRef } from 'react'
+import { type Dispatch, type SetStateAction, type RefObject, useEffect, useRef } from 'react'
 import type { JournalDraft } from '../components/JournalComposer'
 import { appConfig } from '../config/appConfig'
 import { gebaeudeDoc } from '../data/demoIncident'
@@ -19,7 +19,7 @@ import { mintLocalThumb } from '../lib/mediaUrl'
 import { type PhotoPlacement, photoGeoLate, photoPlacement, rowPhotoGeo, photoMarker, photoGeoSettled, rowGeoFor, rememberPhotoGeo } from '../lib/photoGeo'
 import { bareText } from '../lib/reminders'
 import { serverNowIso } from '../lib/serverClock'
-import { toast } from '../lib/ui'
+import { toast, undoToast } from '../lib/ui'
 import type { UndoTimeline } from '../lib/undoTimeline'
 import type { useJournal } from '../lib/useJournal'
 import { useReminders } from '../lib/useReminders'
@@ -315,6 +315,13 @@ export function useJournalWriters({
   // timed Wiedervorlage — new id, same bare text, due in `mins`. The Führungsrhythmus move
   // (Handbuch 2.4): the moment the Lagerapport-Pendenz is ticked off is when the next one gets
   // its time. Appends a normal `created` row; the closed item stays closed, nothing mutates.
+  // ⚠️ A one-time action (docs/ui-conventions.md · One-time actions, 05.11.2026: a double tap
+  // raised two): the row names the item it re-raises (`again`), so while the new one is open its
+  // done row shows ✓ instead of the chips (lib/reminders · openReRaises); a deliberate repeat is
+  // the NEW item's own done row. The toast's «Rückgängig» closes it again with a counter-row
+  // («Wiedervorlage zurückgenommen») – append-only, like every Pendenz step.
+  const openRef = useRef(reminders.open)
+  useEffect(() => { openRef.current = reminders.open })
   const reRaisePendenz = (reminderId: string, mins: number) => {
     const src = timeline.find((e) => e.reminder?.op === 'created' && e.reminder.id === reminderId)
     if (!src) return
@@ -329,11 +336,20 @@ export function useJournalWriters({
       // exactly what lib/reminders · bareText knows how to strip back off)
       text: fillTemplate(appConfig.copy.journal.reminderCreated, { t: formatTime(new Date(dueAt)), text }),
       surface: mode === 'plans' ? 'plan' : 'map', planId: mode === 'plans' ? activePlanId : undefined,
-      reminder: { op: 'created', id, dueAt, text },
+      reminder: { op: 'created', id, dueAt, text, again: reminderId },
     })
     emit('reminder.create', { id, dueAt })
     // a row that will ring asks for the OS permission on this gesture, like the composer does
     void ensureNotifyPermission()
+    undoToast(fillTemplate(appConfig.copy.journal.againToast, { mins: String(mins) }), () => {
+      if (!openRef.current.some((r) => r.id === id)) return // closed meanwhile: nothing to take back
+      pushEvent({
+        icon: 'undo', kind: 'reminder', text: fillTemplate(appConfig.copy.journal.againWithdrawn, { text }),
+        surface: mode === 'plans' ? 'plan' : 'map', planId: mode === 'plans' ? activePlanId : undefined,
+        reminder: { op: 'done', id },
+      })
+      emit('reminder.done', { id })
+    })
   }
 
   // Voice memo driven by the TopBar's Eintrag button (hold to start, tap to stop) —

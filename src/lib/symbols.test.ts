@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { alarmBar, compareReadings, countFieldValue, readingRows, readingScale, recordReading, symbolCaptionText, symbolControls, symbolFieldKind, symbolFieldOptions, symbolLegendText, symbolPresetFieldKeys, symbolReading, symbolReadoutText } from './symbols'
+import { alarmBar, compareReadings, countFieldValue, readingRows, readingScale, recordReading, symbolCaptionBoxText, symbolCaptionText, symbolControls, symbolFieldKind, symbolFieldOptions, symbolLegendText, symbolOriginText, symbolPresetFieldKeys, symbolReading, symbolReadoutText } from './symbols'
 import type { SymbolControl } from '../types'
 import { appConfig } from '../config/appConfig'
 
@@ -174,6 +174,27 @@ describe('symbolCaptionText — metadata printed under a symbol glyph', () => {
       fields: { Fahrer: 'Céline Widmer', Test: 'Test', 'Test 2': 'Test 2' },
       notes: 'Tank halb',
     }, 'all')).toBe('Céline Widmer\nTest\nTest 2\nTank halb')
+  })
+
+  // owner pick 3A (05.11.2026): the Herkunft is its own grey line, never the caption itself
+  it('the Herkunft never becomes the caption – it is the grey line under it', () => {
+    const dl = { symbol: 'VKF Drehleiter', fields: { Fahrer: '', Herkunft: 'Stützpunkt' } }
+    expect(symbolCaptionText(dl, 'auto')).toBeNull()
+    expect(symbolCaptionText(dl, 'all')).toBeNull()
+    expect(symbolOriginText(dl, 'auto')).toBe('Stützpunkt')
+    expect(symbolCaptionBoxText({ ...dl, fields: { Fahrer: 'Meier', Herkunft: 'Stützpunkt' } }, 'auto')).toBe('Meier\nStützpunkt')
+  })
+
+  it('no Herkunft line for the own Feuerwehr (empty) or where captions are off', () => {
+    expect(symbolOriginText({ symbol: 'VKF Drehleiter', fields: { Herkunft: ' ' } }, 'auto')).toBeNull()
+    expect(symbolOriginText({ symbol: 'VKF Drehleiter', fields: { Herkunft: 'Stützpunkt' } }, 'off')).toBeNull()
+    expect(symbolOriginText({ symbol: 'VKF Drehleiter', fields: { Herkunft: 'Stützpunkt' }, caption: 'off' }, 'auto')).toBeNull()
+  })
+
+  it('the printed legend says what the Herkunft is – placed and live vehicle alike', () => {
+    expect(symbolLegendText({ symbol: appConfig.symbols.vehicleName, label: 'TLF', fields: { Fahrer: 'Meier', Herkunft: 'Stützpunkt' } }, 'auto'))
+      .toBe('Fahrzeug · TLF · Meier · Herkunft: Stützpunkt')
+    expect(symbolLegendText({ label: 'TLF 2', fields: { Herkunft: 'Wache Nord' } }, 'auto')).toBe('TLF 2 · Herkunft: Wache Nord')
   })
 
   it('an off override still silences a vehicle in the all default', () => {

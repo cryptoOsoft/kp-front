@@ -14,6 +14,16 @@ describe('what a new Tafel page may know', () => {
     expect([s.title, s.address, s.einsatzleiter]).toEqual(['Zimmerbrand', 'Schlossgasse 9', 'Oblt Meier'])
     expect(s.vehicles).toEqual(['TLF 1', 'ADL']) // the MTF never went out
   })
+  it('a vehicle from elsewhere carries its Herkunft into the Formation cell', () => {
+    const s = boardSeedFrom({
+      title: 'X',
+      entities: [
+        { id: 'a', kind: 'symbol', layer: 'taktisch', symbol: 'VKF Fahrzeug', coord: [7.5, 47.5], label: 'TLF', fields: { Herkunft: 'Stützpunkt' } },
+        { id: 'b', kind: 'symbol', layer: 'taktisch', symbol: 'VKF Fahrzeug', coord: [7.5, 47.5], label: 'TLF', fields: { Herkunft: '' } },
+      ] satisfies Entity[],
+    })
+    expect(s.vehicles).toEqual(['TLF (Stützpunkt)', 'TLF'])
+  })
   it('a bad alarm time is no alarm time', () => {
     expect(boardSeedFrom({ title: 'X', alarmIso: 'nope' }).alarm).toBeNull()
   })

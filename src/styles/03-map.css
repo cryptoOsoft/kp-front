@@ -205,6 +205,9 @@
   hyphens: manual; -webkit-hyphens: manual; overflow-wrap: break-word;
   box-shadow: var(--label-plate); pointer-events: none; }
 .sym-caption > span { max-width: 120px; }
+/* a vehicle's «Herkunft» (owner pick 3A, 05.11.2026): the box's last line, small and grey – «not
+   ours» without shouting over the Lage. Alone in the box for a Fahrzeug whose name is in its glyph. */
+.sym-caption > .sym-caption-origin { color: var(--ink-faint); font-weight: var(--fw-medium); }
 /* a MEASURED symbol's mark IS its value (lib/symbols · symbolReading, the Messpunkt – owner pick S3,
    27.10.2026): one pill with a small Messgerät and the worst gas, centred where the glyph would sit.
    Calm ink below A1 – colour only where somebody has to act (pick F2) – amber from A1 (Voralarm),

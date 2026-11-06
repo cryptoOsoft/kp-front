@@ -1,5 +1,34 @@
 {
   "$defs": {
+    "AreaOption": {
+      "additionalProperties": false,
+      "description": "One choice of an ``area`` column: a Bereich, by the id of the problem quad's box.",
+      "properties": {
+        "id": {
+          "maxLength": 64,
+          "pattern": "^[a-z0-9][a-z0-9-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/LabelSet"
+            }
+          ],
+          "title": "Label"
+        }
+      },
+      "required": [
+        "id",
+        "label"
+      ],
+      "title": "AreaOption",
+      "type": "object"
+    },
     "LabelSet": {
       "additionalProperties": false,
       "description": "A label per language — German is required and is the fallback for the others.",
@@ -49,6 +78,170 @@
         "de"
       ],
       "title": "LabelSet",
+      "type": "object"
+    },
+    "LiveColumn": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 64,
+          "pattern": "^[a-z0-9][a-z0-9-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/LabelSet"
+            }
+          ],
+          "title": "Label"
+        },
+        "w": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 20,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "W"
+        },
+        "hidden": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hidden"
+        }
+      },
+      "required": [
+        "id",
+        "label"
+      ],
+      "title": "LiveColumn",
+      "type": "object"
+    },
+    "LiveSection": {
+      "additionalProperties": false,
+      "description": "A table DERIVED from the Einsatz, not written on the page (05.11.2026): `pendenzen` lists\nevery Pendenz and Erinnerung of the Verlauf. A build that predates it keeps the page and draws\nit without this section.",
+      "properties": {
+        "id": {
+          "maxLength": 64,
+          "pattern": "^[a-z0-9][a-z0-9-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/LabelSet"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        },
+        "subtitle": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/$defs/LabelSet"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Subtitle"
+        },
+        "span": {
+          "anyOf": [
+            {
+              "enum": [
+                1,
+                2
+              ],
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Span"
+        },
+        "height": {
+          "anyOf": [
+            {
+              "maximum": 60,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Height"
+        },
+        "hidden": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hidden"
+        },
+        "type": {
+          "const": "live",
+          "title": "Type",
+          "type": "string"
+        },
+        "source": {
+          "const": "pendenzen",
+          "title": "Source",
+          "type": "string"
+        },
+        "columns": {
+          "items": {
+            "$ref": "#/$defs/LiveColumn"
+          },
+          "minItems": 1,
+          "title": "Columns",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "source",
+        "columns"
+      ],
+      "title": "LiveSection",
       "type": "object"
     },
     "MapSection": {
@@ -293,6 +486,18 @@
           ],
           "default": null,
           "title": "Tag"
+        },
+        "problems": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Problems"
         }
       },
       "required": [
@@ -331,7 +536,8 @@
                 "time",
                 "trend",
                 "symbol",
-                "index"
+                "index",
+                "area"
               ],
               "type": "string"
             },
@@ -341,6 +547,22 @@
           ],
           "default": null,
           "title": "Type"
+        },
+        "options": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/AreaOption"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Options"
         },
         "fixed": {
           "anyOf": [
@@ -577,6 +799,18 @@
           ],
           "default": null,
           "title": "Done"
+        },
+        "problems": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Problems"
         }
       },
       "required": [
@@ -691,6 +925,7 @@
           "items": {
             "discriminator": {
               "mapping": {
+                "live": "#/$defs/LiveSection",
                 "map": "#/$defs/MapSection",
                 "quad": "#/$defs/QuadSection",
                 "table": "#/$defs/TableSection",
@@ -710,6 +945,9 @@
               },
               {
                 "$ref": "#/$defs/TextSection"
+              },
+              {
+                "$ref": "#/$defs/LiveSection"
               }
             ]
           },

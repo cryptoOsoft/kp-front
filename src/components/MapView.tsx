@@ -46,7 +46,7 @@ import { routeMapClick } from './mapClick'
 import { VIEWER_TACTICAL, type MapViewProps } from './mapViewProps'
 import { LineMarker } from './LineMarker'
 import { MapMarkers } from './MapMarkers'
-import { RelayPumpMarkers } from './RelayPumpMarkers'
+import { LinePumpMarkers, RelayPumpMarkers } from './RelayPumpMarkers'
 import { ChartCursorMarker } from './ChartCursorMarker'
 import { MapLayers } from './MapLayers'
 import { WeatherRadarSource } from './weatherLazy'
@@ -228,7 +228,7 @@ export const MapView = forwardRef<MapRef, MapViewProps>(function MapView(props, 
   const { entities, layers, byName, symMul = 1, captionMode = 'off', onCaptionSuppressionChange, initialCenter, initialZoom = 17.6, initialBearing = 0, fitPoints, staticView = false, locateNonce = 0, preparedOverlays, isVisible, selectedId = VIEWER_TACTICAL.selectedId, onSelect, onMapClick, editNoteId = null, onNoteText, onNoteCommit, onNoteEdit, onNotePanel, trupps, truppSeverities, onShowTrupp, onTeamTrupp, onTeamNewTrupp, onTeamMark, onTeamRename, onTeamClearTrail, onTeamRemoveWithTrail, ghostTrails, onGhostTrail, onTeamUnlink, onTeamUndock,
     readOnly = false, drawings: storedDrawings = VIEWER_TACTICAL.drawings, drawingsVisible = VIEWER_TACTICAL.drawingsVisible, draft = VIEWER_TACTICAL.draft, draftKind = VIEWER_TACTICAL.draftKind, placing, tapsPlace, onDraftDrag, onDraftInsert, onDraftDelete, onDraftPointAttachment, draftStartAttachment, draggable = VIEWER_TACTICAL.draggable, onMarkerDragStart = VIEWER_TACTICAL.onMarkerDragStart, onMarkerMove = VIEWER_TACTICAL.onMarkerMove, onMarkerDragEnd = VIEWER_TACTICAL.onMarkerDragEnd, onRotate, onShapeTransform,
     onView, onBasemapUnavailable, onSettled, picking, onCursor, onPick, pickedPoint, placeMagnet = false, placeAnchor = null, freehand = VIEWER_TACTICAL.freehand, onFreehand = VIEWER_TACTICAL.onFreehand, drawColor = VIEWER_TACTICAL.drawColor, drawWidth = VIEWER_TACTICAL.drawWidth, drawDashed = VIEWER_TACTICAL.drawDashed, selectedDrawingId = VIEWER_TACTICAL.selectedDrawingId, flashDrawingId, onSelectDrawing = VIEWER_TACTICAL.onSelectDrawing, onUnlockDrawing, onUnlockShape, onDelete = VIEWER_TACTICAL.onDelete, measureLabels = [], measurePoints = NO_POINTS, measureKind = null, onMeasureDrag, onMeasureInsert, onMeasureDelete,
-    selectedDrawing = null, onDrawingEdit, onDrawingVertexInsert, onDrawingVertexDelete, onDrawingRadius, onDrawingAttachment, onLabelMove,
+    selectedDrawing = null, onDrawingEdit, onDrawingVertexInsert, onDrawingVertexDelete, onDrawingRadius, onLinePumpPin, onDrawingAttachment, onLabelMove,
     marqueeEnabled = false, selectedDrawIds = [], onMarquee, onGroupTransform, selectedEntityIds = [], circleEnabled = false, onCircle,
     onSelectionDone, georefPlanRasters = [], weatherRadar = null, children, showOrigin = true, zoomCapAtBase = false } = props
   const [zoom, setZoom] = useState(initialZoom)
@@ -1642,7 +1642,14 @@ export const MapView = forwardRef<MapRef, MapViewProps>(function MapView(props, 
 
       {/* the Wassertransport's pumps — of Messen's Strecke or the selected Leitung, whichever has
           its relay open (lib/useRelay · usePublishRelay); nothing while none is */}
-      {!georefOn && <RelayPumpMarkers />}
+      {!georefOn && <RelayPumpMarkers byName={byName} zoom={zoom} symMul={symMul} />}
+      {/* …and the Motorspritzen of every Leitung whose «Pumpen auf Karte» is on (lib/linePumps):
+          derived from its calculation on the STORED path – the one its editor computes on – and
+          part of the drawings, so they hide with them */}
+      {!georefOn && drawingsVisible && (
+        <LinePumpMarkers drawings={storedDrawings} byName={byName} zoom={zoom} symMul={symMul}
+          onPin={readOnly ? undefined : onLinePumpPin} onSelectLine={(id) => onSelectDrawing(id)} />
+      )}
       {!georefOn && <ChartCursorMarker />}
 
       {/* measurement readouts pinned to the path (cumulative distance / area), BESIDE the handles:

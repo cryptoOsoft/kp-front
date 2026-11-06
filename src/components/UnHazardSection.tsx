@@ -7,6 +7,8 @@ import { ergVersionLabel, lookupErg, type ErgEntry } from '../lib/erg'
 import { useHazardData } from '../lib/useHazardData'
 import { ergDayNote, parseErgDistance, type ErgRingMode } from '../lib/ergRings'
 import { Segmented } from './Segmented'
+import { DoneChip } from './DoneChip'
+import { isErgAdopted } from '../lib/ergAdopt'
 
 /**
  * The ADR/ERG readout for one UN number (offline, bundled): what the Gefahrnummer means, the ADR
@@ -27,7 +29,7 @@ import { Segmented } from './Segmented'
  * only a number (Gefahrnummer 33, ERG-Leitfaden 128) stays bare. The ERG distances keep their
  * key/value rows: each carries «Absperrkreis übernehmen», which a tile has no room for.
  */
-export function UnHazardSection({ un, ringMode, onRingMode, ergCoord, onAdoptRadius, nameHero = false }: {
+export function UnHazardSection({ un, ringMode, onRingMode, ergCoord, onAdoptRadius, adoptedRadii = [], nameHero = false }: {
   un: string
   /** the substance's name as the card's hero line (lib/unHazard · substanceName) */
   nameHero?: boolean
@@ -38,6 +40,9 @@ export function UnHazardSection({ un, ringMode, onRingMode, ergCoord, onAdoptRad
   ergCoord?: [number, number]
   /** «Absperrkreis übernehmen» beside each distance — absent ⇒ no button */
   onAdoptRadius?: (metres: number) => void
+  /** the radii already standing as an Absperrkreis around this placard (lib/ergAdopt): their row
+   *  shows ✓ instead of the button – a one-time action's done state, read off the Karte */
+  adoptedRadii?: readonly number[]
 }) {
   // read per-render (not module-load) so the resolved locale is applied — see config/copy
   const C = appConfig.copy.contextPanel
@@ -142,8 +147,11 @@ export function UnHazardSection({ un, ringMode, onRingMode, ergCoord, onAdoptRad
                 <div className="un-haz-row">
                   <span className="un-haz-k">{label}</span>
                   <span className="un-haz-v">{value}</span>
-                  {onAdoptRadius && metres != null && (
-                    <button
+                  {onAdoptRadius && metres != null && (isErgAdopted(adoptedRadii, metres)
+                    // «30 m ✓ gesetzt»: the short word beside the value (the row has the 44px button's room), the
+                    // full words as its name
+                    ? <DoneChip className="un-erg-done" title={C.ergAdopted}>{C.ergAdoptedShort}</DoneChip>
+                    : <button
                       type="button" className="un-erg-adopt"
                       aria-label={C.ergAdopt} title={C.ergAdopt}
                       onClick={() => onAdoptRadius(metres)}

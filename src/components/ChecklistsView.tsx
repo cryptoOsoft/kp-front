@@ -1,7 +1,8 @@
 import { LoadingStatus } from './ShellLoader'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '../lib/icons'
 import type { ChecklistState, ChecklistTemplate, Item, TemplateState } from '../lib/checklists'
+import type { FormTrend } from '../lib/boardForm'
 import { allEntries, warmTemplates, matchEntries, searchEntries, templateProgress } from '../lib/checklists'
 import { chapterOf, isTickable, manualGroups } from '../lib/checklists'
 import { ChecklistRunner } from './ChecklistRunner'
@@ -18,43 +19,28 @@ import { SearchField } from './SearchField'
 import { appConfig } from '../config/appConfig'
 import { fillTemplate } from '../lib/format'
 import { useMediaQuery } from '../lib/useIsPhone'
+import { onChecklistShow, readPicked, writePicked, type ChecklistSel } from '../lib/checklistPick'
 import s from './Checklists.module.css'
 
 const EMPTY_STATE: TemplateState = { ticks: {}, activeBranch: {} }
 
-/** what the main pane shows: a tickable list, a Stichwort, a device's chapter page (id = the
- *  device name) or an Anleitung */
-type Sel = { kind: 'tpl' | 'entry' | 'manual' | 'device'; id: string }
+/** what the main pane shows – the pick and its memory per Einsatz live in lib/checklistPick */
+type Sel = ChecklistSel
 const sameSel = (a: Sel | null, b: Sel | null) => a === b || (!!a && !!b && a.kind === b.kind && a.id === b.id)
-
-/* The pick (which list is open, and on a narrow screen whether the chooser or the list shows),
-   per Einsatz. sessionStorage so a reload of the tab keeps it too; memory as the fallback when
-   storage is blocked. */
-type Picked = { sel?: Sel | null; railOpen?: boolean }
-const pickedMemory = new Map<string, Picked>()
-const pickedKey = (k: string) => `kp.cl.picked.${k}`
-function readPicked(k: string): Picked | null {
-  if (pickedMemory.has(k)) return pickedMemory.get(k)!
-  try {
-    const raw = sessionStorage.getItem(pickedKey(k))
-    return raw ? (JSON.parse(raw) as Picked) : null
-  } catch { return null }
-}
-function writePicked(k: string, patch: Picked) {
-  const next = { ...readPicked(k), ...patch }
-  pickedMemory.set(k, next)
-  try { sessionStorage.setItem(pickedKey(k), JSON.stringify(next)) } catch { /* memory only */ }
-}
 
 // The Checkliste surface: a left rail with the action checklists (FU, Lagerapport) and —
 // directly below, not behind a tab — the searchable EL tactical Stichworte. The main pane
 // renders the selection: an action checklist runs as a checkable phase list; a Stichwort
 // opens its reading view (with inline diagrams). Ticking/branch are lifted to App.
 export function ChecklistsView({
-  checklists, canTick, incidentTitle, onTick, onBranch, onAction, offersAction, scrollKey = '',
+  checklists, canTick, incidentTitle, onTick, onTrend, problemsOnTafel, onBranch, onAction, offersAction, scrollKey = '',
 }: {
   checklists: ChecklistState
   canTick: boolean
+  /** a `problems` list's Tendenz under a ticked item (lib/useChecklistActions · setTrend) */
+  onTrend?: (template: ChecklistTemplate, item: Item, trend: FormTrend | undefined) => void
+  /** a page showing the Einsatz's problems is on the Tafel (lib/problemLink · hasProblems) */
+  problemsOnTafel?: boolean
   /** the Einsatz title (its Stichwort) – the «Passend» group's Stichworte are matched on it */
   incidentTitle?: string
   onTick: (template: ChecklistTemplate, item: Item) => void
@@ -136,6 +122,10 @@ export function ChecklistsView({
     else nav.go(pathTo(v))
   }
   const pick = (v: Sel) => nav.go(pathTo(v))
+  // the Präsentationsmodus puts a follower on the presenter's pick (lib/checklistPick)
+  const pickRef = useRef(pick)
+  useEffect(() => { pickRef.current = pick })
+  useEffect(() => onChecklistShow(scrollKey, (v) => pickRef.current(v)), [scrollKey])
   const setRailOpen = (open: boolean) => nav.go(open || !sel ? [null] : pathTo(sel))
   // a restored item gets its levels back once the devices are known (a chapter's device); the
   // levels change with the layout (the phone's list is one of them)
@@ -297,6 +287,8 @@ export function ChecklistsView({
               state={checklists[activeTemplate.id] ?? EMPTY_STATE}
               canTick={canTick}
               onToggle={(item) => onTick(activeTemplate, item)}
+              onTrend={onTrend && ((item, trend) => onTrend(activeTemplate, item, trend))}
+              problemsOnTafel={problemsOnTafel}
               onBranch={(phaseId, branchId) => onBranch(activeTemplate.id, phaseId, branchId)}
               onAction={onAction}
               offersAction={offersAction}

@@ -944,6 +944,17 @@ span.jr-pinned-text::after { display: none; }
   font: var(--fw-regular) var(--fs-1)/1.35 var(--body); color: var(--ink-dim);
   padding-left: 8px; border-left: 1.5px solid var(--amber-45); }
 .jr-pinned-note b { font: var(--fw-regular) var(--fs-micro) var(--mono); color: var(--ink-faint); margin-right: 8px; }
+/* «Wer: Fourier Meier · von der Tafel» under the item (mock 6A): who it is for, and an item typed
+   on the Tafel's «Aufträge / Pendenzen» page, whose mark opens it. The mark is raised over the
+   text's stretched tap area like the ring (z-index 1, see above). */
+.jr-pinned-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-1);
+  font: var(--fw-bold) var(--fs-1)/var(--lh-1) var(--body); color: var(--ink-dim); }
+.jr-pinned-from { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: var(--sp-1);
+  min-height: var(--tap); padding: 0; border: none; background: none;
+  font: var(--fw-bold) var(--fs-1)/var(--lh-1) var(--body); color: var(--blue); }
+button.jr-pinned-from { cursor: pointer; }
+span.jr-pinned-from { color: var(--ink-dim); }
+.jr-pinned-from .i { width: 16px; height: 16px; }
 /* ⚠️ WHEN IT WAS RAISED, for every row. The column used to print the Fälligkeit, which only a
    timed Erinnerung has; an Auftrag has none, because nobody checks in on a Schadenplatz. Tapping
    swaps the whole column to the age — never one row at a time, a half-clock/half-age column is

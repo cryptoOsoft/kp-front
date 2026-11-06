@@ -122,10 +122,16 @@ import { OrientSlider } from './OrientSlider'
 import { ToolRail } from './ToolRail'
 import { TafelPageStrip } from './TafelPageStrip'
 import { TafelFormPage } from './TafelFormPage'
+import type { PendenzenPort } from '../lib/pendenzenPage'
 import { findForms, pageTitles, type FormSeed } from '../lib/boardForm'
+import type { ProblemSource, TickWrite } from '../lib/problemLink'
 import { isDrawnBoardKind } from '../lib/workspace'
 import { labelText, type BoardTemplate } from '../lib/boardTemplate'
 import { SKIZZE, TAFEL_ID, useTafelPage } from '../lib/tafelPages'
+import { useUserMoved, useZeigen } from '../lib/useZeigen'
+import type { BoardPresentation } from '../workspace/usePresentation'
+import { BoardRings, PageMarks } from './Presentation'
+import { fitScale } from '../lib/presentation'
 import { isDemoMode } from '../lib/deploymentConfig'
 import { BUNDLED_TEMPLATES, warmBoardTemplates } from '../lib/boardTemplates'
 import type { MiniKarteProps } from './MiniKarte'
@@ -239,11 +245,16 @@ interface Props {
   keysRef?: React.MutableRefObject<{ pickTool: (tool: string) => void; zoom: (f: number) => void; duplicate: () => void } | null>
   /** a Verlauf row asked to revisit a plan point — center + select on arrival. */
   /** `flash` shows the anno (a few-second outline) instead of selecting it — see the focus effect */
-  focus: { x: number; y: number; floor: number; annoId?: string; twinEntityId?: string; flash?: boolean; nonce: number } | null
-  /** report the current plan-view centre (tile-local). Optional and currently unused: it existed
-   *  for the composer's «an der Planmitte anheften», which went away on 14.08. — the Wiedergabe
-   *  answers «wie sah es da aus» by scrubbing the whole picture instead of storing a point. */
+  /** `scale` (the Präsentationsmodus following a presenter) also sets the zoom, «eingepasst» = 1;
+   *  `span` (its visible extent, board units) instead fits that whole extent into this screen */
+  focus: { x: number; y: number; floor: number; annoId?: string; twinEntityId?: string; flash?: boolean; scale?: number; span?: { w: number; h: number }; nonce: number } | null
+  /** report the current plan-view centre (tile-local) and zoom. The composer's «an der Planmitte
+   *  anheften» it was born for went away on 14.08.; the Präsentationsmodus reads it now (through
+   *  `presentation.onView`). */
   onView?: (c: { x: number; y: number; floor: number }) => void
+  /** the Präsentationsmodus on this sheet (workspace/usePresentation · BoardPresentation): the
+   *  rings to draw, «Zeigen»'s tap catcher, and the follower's «panned by hand» signal */
+  presentation?: BoardPresentation
   /** currently monitored Atemschutz Trupps — offered when placing a team chip on the plan. */
   trupps?: Trupp[]
   /** trupp id → the colour it wears (useTruppActions · truppColors) – the «Welcher Trupp?» rows
@@ -356,6 +367,14 @@ export interface TafelPagesProps {
   onOpenKarte?: () => void
   /** the Einsatz's title as it is now — the printed pages' caption and file name */
   title?: () => string
+  /** the Einsatz's problems from the Checklisten (lib/problemLink) and the way the Tafel writes
+   *  their ticks (a Tendenz, a deletion = an un-tick) – absent: the pages show their own only */
+  problems?: { source: ProblemSource; writeTicks: (writes: readonly TickWrite[]) => void }
+  /** the ONE undo timeline, as far as a page needs it: an act over the Tafel and the Checklisten
+   *  is one step (`group`), and a deletion's «Rückgängig» takes the step on top while it is ours */
+  history?: { group: () => () => void; top: () => unknown; undo: () => void }
+  /** the «Aufträge / Pendenzen» page's view on the Verlauf (workspace/useTafelPendenzen) */
+  pendenzen?: PendenzenPort
 }
 
 /**
@@ -380,7 +399,7 @@ export interface PlanLogExtra {
 // timestamp updates each time they are moved. All annotation coordinates are
 // normalized 0..1 in plan-image space so they stick across zoom/pan.
 
-export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, captionMode = 'off', mapSuppressedCaptions, onChange: onChangeAll, building, floorPack, onSelectBuilding, onBuildingFace, onReorient, onAddFloor, onRemoveFloor, readOnly: readOnlyProp = false, sym, rosterNames = [], rosterRank, onRosterField, personStatus, fieldHints, onRecent, log, authorName, onStepLabel, emit = () => {}, historyRef, hist, setHist, onCheckpoint, views, fitRef, keysRef, focus, onView, trupps = [], truppColors, placedTeamNames, teamNameTaken, onLinkTrupp, onShowTrupp, truppFinder, ghostTrails = [], onGhostTrail, onTrailDrop, onTeamTrupp, onTeamNewTrupp, onLinkLineTrupp, onLineAttached, onLineDetached, onLineRenumber, truppSeverities, objectName, objectAddress, objectNearby, buildingInfo, readingsChip, incidentId, incidentAddress, incidentPos, onObjectSwitch, planScale = {}, onCalibrate, live = [], photos = [], onPlanLiveMove, onStepEnd, slimTools: slimToolsProp = false, linkViewer = false, railLabels, tafel }: Props) {
+export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, captionMode = 'off', mapSuppressedCaptions, onChange: onChangeAll, building, floorPack, onSelectBuilding, onBuildingFace, onReorient, onAddFloor, onRemoveFloor, readOnly: readOnlyProp = false, sym, rosterNames = [], rosterRank, onRosterField, personStatus, fieldHints, onRecent, log, authorName, onStepLabel, emit = () => {}, historyRef, hist, setHist, onCheckpoint, views, fitRef, keysRef, focus, onView, trupps = [], truppColors, placedTeamNames, teamNameTaken, onLinkTrupp, onShowTrupp, truppFinder, ghostTrails = [], onGhostTrail, onTrailDrop, onTeamTrupp, onTeamNewTrupp, onLinkLineTrupp, onLineAttached, onLineDetached, onLineRenumber, truppSeverities, objectName, objectAddress, objectNearby, buildingInfo, readingsChip, incidentId, incidentAddress, incidentPos, onObjectSwitch, planScale = {}, onCalibrate, live = [], photos = [], onPlanLiveMove, onStepEnd, slimTools: slimToolsProp = false, linkViewer = false, railLabels, tafel, presentation }: Props) {
   // ⚠️ RIDERS: what lives on a sheet but is not drawn ON it — the Tafel's pages (kind `form`,
   // lib/boardForm) and any board object this build does not understand (lib/workspace ·
   // isPassengerAnno). Nothing positional may see them: every drawing path below reads `annos` —
@@ -563,7 +582,7 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
   const maxScale = stack
     ? (stackDensity ? paperMaxScale(stackDensity, 1, MAX_SCALE_STACK) : MAX_SCALE_STACK)
     : Math.max(MAX_SCALE, paperScale ?? 0)
-  const { scale, pos, scaleRef, posRef, applyView, zoomTo, zoom } = useBoardView(canvasRef, canvasEl, viewMemory, maxScale, vShift)
+  const { scale, pos, scaleRef, posRef, applyView, zoomTo, zoom, clamp: clampScale } = useBoardView(canvasRef, canvasEl, viewMemory, maxScale, vShift)
 
   const osm = active.osm
   /** every storey the building HAS, top-to-bottom – what the eye toggles list, what the document
@@ -928,8 +947,8 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
   const commit = (next: BoardAnno[]) => boardDoc.commit(withForms(next))
 
   // ── a Tafel page: added, written on, printed, removed — components/usePlanTafelPages ─────────
-  const { addPage, editPage, printPages, printing, removePage } = usePlanTafelPages({
-    onTafel, pages, titles, page, setPageSel, readOnly, tafel, incidentId, add, patchCommit, log, onStepLabel,
+  const { addPage, editPage, viewOf, printPages, printing, removePage } = usePlanTafelPages({
+    onTafel, pages, titles, page, setPageSel, readOnly, tafel, incidentId, add, patchCommit, annos: annosAll, commit: boardDoc.commit, emit, log, onStepLabel,
   })
   // expose fit-to-view (the phone top bar's Fit button calls it; desktop uses the rail footer)
   useEffect(() => { if (fitRef) fitRef.current = () => applyView(1, { x: 0, y: 0 }); return () => { if (fitRef) fitRef.current = null } })
@@ -1459,8 +1478,53 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
     const s = scaleRef.current, w = fit.w * s, h = fit.h * s
     const nx = clamp01((w / 2 - pos.x) / w), ny = clamp01((h / 2 - pos.y) / h)
     const floor = stack ? floorAt(ny) : 0
-    onView?.({ x: nx, y: stack ? localY(ny, floor) : ny, floor })
+    const c = { x: nx, y: stack ? localY(ny, floor) : ny, floor }
+    onView?.(c)
+    if (!presentation) return
+    // the Präsentationsmodus sends the centre of the FREE area (no rail, no open panel) and its
+    // extent in board units, which a follower fits into its own (lib/presentation · fitScale)
+    const canvas = canvasRef.current?.getBoundingClientRect()
+    const work = canvas ? planWorkRect(canvas, document.querySelector('.ctx')) : null
+    const mid = work && toNorm((work.minX + work.maxX) / 2, (work.minY + work.maxY) / 2)
+    if (!work || !mid) { presentation.onView({ ...c, scale: s, w: null, h: null }); return }
+    const my = clamp01(mid[1]), mf = stack ? floorAt(my) : 0
+    presentation.onView({
+      x: clamp01(mid[0]), y: stack ? clamp01(localY(my, mf)) : my, floor: mf, scale: s,
+      w: Math.min(50, Math.max(1e-3, (work.maxX - work.minX) / w)), h: Math.min(50, Math.max(1e-3, (work.maxY - work.minY) / h)),
+    })
   }, [pos, scale, fit.w, fit.h, activeId, stack, N]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // «Zeigen» (Präsentationsmodus): a one-finger tap is a pointer in plan space, a drag a line,
+  // nothing else; a follower's pan by hand detaches it (lib/useZeigen)
+  const planPoint = (cx: number, cy: number, onFloor?: number) => {
+    const n = toNorm(cx, cy)
+    if (!n) return null
+    const ny = clamp01(n[1]), floor = onFloor ?? (stack ? floorAt(ny) : 0)
+    return { x: clamp01(n[0]), y: stack ? clamp01(localY(ny, floor)) : ny, floor }
+  }
+  const lineFloor = useRef(0)
+  useZeigen(canvasEl, !!presentation?.pointing, (cx, cy) => {
+    const at = planPoint(cx, cy)
+    if (at) presentation?.onPoint(at)
+  }, {
+    handOver: true,
+    onDraw: {
+      start: (cx, cy) => { const at = planPoint(cx, cy); if (at) { lineFloor.current = at.floor; presentation?.draw.start(at) } },
+      move: (cx, cy) => { const at = planPoint(cx, cy, lineFloor.current); if (at) presentation?.draw.add([at.x, at.y]) },
+      end: () => presentation?.draw.end(),
+    },
+  })
+  useUserMoved(canvasEl, !!presentation?.onUserMove, () => presentation?.onUserMove?.())
+  // the detail open here goes to the presenter's followers; a follower opens the presenter's (once
+  // per request – adjusted while rendering, React's way for state that follows a prop)
+  const reportSel = presentation?.onSelect
+  useEffect(() => { reportSel?.(selId) }, [selId, reportSel])
+  const [selectSeen, setSelectSeen] = useState<number | null>(null)
+  const wantSel = presentation?.select
+  if (wantSel && wantSel.nonce !== selectSeen) {
+    setSelectSeen(wantSel.nonce)
+    if (wantSel.id !== selId) setSelId(wantSel.id && annos.some((a) => a.id === wantSel.id) ? wantSel.id : null)
+  }
 
   // a Verlauf row asked to revisit a plan point. Apply once per request (tracked
   // by nonce); if it arrives mid mode-switch before the stage is measured, the
@@ -1480,7 +1544,14 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
     // id, so «zeigen» finds it through `focus.annoId` like anything else the sheet draws.
     // Selection mounts its panel as state settles. Measure on the next frame so an explicit
     // “show” centres in the space that remains visible, not under the newly opened panel.
-    requestAnimationFrame(() => centerOnPoint(focus.x, focus.y, focus.floor))
+    requestAnimationFrame(() => {
+      // a follower fits the presenter's whole extent into its own free area (owner pick 06.11.)
+      const canvas = canvasRef.current?.getBoundingClientRect()
+      const work = focus.span && canvas ? planWorkRect(canvas, document.querySelector('.ctx')) : null
+      const fitted = work && focus.span ? fitScale(focus.span, { w: work.maxX - work.minX, h: work.maxY - work.minY }, fit) : null
+      const at = fitted ?? focus.scale
+      centerOnPoint(focus.x, focus.y, focus.floor, at == null ? undefined : clampScale(at))
+    })
     appliedFocus.current = focus.nonce
   }, [focus, fit.w, fit.h]) // eslint-disable-line react-hooks/exhaustive-deps
   // the outline fades out on its own — it is a pointing gesture, not a state
@@ -2110,12 +2181,14 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
       <div className="whiteboard wb-tafel-page">
         {/* the strip in the row a plan's «which place» chips stand in (owner, before the release) */}
         <div className="wb-botleft">{strip}</div>
-        <TafelFormPage key={formPage.id} pageKey={formPage.id} title={titles.get(formPage.id)} data={formPage.form} readOnly={readOnly} isPhone={isPhone}
-          onChange={(next) => editPage(formPage.id, next)} onRemove={() => void removePage(formPage.id)}
+        {/* the Präsentationsmodus' rings and lines on the page, and «Zeigen» on it */}
+        {presentation && <PageMarks key={`marks-${formPage.id}`} p={presentation} top={topRes} />}
+        <TafelFormPage key={formPage.id} pageKey={formPage.id} title={titles.get(formPage.id)} data={viewOf(formPage)} readOnly={readOnly} isPhone={isPhone}
+          onChange={(next, act) => editPage(formPage.id, next, act)} onRemove={() => void removePage(formPage.id)}
           // typed over another device's value for the same cell: the later stands, the Verlauf says so
           onConflict={(where, kept, lost) => log('warn', fillTemplate(appConfig.copy.journal.tafelConflict, { page: titles.get(formPage.id) ?? labelText(formPage.form.page.title), where, kept, lost }), { subjectId: formPage.id })}
           onPrint={incidentId ? (all) => void printPages(all ? pages : [formPage]) : undefined} pageCount={pages.length} printing={printing}
-          scene={tafel?.scene} onOpenKarte={tafel?.onOpenKarte}
+          scene={tafel?.scene} onOpenKarte={tafel?.onOpenKarte} pendenzen={tafel?.pendenzen}
           // the bottom: the strip's row and its air, so the last ruling scrolls above it — on a
           // phone above THE floating row (15-mobile · --float-bottom), on a tablet above the row
           inset={{ top: topRes, left: isPhone ? 0 : side.l, right: isPhone ? 0 : side.l, bottom: isPhone ? 'calc(var(--float-bottom, 72px) + var(--float-h) + 16px)' : 'calc(16px + var(--float-h) + 24px)' }} />
@@ -2159,6 +2232,8 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
       <div className="wb-stage" ref={stageRef}>
         <div
           ref={setCanvas}
+          // the Präsentationsmodus' edge arrows measure what is visible against this
+          data-present-host=""
           className={`wb-canvas tool-${tool} ${pending || pendingShape ? 'placing' : ''}`}
           // capture-phase bookkeeping FIRST — it sees the fingers a chip's own handler
           // swallows, which is what makes the two-finger gesture work on a busy board.
@@ -2192,6 +2267,8 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
             // what it draws is not where the sheet's objects are yet (`previewAnnos`).
             style={{ width: sW || undefined, height: sH || undefined, transform: `translate(-50%, -50%) translate(${pos.x + (side.l - side.r) / 2}px, ${pos.y + vShift}px)`, pointerEvents: previewing ? 'none' : undefined }}
           >
+            {/* the Präsentationsmodus' fading rings, in plan space (z above every anno) */}
+            {presentation && <BoardRings rings={presentation.rings} strokes={presentation.strokes} presenter={presentation.presenter} mapY={mapY} size={{ w: sW, h: sH }} />}
             {stack && building ? (
               <>
               {/* what is folded away, as a strip where the storey belongs – «+2 · 2. OG

@@ -47,7 +47,6 @@ import type { OneShotRows, WorkspaceMode } from './types'
 import { useEffect, useMemo, useRef, type Dispatch, type RefObject, type SetStateAction } from 'react'
 import type { MapRef } from 'react-map-gl/maplibre'
 import { isMapTool } from '../lib/readOnlyTools'
-import { RELAY_PUMP_SYMBOL } from '../lib/hydraulics'
 
 
 export interface UseMapActionsInputs {
@@ -221,19 +220,6 @@ export function useMapActions({
     log('hex', fillTemplate(appConfig.copy.log.symbolPlaced, { name: entity.label || formatSymbolName(s) }), 'symbol', undefined, entity.id)
     emit('entity.add', { id: entity.id, symbol: s, entity })
     return entity
-  }
-  /** A Wassertransport's pumps made real («Pumpen als Symbole setzen»): an ordinary Motorspritze
-   *  at each spot (lib/hydraulics · RELAY_PUMP_SYMBOL) – ONE undo step and ONE Verlauf row for all
-   *  of them, an `entity.add` per symbol (sync carries entities one by one). Independent from then
-   *  on: the relay keeps planning, the symbols stay where they were put. Nothing is selected: the
-   *  panel the tap came from stays. */
-  const placePumpSymbols = (coords: LngLat[]) => {
-    if (tacticalLocked || !coords.length) return
-    const added = coords.map((c) => symbolEntity(RELAY_PUMP_SYMBOL, c))
-    commit((d) => ({ ...d, entities: [...d.entities, ...added] }))
-    const n = added.length
-    log('hex', n === 1 ? appConfig.copy.log.pumpPlaced : fillTemplate(appConfig.copy.log.pumpsPlaced, { n }), 'symbol', undefined, n === 1 ? added[0].id : undefined)
-    for (const entity of added) emit('entity.add', { id: entity.id, symbol: RELAY_PUMP_SYMBOL, entity })
   }
   const onMapClick = (c: LngLat) => {
     // a map tap dismisses an open Ebenen panel first (parity with the phone backdrop) —
@@ -982,5 +968,5 @@ export function useMapActions({
     for (const [op, payload] of act.events) emit(op, payload)
     log(on ? 'check' : 'undo', act.text, 'symbol', undefined, ent.id)
   }
-  return { deleteGroup, deleteEntity, placed, goToModule, finishSelection, onMapClick, placePumpSymbols, startEntityMove, streamEntityMove, finishEntityMove, onMarquee, transformGroup, goToTrupp, viewsApi, toggleViews, selected, undockTeam, setEntityDone, focusDrawing, noteEntity, pick, pickShape, moveLiveOnSheet }
+  return { deleteGroup, deleteEntity, placed, goToModule, finishSelection, onMapClick, startEntityMove, streamEntityMove, finishEntityMove, onMarquee, transformGroup, goToTrupp, viewsApi, toggleViews, selected, undockTeam, setEntityDone, focusDrawing, noteEntity, pick, pickShape, moveLiveOnSheet }
 }

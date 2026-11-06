@@ -48,6 +48,16 @@
      magenta — a colour no ink and no state uses, so it can only mean «it catches here». */
   --open: var(--amber);
   --snap: #db2777;
+  /* Präsentationsmodus (05.11.2026, docs/presentation.md): the presenter's colour – the pill, the
+     «Wieder folgen» chip, their pointer rings – and five more for everybody else's rings. People,
+     not states: no ink, tool or status wears these. Mid-tones that read on day and night alike. */
+  --present: var(--snap);
+  --present-1: var(--present);
+  --present-2: #0d9488;
+  --present-3: var(--blue);
+  --present-4: #7c3aed;
+  --present-5: #c2410c;
+  --present-6: var(--green);
   /* layered shadow: hairline edge + tight contact + soft ambient — holds the
      panel edge over dark aerial imagery where the white border alone vanishes */
   --shadow: var(--e4);      /* (the values live in «THE SCALES» below, with their night twins) */

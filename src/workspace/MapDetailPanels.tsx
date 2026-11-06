@@ -10,7 +10,10 @@ import { ShapeEditor } from '../components/ShapeEditor'
 import { appConfig } from '../config/appConfig'
 import { connectedLineLabel } from '../lib/connectedLines'
 import { fillTemplate, formatSymbolName, formatTime } from '../lib/format'
-import { polygonAreaM2, bboxSizeM, pathLengthM, haversineM } from '../lib/geo'
+import { polygonAreaM2, bboxSizeM, pathLengthM, haversineM, fmtDistance } from '../lib/geo'
+import { undoToast } from '../lib/ui'
+import { recordKey } from '../lib/undoKeys'
+import { ergAdoptedRadii } from '../lib/ergAdopt'
 import { type GpsEnd, hasTraced, freshBefore, gpsLineName, fmtAway, onSiteAnchor, onSiteKnown } from '../lib/gpsReturn'
 import { wandBlock, wandBlockHint } from '../lib/grundriss'
 import { lineLabel } from '../lib/lineDecor'
@@ -19,7 +22,7 @@ import { canBeDone, offersDone, doneOf } from '../lib/objectDone'
 import { withResolvedPhotos } from '../lib/photoGeo'
 import type { AssignableRole } from '../lib/roleAssignment'
 import { SHAPE_MIN_M, SHAPE_MAX_M, SHAPE_DEFS, rotationRun, ROTATION_MAX_M, rotationBox, ROTATION_W_M, shapeAspect } from '../lib/shapes'
-import { readingPatch, symbolControls, symbolTitleOptions, symbolFieldOptions, symbolPresetFieldKeys } from '../lib/symbols'
+import { readingPatch, symbolControls, symbolTitleOptions, symbolFieldOptions, symbolPresetFieldKeys, vehicleOriginOptions } from '../lib/symbols'
 import { truppForLine, truppIsOut } from '../lib/truppLines'
 import type { useSymbols } from '../lib/useSymbols'
 import type { VehicleOverrides } from '../lib/useVehicleLayer'
@@ -48,7 +51,7 @@ export interface MapDetailPanelsProps {
   emit: (op_type: string, payload?: Record<string, unknown>, opts?: { observed?: string }) => void
   patchEntity: (id: string, patch: Partial<Entity>) => void
   linkRosterFields: (prev: Entity, fields: Record<string, string>, opts?: { force?: boolean }) => void
-  createCircle: (center: LngLat, radiusM: number) => void
+  createCircle: (center: LngLat, radiusM: number) => string
   doc: Doc
   undockTeam: (entityId: string) => void
   effTrupps: Trupp[]
@@ -102,8 +105,6 @@ export interface MapDetailPanelsProps {
   isVisible: (id: LayerId) => boolean
   toggleLayer: (id: LayerId) => void
   deleteDrawing: (id: string) => Promise<void>
-  /** a Wassertransport's pumps put on the Karte as Motorspritzen (useMapActions · placePumpSymbols) */
-  placePumpSymbols: (coords: LngLat[]) => void
 }
 
 export function MapDetailPanels({
@@ -117,7 +118,7 @@ export function MapDetailPanels({
   selectedDrawingId, patchDrawingLabelLive, commitDrawingLabel,
   changeMapEnding, reverseDrawing, setDrawingWallRole, objects, syncLineNoToTrupp, pickablePersonnel, linkTruppLine,
   unlinkLine, setSelectedDrawingId, setMode, setPanel, setGpsRouting, revertAll, gpsEndOf, releaseHere,
-  releaseOnSite, setDrawingAttachment, focusEntity, isVisible, toggleLayer, deleteDrawing, placePumpSymbols,
+  releaseOnSite, setDrawingAttachment, focusEntity, isVisible, toggleLayer, deleteDrawing,
 }: MapDetailPanelsProps) {
   // a Rechteck's figures, for its panel — editable or read-only alike
   const shapeFigures = selected?.kind === 'shape' && selected.shape === 'square' ? (() => {
@@ -238,10 +239,18 @@ export function MapDetailPanels({
           // the symbol — createCircle selects it, so the operator lands on the editable cordon.
           // The derived preview rings go quiet for this placard: the real circle replaces them,
           // and two red rings at the same radius would read as a rendering bug.
+          // A one-time action (docs/ui-conventions.md · One-time actions): the row's done state is
+          // read off the Karte (lib/ergAdopt), and the toast takes the circle back with the rings.
           onAdoptRadius={selected.kind === 'symbol' && !selected.live && !tacticalLocked ? (radiusM) => {
-            createCircle(selected.coord, radiusM)
-            patchEntity(selected.id, { ergRings: 'off' })
+            const placard = selected, rings = selected.ergRings
+            const id = createCircle(placard.coord, radiusM)
+            patchEntity(placard.id, { ergRings: 'off' })
+            undoToast(fillTemplate(appConfig.copy.contextPanel.ergAdoptedToast, { r: fmtDistance(radiusM) }), () => {
+              void deleteDrawing(id)
+              patchEntity(placard.id, { ergRings: rings })
+            }, [recordKey('objects', id), recordKey('objects', placard.id)])
           } : undefined}
+          ergAdopted={selected.kind === 'symbol' ? ergAdoptedRadii(doc.drawings, selected.coord) : undefined}
           // Angedockte Gefahrentafel (lib/docking): name the host, offer the release — the drop
           // gesture that made the bond draws nothing, so this row is where it becomes visible.
           dockedToLabel={selected.dockedTo ? doc.entities.find((e) => e.id === selected.dockedTo)?.label || appConfig.copy.entities.fallbackObjectName : undefined}
@@ -327,6 +336,18 @@ export function MapDetailPanels({
                 // Nachbarwehr driver onto it as a Gast (assignTypedName)
                 assignTypedName(v, 'fahrer', fillTemplate(appConfig.copy.anwesenheit.roleFahrer, { vehicle: selected.label ?? '' }).trim())
               },
+            }
+            : undefined}
+          // …and where it comes from (05.11.2026): the feed cannot say that either. Same map,
+          // same locked read-out; the list is the station's ONE Herkunft list (lib/symbols).
+          origin={selected.live && selected.kind !== 'person'
+            ? tacticalLocked ? { value: vehicleOverrides[selected.id]?.herkunft ?? '' } : {
+              value: vehicleOverrides[selected.id]?.herkunft ?? '',
+              options: vehicleOriginOptions(),
+              onChange: (v: string) => setVehicleOverrides((m) => ({
+                ...m,
+                [selected.id]: { ...m[selected.id], herkunft: v.trim() || undefined },
+              })),
             }
             : undefined}
           // each row says what tells the lines apart — «Linie · 42 m → Hydrant H-142» (K11)
@@ -419,7 +440,8 @@ export function MapDetailPanels({
             ? {
               // the hose comes along when the Ø changes, in the same edit (DrawEditor · Schlauch)
               onChange: tacticalLocked ? undefined : (patch) => patchDrawing(patch),
-              onPlacePumps: tacticalLocked ? undefined : placePumpSymbols,
+              // its resting pumps on the map step aside while the section shows the live ones
+              lineId: selectedDrawing.id,
             }
             : undefined}
           // the anchored Trupp carries a COPY of the number (the AS chip prints it), so a

@@ -71,6 +71,18 @@ One object, two surfaces: how a tactical object is stored, anchored, projected a
   is the dashed pill with the icon alone. The label pass books the pill as the glyph's footprint –
   it is never suppressed – and every other place that prints a value keys it (caption «Alle», the
   printed legend), because a bare «180» names nothing.
+- **A vehicle says where it comes from** («Herkunft», owner pick 3A, 05.11.2026). Every driven
+  vehicle preset (the ones with «Fahrer»: Fahrzeug, Drehleiter, Hubretter, Grosslüfter, Boot)
+  carries `Herkunft` as its second field (`appConfig.symbols.originField`); a live GPS vehicle
+  keeps it in its override row (`useVehicleLayer · VehicleOverrides.herkunft`, merged per field
+  like the Fahrer). The panel row is the shared station-list control (`ContextPanel · FieldControl`:
+  the dropdown with free typing, a plain text field while the station lists nothing) over the
+  station's ONE list `fleet.origins` (`symbols · vehicleOriginOptions`, no bundled default);
+  empty = own Feuerwehr, and the box says «Eigene Feuerwehr». On the Karte and the Plan it is never the caption: it is
+  a small grey last line in the caption box (`symbolOriginText`, `TacticalSymbol · origin`),
+  booked by the label pass together with the caption (`symbolCaptionBoxText`), hidden with
+  «Beschriftungen aus». Setting it never re-files the Fahrer (`entityEdit ·
+  rosterFieldsToRefile`): no Bemerkung reads it.
 - **A Messpunkt keeps its readings** (`SymbolProps.readings`). Every field commit that changes a
   measured value appends a row (`recordReading`); rows are never rewritten, so two tablets merge
   as a union (`lib/mergeWorkspace · withMergedSymbolReadings`), and «one radio report typed gas by
@@ -82,6 +94,33 @@ One object, two surfaces: how a tactical object is stored, anchored, projected a
   worst first, wherever it is anchored (`lib/readingsList`, `ReadingsChip`); a row goes to the
   point on its own surface. ONE order everywhere (`compareReadings`, 28.10.2026): stage, measured
   before empty, fresh before stale, how far past the limit, newest reading.
+
+- **A Leitung's Wassertransport and the pumps it draws** (04./05.11.2026). One section
+  (`components/WaterRelay`) in two hosts: Messen › Strecke and a drawn Leitung's «Messung»
+  (`DrawEditor`), both driving `lib/useRelay` over the pure engine `lib/hydraulics`; the
+  assumptions live on the line (`Drawing.relay`, its Ø in `hose`), every edit an ordinary
+  `draw.edit`. **Lage only** – a plan sheet has no ground and no height profile, so there is no
+  Plan twin to keep in parity. The Leitung's switch **«Pumpen auf Karte»** (`relay.showPumps`,
+  owner 05.11.2026: «the Leitung draws its own pumps»; the row under the result reads «Auf Karte»,
+  the Messung's own word, with the full name as its accessible name) makes the line draw its calculated pumps
+  as the pack's Motorspritze (`RELAY_PUMP_SYMBOL`): ⚠️ DERIVED, never entities (`lib/linePumps`).
+  Every render plans again along the stored path on the shared height profile
+  (`lib/profile · loadProfile`, the cache the editor's Messung reads too), so the pumps move with
+  the line and every changed assumption, and there is nothing to duplicate – a second «on» is
+  still the one set. On the map `RelayPumpMarkers · LinePumpMarkers` runs the editor's own
+  controller per line; while that Leitung's Messung shows its relay the panel's live pumps stand
+  in for them (as Motorspritzen too, so the switch shows what it does). A drawn pump is DRAGGED
+  along its line and pinned there (`relay.pumps[i].atM`, the chart's own pin, one undo step on
+  release, no Verlauf row); a tap selects the Leitung. Paper prints the same pumps
+  (`krokiPayload` adds `drawnPumpEntities`; `readyDirectReportPayload` awaits the profiles first)
+  and the Rapport's Kroki preview shows them. A profile once fetched answers offline too, after a reload
+  (the service worker's `height-profiles` cache, docs/sync-and-offline.md); none at all (a path
+  never fetched online, outside CH) plans on flat ground, exactly as the editor then does and
+  says («Ohne Höhenprofil gerechnet»). Messen has no
+  switch: its pumps are the panel's while it measures, and «Als Leitung auf die Karte» carries the
+  relay onto a Leitung WITH the switch on (owner 05.11.2026, `useMeasure · adoptedRelay`), so
+  the pumps Messen showed stay on the map. The one-shot «Pumpen als Symbole setzen» it
+  replaced (#536, 04.11.2026) placed ordinary Motorspritzen – those stay ordinary symbols.
 
 ## One object, two surfaces
 

@@ -303,7 +303,9 @@ describe('serverClock — which answers may teach it', () => {
 
   it('every caching /api route is a prefix the clock refuses', () => {
     for (const r of routes) {
-      if (!r.source.includes('api') || r.handler === 'NetworkOnly') continue
+      // our own /api/ path – not a cross-origin host that merely starts with «api» (swisstopo's
+      // api3.geo.admin.ch height profiles, which carry no X-Server-Time)
+      if (!r.source.includes('\\/api\\/') || r.handler === 'NetworkOnly') continue
       expect(r.source.startsWith('\\/api\\/reference\\/')).toBe(true)
     }
     expect(isFreshSampleSource('/api/reference/anything')).toBe(false)

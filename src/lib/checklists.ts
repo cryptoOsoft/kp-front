@@ -34,6 +34,7 @@
 import { apiGet } from './api'
 import { readThrough } from './idb'
 import genericAction from '../data/checklists/generic-action.json'
+import type { FormTrend } from './boardForm'
 
 // --- template schema (matches the bundled JSON) ----------------------------------
 
@@ -76,6 +77,10 @@ export interface Phase {
   title: string
   role?: string
   note?: string
+  /** a `problems` template: the Bereich the phase's problems land in on the Tafel – the id of a
+   *  box of the Tafel's problem quad and an option of its problem table's `area` column
+   *  (docs/CONFIGURATION.md §9f, lib/problemLink). Absent: on the problem table only. */
+  area?: string
   items: Item[]
   /** mutually-exclusive role branches (e.g. FU "ohne C-FU" vs "mit C-FU") */
   branches?: Branch[]
@@ -127,6 +132,10 @@ export interface ChecklistTemplate {
   /** rail sort order, stamped from the manifest by admin_checklists — the station's single
    *  place to reorder checklists. Absent → sorts last (then action/rapport before reference). */
   order?: number
+  /** action templates: a tick means «this is a problem» (Problemerfassung, 05.11.2026) – the row
+   *  then offers a Tendenz ➚ = ➘, and every ticked item stands on the Tafel's problem surfaces
+   *  (lib/problemLink). Absent = an ordinary task list. */
+  problems?: boolean
   /** action / rapport templates */
   phases?: Phase[]
   /** reference templates */
@@ -160,6 +169,12 @@ export interface TemplateState {
   ticks: Record<string, Tick>
   /** phaseId → chosen branch id (ohne / mit C-FU) */
   activeBranch?: Record<string, string>
+  /** a `problems` template: itemId → the problem's Tendenz (the Tafel's own ➚ = ➘), written from the checklist row and from
+   *  the Tafel alike, one value in one place. Beside the ticks, not on them (staging review
+   *  06.11.2026, owner: un-ticking must not drop the Tendenz): an un-tick leaves it, so a re-tick
+   *  – or ↶ – brings it back. Read only for a ticked item (useChecklistActions writes it only
+   *  then); absent = no trend. */
+  trends?: Record<string, FormTrend>
 }
 
 /** templateId → its tick state. Rides the existing offline-cache / sync / LWW. */
@@ -257,6 +272,9 @@ export async function loadTemplates(): Promise<ChecklistTemplate[]> {
 
 /** The kinds that are ticked: everything that is neither read (reference, manual) nor a visit. */
 export const isTickable = (t: ChecklistTemplate) => t.kind === 'action' || t.kind === 'rapport'
+
+/** A template whose ticks are problems for the Tafel (`problems: true` on an action list). */
+export const isProblemTemplate = (t: ChecklistTemplate) => t.kind === 'action' && t.problems === true
 
 /** how long a warmed list is handed out before a newer one is asked for behind it */
 export const TEMPLATES_FRESH_MS = 5 * 60_000
