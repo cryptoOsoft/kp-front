@@ -1308,11 +1308,23 @@
      pair to the right end, the flex gap holds them apart. */
   .ip-hist > .ip-btn { margin-left: auto; }
   .ip-hist > .ip-btn + .ip-btn { margin-left: 0; }
-  /* …an OPEN row has one compact action and at most one tag (ÜBUNG / In Arbeit), so it fits
-     BESIDE the text block: the row stays as tall as its title, not title + a button line
-     (29.09.2026) */
-  .ip-hist-live { flex-wrap: nowrap; }
-  .ip-hist-live > .ip-hist-main { flex: 1 1 0; }
+  /* …an OPEN row: the title spans the card, the metadata follows 8px under it, and the one
+     compact «Abschliessen» stands at the right end of its last line, the place (hill climb r36,
+     06.11.2026 – beside the whole text block the button squeezed the title into three lines and
+     broke the duration off its line; beside both metadata lines it still did, so the «when» line
+     keeps the card's width). The open button stays ONE button over the whole card: it spans the
+     grid and lays its lines out on the card's own columns (subgrid, MeasurePanel's `.mp-row-btn`
+     recipe), so the action – a sibling, a button cannot hold a button – lands in column 2, 8px
+     from the place. The first templates are the fallback for an engine without subgrid. */
+  .ip-hist-live { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto auto;
+    column-gap: var(--sp-2); row-gap: 0; }
+  .ip-hist-live > .ip-hist-main { grid-column: 1 / -1; grid-row: 1 / -1; display: grid;
+    grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto auto;
+    grid-template-columns: subgrid; grid-template-rows: subgrid; }
+  .ip-hist-live .ip-hist-title { grid-column: 1 / -1; grid-row: 1; padding-bottom: var(--sp-2); }
+  .ip-hist-live .ip-hist-when { grid-column: 1 / -1; grid-row: 2; margin-top: 0; padding-bottom: var(--sp-1); }
+  .ip-hist-live .ip-hist-sub { grid-column: 1; grid-row: 3; align-self: center; margin-top: 0; }
+  .ip-hist-live > .ip-btn { grid-column: 2; grid-row: 3; margin-left: 0; }
 }
 
 /* Below ~355px even the 88px freed by dropping undo/redo is not enough for the Atemschutz
