@@ -108,6 +108,8 @@ rules that break silently.
   device pref vs station doctrine (`/admin` only) vs per-incident; station data is never bundled;
   WGS84 `[lng, lat]` wherever the map renders; credentials via `app.credentials.get`.
 - **Roles, links, admin** → [`docs/roles-and-access.md`](docs/roles-and-access.md).
+- **The Präsentationsmodus** (presenting, following, «Zeigen» pointers) → [`docs/presentation.md`](docs/presentation.md):
+  ⚠️ nothing of it is record or synced; the view link may signal, never write.
 - **Plans, Gebäude, alignments, tiles** → [`docs/plans-and-buildings.md`](docs/plans-and-buildings.md).
 - **«Karte & Objekte»** (the station viewer and home outside an Einsatz: objects, outlines, the
   phone sheets and keyboard on iOS) → [`docs/karte-objekte.md`](docs/karte-objekte.md).
