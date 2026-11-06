@@ -1844,7 +1844,7 @@
           "incidents"
         ],
         "summary": "Get Workspace",
-        "description": "The workspace blob, or a 304 when the caller's `since` revision is still current.\n\n`writer` is the asking device's id, the one its saves carry (`X-Workspace-Writer`). When every\nrevision after `since` is a save of that device, it already holds them: the answer is the 304\nwith `X-Workspace-Rev` instead of the blob it just sent (18.10.2026 — every save woke the\nsaving device's own long poll and cost it the whole blob). Any revision this process cannot\nvouch for — another device's, an unrecorded writer's — is the blob, as before.\n\n`open` is what the CALLER believes about the lifecycle. When the Einsatz is no longer in that\nstate the poll is answered at once instead of parking — a close or a reopen that committed\nbetween the device's last answer and this request would otherwise wait out the whole timeout\n(the wake fires only for followers already parked). Absent (an older client) → parks as\nbefore.\n\n`wait=1` (only meaningful together with `since`) makes that 304 a LONG POLL: instead of\nanswering «unchanged» right away and being asked again two seconds later, the request parks\nuntil another device's save bumps the revision — or ~20 s pass, and the answer is the same\n304 it would have been. The follower gets a cross-device edit in the time it takes to commit,\nand a quiet incident costs one request per 20 s instead of one every 2–15 s.",
+        "description": "The workspace blob, or a 304 when the caller's `since` revision is still current.\n\n`writer` is the asking device's id, the one its saves carry (`X-Workspace-Writer`). When every\nrevision after `since` is a save of that device, it already holds them: the answer is the 304\nwith `X-Workspace-Rev` instead of the blob it just sent (18.10.2026 — every save woke the\nsaving device's own long poll and cost it the whole blob). Any revision this process cannot\nvouch for — another device's, an unrecorded writer's — is the blob, as before.\n\n`open` is what the CALLER believes about the lifecycle. When the Einsatz is no longer in that\nstate the poll is answered at once instead of parking — a close or a reopen that committed\nbetween the device's last answer and this request would otherwise wait out the whole timeout\n(the wake fires only for followers already parked). Absent (an older client) → parks as\nbefore.\n\n`presentation` is the Präsentationsmodus marker the caller holds (`PRESENTATION_HEADER`), the\nsame way: a poll whose marker is no longer true is answered at once. A device that knows\nnone sends «none», the common case, so it parks as usual.\n\n`wait=1` (only meaningful together with `since`) makes that 304 a LONG POLL: instead of\nanswering «unchanged» right away and being asked again two seconds later, the request parks\nuntil another device's save bumps the revision — or ~20 s pass, and the answer is the same\n304 it would have been. The follower gets a cross-device edit in the time it takes to commit,\nand a quiet incident costs one request per 20 s instead of one every 2–15 s.",
         "operationId": "get_workspace_api_incidents__incident_id__workspace_get",
         "parameters": [
           {
@@ -1913,6 +1913,23 @@
                 }
               ],
               "title": "Writer"
+            }
+          },
+          {
+            "name": "presentation",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 32
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Presentation"
             }
           },
           {

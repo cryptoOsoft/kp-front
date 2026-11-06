@@ -20,9 +20,12 @@ it sends changes nothing anybody can read after the fade.
 
 HOW IT TRAVELS
 --------------
-The same long poll as the workspace and the Verlauf (app/live_wait): every device parks a
-`GET …/presentation?since=<seq>&wait=1`, a signal (`POST …/presentation/signal`) bumps `seq`
-and wakes them. A pointer reaches the others in one round trip plus the wake – well under a
+Nobody pays for a presentation that is not running: the workspace follow every device runs
+anyway carries the marker (api/incidents · PRESENTATION_HEADER: the id, or «none») and is woken
+by a start or an end (`_wake`). Only while the marker names one does a device run the
+presentation follow, the same long poll as the workspace and the Verlauf (app/live_wait): it
+parks a `GET …/presentation?since=<seq>&wait=1`, and a signal (`POST …/presentation/signal`)
+bumps `seq` and wakes it. A pointer reaches the others in one round trip plus the wake – well under a
 second – and every request still passes the link gate, so revoking the view link stops a
 holder on its next poll. ⚠️ In-process, like live_wait: production runs one uvicorn worker on
 one replica (docs/DEPLOYMENT.md). Across several workers a follower would not hear a presenter
@@ -32,7 +35,7 @@ HOW IT ENDS
 -----------
 «Beenden» (any editor), a takeover by another editor's «Starten», the Einsatz closing
 (`end_for_close`, called where the close row is written), or the presenter going quiet for
-`PRESENTER_TIMEOUT_S` – observed lazily by the next poll or signal of anybody on the Einsatz
+`PRESENTER_TIMEOUT_S` – observed lazily by the next poll, signal or workspace read of anybody on the Einsatz
 (`expire`), stamped with the presenter's last contact. A process restart drops a running
 presentation without its «beendet» row; the devices simply see none any more.
 """
@@ -211,7 +214,7 @@ async def start(
     )
     _running[incident_id] = p
     await _append_edge(db, p, "s", at, f"Präsentation gestartet ({name})")
-    live_wait.notify(live_wait.presentation_topic(incident_id))
+    _wake(incident_id)
     return p
 
 
@@ -224,8 +227,16 @@ async def end(db: AsyncSession, incident_id: uuid.UUID, *, reason: str, at: date
         return False
     suffix = {"timeout": " – Verbindung verloren", "close": " – Einsatz abgeschlossen"}.get(reason, "")
     await _append_edge(db, p, "e", at or datetime.now(UTC), f"Präsentation beendet ({p.presenter.name}{suffix})")
-    live_wait.notify(live_wait.presentation_topic(incident_id))
+    _wake(incident_id)
     return True
+
+
+def _wake(incident_id: uuid.UUID) -> None:
+    """A presentation started or ended: wake its own followers AND the workspace polls, whose
+    answer carries the marker (api/incidents · PRESENTATION_HEADER) – every other device learns
+    of it there, within the round it is parked in."""
+    live_wait.notify(live_wait.presentation_topic(incident_id))
+    live_wait.notify(live_wait.workspace_topic(incident_id))
 
 
 async def end_for_close(db: AsyncSession, incident_id: uuid.UUID) -> None:

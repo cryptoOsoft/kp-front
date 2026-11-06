@@ -1,6 +1,7 @@
 // Per-incident workspace blob: get/put + the live-follow poll. The blob is opaque here — the
 // App owns its `Saved` structure; we only move it to/from the server. Offline caching + the
 // debounced merge-on-save engine live alongside in ./workspaceSync.
+import { parsePresentationHeader, presentationMarker, setPresentationMarker } from '../presentationMarker'
 import { ApiError, apiBeacon, apiGet, apiGetRaw, apiPut, LONG_POLL_TIMEOUT_MS } from '../api'
 import type { Trupp } from '../../types'
 import type { Out } from './wire'
@@ -120,7 +121,10 @@ export async function pollWorkspaceSince(
   const wait = opts?.wait ?? false
   const believed = opts?.open === undefined ? '' : `&open=${opts.open ? 1 : 0}`
   const writer = opts?.writer ? `&writer=${encodeURIComponent(opts.writer)}` : ''
-  const res = await apiGetRaw(`/api/incidents/${id}/workspace?since=${sinceRev}${wait ? '&wait=1' : ''}${believed}${writer}`, {
+  // the Präsentationsmodus marker this device holds (lib/presentationMarker) – a wrong one is
+  // answered at once, so a presentation that runs is heard within the round
+  const presenting = `&presentation=${encodeURIComponent(presentationMarker(id) ?? 'none')}`
+  const res = await apiGetRaw(`/api/incidents/${id}/workspace?since=${sinceRev}${wait ? '&wait=1' : ''}${believed}${writer}${presenting}`, {
     signal: opts?.signal,
     timeoutMs: wait ? LONG_POLL_TIMEOUT_MS : undefined,
   })
@@ -131,6 +135,8 @@ export async function pollWorkspaceSince(
   // …and whether the Einsatz is still running, on the 304 too (backend · _lifecycle_headers).
   // A close never moves the revision, so this header is the only way a follower hears of it
   // (N3, 25.09.2026). Absent (an older backend) → silent, as before.
+  const marker = parsePresentationHeader(res.headers.get('X-Presentation'))
+  if (marker !== undefined) setPresentationMarker(id, marker)
   const open = res.headers.get('X-Incident-Open')
   if (open === '0' || open === '1') opts?.onLifecycle?.(open === '1')
   if (open === '0') {

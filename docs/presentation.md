@@ -63,7 +63,9 @@ with `lifecycle="closed"` calls `presentation.end_for_close` first, so «beendet
 lifecycle. The timeout is **60 s** without a poll or signal from the presenter's page
 (`PRESENTER_TIMEOUT_S` – three missed 20 s polls, so an iPad locked for a moment comes back to its
 own presentation); its row is stamped with the presenter's last contact. It is observed lazily, by
-the next poll or signal of anybody on the Einsatz – there is no background task. ⚠️ A signal
+the next poll or signal of anybody on the Einsatz – the workspace follow's read included, which
+computes the marker after the same watchdog, so a gone presenter is noticed even while nobody runs
+the presentation follow. There is no background task. ⚠️ A signal
 commits that expiry before it answers 409 `presentation_gone`, or the refusal would roll the
 «beendet» row back with it while the presentation is already gone from memory. A follower
 unheard for 45 s leaves the room (`PARTICIPANT_TIMEOUT_S`) and re-joins by itself when its poll
@@ -71,10 +73,22 @@ finds it missing. A process restart drops a running presentation without its «b
 
 ## Transport
 
-The third live long poll beside the workspace and the Verlauf (`backend/app/live_wait`, topic
-`presentation`): every device on an open Einsatz parks `GET …/presentation?client=&known=&since=&wait=1`;
-a `POST …/presentation/signal` (join, leave, view, pointer) bumps the presentation's `seq` and
-wakes them. A pointer reaches the others in one round trip plus the wake – a few hundred
+⚠️ **An Einsatz nobody presents costs nothing** (perf journey `idle`, 06.11.2026: a third loop on
+every open Einsatz took it from 11 to 15 requests a minute). The workspace follow every device
+parks anyway carries the marker: `X-Presentation` – the running presentation's id, or `none` – on
+every workspace read, the 304 included (`api/incidents · PRESENTATION_HEADER`). The poll sends
+the marker it holds (`presentation=`; a device that never heard sends `none`), and the server
+answers at once when that is wrong – so a device opened mid-presentation hears it in its first
+round, and the common case parks as before (no extra request at boot). A start or an end wakes
+the parked workspace polls (`app/presentation · _wake`); measured on the real stack, an open phone
+showed «… präsentiert · Folgen» 0.2 s after «Starten» and dropped it 0.3 s after «Beenden».
+The client keeps the marker in `lib/presentationMarker`; its own start and end set it at once.
+
+Only while the marker names one does a device run the presentation follow, the third live long
+poll beside the workspace and the Verlauf (`backend/app/live_wait`, topic `presentation`): it
+parks `GET …/presentation?client=&known=&since=&wait=1`; a `POST …/presentation/signal` (join,
+leave, view, pointer) bumps the presentation's `seq` and wakes it. When the marker goes, the
+device drops the presentation whatever its own follow last heard. A pointer reaches the others in one round trip plus the wake – a few hundred
 milliseconds; the loop's 250 ms spacing floor (`lib/pollBackoff`) is the upper bound on a burst.
 Chosen over a WebSocket or SSE because every request still passes the link gate
 (`enforce_link_scope`), so revoking the view link stops a holder on the next poll, and because it
@@ -106,8 +120,8 @@ needs no new infrastructure on the proxy, the service worker or the tests.
   Postgres `LISTEN/NOTIFY` behind the same functions.
 - **Offline or unreachable**: the device shows no presentation (no pill, no rings), queues
   nothing, and its card says «Braucht Verbindung zum Server».
-- A third held request per tab: free over HTTP/2 (every deployment), 3 of 6 connections over
-  plain HTTP/1.1 (`lib/api · LONG_POLL_TIMEOUT_MS`).
+- While a presentation runs, a third held request per tab: free over HTTP/2 (every deployment),
+  3 of 6 connections over plain HTTP/1.1 (`lib/api · LONG_POLL_TIMEOUT_MS`). None otherwise.
 
 ## Who may do what
 

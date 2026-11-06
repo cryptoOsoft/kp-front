@@ -2,8 +2,10 @@
 // on the Einsatz, presents, follows, points – and keeps all of it out of the record.
 //
 // · The follow is a third live long poll beside the workspace and the Verlauf (lib/useLongPoll ·
-//   api/presentation · pollPresentation). It also counts as this device's presence: the server
-//   ends a presentation whose presenter stops polling (backend app/presentation).
+//   api/presentation · pollPresentation) – running ONLY while the workspace follow's marker says a
+//   presentation runs (lib/presentationMarker), so an Einsatz nobody presents costs nothing. It
+//   also counts as this device's presence: the server ends a presentation whose presenter stops
+//   polling (backend app/presentation).
 // · Presenting sends the surface and section (`view`), throttled (`VIEW_MS`, leading + trailing);
 //   following applies each view (`applyView`) and notices a hand-made pan or surface switch,
 //   which detaches («Wieder folgen»).
@@ -26,6 +28,7 @@ import {
   addRing, isJoined, liveRings, nextFollow, NOT_PRESENTING, ringsOn, RING_MS, throttle,
   type PointerAt, type PresentationState, type PresentedView, type Ring,
 } from '../lib/presentation'
+import { presentationMarker, setPresentationMarker, subscribePresentationMarker, usePresentationMarker } from '../lib/presentationMarker'
 import { prefersReducedMotion } from '../lib/reducedMotion'
 import { pickedTafelPage, setTafelPage, TAFEL_ID, useTafelPage } from '../lib/tafelPages'
 import { toast } from '../lib/ui'
@@ -159,7 +162,12 @@ export function usePresentation({ incidentId, enabled, canPresent, isLink, mode,
   }, [follow.kind, mapRef])
 
   // --- the poll ----------------------------------------------------------------------------
-  const live = enabled && online
+  // ⚠️ Only while the workspace follow says a presentation runs (lib/presentationMarker): an
+  // Einsatz nobody presents costs no request of its own (perf journey `idle`, 06.11.2026). A
+  // round outside that window returns «unanswered» without asking, and the loop restarts at once
+  // when the marker names one (`marker` in the deps, `restart(0)` below).
+  const marker = usePresentationMarker(incidentId)
+  const live = enabled && online && marker !== null
   const restart = useLongPoll({
     round: async ({ hidden, signal: abort }) => {
       if (!live) return false
@@ -198,6 +206,19 @@ export function usePresentation({ incidentId, enabled, canPresent, isLink, mode,
       return true
     },
   }, [incidentId, live, applyView, signal, isLink])
+
+  // the marker went: the presentation is over on this device too, whatever its own follow had
+  // last heard (a callback, not an effect body – it is the external store speaking)
+  useEffect(() => subscribePresentationMarker(() => {
+    if (presentationMarker(incidentId) !== null || !known.current) return
+    known.current = ''
+    seq.current = 0
+    latestView.current = null
+    setSnap(null)
+    dispatch({ type: 'server', id: null, mine: false })
+  }), [incidentId])
+  // …and it came: ask at once rather than after the loop's first spacing
+  useEffect(() => { if (live) restart(0) }, [live, restart])
 
   // join when following starts, leave when it stops – one signal per transition
   useEffect(() => {
@@ -257,6 +278,7 @@ export function usePresentation({ incidentId, enabled, canPresent, isLink, mode,
       setZeigen(false)
       known.current = s.id ?? ''
       seq.current = s.seq
+      setPresentationMarker(incidentId, s.id ?? null)
       latestView.current = s.view
       setSnap(s)
       dispatch({ type: 'server', id: s.id, mine: true })
@@ -271,6 +293,7 @@ export function usePresentation({ incidentId, enabled, canPresent, isLink, mode,
       await endPresentation(incidentId)
       known.current = ''
       seq.current = 0
+      setPresentationMarker(incidentId, null)
       latestView.current = null
       setSnap(null)
       dispatch({ type: 'server', id: null, mine: false })
@@ -330,7 +353,7 @@ export function usePresentation({ incidentId, enabled, canPresent, isLink, mode,
     /** the pill is shown */
     available,
     /** may this device start one at all (an editor, online, the Einsatz running) */
-    canStart: canPresent && live,
+    canStart: canPresent && enabled && online,
     follow,
     state: snap?.active ? snap : null,
     zeigen: pointing,

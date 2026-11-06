@@ -486,3 +486,66 @@ def test_join_leave_churn_is_bounded_and_a_rejoin_wakes_nobody(monkeypatch):
         broker.leave(p, f"cy{i:04d}", "link:view:cy")
     assert p.seq - seq <= broker.LINK_CHANGES_PER_S + 1
     assert not [k for k in p.last_sent if k[0].startswith("cy")]  # nothing left behind
+
+
+# --- the marker on the workspace follow (perf journey `idle`, 06.11.2026) -----------------
+
+
+async def test_the_workspace_follow_carries_the_marker_and_wakes_on_start(client, second, editor, viewer, monkeypatch):
+    """Nobody runs the presentation follow while nothing is presented: the workspace poll every
+    device parks anyway says whether one runs, and a start wakes it."""
+    await _login(client, editor)
+    await _login(second, viewer)
+    inc = await _incident(client)
+    full = await second.get(f"/api/incidents/{inc}/workspace")
+    assert full.headers["X-Presentation"] == "none"
+    assert (await second.get(f"/api/incidents/{inc}/workspace?since=0")).headers["X-Presentation"] == "none"
+
+    monkeypatch.setattr(live_wait, "LONG_POLL_TIMEOUT_S", 30.0)
+    poll = asyncio.create_task(second.get(f"/api/incidents/{inc}/workspace?since=0&wait=1&presentation=none"))
+    await _parked()
+    pid = (await _start(client, inc))["id"]
+    r = await asyncio.wait_for(poll, timeout=2)
+    assert r.status_code == 304 and r.headers["X-Presentation"] == pid
+
+    # a device that already knows parks; one that believes «none» is answered at once
+    monkeypatch.setattr(live_wait, "LONG_POLL_TIMEOUT_S", 0.2)
+    started = time.perf_counter()
+    r = await second.get(f"/api/incidents/{inc}/workspace?since=0&wait=1&presentation={pid}")
+    assert time.perf_counter() - started >= 0.2 and r.headers["X-Presentation"] == pid
+    monkeypatch.setattr(live_wait, "LONG_POLL_TIMEOUT_S", 30.0)
+    r = await asyncio.wait_for(
+        second.get(f"/api/incidents/{inc}/workspace?since=0&wait=1&presentation=none"), timeout=2
+    )
+    assert r.headers["X-Presentation"] == pid
+
+    # …and the end wakes it again
+    poll = asyncio.create_task(second.get(f"/api/incidents/{inc}/workspace?since=0&wait=1&presentation={pid}"))
+    await _parked()
+    assert (await client.delete(f"/api/incidents/{inc}/presentation")).status_code == 204
+    assert (await asyncio.wait_for(poll, timeout=2)).headers["X-Presentation"] == "none"
+
+
+async def test_a_quiet_presenter_reads_as_none_on_the_workspace_follow(
+    client, second, editor, viewer, db_session, monkeypatch
+):
+    """With no presentation follow running anywhere, the workspace read is the watchdog: the
+    marker turns «none» and the «beendet» row is written."""
+    await _login(client, editor)
+    await _login(second, viewer)
+    inc = await _incident(client)
+    await _start(client, inc)
+    later = time.monotonic() + broker.PRESENTER_TIMEOUT_S + 5
+    monkeypatch.setattr(broker, "_now", lambda: later)
+    assert (await second.get(f"/api/incidents/{inc}/workspace?since=0")).headers["X-Presentation"] == "none"
+    assert (await _texts(db_session, inc))[-1] == "Präsentation beendet (Cmd – Verbindung verloren)"
+
+
+async def test_a_view_link_reads_the_marker_and_still_writes_nothing(client, second, editor):
+    await _login(client, editor)
+    inc = await _incident(client)
+    pid = (await _start(client, inc))["id"]
+    await _open_view_link(second, editor, inc)
+    assert (await second.get(f"/api/incidents/{inc}/workspace?since=0")).headers["X-Presentation"] == pid
+    put = {"workspace": {"a": 1}, "base_rev": 0}
+    assert (await second.put(f"/api/incidents/{inc}/workspace", json=put)).status_code == 403

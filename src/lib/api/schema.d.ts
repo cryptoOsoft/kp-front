@@ -686,6 +686,10 @@ export interface paths {
          *     (the wake fires only for followers already parked). Absent (an older client) → parks as
          *     before.
          *
+         *     `presentation` is the Präsentationsmodus marker the caller holds (`PRESENTATION_HEADER`), the
+         *     same way: a poll whose marker is no longer true is answered at once. A device that knows
+         *     none sends «none», the common case, so it parks as usual.
+         *
          *     `wait=1` (only meaningful together with `since`) makes that 304 a LONG POLL: instead of
          *     answering «unchanged» right away and being asked again two seconds later, the request parks
          *     until another device's save bumps the revision — or ~20 s pass, and the answer is the same
@@ -8907,6 +8911,7 @@ export interface operations {
                 wait?: boolean;
                 open?: boolean | null;
                 writer?: string | null;
+                presentation?: string | null;
             };
             header?: never;
             path: {
