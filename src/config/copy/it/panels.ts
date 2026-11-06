@@ -263,7 +263,7 @@ export const panelsCopy: Localizable<Pick<Copy, Keys>> = {
     diagSaved: 'File diagnostico «{name}» salvato – allegalo, per favore.',
     diagFailed: 'Non è stato possibile creare il file diagnostico – la segnalazione funziona comunque.',
     privacy: 'Nulla viene inviato automaticamente. Decidi tu se, come e a chi.',
-    close: 'Chiudi',
+    cancel: 'Annulla',
     tech: {
       version: 'Versione:',
       locale: 'Lingua:',

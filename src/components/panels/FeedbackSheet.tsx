@@ -147,7 +147,7 @@ export function FeedbackSheet({ trouble, onClose }: {
     // right-aligned at their words' width on the phone too, the one sheet that did
     <Modal title={cp.title} onClose={() => finish('cancel')} fit footer={(
       <>
-        <button type="button" className="ip-btn" onClick={() => finish('cancel')}>{cp.close}</button>
+        <button type="button" className="ip-btn" onClick={() => finish('cancel')}>{cp.cancel}</button>
         <button type="button" className="ip-btn primary" onClick={go} disabled={!canSend}>
           {cp.next}
         </button>
