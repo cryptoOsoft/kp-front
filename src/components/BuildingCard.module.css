@@ -4,7 +4,11 @@
    section's heading carries the ✕, the «Gebäude» heading «Register-Hinweis» (BuildingFacts · Head). */
 .card { display: flex; flex-direction: column; gap: var(--sp-1); }
 .head { display: flex; align-items: center; justify-content: flex-end; gap: var(--sp-2); min-width: 0; }
-.close { flex: none; margin: calc(-1 * var(--sp-2)) calc(-1 * var(--sp-2)) calc(-1 * var(--sp-2)) 0; }
+/* the ✕ is THE sheet ✕ (`.ip-x`, 36px) in the card's corner, 12 from the top and the side – the
+   card's own inset, the heading's left edge – and the heading row takes its height, so the eyebrow
+   stands centred on it, as a sheet title does beside its ✕ (r35, 06.11.2026: a 44px bare button
+   hung 4px off the corner over negative margins) */
+.close { flex: none; }
 .hint svg { width: 12px; height: 12px; flex: none; }
 .hint { display: inline-flex; align-items: center; gap: var(--sp-1); min-width: 0; font: var(--fw-medium) var(--fs-micro)/var(--lh-micro) var(--body);
   color: var(--ink-faint); white-space: nowrap; }

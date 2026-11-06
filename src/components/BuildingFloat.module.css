@@ -21,7 +21,9 @@
      why it's transparent» – the plan's lines read through the card). --float-bg is 90 % by day and
      only reads as solid where the backdrop blur runs; on the iPad over a plan it did not, and a
      card of text over a drawn sheet cannot be 10 % plan. Same tint, nothing behind it. */
-  background: linear-gradient(var(--float-bg), var(--float-bg)), var(--surface); box-shadow: var(--float-edge); }
+  background: linear-gradient(var(--float-bg), var(--float-bg)), var(--surface);
+  /* the sheets' outline, --e4 – no inset --glass-line ring (r35, 06.11.2026: the sheets draw none) */
+  box-shadow: var(--e4); }
 @media (--phone) {
   /* the bars' width, in THE message lane (15-mobile · --msg-lane-bottom): one gap above the
      highest thing in the stack – the floating row at rest, the armed tool's pill while a tool is

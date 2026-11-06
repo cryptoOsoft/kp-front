@@ -9,7 +9,8 @@
 .hazardLine svg { position: absolute; left: calc(var(--sp-5) * -1 + 2px); top: .2em; width: 14px; height: 14px; color: var(--amber-strong); }
 
 .notes { display: flex; flex-direction: column; gap: var(--sp-2); }
-.head { padding-top: var(--sp-2); font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-dim); }
+/* THE eyebrow, in its one colour, --ink-faint (r35, 06.11.2026: this was the one eyebrow in --ink-dim) */
+.head { padding-top: var(--sp-2); font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-faint); }
 .head:first-child { padding-top: 0; }
 /* a heading with controls at its right end (Head · `end`): the heading's step above the row, the
    controls hanging over it (their own negative margins) so the row stays the heading's height */

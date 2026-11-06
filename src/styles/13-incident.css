@@ -259,7 +259,9 @@
 .ip-menu {
   position: absolute; top: calc(100% + 1px + 8px); left: -1px; min-width: min(300px, 88vw); max-width: min(430px, 92vw);
   background: var(--surface); border: 1px solid var(--glass-edge); border-radius: var(--r-bar);
-  box-shadow: var(--e4); padding: 8px; z-index: var(--z-drawer-menu); max-height: calc(100dvh - 104px); overflow: auto;
+  /* THE menu's even --bar-pad (r35, 06.11.2026: 8px here, the one menu off the 6 its --r-bar is
+     drawn for) */
+  box-shadow: var(--e4); padding: var(--bar-pad); z-index: var(--z-drawer-menu); max-height: calc(100dvh - 104px); overflow: auto;
 }
 .ip-menu-empty { padding: 12px; color: var(--ink-faint); font: var(--fw-medium) var(--fs-2) var(--body); }
 .ip-menu-act {
@@ -527,8 +529,20 @@
    Popup as SIBLINGS — there is no .ip-ovl grid parent — so the scrim moves onto .ui-backdrop
    and the centering onto .ip-sheet.ui-dialog. Values mirror the old .ip-ovl exactly (incl. the
    phone bottom-sheet override at the end of this file) so migrated sheets are pixel-identical. */
-.ui-backdrop { position: fixed; inset: 0; z-index: var(--z-dialog-scrim); background: rgba(20,28,40,.32); backdrop-filter: blur(2px);
+.ui-backdrop { position: fixed; inset: 0; z-index: var(--z-dialog-scrim);
   transition: opacity .14s var(--ease); }
+/* ── ONE modal scrim (hill climb r35, 06.11.2026) ──
+   Every modal dims what is behind it the same way: the sheets' wash and its 2px blur. There were
+   four – .45 on the ConfirmCard / composer / Palette, .5 on the Mittel remark and the map picker,
+   .34 on the Hilfe – so one sheet opened from another changed the room's light. The classes stay
+   (each carries its own z-tier and layout), only the PAINT is here, once. Anchored menus and
+   popovers have no scrim; `.rp-backdrop` is the Rapport's transparent click-catcher and
+   `.photo-scrim` the photo viewer's dark room – neither is a modal dim, so neither is in this list.
+   ⚠️ Nor is `.journal-scrim` (10-journal): the Verlauf drawer is read BESIDE the live map, and its
+   unblurred .48 dim is an approved landing state (owner, checkpoint 1) – a blur there was tried in
+   r35 and taken back. */
+.ui-backdrop, .modal-backdrop, .mp-backdrop, .help-scrim {
+  background: rgba(20,28,40,.32); backdrop-filter: blur(2px); }
 .ip-sheet.ui-dialog { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: var(--z-dialog); }
 /* Keyboard up — `is-kb` + `--kb-inset` come from lib/overlays (useKeyboardInset), and only then,
    so without a keyboard nothing here applies. The layout viewport does NOT shrink for the
@@ -1577,9 +1591,11 @@ button.rp-sign-row:disabled { cursor: default; }
   font: var(--fw-bold) var(--fs-1) var(--body); cursor: pointer; }
 .timefield-now:disabled { opacity: var(--disabled); cursor: default; }
 
-/* the wheel popover: snap-scrolling columns under a fixed center band */
+/* the wheel popover: snap-scrolling columns under a fixed center band. THE sheet material
+   (.ip-sheet: --glass + blur, no edge, --e4, the one corner – r35, 06.11.2026; it was opaque
+   --surface with a --glass-line ring, at night a #232c3a slab beside the #141a24 sheets). */
 .wheelpop { z-index: var(--z-picker); padding: 12px; border-radius: var(--r-ctl);
-  background: var(--surface); border: 1px solid var(--glass-line);
+  background: var(--glass); backdrop-filter: blur(16px);
   box-shadow: var(--e4); }
 .wheelpop-cols { position: relative; display: flex; gap: 4px; }
 /* 5 rows of 44px (ITEM_H in WheelPicker.tsx — pads/band derive from it: pad = (height−44)/2) */
@@ -1893,6 +1909,15 @@ select.cv-input { appearance: none; -webkit-appearance: none;
   stroke-linecap: round; stroke-linejoin: round; opacity: 0; }
 [data-checked] > .ui-menu-check { background: var(--blue); border-color: var(--blue); }
 [data-checked] > .ui-menu-check svg { opacity: 1; }
+/* a ONE-of-N row (Menu · radio, the Trupps' «Reihenfolge») is not a checkbox: its mark is a bare
+   trailing ✓ on the chosen row, the Einsatzuhr's (18-audio · .tb-uhr-chk: 16px, --green). The box
+   keeps its place on every row so the labels never shift. */
+.ui-menu-radio { flex: none; display: grid; place-items: center; width: 16px; height: 16px; margin-left: auto; visibility: hidden; }
+[data-checked] > .ui-menu-radio { visibility: visible; }
+/* row-qualified: a skin's own `… svg` glyph rule (`.rp-print-menu-item svg` dims its icons) must not
+   reach the tick */
+.ui-menu-item > .ui-menu-radio svg { width: 16px; height: 16px; fill: none; stroke: var(--green); stroke-width: 2.4;
+  stroke-linecap: round; stroke-linejoin: round; opacity: 1; }
 
 /* ── ONE menu row, one wash (18.09.2026) ────────────────────────────────────────────────────
    `ui-menu-item` is worn by EVERY row `lib/overlays · Menu` and `· ContextMenu` render, under
@@ -1962,9 +1987,15 @@ select.cv-input { appearance: none; -webkit-appearance: none;
    `--rp-control-room`), still outranks this there. */
 .rp-control { z-index: var(--z-popover);
   width: min(380px, calc(100vw - 32px)); display: flex; flex-direction: column; gap: 8px;
-  padding: 12px 16px; border-radius: var(--r-ctl);
+  /* THE menu shell (r35, 06.11.2026): even --bar-pad, --r-bar, the menu's opaque --surface and line –
+     it was 12/16 inside --r-ctl. Its doors are menu rows (their 12px text inset), its head is the
+     menu's group head, and the facts under them (warnings, the Hash-Kette) stand at that same
+     12px inset – the one inset a popover's read-only content takes (10-journal · .tb-weather-pop). */
+  padding: var(--bar-pad); border-radius: var(--r-bar);
   background: var(--surface); border: 1px solid var(--glass-edge); box-shadow: var(--e4);
   max-height: var(--available-height, 46dvh); overflow-y: auto; }
+.rp-control > :not(.rp-control-open) { margin-inline: var(--sp-3); }
+.rp-control > :last-child:not(.rp-control-open) { margin-bottom: var(--bar-pad); }
 /* long personnel lists in the Einsatzstunden warning must wrap, not push the panel wider */
 .rp-control .form-warn { min-width: 0; overflow-wrap: anywhere; }
 /* «Noch offen» inside the Kontrolle popover (every width since 23.09.2026): a list of doors,
@@ -1973,9 +2004,9 @@ select.cv-input { appearance: none; -webkit-appearance: none;
    the bottom after the last bullet» – 32px stood between the «Stand» line and the panel's edge,
    on top of the panel's own 12px padding). */
 .rp-control-open { display: flex; flex-direction: column; }
-.rp-control .report-fold-body { padding-bottom: 0; }
+.rp-control .report-fold-body { padding: 2px 0 0; }   /* the 12px inset is the popover's (above), not twice */
 .rp-control .report-fold-body p:last-child { margin-bottom: 0; }
-.rp-control-open-head { padding: 0 2px 4px; font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-faint); }
+.rp-control-open-head { padding: 8px 12px 4px; font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-faint); }
 .rp-control-step { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: var(--tap);
   padding: 0 12px; border: none; background: none; border-radius: var(--r-ctl); cursor: pointer; text-align: left;
   font: var(--fw-medium) var(--fs-2) var(--body); color: var(--ink); }

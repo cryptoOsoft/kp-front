@@ -54,13 +54,14 @@ import s from './Atemschutz.module.css'
 function MiniSheet({ title, sub, ariaLabel, onClose, children, footer, className }: {
   title: ReactNode; sub?: string; ariaLabel: string; onClose: () => void; children: ReactNode; footer?: ReactNode; className?: string
 }) {
-  const az = appConfig.copy.atemschutz
+  // the ✕ is «Schliessen», as on every other sheet (r35, 06.11.2026 – it said «Abbrechen», the
+  // footer's word; a sheet with a footer has its own «Abbrechen» beside the primary)
   return (
     <Overlay open onClose={onClose} className={cx(s.modal, s.miniSheet, className)} ariaLabel={ariaLabel}>
       <SheetGrab />
       <div className={s.modalHead}>
         <h3>{title}{sub && <small className={s.miniSub}>{sub}</small>}</h3>
-        <button type="button" className="ip-x" aria-label={az.cancel} onClick={onClose}><Icon id="close" /></button>
+        <button type="button" className="ip-x" aria-label={appConfig.copy.closeDialog} onClick={onClose}><Icon id="close" /></button>
       </div>
       <div className={s.miniBody}>{children}</div>
       {footer}
