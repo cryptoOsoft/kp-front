@@ -1,5 +1,5 @@
 import { ShellLoader } from '../ShellLoader'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { appConfig } from '../../config/appConfig'
 import { Icon } from '../../lib/icons'
 import { cx } from '../../lib/cx'
@@ -120,6 +120,9 @@ function kindCopy(kind: ShareLinkKind) {
     : { lede: C.shareLede, liveLede: C.shareLiveLede, warn: C.shareWarn, revokeTitle: C.shareRevokeTitle, revokeBody: C.shareRevokeBody }
 }
 
+/** ShareIncident's default frame: the action right under the body (the Rapport's inline use). */
+const inline = (body: ReactNode, action: ReactNode) => <>{body}{action}</>
+
 /** The surface itself, and the chooser: the tabs ARE how somebody picks which link they are
  *  handing over. Fetches the state of EVERY door it offers on mount, so switching tabs is a pure
  *  render and never a second loading pass (see the effect below).
@@ -128,7 +131,7 @@ function kindCopy(kind: ShareLinkKind) {
  *
  *  `archived` drops the Atemschutz tab: that link dies with the Einsatz (404), so after the
  *  Abschluss it is not a choice but a dead end — see `lib/viewLink · shareDoors`. */
-export function ShareIncident({ incidentId, initialKind = 'view', archived, autoCreate, onState }: {
+export function ShareIncident({ incidentId, initialKind = 'view', archived, autoCreate, onState, frame = inline }: {
   incidentId: string
   initialKind?: ShareLinkKind
   archived?: boolean
@@ -136,6 +139,10 @@ export function ShareIncident({ incidentId, initialKind = 'view', archived, auto
    *  the decision — see the effect below */
   autoCreate?: boolean
   onState?: (kind: ShareLinkKind, link: ShareLink) => void
+  /** where the surface stands: `body` is everything read, `action` the one primary («Link
+   *  erstellen», only while there is no link). Inline (the Rapport) puts it under the body; the
+   *  sheet hands it to its foot — see ShareIncidentSheet. */
+  frame?: (body: ReactNode, action: ReactNode) => ReactNode
 }) {
   const C = appConfig.copy.preflight
   const doors = shareDoors({ archived })
@@ -269,13 +276,14 @@ export function ShareIncident({ incidentId, initialKind = 'view', archived, auto
      that window MINTS, so a fast thumb could rotate an address that had already been handed out.
      A quiet row instead, in the place the sentence will take, and no control at all. */
   if (pending) {
-    return (
+    return frame(
       <>
         {picker}
         <p className="esh-lede esh-pending" aria-busy="true">
           <ShellLoader />{C.shareLoading}
         </p>
-      </>
+      </>,
+      null,
     )
   }
   /* ⚠️ …and the same restraint when the question came back unanswered. «Konnte nicht geladen
@@ -284,7 +292,7 @@ export function ShareIncident({ incidentId, initialKind = 'view', archived, auto
      out there. So it says what happened and hands back the same question. Above the create branch
      on purpose — `!url` is true here too, and this is the more specific truth. */
   if (failed[kind]) {
-    return (
+    return frame(
       <>
         {picker}
         <p className="esh-warn" role="status"><Icon id="warn" />{C.shareLoadFailed}</p>
@@ -294,22 +302,23 @@ export function ShareIncident({ incidentId, initialKind = 'view', archived, auto
           onClick={() => { setFailed((prev) => ({ ...prev, [kind]: false })); load(kind) }}>
           <Icon id="rotate" />{C.shareRetry}
         </button>
-      </>
+      </>,
+      null,
     )
   }
   if (!url) {
-    return (
+    return frame(
       <>
         {picker}
         <p className="esh-lede">{kc.lede}</p>
-        <button type="button" className="ip-btn primary" disabled={busy}
-          onClick={() => void run(() => createShareLink(incidentId, kind), C.shareCreateFailed)}>
-          {busy ? <ShellLoader /> : <Icon id="external" />}{busy ? C.shareBusy : C.shareCreate}
-        </button>
-      </>
+      </>,
+      <button type="button" className="ip-btn primary" disabled={busy}
+        onClick={() => void run(() => createShareLink(incidentId, kind), C.shareCreateFailed)}>
+        {busy ? <ShellLoader /> : <Icon id="external" />}{busy ? C.shareBusy : C.shareCreate}
+      </button>,
     )
   }
-  return (
+  return frame(
     <>
       {picker}
       <p className="esh-lede">{kc.liveLede}</p>
@@ -327,7 +336,8 @@ export function ShareIncident({ incidentId, initialKind = 'view', archived, auto
       {/* Says what the link actually hands over. It is the one thing somebody has to have read
           BEFORE sending it, so it stands under the address, not behind a tooltip. */}
       <p className="esh-warn"><Icon id="warn" />{kc.warn}</p>
-    </>
+    </>,
+    null,
   )
 }
 
@@ -344,11 +354,15 @@ export function ShareIncidentSheet({ incidentId, initialKind, archived, autoCrea
   onClose: () => void
   onState?: (kind: ShareLinkKind, link: ShareLink) => void
 }) {
+  // «Link erstellen», the sheet's one primary, stands in THE sheet foot (r36, 06.11.2026 – it sat
+  // content-wide at the body's left edge, the one sheet whose primary did); the foot is there only
+  // while there is something to create
   return (
-    <Modal title={appConfig.copy.incidentSwitcher.share} onClose={onClose} fit>
-      <div className="esh">
-        <ShareIncident incidentId={incidentId} initialKind={initialKind} archived={archived} autoCreate={autoCreate} onState={onState} />
-      </div>
-    </Modal>
+    <ShareIncident incidentId={incidentId} initialKind={initialKind} archived={archived} autoCreate={autoCreate} onState={onState}
+      frame={(body, action) => (
+        <Modal title={appConfig.copy.incidentSwitcher.share} onClose={onClose} fit footer={action}>
+          <div className="esh">{body}</div>
+        </Modal>
+      )} />
   )
 }

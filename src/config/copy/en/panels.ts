@@ -261,7 +261,7 @@ export const panelsCopy: Localizable<Pick<Copy, Keys>> = {
     diagSaved: 'Diagnostics file «{name}» saved — please attach it.',
     diagFailed: 'The diagnostics file could not be created — the report still works.',
     privacy: 'Nothing is sent automatically. You decide whether, how and to whom.',
-    close: 'Close',
+    cancel: 'Cancel',
     tech: {
       version: 'Version:',
       locale: 'Language:',

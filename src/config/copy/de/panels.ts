@@ -230,7 +230,9 @@ export const panelsCopy = {
     diagSaved: 'Diagnose-Datei «{name}» gesichert – bitte anhängen.',
     diagFailed: 'Diagnose-Datei liess sich nicht erstellen – die Meldung geht trotzdem.',
     privacy: 'Nichts wird automatisch gesendet. Du entscheidest, ob, wie und an wen.',
-    close: 'Schliessen',
+    // the foot's cancel: nothing was sent, the words stay a draft (lib/feedbackDraft) – the same
+    // «Abbrechen» as every sheet foot (r36, 06.11.2026; it said «Schliessen»)
+    cancel: 'Abbrechen',
     tech: {
       version: 'Version:',
       locale: 'Sprache:',
