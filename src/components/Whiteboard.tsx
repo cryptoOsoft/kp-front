@@ -123,6 +123,7 @@ import { ToolRail } from './ToolRail'
 import { TafelPageStrip } from './TafelPageStrip'
 import { TafelFormPage } from './TafelFormPage'
 import { findForms, pageTitles, type FormSeed } from '../lib/boardForm'
+import type { ProblemSource, TickWrite } from '../lib/problemLink'
 import { isDrawnBoardKind } from '../lib/workspace'
 import { labelText, type BoardTemplate } from '../lib/boardTemplate'
 import { SKIZZE, TAFEL_ID, useTafelPage } from '../lib/tafelPages'
@@ -353,6 +354,12 @@ export interface TafelPagesProps {
   onOpenKarte?: () => void
   /** the Einsatz's title as it is now — the printed pages' caption and file name */
   title?: () => string
+  /** the Einsatz's problems from the Checklisten (lib/problemLink) and the way the Tafel writes
+   *  their ticks (a Tendenz, a deletion = an un-tick) – absent: the pages show their own only */
+  problems?: { source: ProblemSource; writeTicks: (writes: readonly TickWrite[]) => void }
+  /** the ONE undo timeline, as far as a page needs it: an act over the Tafel and the Checklisten
+   *  is one step (`group`), and a deletion's «Rückgängig» takes the step on top while it is ours */
+  history?: { group: () => () => void; top: () => unknown; undo: () => void }
 }
 
 /**
@@ -923,8 +930,8 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
   const commit = (next: BoardAnno[]) => boardDoc.commit(withForms(next))
 
   // ── a Tafel page: added, written on, printed, removed — components/usePlanTafelPages ─────────
-  const { addPage, editPage, printPages, printing, removePage } = usePlanTafelPages({
-    onTafel, pages, titles, page, setPageSel, readOnly, tafel, incidentId, add, patchCommit, log, onStepLabel,
+  const { addPage, editPage, viewOf, printPages, printing, removePage } = usePlanTafelPages({
+    onTafel, pages, titles, page, setPageSel, readOnly, tafel, incidentId, add, patchCommit, annos: annosAll, commit: boardDoc.commit, emit, log, onStepLabel,
   })
   // expose fit-to-view (the phone top bar's Fit button calls it; desktop uses the rail footer)
   useEffect(() => { if (fitRef) fitRef.current = () => applyView(1, { x: 0, y: 0 }); return () => { if (fitRef) fitRef.current = null } })
@@ -2082,8 +2089,8 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
       <div className="whiteboard wb-tafel-page">
         {/* the strip in the row a plan's «which place» chips stand in (owner, before the release) */}
         <div className="wb-botleft">{strip}</div>
-        <TafelFormPage key={formPage.id} pageKey={formPage.id} title={titles.get(formPage.id)} data={formPage.form} readOnly={readOnly} isPhone={isPhone}
-          onChange={(next) => editPage(formPage.id, next)} onRemove={() => void removePage(formPage.id)}
+        <TafelFormPage key={formPage.id} pageKey={formPage.id} title={titles.get(formPage.id)} data={viewOf(formPage)} readOnly={readOnly} isPhone={isPhone}
+          onChange={(next, act) => editPage(formPage.id, next, act)} onRemove={() => void removePage(formPage.id)}
           // typed over another device's value for the same cell: the later stands, the Verlauf says so
           onConflict={(where, kept, lost) => log('warn', fillTemplate(appConfig.copy.journal.tafelConflict, { page: titles.get(formPage.id) ?? labelText(formPage.form.page.title), where, kept, lost }), { subjectId: formPage.id })}
           onPrint={incidentId ? (all) => void printPages(all ? pages : [formPage]) : undefined} pageCount={pages.length} printing={printing}

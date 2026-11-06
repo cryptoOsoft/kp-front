@@ -107,3 +107,33 @@ describe('useChecklistActions — un-ticking a milestone is a correction row, by
     expect(result.current.rows).toEqual(['Checkliste rückgängig gemacht'])
   })
 })
+
+describe('useChecklistActions — a problem\'s Tendenz outlives an un-tick (staging review 06.11.2026, S4)', () => {
+  const problems = { ...template, id: 'pe', problems: true } as ChecklistTemplate
+  const energie: Item = { id: 'f1', text: 'Energieträger' }
+  const trendOf = (cl: ChecklistState) => cl.pe?.trends?.f1
+
+  it('un-ticked in the checklist and ticked again, the problem has its Tendenz back', () => {
+    const { result } = renderHook(harness())
+    act(() => result.current.toggleTick(problems, energie))
+    act(() => result.current.setTrend(problems, energie, 'up'))
+    act(() => result.current.toggleTick(problems, energie))
+    expect(result.current.checklists.pe.ticks.f1).toBeUndefined()
+    act(() => result.current.toggleTick(problems, energie))
+    expect(result.current.checklists.pe.ticks.f1).toBeTruthy()
+    expect(trendOf(result.current.checklists)).toBe('up')
+  })
+
+  it('deleted on the Tafel (un-ticked there), the Tendenz stays for a re-tick; none is set on an item not ticked', () => {
+    const { result } = renderHook(harness())
+    act(() => result.current.toggleTick(problems, energie))
+    act(() => result.current.applyTickWrites([{ tpl: 'pe', item: 'f1', trend: 'down' }]))
+    act(() => result.current.applyTickWrites([{ tpl: 'pe', item: 'f1', untick: true }]))
+    expect(result.current.checklists.pe.ticks.f1).toBeUndefined()
+    expect(trendOf(result.current.checklists)).toBe('down')
+    act(() => result.current.setTrend(problems, energie, 'same')) // not ticked: nothing to set
+    expect(trendOf(result.current.checklists)).toBe('down')
+    act(() => result.current.applyTickWrites([{ tpl: 'pe', item: 'f1', trend: null }])) // nor to clear
+    expect(trendOf(result.current.checklists)).toBe('down')
+  })
+})

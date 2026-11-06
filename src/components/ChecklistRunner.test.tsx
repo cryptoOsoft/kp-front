@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { describe, it, expect, afterEach } from 'vitest'
-import { render, cleanup } from '@testing-library/react'
+import { describe, it, expect, afterEach, vi } from 'vitest'
+import { render, cleanup, fireEvent, within } from '@testing-library/react'
 import { ChecklistRunner } from './ChecklistRunner'
 import type { ChecklistTemplate } from '../lib/checklists'
 
@@ -29,5 +29,27 @@ describe('ChecklistRunner head', () => {
     expect(container.textContent).toContain('1/2')
     // the subtitle is whole — the ladder folds it away as a unit, never cuts it
     expect(head.querySelector('p')?.textContent).toBe('Aktions-Checkliste Führungsunterstützung')
+  })
+})
+
+// owner pick 7A, 05.11.2026: on a `problems` list a tick is «ist ein Problem»; only then the Tendenz
+describe('ChecklistRunner · a problems list', () => {
+  const problems = {
+    id: 'pe', kind: 'action', problems: true, title: 'Problemerfassung',
+    phases: [{ id: 'front', title: 'Front', area: 'front', items: [{ id: 'f1', text: 'Energieträger' }, { id: 'f2', text: 'Brand' }] }],
+  } as unknown as ChecklistTemplate
+
+  it('a ticked item says where it stands and offers ➚ = ➘; the picked one again clears it', () => {
+    const onTrend = vi.fn()
+    const { getByRole, queryByRole, getByText } = render(
+      <ChecklistRunner template={problems} state={{ ticks: { f1: { t: '2026-11-05T14:14:00.000Z' } }, trends: { f1: 'same', f2: 'up' } }} canTick problemsOnTafel
+        onToggle={() => {}} onBranch={() => {}} onAction={() => {}} onTrend={onTrend} />,
+    )
+    expect(queryByRole('group', { name: 'Tendenz von «Brand»' })).toBeNull() // not ticked: no Tendenz, its kept one waits
+    const seg = getByRole('group', { name: 'Tendenz von «Energieträger»' })
+    expect(getByText('auf der Tafel')).toBeTruthy()
+    fireEvent.click(within(seg).getByRole('button', { name: 'wird schlimmer' }))
+    fireEvent.click(within(seg).getByRole('button', { name: 'gleich' }))
+    expect(onTrend.mock.calls.map(([item, t]) => [item.id, t])).toEqual([['f1', 'up'], ['f1', undefined]])
   })
 })

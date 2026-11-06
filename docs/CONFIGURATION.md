@@ -2027,6 +2027,41 @@ Images are manifest `assets` (`{"page": N, "file": "…jpg|png|webp|svg"}`), sto
 shape is checked by `app/checklist_templates.py · template_problem` on every door (CLI,
 `/admin › Checklisten`, the SharePoint pull).
 
+#### Problemerfassung (`"problems": true`, 05.11.2026)
+
+An `action` list whose ticks are PROBLEMS, not tasks done: a tick means «this is a problem».
+At the end of a ticked item's line a Tendenz ➚ = ➘ appears (none picked = no trend), and every
+ticked item stands on the Tafel – on the page «Problemerfassung» and in the Erste Führung's
+Problemerfassung box ([`board-templates.md`](board-templates.md) › The Einsatz's problems). Ticked
+while neither page is on the Tafel, it shows once one is added. Un-ticking takes it off; deleting
+it on the Tafel un-ticks it. The Tendenz outlives an un-tick (a re-tick brings it back). A problem
+typed on the Tafel never becomes a tick.
+
+```json
+{
+  "id": "problemerfassung",
+  "kind": "action",
+  "problems": true,
+  "title": "Problemerfassung",
+  "phases": [
+    { "id": "front", "title": "Front", "area": "front",
+      "items": [{ "id": "front-1", "text": "Explosionsgefahr" }] },
+    { "id": "spezielles", "title": "Spezielles", "area": "spezial",
+      "items": [{ "id": "spezielles-1", "text": "Wetter / Wind" }] }
+  ]
+}
+```
+
+| Field | Where | Meaning |
+| --- | --- | --- |
+| `problems` | template, `kind: "action"` only | a tick is a problem for the Tafel |
+| `area` | phase, only with `problems` | the **Bereich** the phase's problems land in: the id of a box of the Tafel's problem quad (bundled: `front`, `ordnung`, `sanitaet`, `spezial`). Without it a phase's problems stand on the problem page only. A station Tafel with other boxes names its own ids |
+
+Ticks are not milestones: nothing reaches the Verlauf
+([`verlauf-coverage.md`](verlauf-coverage.md)). A worked example without station data:
+`examples/demo-data/checklists/musterdorf-problemerfassung.json`. `template_problem` refuses
+`problems` on another kind, an `area` without `problems`, and an `area` that is not an id.
+
 #### Anleitungen (`kind: "manual"`)
 
 A device's instructions – «Stromerzeuger starten», «Hebekissen einsetzen» – as big numbered
