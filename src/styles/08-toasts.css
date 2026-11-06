@@ -488,7 +488,22 @@
    27.10.2026: «Speichern» wrapped under «Weiterzeichnen · Verwerfen» on a desktop). The phone keeps
    its full-width stack (15-mobile). */
 .confirm-card-three { width: min(460px, 92vw); }
-.btn.primary { background: var(--btn-primary); border-color: var(--btn-primary); color: var(--on-btn-primary); }
+/* …and when the SAFE answer is the third one («Zur Tafel», «Raus melden» – ConfirmCard ·
+   safeAnswer 'alt'), ONE layout on every device (owner pick «Trupps noch drin» mock 4, 06.11.2026):
+   Abbrechen + the quiet «Trotzdem …» share the first row, each growing from its word's width, and
+   the filled, focused safe answer takes the whole row under them. Where the first row cannot hold
+   both words (a narrow phone) the three stack full width in the same order, the safe one last.
+   Two classes deep, so the phone's `wrap-reverse` (15-mobile · .confirm-actions) does not flip it. */
+.confirm-card-safe .confirm-actions { flex-wrap: wrap; }
+.confirm-card-safe .confirm-actions > .ip-btn { flex: 1 1 auto; }
+.confirm-card-safe .confirm-actions > .ip-btn:last-child { flex-basis: 100%; }
+/* a line that NAMES something (ConfirmCard · ConfirmLine, the crews still inside): the name in
+   the bold ink, the rest in the regular ink – no bullet, it is not an open point */
+.confirm-list li.confirm-line { padding-left: 0; font-weight: var(--fw-regular); }
+.confirm-list li.confirm-line::before { display: none; }
+.confirm-line b { font-weight: var(--fw-bold); }
+/* 800: the single action of its surface, like `.ip-btn.primary` (docs/ui-conventions · Type) */
+.btn.primary { background: var(--btn-primary); border-color: var(--btn-primary); color: var(--on-btn-primary); font-weight: var(--fw-heavy); }
 @media (hover: hover) {
   .btn.primary:hover { background: var(--btn-primary-hover); border-color: var(--btn-primary-hover); }
 }

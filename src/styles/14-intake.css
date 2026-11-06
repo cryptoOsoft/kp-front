@@ -10,10 +10,20 @@
    ⚠️ This MUST stay below `.ip-sheet.ui-dialog` in the file: both selectors weigh the same, so
    the later one wins — declared further up, the sheet's own z-index 81 put the dialog UNDER the
    120 scrim and it read as blurred and dead to the touch. */
-.mv-note-dialog.ui-dialog { z-index: var(--z-blocking); width: min(520px, 92vw); }
-.mv-note-dialog > .ip-actions { padding: 0 var(--sp-5) var(--sp-4); }
+.mv-note-dialog.ui-dialog { z-index: var(--z-blocking); }
+/* the card's width off a phone only: on a phone it is THE full-width bottom sheet (15-mobile ·
+   `.ip-sheet`) – this rule outranked that one and left a 359px sheet at x=0 (r34, 06.11.2026).
+   Its foot is THE sheet foot (`.ip-sheet > .ip-actions`, 8 24 16) – it had a 0 24 16 of its own. */
+@media (--not-phone) { .mv-note-dialog.ui-dialog { width: min(520px, 92vw); } }
 /* «Eintrag löschen» sits at the far LEFT by the one footer rule (13-incident · `.ui-sheet-foot >
-   .danger`) — a destructive button next to the primary one is a mis-tap waiting to happen */
+   .danger`) — a destructive button next to the primary one is a mis-tap waiting to happen.
+   On a phone the three words do not fit one 342px row (they ran out of the sheet's left edge and
+   «Eintrag löschen» broke in two, r34), so the delete takes its OWN full-width row above
+   Abbrechen · Speichern (r35, 06.11.2026) – further from the primary, not nearer. */
+@media (--phone) {
+  .mv-note-dialog > .ui-sheet-foot { flex-wrap: wrap; }
+  .mv-note-dialog > .ui-sheet-foot > .ip-btn.danger:first-child { flex: 1 1 100%; margin-right: 0; }
+}
 /* «Standort auf Karte setzen» (components/MapPicker) – FULL SCREEN on every width (owner, sweep
    30.10.2026 #5, mock 5A): the head with its ‹, the map with the pin fixed in its middle, one
    «Standort übernehmen» under it. Opaque: it opens OVER the wizard's sheet, whose words must not

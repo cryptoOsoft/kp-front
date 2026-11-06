@@ -706,8 +706,10 @@
 /* (`.linkBtn` is gone with the «Name eingeben (Gast / Nachbarwehr)» row it drew, 04.09. — the
    search field IS the guest entry now, and its door is the last row of the list. See TruppTeam.) */
 
-.modalFoot { flex: none; display: flex; gap: var(--sp-2); justify-content: flex-end; padding: var(--sp-3) var(--sp-5);
-  border-top: 1px solid var(--glass-edge); background: var(--glass); }
+/* THE sheet foot's geometry (r35, 06.11.2026 – `.ip-sheet > .ip-actions`, 13-incident): no hairline,
+   no band of its own, 8 24 16, the buttons to the right. The mini sheets and the Trupp form wore a
+   --glass-edge rule over a 12 24 glass band, the only sheets in the app that did. */
+.modalFoot { flex: none; display: flex; gap: var(--sp-2); justify-content: flex-end; padding: var(--sp-2) var(--sp-5) var(--sp-4); }
 /* second, equally valid submit (Wieder einrücken → «Bereitstellen»): outlined rather than ghost,
    because it commits the form just like the primary does – a ghost would read as «abbrechen». */
 
@@ -905,6 +907,14 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: var(--sp-2); justify-items: start; }
 /* 160, not 150 (25.09.2026): the ✕ grew to the full 44px target, and at 360px two 157px cells
    left a name «Gast A…». A 360px phone now lays one chip per row, whole; from ~390px it is two. */
+/* …with a MOUSE the cells go (r35, 06.11.2026): the laptop's 520px Mannschaft sheet made two 232px
+   cells, so a short name left a ~90px hole before the next chip. There the chips pack left in a
+   free row, 8px apart – the rhythm of the Ausrüstung chips under them (`.miniChips`). The grid
+   stays for a finger (the «das Chip springt um» ask above was a tap); three people fit one line at
+   this width, so a crowning re-wraps only a longer crew. */
+@media (hover: hover) and (pointer: fine) {
+  .teamChips { display: flex; flex-wrap: wrap; }
+}
 /* ⚠️ `--r-sm`, not the row's `--r-ctl`: a chip is a button in the house spec (docs/ui-conventions.md ·
    Buttons), and it sits beside the search field's own `--r-ctl` — two different shapes is what
    says «these are targets, that is a field». */
@@ -2068,9 +2078,9 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
 /* opened from the Trupp form (30.09.2026, TruppSheets · PressureGrid `chosen`): the picked cell is
    the form's answer — THE choice fill */
 .pressureCellOn, .pressureCellOn.pressureCellLow { background: var(--sel); color: var(--on-sel); box-shadow: var(--sel-shadow); }
-/* «Ohne Druck raus» — the sheet's foot, in the body's gutter. THE button (<Button>, 08.10.2026: it
-   was a 50px grey slab of its own); this only places it, stretched across the sheet's column. */
-.pressureSheetFooter { flex: none; margin: 0 var(--sp-5) var(--sp-4); }
+/* («Ohne Druck raus» is the sheet's foot — THE sheet foot, `.modalFoot`, with the button `block`
+   across the grid's column, TruppSheets · PressureSheet; its own `.pressureSheetFooter` margin went
+   with r35, 06.11.2026) */
 
 /* ── The mini sheets: Druck · Kanal · Auftrag · Mannschaft (26.09.2026, phone card slim-down;
    TruppSheets; the Druck joined 29.09.2026) ────
