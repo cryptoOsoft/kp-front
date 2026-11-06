@@ -5,6 +5,7 @@ import { DrawEditor } from './DrawEditor'
 import { appConfig } from '../config/appConfig'
 import { fillTemplate } from '../lib/format'
 import { hoseCount } from '../lib/geo'
+import { HOSE_SIZES } from '../lib/hydraulics'
 
 afterEach(cleanup)
 
@@ -107,7 +108,8 @@ describe('Messung on an already drawn line', () => {
     expect(screen.queryByText('412 m')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: D.measurement }))
     expect(screen.getByText('412 m')).toBeTruthy()
-    expect(screen.getByText(String(hoseCount(412)))).toBeTruthy() // incl. the configured reserve
+    // incl. the configured reserve; the hose length rides in the value, so the label stays one line
+    expect(screen.getByText(`${hoseCount(412)} × ${appConfig.drawing.hoseLengthM} m`)).toBeTruthy()
   })
 
   it('fetches the Höhenprofil only when the group is opened (no swisstopo request on selection)', () => {
@@ -139,7 +141,7 @@ describe('Messung on an already drawn line', () => {
     for (const [hose, written] of [[undefined, { hose: '75', relay: {} }], ['40', { relay: {} }]] as const) {
       const onChange = vi.fn()
       render(<DrawEditor {...base} drawing={{ kind: 'line', hose }} lengthM={412} profileCoords={coords} onHose={noop} waterRelay={{ onChange }} />)
-      expect(screen.getByRole('button', { name: hose ?? '40', pressed: true })).toBeTruthy()
+      expect(screen.getByRole('button', { name: `${D.hose}: ${appConfig.copy.relay.hoseLabels[hose ?? '40']}` })).toBeTruthy()
       fireEvent.click(screen.getByRole('button', { name: D.measurement }))
       fireEvent.click(screen.getByRole('button', { name: appConfig.copy.relay.add }))
       expect(onChange).toHaveBeenCalledTimes(1)
@@ -221,6 +223,23 @@ describe('the line Typ menu', () => {
     render(<DrawEditor {...base} drawing={{ kind: 'line' }} onContent={noop} />)
     expect(screen.getByRole('button', { name: `${D.content}: ${L.W}` })).toBeTruthy()
     expect(screen.queryByRole('button', { name: L.S })).toBeNull() // no chip row any more
+  })
+})
+
+// Owner 05.11.2026: five Ø chips wrapped on the iPhone («110» alone on a second row), and in the
+// tablet's sheet too – the «Schlauch» row is the «Typ» row's menu, every Ø with its unit
+describe('the Schlauch menu', () => {
+  const D = appConfig.copy.drawingEditor
+  const R = appConfig.copy.relay
+  it('names the Ø on its button and picks another from the menu', async () => {
+    const onHose = vi.fn()
+    render(<DrawEditor {...base} drawing={{ kind: 'line', hose: '75' }} onHose={onHose} />)
+    expect(screen.queryByRole('button', { name: '110' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: `${D.hose}: ${R.hoseLabels['75']}` }))
+    const items = await screen.findAllByRole('menuitem')
+    expect(items.map((i) => i.textContent)).toEqual(HOSE_SIZES.map((h) => R.hoseLabels[h]))
+    fireEvent.click(items[4])
+    expect(onHose).toHaveBeenCalledWith('110')
   })
 })
 

@@ -19,6 +19,13 @@
 .pinned::before { border-color: var(--ink); }
 .low::before { background: var(--red-fill); }
 .static { cursor: pointer; }
+/* a pump that reads as a Motorspritze (the Leitung's «Pumpen auf Karte»): the pack glyph is the
+   mark, at a symbol's map size, and the button only its target (never under --tap). No disc; a
+   tapped pump and one that gets too little water ring the target in the pump / alarm hue. */
+.symbol { width: auto; height: auto; min-width: var(--tap); min-height: var(--tap); border-radius: var(--r-sm); }
+.symbol::before { display: none; }
+.symbol.sel { outline: 3px solid color-mix(in srgb, var(--wt-pump) 55%, transparent); }
+.symbol.low { outline: 3px solid var(--red-fill); }
 
 .source {
   display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; box-sizing: border-box;

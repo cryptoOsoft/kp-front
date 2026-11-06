@@ -191,9 +191,13 @@ is split per surface into `src/config/copy/de/<surface>.ts` since 2026-10-09):
 - **A Leitung's Schlauch writes, its Wassertransport does not** (04.11.2026): «Schlauch: 110 mm»
   / «Schlauch auf 2× 75 geändert» (`lib/drawingEdit`) – what was laid. The relay assumptions
   (`Drawing.relay`: Wasser, Start, a pump moved or set by hand) are planning, tweaked tap by
-  tap; they are undoable prop edits in `draw.edit` and write no row. Its «Pumpen als Symbole
-  setzen» does: ONE row for all of them («3 Pumpen als Symbol gesetzt», `useMapActions ·
-  placePumpSymbols`), one undo step, an `entity.add` per Motorspritze.
+  tap; they are undoable prop edits in `draw.edit` and write no row – a pump dragged along the
+  line on the map included (a pin). Its switch «Pumpen auf Karte» (`relay.showPumps`, 05.11.2026)
+  does: it puts the calculated Motorspritzen on the Karte and the printed Kroki or takes them off
+  («Leitung 1: Pumpen auf der Karte» / «… Pumpen von der Karte genommen», `lib/drawingEdit`), one
+  undo step per flip. The pumps themselves are derived (`lib/linePumps`), never entities, so they
+  write nothing of their own. (It replaced «Pumpen als Symbole setzen», 04.–05.11.2026, whose
+  «{n} Pumpen als Symbol gesetzt» rows and ordinary Motorspritzen stay in those Einsätze.)
 
 **Two exceptions, and each is a row: a GPS-coupled Leitung loses a drive** (since 24.09.2026,
 `src/lib/gpsReturn.ts`, `useMapDrawing · revertGpsFollow` / `releaseGpsOnSite`). A Leitung end

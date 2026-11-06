@@ -209,6 +209,10 @@
 /* …and the ▾ flip is the app-wide `.chev` (02-base.css), off this button's aria-expanded */
 .draw-editor .de-prof-toggle .i { width: 16px; height: 16px; }
 .draw-editor .de-prof-msg { padding: 8px 0; font-size: var(--fs-1); color: var(--ink-faint); text-align: center; }
+/* «Wassertransport berechnen» under the Höhenprofil: the room a named group gets above it
+   (08-toasts · `.de-group + .de-group`, 8 + 8px) rather than the stats row's bare edge – it asks
+   the next question, it is not one more number (owner 05.11.2026, «button too tight to the stats») */
+.draw-editor .de-relay-add { margin-top: var(--sp-4); }
 
 /* Verbindungen — reuses the editor's own .de-row / .de-preset rows verbatim so it reads as one more
    FKS group, not a separate widget. Only the target value, the note line and the detach get styling. */

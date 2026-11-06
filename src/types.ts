@@ -83,6 +83,10 @@ export interface RelaySettings {
   /** the water runs from the route's LAST point to its first – a line drawn from the fire back to
    *  the hydrant. The geometry stays as drawn (its ends, arrows and attachments mean what they mean). */
   reverse?: boolean
+  /** «Pumpen auf Karte»: the Leitung draws its calculated pumps as Motorspritzen on the Karte and
+   *  the printed Kroki – derived from the calculation every time, never stored as symbols
+   *  (lib/linePumps). A Leitung only; a Messen Strecke never sets it. */
+  showPumps?: boolean
 }
 
 /** The built-in steppers in the symbol editor that change how the glyph reads on

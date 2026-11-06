@@ -100,11 +100,11 @@ export const drawingCopy = {
     pinned: 'von Hand',
     dragHint: 'Ziehen zum Verschieben',
     autoAll: 'Alle Pumpen automatisch',
-    // das Ergebnis behalten: die Strecke als Leitung MIT der Rechnung (Ø, Wasser, Quelle, Pumpen),
-    // und alle Pumpen als gewöhnliche Motorspritzen-Symbole – danach unabhängig von der Rechnung.
+    // das Ergebnis behalten: die Strecke als Leitung MIT der Rechnung (Ø, Wasser, Quelle, Pumpen);
+    // auf einer Leitung zeichnet «Pumpen auf Karte» die gerechneten Pumpen als Motorspritzen.
     // «Karte», nicht «Lage» (docs/copy-and-wording.md · Words)
     adoptLine: 'Als Leitung auf die Karte',
-    placePumps: 'Pumpen als Symbole setzen',
+    showPumps: 'Pumpen auf Karte',
     noTerrain: 'Ohne Höhenprofil gerechnet – Steigung fehlt',
     manyPumps: '{n} Pumpen – mehr als üblich',
     outsideTable: '{flow} l/min ausserhalb der AGV-Tabelle – geschätzt',
@@ -156,9 +156,9 @@ export const drawingCopy = {
   log: {
     audioNote: 'Audionotiz',
     symbolPlaced: 'Symbol «{name}» gesetzt',
-    // «Pumpen als Symbole setzen» im Wassertransport: EINE Zeile für alle Pumpen
-    pumpPlaced: '1 Pumpe als Symbol gesetzt',
-    pumpsPlaced: '{n} Pumpen als Symbol gesetzt',
+    // «Pumpen auf Karte» einer Leitung an / aus (lib/drawingEdit, hinter «{name}: »)
+    pumpsShown: 'Pumpen auf der Karte',
+    pumpsHidden: 'Pumpen von der Karte genommen',
     shapePlaced: '{name} platziert',
     notePlaced: 'Notiz gesetzt',
     teamPlaced: '{name} auf der Karte gesetzt',

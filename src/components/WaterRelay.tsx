@@ -3,18 +3,18 @@ import { appConfig } from '../config/appConfig'
 import { useChartReadout } from '../lib/chartCursor'
 import { cx } from '../lib/cx'
 import { fillTemplate } from '../lib/format'
-import { fmtDistance, pointAlongPath } from '../lib/geo'
+import { fmtDistance } from '../lib/geo'
 import { HOSES, RELAY, RELAY_HOSE_SIZES, type RelayPlan } from '../lib/hydraulics'
 import { Icon } from '../lib/icons'
 import { Popover } from '../lib/overlays'
 import { useIsPhone } from '../lib/useIsPhone'
 import { fmtBar, parseFlow, pumpsText, PUMP_ATTR, type RelayController } from '../lib/useRelay'
-import type { LngLat, RelaySource } from '../types'
+import type { RelaySource } from '../types'
 import { Button, IconButton } from './Button'
 import { Combo } from './Combo'
 import { ProfileStats } from './ProfileChart'
 import { PumpBubble } from './PumpBubble'
-import { Segmented } from './Segmented'
+import { OnOff, Segmented } from './Segmented'
 import { LoadingStatus } from './ShellLoader'
 import { Stepper } from './Stepper'
 import m from './MeasurePanel.module.css'
@@ -30,9 +30,11 @@ import s from './WaterRelay.module.css'
 // pressure over the terrain, its legend above it and a bar scale beside it – it stands in for the
 // Höhenprofil, with the same Aufstieg / Abstieg row under it; a tapped pump opens its bubble at
 // the dot – components/PumpBubble, portalled, so it never grows the panel), then «Druck am Ende»,
-// the warnings and the ways to keep the result. WIDE (the Messen panel off a phone): the chart down
-// the left, inputs, result and actions down the right; ONE column (a phone, the Leitung editor):
-// heading, inputs, chart, result.
+// the warnings and the ways to keep the result (on a Leitung: «Pumpen auf Karte», the switch that
+// lets the line draw its pumps – lib/linePumps; owner 05.11.2026, it replaced the one-shot
+// «Pumpen als Symbole setzen», which dropped another set of symbols on every tap). WIDE (the
+// Messen panel off a phone): the chart down the left, inputs, result and actions down the right;
+// ONE column (a phone, the Leitung editor): heading, inputs, chart, result.
 // Approved design: mockups/wt-nov04-m4b.html, refined by round 3 mock F-A, 04.11.2026; the pump
 // card became the bubble on the device test that evening (owner: «one number you rarely change»),
 // and round 4 (device test 04.11.2026) dropped «Planungshilfe» from the heading, moved the sources
@@ -43,16 +45,16 @@ const SOURCES: RelaySource[] = ['hydrant', 'weier', 'pumpe']
 /** The section. `showHose`: Messen offers the Schlauch-Ø row; a Leitung takes it from its own.
  *  `wide`: two columns – the Messen
  *  panel off a phone. `onClose`: the heading's ×. `onAdoptLine`: Messen's «Als Leitung auf die
- *  Karte» (the host's adopt, which carries the relay onto the new line). `onPlacePumps`: «Pumpen
- *  als Symbole setzen», every pump's spot at once – only where the surface may place symbols (the
- *  Lage, not read-only; never the Karte app). Each action is hidden while its prop is absent. */
-export function WaterRelay({ ctrl, showHose = false, wide = false, onClose, onAdoptLine, onPlacePumps }: {
+ *  Karte» (the host's adopt, which carries the relay onto the new line). `mapPumps`: a Leitung's
+ *  section – it offers «Pumpen auf Karte» (RelayController · setShowPumps; Messen has no line to
+ *  draw them on). Each action is hidden while its prop is absent. */
+export function WaterRelay({ ctrl, showHose = false, wide = false, onClose, onAdoptLine, mapPumps = false }: {
   ctrl: RelayController
   showHose?: boolean
   wide?: boolean
   onClose?: () => void
   onAdoptLine?: () => void
-  onPlacePumps?: (coords: LngLat[]) => void
+  mapPumps?: boolean
 }) {
   const R = appConfig.copy.relay
   const { input, plan, readOnly } = ctrl
@@ -127,7 +129,7 @@ export function WaterRelay({ ctrl, showHose = false, wide = false, onClose, onAd
               <b className={cx(s.endBar, plan.endBar > RELAY.okBar ? s.ok : plan.endBar >= RELAY.minInletBar ? s.warn : s.bad)}>{fmtBar(plan.endBar)}</b>
             </div>
             <RelayMessages ctrl={ctrl} plan={plan} />
-            <RelayActions ctrl={ctrl} plan={plan} onAdoptLine={onAdoptLine} onPlacePumps={onPlacePumps} />
+            <RelayActions ctrl={ctrl} plan={plan} onAdoptLine={onAdoptLine} mapPumps={mapPumps} />
           </div>
         </>
       )}
@@ -136,9 +138,10 @@ export function WaterRelay({ ctrl, showHose = false, wide = false, onClose, onAd
 }
 
 /** «Wassertransport berechnen» – under the host's Höhenprofil, the app's standard button; it ADDS
- *  the section (owner 04.11.2026), which then closes with its own ×. */
-export function AddRelayButton({ onClick }: { onClick: () => void }) {
-  return <Button block icon={<Icon id="plus" />} onClick={onClick}>{appConfig.copy.relay.add}</Button>
+ *  the section (owner 04.11.2026), which then closes with its own ×. `className`: the host's room
+ *  above it (the Leitung editor's group gap, DrawEditor · .de-relay-add). */
+export function AddRelayButton({ onClick, className }: { onClick: () => void; className?: string }) {
+  return <Button block className={className} icon={<Icon id="plus" />} onClick={onClick}>{appConfig.copy.relay.add}</Button>
 }
 
 /** The warnings, in the order they matter: a pump that gets no water first, then the estimate. */
@@ -178,28 +181,32 @@ function RelayMessages({ ctrl, plan }: { ctrl: RelayController; plan: RelayPlan 
 }
 
 /** Keeping the result: the way back to automatic once a pump was moved, the Strecke as a Leitung
- *  WITH its calculation (Messen), and the pumps as ordinary Motorspritzen – one undo step and one
- *  Verlauf row for all of them (useMapActions · placePumpSymbols), on their own from then on. */
-function RelayActions({ ctrl, plan, onAdoptLine, onPlacePumps }: {
+ *  WITH its calculation (Messen), and on a Leitung «Pumpen auf Karte» – a state, not an action:
+ *  on, the line draws these pumps as Motorspritzen wherever the calculation puts them (lib/
+ *  linePumps), so a second tap can never add a second set. One undo step and one Verlauf row
+ *  per flip (lib/drawingEdit). Offered while there is a pump to show, or the switch is on. */
+function RelayActions({ ctrl, plan, onAdoptLine, mapPumps }: {
   ctrl: RelayController
   plan: RelayPlan
   onAdoptLine?: () => void
-  onPlacePumps?: (coords: LngLat[]) => void
+  mapPumps: boolean
 }) {
   const R = appConfig.copy.relay
   const pinned = !ctrl.readOnly && ctrl.input.pumps.some((o) => o?.atM != null)
-  // (not while the profile reloads: the pumps would stand on the previous route's terrain)
-  const placeable = !!onPlacePumps && plan.pumps.length > 0 && !ctrl.profileLoading
-  if (!pinned && !onAdoptLine && !placeable) return null
+  const pumpsSwitch = mapPumps && !ctrl.readOnly && (plan.pumps.length > 0 || ctrl.showPumps)
+  if (!pinned && !onAdoptLine && !pumpsSwitch) return null
   return (
     <div className={s.actions}>
+      {/* the Messung's own «Auf Karte» row, word for word – there it puts the length on the map,
+          here what this section computed, its pumps. «Pumpen auf Karte» broke onto two lines in the
+          phone's label column (05.11.2026); the full words stay its accessible name. */}
+      {pumpsSwitch && (
+        <div className="field"><span>{appConfig.copy.drawingEditor.showOnMap}</span>
+          <OnOff ariaLabel={R.showPumps} value={ctrl.showPumps} onChange={ctrl.setShowPumps} />
+        </div>
+      )}
       {pinned && <Button variant="quiet" block onClick={ctrl.unpinAll}>{R.autoAll}</Button>}
       {onAdoptLine && <Button variant="primary" block icon={<Icon id="pen" />} onClick={onAdoptLine}>{R.adoptLine}</Button>}
-      {placeable && (
-        <Button block icon={<Icon id="plus" />} onClick={() => onPlacePumps(plan.pumps.map((p) => pointAlongPath(ctrl.coords, p.dist)))}>
-          {R.placePumps}
-        </Button>
-      )}
     </div>
   )
 }

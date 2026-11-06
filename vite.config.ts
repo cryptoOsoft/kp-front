@@ -374,6 +374,23 @@ export default defineConfig(({ mode }) => {
               options: { cacheName: 'map-glyphs', cacheableResponse: { statuses: [200] } },
             },
             {
+              // The swisstopo height profile of a path (lib/profile · fetchElevationProfile, its
+              // path in the URL): what a Leitung's Wassertransport plans its pumps on (lib/
+              // linePumps). Without it a reload OFFLINE planned them on flat ground, and the
+              // Motorspritzen a Leitung draws stood elsewhere than an hour before (05.11.2026).
+              // Network first – the terrain does not change, but a moved Leitung is a new URL
+              // anyway – with a short timeout, so a weak signal answers from the copy. Bounded:
+              // a dragged Leitung leaves one path per pause.
+              urlPattern: /^https:\/\/api3\.geo\.admin\.ch\/rest\/services\/profile\.json\?/,
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'height-profiles',
+                networkTimeoutSeconds: 4,
+                cacheableResponse: { statuses: [200] },
+                expiration: { maxEntries: 300, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              },
+            },
+            {
               // The station catalogue and point facts already have their offline copy in
               // IndexedDB (lib/api/stationReference). A stale-first Workbox answer hid changes
               // and could answer a link with the account's full register before its 403 arrived.

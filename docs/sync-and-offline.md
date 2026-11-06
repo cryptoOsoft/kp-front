@@ -23,6 +23,12 @@ the module they concern (`lib/connectivity`, `lib/eventScope`, `lib/jsonEqual`,
   only tiny device flags (update banners, install prompts, once-per-device hints) and migration
   flags. UI copy/locale/defaults/storage keys live in `src/config/appConfig.ts`; the neutral
   fallback incident is `src/data/demoIncident.ts`.
+- **A Leitung's pumps keep their terrain offline** (05.11.2026). The pumps a Leitung draws
+  («Pumpen auf Karte», `lib/linePumps`) are planned on the swisstopo height profile of its path.
+  The page shares one in-memory copy per path (`lib/profile · loadProfile`); across a reload the
+  service worker's `height-profiles` cache answers the same URL offline (`vite.config` ·
+  runtimeCaching: network first, 4 s timeout, 300 paths / 30 days). A path never fetched online
+  has no profile and plans on flat ground, as the editor says («Ohne Höhenprofil gerechnet»).
 - **Saved means every operational queue is acknowledged.** Workspace, journal and client audit
   outboxes and the media upload queue contribute to the shared sync status. Preserve rejected
   entries for retry/export; a failed IndexedDB write must never claim local durability. Hydrate
