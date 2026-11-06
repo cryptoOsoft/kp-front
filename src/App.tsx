@@ -52,7 +52,7 @@ import { pickTrouble, readTrouble, recordTrouble, type TroubleEvent } from './li
 import { onStorageDegraded } from './lib/idb'
 import { loadRoster } from './lib/usePersonnel'
 import { HelpOverlay } from './components/HelpOverlay'
-import { UebenSheet } from './components/tutorial/UebenSheet'
+import { UebenSheet } from './components/tutorial/lazy'
 import { offeredTutorials } from './lib/tutorials/offer'
 import { installHoldTooltip } from './lib/holdTooltip'
 import { setTutorialHost } from './lib/tutorials/session'
@@ -933,8 +933,9 @@ export default function App() {
         />
       )}
       {screen !== 'einsatz' && landingSheet === 'help' && <HelpOverlay tutorials={tutorials} onClose={() => setLandingSheet(null)} />}
-      {/* on every screen: the Einsatz menu opens it too, and a tap starts the tutorial there */}
-      {landingSheet === 'ueben' && <UebenSheet tutorials={tutorials} onClose={() => setLandingSheet(null)} />}
+      {/* on every screen: the Einsatz menu opens it too, and a tap starts the tutorial there (its
+          own chunk, components/tutorial/lazy) */}
+      {landingSheet === 'ueben' && <Suspense fallback={null}><UebenSheet tutorials={tutorials} onClose={() => setLandingSheet(null)} /></Suspense>}
       {screen !== 'einsatz' && landingSheet === 'install' && <InstallGuide onClose={() => setLandingSheet(null)} />}
       {screen !== 'einsatz' && feedbackFor && (
         <FeedbackSheet

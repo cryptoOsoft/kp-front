@@ -17,7 +17,7 @@ import type { Snapshot } from './lib/tutorials/snapshot'
  *   (t) every control a tutorial step points at is in the DOM of the step's surface, on the
  *       tablet's rails AND on the phone's bars + «+» sheet (O1) – the drift catcher: a control
  *       that moves or loses its `tut()` spread turns this red instead of a silent broken step.
- *   (u) a started tutorial binds to the open Übung and shows its pill.
+ *   (u) a started tutorial loads the runner's chunk, binds to the open Übung and shows its pill.
  */
 
 vi.mock('./lib/auth', async (importOriginal) => {
@@ -130,7 +130,7 @@ describe('(u) a started tutorial runs on the open Übung', () => {
   it('binds (the Round-1 door refuses) and shows «Üben 1/7»', async () => {
     startTutorial('lageZeichnen')
     await mount()
-    await settle()
-    expect(screen.getByRole('button', { name: /Üben 1\/7/ })).toBeTruthy()
+    // the runner is its own chunk (components/tutorial/lazy): the pill comes once it has loaded
+    expect(await screen.findByRole('button', { name: /Üben 1\/7/ }, { timeout: 5000 })).toBeTruthy()
   })
 })
