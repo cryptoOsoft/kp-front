@@ -339,8 +339,8 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
     return () => ro.disconnect()
   }, [])
   const scale = useMemo(() => (stripSpan ? stripScale(stripSpan.from, stripSpan.to, stripTrackPx) : null), [stripSpan, stripTrackPx])
-  // …and the rows as the ruler's floor: stretches of activity, the busy ones darker
-  const floor = useMemo(() => (stripSpan ? stripRuns(stripTicks, stripSpan.from, stripSpan.to, stripTrackPx) : null), [stripTicks, stripSpan, stripTrackPx])
+  // …and the rows as the ruler's events band: stretches of activity, the busy ones darker
+  const band = useMemo(() => (stripSpan ? stripRuns(stripTicks, stripSpan.from, stripSpan.to, stripTrackPx) : null), [stripTicks, stripSpan, stripTrackPx])
   /** Scroll the list to the row nearest a moment on the strip. */
   const jumpTo = (ms: number) => {
     let best: string | null = null
@@ -767,14 +767,15 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
             {/* the ticks live on an INSET track (lib/verlauf · STRIP_INSET). Positioned against the
                 strip itself, the first and last moment sat on its rounded ends – half-swallowed by
                 the corner radius – and a clock on either could not centre on its mark. */}
-            {/* …and on it, as one ruler: the rows' floor (stripRuns), the divisions and the round
-                times as taller marks above it, every round time labelled and centred, and the
+            {/* …and on it, as one ruler: the rows' events band (stripRuns) above a spine, the
+                divisions hanging under it, the round times as the tall marks standing on it, every
+                round time labelled and centred, and the
                 first and last moment's clocks at the ends where they do not collide with one of
                 those (stripScale – the stamp gives way, never an hour). Where the END stamp gave
                 way, a short ink tick caps the right end: the latest moment, the «now» of the strip. */}
             <div className="jr-strip-track" style={{ insetInline: STRIP_INSET }} aria-hidden>
-              {floor?.runs.map((r) => <i key={r.from} className="jr-strip-run" style={{ left: `${r.from * 100}%`, width: `${(r.to - r.from) * 100}%` }} />)}
-              {floor?.busy.map((r) => <i key={r.from} className="jr-strip-run jr-strip-busy" style={{ left: `${r.from * 100}%`, width: `${(r.to - r.from) * 100}%` }} />)}
+              {band?.runs.map((r) => <i key={r.from} className="jr-strip-run" style={{ left: `${r.from * 100}%`, width: `${(r.to - r.from) * 100}%` }} />)}
+              {band?.busy.map((r) => <i key={r.from} className="jr-strip-run jr-strip-busy" style={{ left: `${r.from * 100}%`, width: `${(r.to - r.from) * 100}%` }} />)}
               {scale?.minor.map((m) => <b key={m.frac} className={m.mid ? 'jr-strip-div jr-strip-mid' : 'jr-strip-div'} style={{ left: `${m.frac * 100}%` }} />)}
               {scale?.marks.map((m) => (
                 <Fragment key={m.frac}>

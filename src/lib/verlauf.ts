@@ -402,24 +402,24 @@ export function stripScale(from: number, to: number, trackPx: number): { start?:
   }
 }
 
-/** One stretch of the Verlauf strip's activity floor, 0–1 along the track. */
+/** One stretch of the Verlauf strip's events band, 0–1 along the track. */
 export interface StripRun { from: number; to: number }
 
 /** The strip's density column, px: rows closer than this land in ONE column. */
 const STRIP_COL_PX = 3
 /** A column holding this many rows or more is busy: it draws a step darker. */
 const STRIP_BUSY = 3
-/** Empty columns the floor bridges: a lull up to this long is not a gap in the line (it would
- *  break the floor into dashes), a longer one is the Einsatz going quiet. Busy stretches bridge one. */
+/** Empty columns the band bridges: a lull up to this long is not a gap in the bar (it would
+ *  break the band into dashes), a longer one is the Einsatz going quiet. Busy stretches bridge one. */
 const STRIP_BRIDGE = 2
 
 /**
- * The Verlauf strip's activity floor (Journal · `.jr-strip-run`): the rows' moments (`ticks`,
+ * The Verlauf strip's events band (Journal · `.jr-strip-run`): the rows' moments (`ticks`,
  * ascending ms) dropped into `STRIP_COL_PX` columns of the measured track, and every stretch of
  * columns holding a row (lulls of up to `STRIP_BRIDGE` empty columns bridged) drawn as ONE run
- * along the floor of the ruler – `busy` the stretches of columns with `STRIP_BUSY`+ rows, drawn
+ * in the band above the ruler's spine – `busy` the stretches of columns with `STRIP_BUSY`+ rows, drawn
  * over them a step darker. So the rows read as where the Einsatz was active and where it was
- * quiet (a gap in the floor), never as a comb of per-row hairlines beside the scale's own marks
+ * quiet (a gap in the band), never as a comb of per-row hairlines beside the scale's own marks
  * (hill climb r28, Sol 2: at phone width the 3px-apart row ticks read as a stippled band of minute
  * marks). Look only: the tap still jumps by time (Journal · jumpTo). A run covers its columns: a lone row is one column wide.
  * Unmeasured (`trackPx` 0, e.g. jsdom) every row is its own zero-width run.
