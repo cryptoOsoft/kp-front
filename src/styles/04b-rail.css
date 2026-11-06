@@ -165,9 +165,10 @@
    in a 46px tile, the letter's ink ended ~2px from the selected ink pill's edge and read clipped).
    The widest glyphs' ink ends 9px right of the tile centre; the letter starts 4–5px after it
    (`left: 50% + 13px`, the cap's ≈ 1px side bearing included) and is ≤ 9px wide («M», «C», «U»),
-   so it ends at 50% + 22px – and the tile is 56px wide wherever letters show (1px at the rail's
-   sides instead of --bar-pad's 6 – 3px from r23 to r28, a 52px tile; the 60px rail unchanged),
-   leaving ≥ 6px to the pill's edge (measured r29). The tiles stay 46px tall; the expanded rail
+   so it ends at 50% + 22px – and a lettered tile is 56px wide wherever letters show (1px at the
+   rail's sides instead of --bar-pad's 6 – 3px from r23 to r28, a 52px tile; the 60px rail
+   unchanged), leaving ≥ 6px to the pill's edge (measured r29); an unlettered one stays the 48px
+   square (r30, below). The tiles stay 46px tall; the expanded rail
    keeps its 6px, so its glyph column stays put.
    On the ink pill the letter is the pill's own text colour at 70 %, so it recedes there as it does
    on the resting tiles beside it. */
@@ -185,6 +186,12 @@
      tiles' edge and never cover one (05-navrail · .nav-grip), and their mark, now flush with the
      grip's inner edge, stays where it was – on the rail's border */
   .rail:not(.folded):not(.labelled):not(.expanded):has(.rail-key) { padding-inline: 1px; }
+  /* …but only a LETTERED tile needs the 56px: an unlettered one (Pläne, Präsentation, the expand
+     chevron, the right rail's foot) keeps the 48px square it had at --bar-pad, centred in the rail,
+     so its selected ink pill hugs the glyph instead of carrying an empty half where a letter would
+     hang (hill climb r30, Opus 5). Centred, its glyph stays on the rail's one icon axis. */
+  .rail:not(.folded):not(.labelled):not(.expanded):not(.dragging):has(.rail-key)
+    :is(.nav-item, .vrail-tool, .vrail-nbtn, .rail-exp):not(:has(.rail-key)) { width: 48px; align-self: center; }
   .navrail:not(.folded):not(.labelled):not(.expanded):has(.rail-key) .nav-grip { right: -18px; padding-left: 0; }
   .vrail:not(.folded):not(.labelled):not(.expanded):has(.rail-key) .vrail-grip { left: -18px; padding-right: 0; }
 }
