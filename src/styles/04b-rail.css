@@ -137,11 +137,14 @@
    never wears them (its tiles are doors to groups, and a bar you touch needs no letter).
    Placement follows the tile's shape, because the badge must never sit on its glyph or its word:
      · icon-only (default): the glyph stays on the tile's centre, the ONE icon axis of the rail,
-       and the letter HANGS beside it – 3px right of the glyph's ink, its cap height centred on the
-       glyph's middle (hill climb r21, Sol 1: with its foot on the glyph's foot line, r20, «K» and
-       «V» read as subscripts). ⚠️ The letter never moves its glyph (hill climb r22, Opus 1: r21
-       stepped lettered glyphs 5px left to centre the pair, and the icon column zig-zagged between
-       lettered and unlettered rows); the alarm/count dot keeps the top-right;
+       and the letter HANGS beside it as a subscript tag – 4–5px right of the glyph's ink, its
+       baseline on the glyph's foot line (hill climb r29, Opus 5: centred on the glyph's middle at
+       3px, r21, and at the glyph's weight, «TN» and «FT» fused into one word; set low and quieter
+       it reads as a tag OF the glyph, not as a second letter beside it – r21's centring had been
+       Sol's reply to r20's foot-line letter at the glyph's weight). ⚠️ The letter never moves its
+       glyph (hill climb r22, Opus 1: r21 stepped lettered glyphs 5px left to centre the pair, and
+       the icon column zig-zagged between lettered and unlettered rows); the alarm/count dot keeps
+       the top-right;
      · words under the glyph (`.labelled`): the TOP-LEFT corner – the word occupies the bottom half
        of the tile, the glyph only the middle of the top half, and the alarm / count / open dots
        all hang off the right;
@@ -149,35 +152,39 @@
        right end, the right rail's left end – the free side of the row. */
 /* A bare letter, no keycap (04.11.2026, hill climb: the framed chip on every tile's corner added a
    second small object exactly where the glyph has to be recognised at a glance). It is a hint for
-   whoever looks for it, so it is the quietest text in the rail. ⚠️ Inset so the letter's ink stays
-   ≥4px clear of the tile's curved corner (05.11.2026, hill climb r13: at 4/2px it ran into the
-   selected pill's radius); on the ink pill it takes the pill's own text colour, muted (below).
-   The body face at 11/500, not the mono (hill climb r20, Opus 5): the mono's narrow caps rendered
-   ~8px and thin; Sora's are the bar's own letters, wide enough to read at a glance.
-   `text-box: trim-both cap alphabetic` makes the letter's box its cap height, so «top: 50% −50%»
-   centres the visible capital on the tile's middle, not the em box with its descender room.
+   whoever looks for it, so it is the quietest text in the rail: the faint ink, 11px (--fs-micro,
+   the smallest step) at the regular weight (r29; 500 until then, near the glyphs' own stroke).
+   ⚠️ Inset so the letter's ink stays ≥4px clear of the tile's curved corner (05.11.2026, hill
+   climb r13: at 4/2px it ran into the selected pill's radius); on the ink pill it takes the pill's
+   own text colour, muted (below). The body face, not the mono (hill climb r20, Opus 5): the mono's
+   narrow caps rendered ~8px and thin; Sora's are the bar's own letters, wide enough to read.
+   `text-box: trim-both cap alphabetic` makes the letter's box its cap height, so the box's bottom
+   IS the baseline: «bottom: 50% − 9px» stands it on the 22px glyph's foot line (the icon's ink
+   ends 9px under the tile's middle; measured ±1px on every lettered tile, r29).
    ⚠️ The room for it comes from the TILE, not the glyph (hill climb r23, Opus 3: hung at 50% + 13px
    in a 46px tile, the letter's ink ended ~2px from the selected ink pill's edge and read clipped).
-   The widest glyphs' ink ends 9px right of the tile centre; the letter starts 3px after it
-   (`left: 50% + 11px`, the cap's ≈ 1px side bearing included) and is ≤ 8px wide («M», «C», «D»),
-   so it ends at 50% + 20px – and the tile is 52px wide wherever letters show (half of --bar-pad,
-   3px, at the rail's sides instead of 6; the 60px rail unchanged), leaving 6px to the pill's
-   edge. The tiles stay 46px tall; the expanded rail keeps its 6px, so its glyph column stays put.
+   The widest glyphs' ink ends 9px right of the tile centre; the letter starts 4–5px after it
+   (`left: 50% + 13px`, the cap's ≈ 1px side bearing included) and is ≤ 9px wide («M», «C», «U»),
+   so it ends at 50% + 22px – and the tile is 56px wide wherever letters show (1px at the rail's
+   sides instead of --bar-pad's 6 – 3px from r23 to r28, a 52px tile; the 60px rail unchanged),
+   leaving ≥ 6px to the pill's edge (measured r29). The tiles stay 46px tall; the expanded rail
+   keeps its 6px, so its glyph column stays put.
    On the ink pill the letter is the pill's own text colour at 70 %, so it recedes there as it does
    on the resting tiles beside it. */
-.rail-key { display: none; position: absolute; left: calc(50% + 11px); top: 50%; translate: 0 -50%;
-  font-family: var(--body); font-size: var(--fs-micro); font-weight: var(--fw-medium);
+.rail-key { display: none; position: absolute; left: calc(50% + 13px); bottom: calc(50% - 9px);
+  font-family: var(--body); font-size: var(--fs-micro); font-weight: var(--fw-regular);
   font-variant-numeric: tabular-nums; line-height: 1; text-box: trim-both cap alphabetic;
   color: var(--ink-faint); pointer-events: none; }
 :is(.nav-item, .vrail-tool).on .rail-key { color: color-mix(in srgb, var(--on-here) 70%, transparent); }
-.rail.labelled:not(.expanded):not(.dragging) .rail-key { top: 4px; translate: none; right: auto; left: 6px; }
-.rail.expanded:not(.dragging) .rail-key { left: auto; right: 10px; }
+.rail.labelled:not(.expanded):not(.dragging) .rail-key { top: 4px; bottom: auto; right: auto; left: 6px; }
+.rail.expanded:not(.dragging) .rail-key { left: auto; right: 10px; bottom: auto; top: 50%; translate: 0 -50%; }
 .vrail.expanded:not(.dragging) .rail-key { right: auto; left: 10px; }
 @media (hover: hover) and (pointer: fine) {
   .rail:not(.folded) .rail-key { display: block; }
-  /* the 52px lettered tile (above); the grips step out by the same 3px, so they still cover only
-     the rail's padding and never a tile's edge (05-navrail · .nav-grip) */
-  .rail:not(.folded):not(.labelled):not(.expanded):has(.rail-key) { padding-inline: calc(var(--bar-pad) / 2); }
-  .navrail:not(.folded):not(.labelled):not(.expanded):has(.rail-key) .nav-grip { right: -16px; }
-  .vrail:not(.folded):not(.labelled):not(.expanded):has(.rail-key) .vrail-grip { left: -16px; }
+  /* the 56px lettered tile (above); the grips step out by the same 5px, so they still start at the
+     tiles' edge and never cover one (05-navrail · .nav-grip), and their mark, now flush with the
+     grip's inner edge, stays where it was – on the rail's border */
+  .rail:not(.folded):not(.labelled):not(.expanded):has(.rail-key) { padding-inline: 1px; }
+  .navrail:not(.folded):not(.labelled):not(.expanded):has(.rail-key) .nav-grip { right: -18px; padding-left: 0; }
+  .vrail:not(.folded):not(.labelled):not(.expanded):has(.rail-key) .vrail-grip { left: -18px; padding-right: 0; }
 }
