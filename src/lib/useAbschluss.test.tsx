@@ -7,6 +7,7 @@ import { confirmDialog } from './ui'
 import { useAbschluss } from './useAbschluss'
 import type { ReportMeta } from './workspace'
 import type { Trupp } from '../types'
+import type { ConfirmItem } from './overlays/ConfirmCard'
 import { appConfig } from '../config/appConfig'
 
 // The Abschluss block (moved out of IncidentWorkspace 23.09.2026). The confirm → flush → handover
@@ -242,7 +243,8 @@ describe('useAbschluss', () => {
       const a = args({ trupps: [inside] })
       await expect(renderHook(() => useAbschluss(a)).result.current.confirmAndComplete()).resolves.toBe(false)
       expect(ask.mock.calls[0][0]).toMatchObject({
-        message: '1 Trupp ist noch drin: Trupp 1 (Muster Leo / Graf Eva).',
+        message: '1 Trupp ist noch drin:',
+        items: [{ head: 'Trupp 1', text: 'Muster Leo / Graf Eva' }],
         altLabel: appConfig.copy.abschluss.registeredToBoard,
         confirmLabel: appConfig.copy.abschluss.insideClose,
         safeAnswer: 'alt',
@@ -304,7 +306,8 @@ describe('useAbschluss', () => {
      owner's point 4): «Zeiten» stood open on almost every close because nothing ever set it. */
   describe('the «Noch offen» sheet settles points in place', () => {
     const A = appConfig.copy.abschluss
-    type Ask = Parameters<typeof confirmDialog>[0]
+    // the Abschluss sheet's rows are all tappable ConfirmItems (no ConfirmLine – that is the crews' ask)
+    type Ask = Omit<Parameters<typeof confirmDialog>[0], 'items'> & { items?: (string | ConfirmItem)[] }
 
     it('pre-fills an empty Einsatzende as a done row and writes it with the close, before the handover', async () => {
       const ask = vi.mocked(confirmDialog)

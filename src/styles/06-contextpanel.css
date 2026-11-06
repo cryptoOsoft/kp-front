@@ -458,7 +458,9 @@
 .ctx-caprow .useg-btn { padding: 4px 12px; }
 
 .ctx-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 12px 16px; }
-.ctx-actions > .btn { flex: 1 1 140px; }
+/* the foot is a SHEET footer, so its buttons speak THE button's 14/700 (r35, 06.11.2026) – the
+   12.5 of the bare `.btn` below is the dense dock button's (Georef, Massstab), not a sheet's */
+.ctx-actions > .btn { flex: 1 1 140px; font-size: var(--fs-2); }
 /* the foot's glyphs are one size (16px, the family's) — the bin's 18 in its square */
 .ctx-actions > .btn .i { width: 16px; height: 16px; }
 /* «Entfernen» as a SQUARE (27.09.2026): removal is rare and should not be a wide target — the
