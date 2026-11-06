@@ -869,6 +869,10 @@ export const adminCopy: Localizable<Pick<Copy, 'admin'>> = {
       vehicleRemoveConfirm: 'Supprimer le véhicule ? Sa ligne dans la grille des heures de départ disparaît, et les heures annoncées ne retrouvent plus son identifiant.',
       vehicleIncomplete: 'Incomplet – la ligne n’est enregistrée qu’avec une désignation et un identifiant.',
       vehicleDuplicate: 'Cet identifiant existe déjà – cette ligne n’est pas enregistrée.',
+      originsTitle: 'Provenance des véhicules',
+      originsTip: 'D’où vient un véhicule qui n’appartient pas au propre corps – p. ex. centre de renfort, protection civile, corps voisin ou, avec plusieurs sites, «Caserne Nord». La liste est proposée dans le champ «Herkunft» de chaque symbole de véhicule et de chaque véhicule localisé ; le texte libre reste possible. Vide signifie le propre corps : rien n’apparaît sur la carte.',
+      originsLabel: 'Choix',
+      originsPlaceholder: 'p. ex. Centre de renfort',
       attributesTitle: 'Listes de choix des symboles',
       cliHint: 'En lecture seule – les listes se modifient sous « Daten » → « Arbeitsmappe ».',
       cliTip: 'Sur la feuille « Symbolfelder », une ligne par option (symbole, champ, option). Sans '
@@ -883,7 +887,7 @@ export const adminCopy: Localizable<Pick<Copy, 'admin'>> = {
       fieldGlossary: {
         Titel: 'Désignation visible du véhicule.', Status: 'État selon le contexte, p. ex. sauvé ou vanne ouverte/fermée.',
         Stoff: 'Nom de la matière dangereuse.', 'UN-Nr.': 'Numéro ONU à quatre chiffres.', Einheit: 'Organisation ou unité engagée.',
-        Name: 'Personne issue de l’effectif.', Funktion: 'Fonction de commandement.', Fahrer: 'Conducteur issu de l’effectif.', Typ: 'Type d’appareil ou d’exécution.',
+        Name: 'Personne issue de l’effectif.', Funktion: 'Fonction de commandement.', Fahrer: 'Conducteur issu de l’effectif.', Herkunft: 'Provenance du véhicule – vide signifie le propre corps. La liste se trouve plus haut sous «Provenance des véhicules».', Typ: 'Type d’appareil ou d’exécution.',
       },
       propsLabel: 'Propriétés',
       controls: {

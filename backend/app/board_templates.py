@@ -85,6 +85,9 @@ class QuadSection(_Section):
     trend: bool | None = None
     #: station switch: a «Stichwort» per line — off in the FKS poster
     tag: bool | None = None
+    #: the Einsatz's problems (src/lib/problemLink): every box is a Bereich, its lines show on
+    #: every other problem section, and the ticks of a `problems` checklist land in its boxes
+    problems: bool | None = None
 
     @model_validator(mode="after")
     def _ids(self) -> QuadSection:
@@ -98,19 +101,38 @@ class MapSection(_Section):
     type: Literal["map"]
 
 
+class AreaOption(BaseModel):
+    """One choice of an ``area`` column: a Bereich, by the id of the problem quad's box."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: Ident
+    label: Label
+
+
 class TableColumn(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     id: Ident
     label: Label
     #: text · time («Wann», 1124 → 11:24) · trend (➚ = ➘) · symbol (a printed Signatur) ·
-    #: index (the printed number of a fixed row)
-    type: Literal["text", "time", "trend", "symbol", "index"] | None = None
+    #: index (the printed number of a fixed row) · area (one of `options`: a problem's Bereich)
+    type: Literal["text", "time", "trend", "symbol", "index", "area"] | None = None
+    #: the choices of an `area` column
+    options: Annotated[list[AreaOption], Field(min_length=1)] | None = None
     #: pre-printed: the value comes from the row (`fixedRows[].cells`), never typed
     fixed: bool | None = None
     #: relative width (default 1)
     w: Annotated[float, Field(gt=0, le=20)] | None = None
     hidden: bool | None = None
+
+    @model_validator(mode="after")
+    def _options(self) -> TableColumn:
+        if (self.type == "area") != (self.options is not None):
+            raise ValueError(f"Spalte «{self.id}»: 'options' gehört genau zu type 'area'")
+        if self.options:
+            _unique([o.id for o in self.options], "Option")
+        return self
 
 
 class TableRow(BaseModel):
@@ -133,6 +155,9 @@ class TableSection(_Section):
     seed: Literal["vehicles"] | None = None
     #: station switch: an «Erledigt» tick per row — off in the FKS poster
     done: bool | None = None
+    #: the Einsatz's problems (src/lib/problemLink): the first text column is the problem, the
+    #: trend column its Tendenz, the `area` column its Bereich – shown on every problem section
+    problems: bool | None = None
 
     @model_validator(mode="after")
     def _shape(self) -> TableSection:
@@ -176,7 +201,43 @@ class TextSection(_Section):
         return self
 
 
-Section = Annotated[QuadSection | MapSection | TableSection | TextSection, Field(discriminator="type")]
+#: what a `live` section can show, and the columns each source has (src/lib/boardTemplate ·
+#: LIVE_COLUMNS) — a station renames, reorders, re-weighs or hides them, never invents one
+LIVE_COLUMNS: dict[str, tuple[str, ...]] = {"pendenzen": ("was", "wer", "prio", "status", "zeit")}
+
+
+class LiveColumn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: Ident
+    label: Label
+    #: relative width (default 1)
+    w: Annotated[float, Field(gt=0, le=20)] | None = None
+    hidden: bool | None = None
+
+
+class LiveSection(_Section):
+    """A table DERIVED from the Einsatz, not written on the page (05.11.2026): `pendenzen` lists
+    every Pendenz and Erinnerung of the Verlauf. A build that predates it keeps the page and draws
+    it without this section."""
+
+    type: Literal["live"]
+    source: Literal["pendenzen"]
+    columns: Annotated[list[LiveColumn], Field(min_length=1)]
+
+    @model_validator(mode="after")
+    def _cols(self) -> LiveSection:
+        _unique([c.id for c in self.columns], "Spalte")
+        known = LIVE_COLUMNS[self.source]
+        stray = [c.id for c in self.columns if c.id not in known]
+        if stray:
+            raise ValueError(
+                f"Abschnitt «{self.id}»: unbekannte Spalte {', '.join(stray)} – möglich sind {', '.join(known)}"
+            )
+        return self
+
+
+Section = Annotated[QuadSection | MapSection | TableSection | TextSection | LiveSection, Field(discriminator="type")]
 
 
 class TemplatePage(BaseModel):

@@ -1069,7 +1069,7 @@ export function DoctrineSection() {
 }
 
 export function FleetSection() {
-  const { draft } = useConfig()
+  const { draft, set } = useConfig()
   const C = appConfig.copy.admin.fleet
   const fleet = getPath<DeploymentFleet>(draft, ['fleet'])
   // Two halves, and they are NOT the same kind of surface:
@@ -1081,6 +1081,9 @@ export function FleetSection() {
   //    equivalent) — but the card now says which command edits them, so a reader who arrives
   //    from «Einrichtung» leaves with a next step rather than a shrug.
   const lists = fleet?.attributeLists ?? legacyFleetToAttributeLists(fleet)
+  // Array.isArray for the same reason as FleetVehiclesEditor: a CLI-written `origins: {}` must
+  // not white-screen the page somebody comes to in order to fix it
+  const origins = Array.isArray(fleet?.origins) ? fleet.origins : []
   return (
     <>
       {/* ⚠️ A RecordTable, not a SettingsSheet: a vehicle is a RECORD and its fields belong to it
@@ -1092,12 +1095,24 @@ export function FleetSection() {
         <SettingsNote>{appConfig.copy.admin.common.deleteRecovery}</SettingsNote>
         <FleetVehiclesEditor />
       </RecordTable>
+      {/* «Herkunft» (05.11.2026): ONE list of words, offered on every vehicle symbol and every
+          live GPS vehicle – so one row, like the Partnerorganisationen on «Rapport». */}
+      <SettingsSheet title={C.originsTitle} tip={C.originsTip}>
+        <SettingRow label={C.originsLabel} span>
+          <StringList
+            ariaLabel={C.originsLabel}
+            value={origins}
+            onChange={(next) => set(['fleet', 'origins'], next)}
+            placeholder={C.originsPlaceholder}
+          />
+        </SettingRow>
+      </SettingsSheet>
       {/* The heading is the CARD's, not an h3 standing over it: this page shows two surfaces, and
           a page with more than one card titles every card (ui · Card). The ⓘ that explained the
           lists rides on that title now, where every other card's does. */}
       <Card title={C.attributesTitle} tip={C.cliTip}>
         <p className="adm-hint">{C.cliHint}</p>
-        <FleetAttributesViewer lists={lists} />
+        <FleetAttributesViewer lists={lists} origins={origins} />
       </Card>
     </>
   )

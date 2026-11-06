@@ -3,7 +3,7 @@
 
 import type { Copy, Localizable } from '../index'
 
-export const journalCopy: Localizable<Pick<Copy, 'journal' | 'errors'>> = {
+export const journalCopy: Localizable<Pick<Copy, 'journal' | 'tafelPendenzen' | 'errors'>> = {
   journal: {
     delivery: {
       failedTitleOne: '1 voce non trasmessa',
@@ -215,6 +215,34 @@ export const journalCopy: Localizable<Pick<Copy, 'journal' | 'errors'>> = {
     ageToggle: 'Alterna ora / età',
     openState: 'aperto',
     openReminderGo: 'Vai alla voce',
+    pinnedWer: 'Chi: {wer}',
+    fromTafel: 'dalla lavagna',
+    fromTafelTitle: 'Inserito sulla lavagna – toccare apre la pagina',
+  },
+  tafelPendenzen: {
+    createdLog: 'Pendenza dalla lavagna ({page}): {text}',
+    createdWer: ' · Chi: {wer}',
+    createdUrgent: ' · urgente',
+    editLog: 'Modificato sulla lavagna ({text}): {changes}',
+    editWas: 'Cosa: {v}',
+    editWer: 'Chi: {v}',
+    editWerCleared: 'Chi rimosso',
+    editUrgent: 'Prio. 1 (urgente)',
+    editNotUrgent: 'senza prio.',
+    doneLog: 'Fatto sulla lavagna: {text}',
+    reopenLog: 'Riaperto sulla lavagna: {text}',
+    erteilt: 'Dato',
+    erledigt: 'Fatto',
+    erinnerung: 'Promemoria',
+    overdue: 'scaduto',
+    prio: 'Prio. 1 – urgente',
+    prioOff: 'Impostare prio. 1 (urgente)',
+    prioOn: 'Prio. 1 (urgente) – toccare per togliere',
+    toVerlauf: 'Mostra nel diario',
+    saved: 'Registrato nel diario come pendenza · {t}{by}',
+    newRow: 'Nuova pendenza …',
+    empty: 'Ancora nessuna pendenza. Una riga scritta qui diventa una pendenza nel diario – e ogni pendenza del diario sta qui.',
+    emptyRo: 'Ancora nessuna pendenza nel diario.',
   },
   errors: {
     invalidValue: 'Valore non valido',

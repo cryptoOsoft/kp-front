@@ -139,18 +139,23 @@ _KEY_CELLS: dict[str, tuple[int, ...]] = {  # sheet → 0-based column indices
 TIER_LABELS: dict[str, str] = {"officer": "Offizier", "nco": "Unteroffizier", "crew": "Mannschaft"}
 _TIER_BY_LABEL = {normalize_name(v): k for k, v in TIER_LABELS.items()}
 
-#: Partnerorganisationen live in six separate config lists; the sheet flattens them into a
+#: Partnerorganisationen live in seven separate config lists; the sheet flattens them into a
 #: ``Kategorie`` column. ``Rapport`` is ``report.partnerOrgs`` (the Ankreuz-Zeile on the
-#: Rapport); the other five are ``fleet.partner.*`` (the Einheit suggestions on the partner
-#: symbols). One sheet, because to a station they are one list of "wer war sonst noch da".
+#: Rapport); ``Herkunft`` is ``fleet.origins`` (where a vehicle that is not the own Feuerwehr
+#: comes from — one list for every vehicle symbol, 05.11.2026); the other five are
+#: ``fleet.partner.*`` (the Einheit suggestions on the partner symbols). One sheet, because to a
+#: station they are one list of "wer war sonst noch da".
 PARTNER_LABELS: dict[str, str] = {
     "rapport": "Rapport",
+    "herkunft": "Herkunft",
     "feuerwehr": "Feuerwehr",
     "sanitaet": "Sanität",
     "polizei": "Polizei",
     "chemiewehr": "Chemiewehr",
     "zivilschutz": "Zivilschutz",
 }
+#: The categories that are NOT ``fleet.partner.*``: each has a home of its own.
+_PARTNER_OWN_HOME = ("rapport", "herkunft")
 _PARTNER_BY_LABEL = {normalize_name(v): k for k, v in PARTNER_LABELS.items()}
 
 _YES, _NO = "ja", "nein"
@@ -873,12 +878,14 @@ def _stored_ranks(config: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def _partner_pairs(config: dict[str, Any]) -> list[tuple[str, str]]:
-    """Every ``(kategorie, name)`` the six partner lists hold, in the sheet's own order."""
+    """Every ``(kategorie, name)`` the seven partner lists hold, in the sheet's own order."""
     report = list(((config.get("report") or {}).get("partnerOrgs")) or [])
-    partner = ((config.get("fleet") or {}).get("partner")) or {}
+    fleet = config.get("fleet") or {}
+    partner = fleet.get("partner") or {}
     out: list[tuple[str, str]] = [("rapport", _text(n)) for n in report]
+    out.extend(("herkunft", _text(n)) for n in (fleet.get("origins") or []))
     for kat in PARTNER_LABELS:
-        if kat == "rapport":
+        if kat in _PARTNER_OWN_HOME:
             continue
         out.extend((kat, _text(n)) for n in (partner.get(kat) or []))
     return out
@@ -1165,9 +1172,10 @@ def plan_import(
         old_pairs = [f"{PARTNER_LABELS[k]} · {n}" for k, n in _partner_pairs(base)]
         new_pairs = [f"{PARTNER_LABELS[k]} · {n}" for k in PARTNER_LABELS for n in buckets[k]]
         projected["report"] = {**(projected.get("report") or {}), "partnerOrgs": buckets["rapport"]}
+        fleet["origins"] = buckets["herkunft"]
         fleet["partner"] = {
             **(fleet.get("partner") or {}),
-            **{k: v for k, v in buckets.items() if k != "rapport"},
+            **{k: v for k, v in buckets.items() if k not in _PARTNER_OWN_HOME},
         }
         impacts.append(
             _impact(

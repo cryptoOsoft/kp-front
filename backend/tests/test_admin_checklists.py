@@ -284,3 +284,34 @@ def test_demo_manifest_validates():
     entries = _read_manifest(manifest)
     assert {e.kind for e in entries} >= {"manual"}
     _validate_files(manifest, entries)
+
+
+PROBLEMS = {
+    "id": "problemerfassung",
+    "kind": "action",
+    "title": "Problemerfassung",
+    "problems": True,
+    "phases": [
+        {"id": "front", "title": "Front", "area": "front", "items": [{"id": "f1", "text": "Energieträger"}]},
+        {"id": "weiteres", "title": "Weiteres", "items": [{"id": "w1", "text": "Medien"}]},
+    ],
+}
+
+
+def test_problem_checklist_is_valid():
+    """A `problems` list: a tick is a problem for the Tafel, a phase names its Bereich (or none)."""
+    assert template_problem(PROBLEMS) is None
+
+
+@pytest.mark.parametrize(
+    ("patch", "needle"),
+    [
+        ({"problems": "ja"}, "true/false"),
+        ({"kind": "rapport"}, "kind 'action'"),
+        ({"problems": False}, "'problems': true"),
+        ({"phases": [{"id": "f", "title": "F", "area": "Spezielles", "items": []}]}, "Feld-id"),
+    ],
+)
+def test_problem_checklist_problems(patch, needle):
+    problem = template_problem({**PROBLEMS, **patch})
+    assert problem is not None and needle in problem

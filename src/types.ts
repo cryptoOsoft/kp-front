@@ -83,6 +83,10 @@ export interface RelaySettings {
   /** the water runs from the route's LAST point to its first – a line drawn from the fire back to
    *  the hydrant. The geometry stays as drawn (its ends, arrows and attachments mean what they mean). */
   reverse?: boolean
+  /** «Pumpen auf Karte»: the Leitung draws its calculated pumps as Motorspritzen on the Karte and
+   *  the printed Kroki – derived from the calculation every time, never stored as symbols
+   *  (lib/linePumps). A Leitung only; a Messen Strecke never sets it. */
+  showPumps?: boolean
 }
 
 /** The built-in steppers in the symbol editor that change how the glyph reads on
@@ -560,6 +564,17 @@ export interface TimelineEvent {
      *  openReRaises). While it is open, that done row shows ✓ «↻ in 30 min gesetzt» instead of
      *  its chips (05.11.2026: a double tap raised two). Absent on every other `created`. */
     again?: string
+    /** `created` only: the item was typed as a row on the Tafel's «Aufträge / Pendenzen» page
+     *  (05.11.2026) — the Verlauf's Pendenzen block marks it «von der Tafel». Absent = the composer. */
+    origin?: 'tafel'
+    /** `note` only: a CORRECTION of the item's own words from the Tafel page (05.11.2026) — Was
+     *  and/or Wer as they stand now, latest wins per field ('' clears the Wer; `{}` when only the
+     *  Prio. changed — its presence is what marks the row a correction). Rides on `note`
+     *  (with `urgent` for the page's «Prio.») because that op is the safe one for an older
+     *  client: it reads the row as one more Meldung and never as a change of open/closed — a new
+     *  op would have been taken for «not done» and reopened a closed item there. The reducer
+     *  (lib/reminders · foldPendenzen) applies it and keeps it out of the item's thread. */
+    edit?: { text?: string; assignee?: string }
   }
   /**
    * A record divergence and its answer — the same append-only lifecycle the `reminder` above

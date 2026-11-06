@@ -142,6 +142,9 @@ export type JournalProps = {
   onPhotoPlace?: (e: TimelineEvent) => void
   /** «Auf Karte zeigen»: a picture of this row is on the Karte already */
   onPhotoShow?: (entityId: string) => void
+  /** «von der Tafel» on a Pendenz typed on the Tafel's «Aufträge / Pendenzen» page: open that
+   *  page. Absent ⇒ the mark is a plain word (a link session has no Tafel pages) */
+  onOpenTafel?: () => void
   /**
    * The replay playhead. Set ⇒ this Verlauf is being read alongside a Wiedergabe: rows after
    * this instant are the FUTURE and render dimmed, and the row the playhead stands in is marked.
@@ -161,7 +164,7 @@ export type JournalProps = {
 // happens on either surface. Rendered as a slide-over so it can open over the
 // map or the plan; a row jumps back to wherever its event happened. Each row is
 // a <JournalRow>; the row's detail sheet is rendered here, at the bottom.
-export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, onClose, onTranscript, onReplay, openReminders, onReminderDone, onReminderNote, onReminderAgain, mediaStatusOf, onOpenPlayer, onEditText, replayAtMs, onSeekTo, landOn, deliveryNotice, photoPlacement, onPhotoPlace, onPhotoShow }: JournalProps) {
+export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, onClose, onTranscript, onReplay, openReminders, onReminderDone, onReminderNote, onReminderAgain, mediaStatusOf, onOpenPlayer, onEditText, replayAtMs, onSeekTo, landOn, deliveryNotice, photoPlacement, onPhotoPlace, onPhotoShow, onOpenTafel }: JournalProps) {
   // read per-render (not module-load) so the resolved locale is applied — see config/copy
   const C = appConfig.copy.journal
   const audio = useAudioPlayer()
@@ -775,6 +778,17 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
                         onClick={() => onReminderNote(r)}
                       >{r.text}</button>
                     ) : <span className="jr-pinned-text">{r.text}</span>}
+                    {/* who it is for, and — typed on the Tafel's «Aufträge / Pendenzen» page — that
+                        it came from there, a tap opening that page (mock 6A, Verlauf side) */}
+                    {(r.assignee || r.origin === 'tafel') && (
+                      <span className="jr-pinned-meta">
+                        {r.assignee && <span className="jr-pinned-wer">{fillTemplate(C.pinnedWer, { wer: r.assignee })}</span>}
+                        {r.assignee && r.origin === 'tafel' && <span aria-hidden="true">·</span>}
+                        {r.origin === 'tafel' && (onOpenTafel
+                          ? <button type="button" className="jr-pinned-from" title={C.fromTafelTitle} onClick={onOpenTafel}><Icon id="easel" />{C.fromTafel}</button>
+                          : <span className="jr-pinned-from"><Icon id="easel" />{C.fromTafel}</span>)}
+                      </span>
+                    )}
                     {/* ⚠️ EVERY Meldung, not the latest one. They stand scattered through the
                         Verlauf where they happened, so this is the only place the thread reads
                         as a thread — and showing one of three looked like the whole story. */}

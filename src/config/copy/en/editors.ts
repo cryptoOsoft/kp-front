@@ -124,6 +124,7 @@ export const editorsCopy: Localizable<Pick<Copy, Keys>> = {
     swapEl: 'Hand over command',
     fieldPlaceholders: {
       'Kapazität': 'e.g. 80 m³',
+      'Herkunft': 'Own fire service',
     },
     ergGuide: 'ERG guide',
     ergPolymerization: 'Polymerisation hazard (P) — the container can burst violently',

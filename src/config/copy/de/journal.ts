@@ -356,6 +356,41 @@ export const journalCopy = {
     ageLabelHours: '{n} h',
     ageToggle: 'Zeit / Alter umschalten',
     openState: 'offen',
+    // the Pendenzen block's line under an item: who it is for (its assignee), and the mark of an
+    // item typed on the Tafel's «Aufträge / Pendenzen» page — a tap opens that page
+    pinnedWer: 'Wer: {wer}',
+    fromTafel: 'von der Tafel',
+    fromTafelTitle: 'Auf der Tafel eingetragen – tippen öffnet die Seite',
+  },
+  // ── The Tafel's «Aufträge / Pendenzen» page (05.11.2026, lib/pendenzenPage) ────────────────
+  // A view on the Verlauf's Pendenzen and Erinnerungen: every act on the page appends a Verlauf
+  // row in these words, so the record says where it happened.
+  tafelPendenzen: {
+    createdLog: 'Pendenz von der Tafel ({page}): {text}',
+    createdWer: ' · Wer: {wer}',
+    createdUrgent: ' · dringend',
+    // a correction of Was / Wer / Prio. — `{changes}` joins the parts below with « · »
+    editLog: 'Auf der Tafel geändert ({text}): {changes}',
+    editWas: 'Was: {v}',
+    editWer: 'Wer: {v}',
+    editWerCleared: 'Wer entfernt',
+    editUrgent: 'Prio. 1 (dringend)',
+    editNotUrgent: 'ohne Prio.',
+    doneLog: 'Erledigt auf der Tafel: {text}',
+    reopenLog: 'Auf der Tafel wieder offen: {text}',
+    erteilt: 'Erteilt',
+    erledigt: 'Erledigt',
+    erinnerung: 'Erinnerung',
+    overdue: 'überfällig',
+    prio: 'Prio. 1 – dringend',
+    prioOff: 'Prio. 1 (dringend) setzen',
+    prioOn: 'Prio. 1 (dringend) – tippen zum Entfernen',
+    toVerlauf: 'Im Verlauf zeigen',
+    // shown once, under a row just typed on the page: `{by}` is « · Name» or nothing
+    saved: 'Als Pendenz im Verlauf eingetragen · {t}{by}',
+    newRow: 'Neue Pendenz …',
+    empty: 'Noch keine Pendenzen. Eine Zeile hier wird zur Pendenz im Verlauf – und jede Pendenz aus dem Verlauf steht hier.',
+    emptyRo: 'Noch keine Pendenzen im Verlauf.',
   },
   errors: {
     updateFailed: 'Aktualisierung fehlgeschlagen',

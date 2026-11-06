@@ -1,7 +1,7 @@
 {
   "schema": "board-template/1",
   "id": "fks-erste-fuehrung",
-  "version": 1,
+  "version": 3,
   "title": { "de": "FKS – Erste Führung", "fr": "CSSP – Première Conduite", "it": "CSP – Prima coordinazione", "en": "FKS – First command" },
   "source": "FKS Plakat «Erste Führung» A3 V 1.0/10.09.2019; FKS Handbuch Führung Grossereignisse 09/2022, Kap. 8 Hilfsmittel (8.1 Problemerfassung, 8.6 Mittel, 8.8 Verbindungen, 8.9 Konzept, 8.11 Rapport)",
   "pages": [
@@ -18,6 +18,7 @@
           "title": { "de": "Problemerfassung", "fr": "Saisie du problème", "it": "Comprensione del problema", "en": "Problem assessment" },
           "height": 11,
           "trend": true,
+          "problems": true,
           "tag": false,
           "cells": [
             { "id": "front", "label": { "de": "Front", "fr": "Front", "it": "Fronte", "en": "Front" } },
@@ -104,7 +105,15 @@
           "id": "probleme",
           "type": "table",
           "height": 10,
+          "problems": true,
           "columns": [
+            { "id": "bereich", "label": { "de": "Bereich", "fr": "Domaine", "it": "Ambito", "en": "Area" }, "type": "area", "w": 1.6,
+              "options": [
+                { "id": "front", "label": { "de": "Front", "fr": "Front", "it": "Fronte", "en": "Front" } },
+                { "id": "ordnung", "label": { "de": "Ordnung", "fr": "Ordre", "it": "Ordine e sicurezza", "en": "Order" } },
+                { "id": "sanitaet", "label": { "de": "Sanität", "fr": "Service sanitaire", "it": "Servizio sanitario", "en": "Medical" } },
+                { "id": "spezial", "label": { "de": "Spezielles", "fr": "Spécial", "it": "Speciale", "en": "Special" } }
+              ] },
             { "id": "problem", "label": { "de": "Problem/Ereignis", "fr": "Problème/événement", "it": "Problema/evento", "en": "Problem/event" }, "w": 4 },
             { "id": "tendenz", "label": { "de": "Entwicklungs\u00adtendenz ➚\u00a0=\u00a0➘", "fr": "Tendance évolution ➚\u00a0=\u00a0➘", "it": "Tendenza dell’evoluzione ➚\u00a0=\u00a0➘", "en": "Trend ➚\u00a0=\u00a0➘" }, "type": "trend", "w": 1.6 },
             { "id": "reaktion", "label": { "de": "Notwendige Reaktion", "fr": "Réaction requise", "it": "Reazione necessaria", "en": "Required response" }, "w": 3.4 },
@@ -209,6 +218,27 @@
           "fields": [
             { "id": "datum", "label": { "de": "Datum", "fr": "Date", "it": "Data", "en": "Date" }, "tone": "shade" },
             { "id": "zeit", "label": { "de": "Zeit", "fr": "Heure", "it": "Ora", "en": "Time" }, "tone": "shade", "type": "time" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pendenzen",
+      "title": { "de": "Aufträge / Pendenzen", "fr": "Missions / Points en suspens", "it": "Mandati / Pendenze", "en": "Tasks / Open items" },
+      "paper": "portrait",
+      "columns": 1,
+      "sections": [
+        {
+          "id": "pendenzen",
+          "type": "live",
+          "source": "pendenzen",
+          "height": 24,
+          "columns": [
+            { "id": "was", "label": { "de": "Was", "fr": "Quoi", "it": "Cosa", "en": "What" }, "w": 4.2 },
+            { "id": "wer", "label": { "de": "Wer", "fr": "Qui", "it": "Chi", "en": "Who" }, "w": 1.9 },
+            { "id": "prio", "label": { "de": "Prio.", "fr": "Prio.", "it": "Prio.", "en": "Prio." }, "w": 0.6 },
+            { "id": "status", "label": { "de": "Status", "fr": "Statut", "it": "Stato", "en": "Status" }, "w": 2 },
+            { "id": "zeit", "label": { "de": "Zeit", "fr": "Heure", "it": "Ora", "en": "Time" }, "w": 1.2 }
           ]
         }
       ]

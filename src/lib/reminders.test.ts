@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { deriveReminders, isDue, openReRaises, suggestPendenzen } from './reminders'
+import { deriveReminders, isDue, openReRaises, pendenzLedger, suggestPendenzen } from './reminders'
 import type { TimelineEvent } from '../types'
 
 // timeline is stored newest-first (App prepends), so fixtures list newest rows first.
@@ -248,6 +248,58 @@ describe('suggestPendenzen', () => {
   it('ignores single letters and empty input', () => {
     expect(suggestPendenzen('a', open)).toEqual([])
     expect(suggestPendenzen('', open)).toEqual([])
+  })
+})
+
+// The Tafel's «Aufträge / Pendenzen» page (05.11.2026): every item, open and done, and the page's
+// corrections of Was / Wer / Prio. riding on `note` rows.
+describe('pendenzLedger + corrections from the Tafel page', () => {
+  const a = row('r1', 'Strom abschalten', { op: 'created', id: 'a', text: 'Strom abschalten', dueAt: '2026-06-24T03:40:00.000Z' }, '2026-06-24T03:14:00.000Z')
+  const b = row('r2', 'Wasserbezug melden', { op: 'created', id: 'b', text: 'Wasserbezug melden', urgent: true }, '2026-06-24T03:09:00.000Z')
+
+  it('lists every item in the order it was raised, done ones with their time and kept', () => {
+    const tl = [row('r4', 'erledigt', { op: 'done', id: 'b' }, '2026-06-24T03:18:00.000Z'), a, b]
+    const items = pendenzLedger(tl)
+    expect(items.map((i) => [i.id, i.doneAt])).toEqual([['b', '2026-06-24T03:18:00.000Z'], ['a', undefined]])
+    expect(items[1].dueAt).toBe('2026-06-24T03:40:00.000Z')
+  })
+
+  it('a reopened item is open again on the page', () => {
+    const tl = [
+      row('r5', 'wieder offen', { op: 'reopened', id: 'b' }, '2026-06-24T03:20:00.000Z'),
+      row('r4', 'erledigt', { op: 'done', id: 'b' }, '2026-06-24T03:18:00.000Z'),
+      b,
+    ]
+    expect(pendenzLedger(tl)[0].doneAt).toBeUndefined()
+  })
+
+  it('applies the latest Was / Wer / Prio. and keeps a correction out of the Meldungen', () => {
+    const tl = [
+      row('r7', 'Auf der Tafel geändert', { op: 'note', id: 'a', edit: { assignee: 'Lt Brunner' } }, '2026-06-24T03:22:00.000Z'),
+      row('r6', 'Auf der Tafel geändert', { op: 'note', id: 'a', edit: { text: 'Strom abschalten (EBL)', assignee: 'Of Zürcher' }, urgent: true }, '2026-06-24T03:20:00.000Z'),
+      row('r5', 'EBL kommt', { op: 'note', id: 'a' }, '2026-06-24T03:19:00.000Z'),
+      a,
+    ]
+    const [r] = deriveReminders(tl)
+    expect(r).toMatchObject({ text: 'Strom abschalten (EBL)', assignee: 'Lt Brunner', urgent: true })
+    expect(r.notes.map((n) => n.text)).toEqual(['EBL kommt'])
+  })
+
+  it('a correction never reopens a done item, and an emptied Wer clears it', () => {
+    const tl = [
+      row('r6', 'geändert', { op: 'note', id: 'b', edit: { assignee: '' } }, '2026-06-24T03:30:00.000Z'),
+      row('r5', 'geändert', { op: 'note', id: 'b', edit: { assignee: 'Masch. Graf' } }, '2026-06-24T03:20:00.000Z'),
+      row('r4', 'erledigt', { op: 'done', id: 'b' }, '2026-06-24T03:18:00.000Z'),
+      b,
+    ]
+    const [item] = pendenzLedger(tl)
+    expect(item.doneAt).toBe('2026-06-24T03:18:00.000Z')
+    expect(item.assignee).toBeUndefined()
+  })
+
+  it('marks an item typed on the page', () => {
+    const tl = [row('r1', 'Pendenz von der Tafel', { op: 'created', id: 'c', text: 'Gemeinde informieren', origin: 'tafel' })]
+    expect(deriveReminders(tl)[0].origin).toBe('tafel')
   })
 })
 

@@ -29,7 +29,7 @@ export function MapHint({ children }: { children: ReactNode }) {
   return <MapHelpCard role="status">{children}</MapHelpCard>
 }
 
-export function MeasurePanel({ mode, coords, profile, profileLoading, metrics, showProfile = true, blocked = false, hint, onAdopt, onCalibrate, calibrateLabel, recalibrateLabel, scaleNote, relay, onPlacePumps, className }: {
+export function MeasurePanel({ mode, coords, profile, profileLoading, metrics, showProfile = true, blocked = false, hint, onAdopt, onCalibrate, calibrateLabel, recalibrateLabel, scaleNote, relay, className }: {
   mode: 'line' | 'area'
   coords: LngLat[]
   profile: ProfileResult | null
@@ -59,9 +59,6 @@ export function MeasurePanel({ mode, coords, profile, profileLoading, metrics, s
   /** the Strecke's Wassertransport (useMeasure · relay) — the Karte surfaces pass it, a Plan
    *  sheet does not (no ground, no height profile), and its fold then has no such section */
   relay?: MeasureRelay
-  /** the Wassertransport's «Pumpen als Symbole setzen», every pump's spot at once – the Lage,
-   *  where symbols may be placed */
-  onPlacePumps?: (coords: LngLat[]) => void
   /** the host's own placement (the Karte's phone stack has one bar fewer than an Einsatz's) —
    *  `.measure-panel` is a hashed module class, so a host cannot reach it by name */
   className?: string
@@ -188,7 +185,7 @@ export function MeasurePanel({ mode, coords, profile, profileLoading, metrics, s
           )}
           {open && relayOpen && (
             <WaterRelay ctrl={ctrl} showHose wide onClose={() => relay.setOpen(false)}
-              onAdoptLine={onAdopt} onPlacePumps={onPlacePumps} />
+              onAdoptLine={onAdopt} />
           )}
           {open && calibration}
         </>

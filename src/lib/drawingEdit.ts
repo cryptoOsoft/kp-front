@@ -14,7 +14,8 @@ import type { BoardAnno, Drawing, Entity, LineContent } from '../types'
  * field, because a printed rapport cannot be clicked.
  *
  * ⚠️ Styling and geometry are deliberately absent — colour, width, dash, coordinates, the label
- * offsets, the Wassertransport's `relay` — for the same reason entityEdit skips geometry: they change continuously while
+ * offsets, the Wassertransport's `relay` (but for its «Pumpen auf Karte», which puts symbols on the
+ * Karte) — for the same reason entityEdit skips geometry: they change continuously while
  * somebody arranges the picture, and a row per nudge buries the edits that carry meaning. The
  * LABEL is also absent here: it already writes its own row (useMapDrawing · noteDrawingLabel),
  * and a second one would read as a phantom edit.
@@ -69,6 +70,12 @@ export function drawingEditChanges(prev: Drawing, next: Drawing): string[] {
   // flow, source, pumps moved by hand) are planning, tweaked tap by tap, and write no row.
   if ((prev.hose ?? '') !== (next.hose ?? '') && next.hose) {
     out.push(statement(E.hose, appConfig.copy.relay.hoseLabels[next.hose], !!prev.hose))
+  }
+  // …save ONE: «Pumpen auf Karte» (relay.showPumps, lib/linePumps). It is no assumption: it puts
+  // Motorspritzen on the Karte and the printed Kroki, or takes them off – the picture changes, so
+  // the record says so (the one-shot «Pumpen als Symbole setzen» it replaced wrote a row too).
+  if (!!prev.relay?.showPumps !== !!next.relay?.showPumps) {
+    out.push(next.relay?.showPumps ? L.pumpsShown : L.pumpsHidden)
   }
 
   // ── Leitung Nr.: the identity the Atemschutzüberwachung knows its hose by ──

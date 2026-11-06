@@ -110,6 +110,8 @@ export const editorsCopy = {
     // and the placeholder is the cheapest place to settle it, since it costs nothing to ignore.
     fieldPlaceholders: {
       'Kapazität': 'z. B. 80 m³',
+      // the Herkunft of a vehicle: empty IS the answer «ours», so the box says so (05.11.2026)
+      'Herkunft': 'Eigene Feuerwehr',
     } as Record<string, string>,
     // two fields with the same label collapse into one on save – {key} = that label
     duplicateField: '«{key}» gibt es schon – nur der letzte Wert bleibt erhalten.',

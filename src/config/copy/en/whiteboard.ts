@@ -357,5 +357,13 @@ export const whiteboardCopy: Localizable<Pick<Copy, 'incidents' | 'entities' | '
     lineBreak: 'Line break',
     reorder: 'Move (drag, or Alt+↑ / Alt+↓)',
     cellCap: 'A field holds {n} characters – for more, write an entry in the Verlauf.',
+    areaPick: 'Area',
+    areaNone: 'No area',
+    fromChecklist: 'from the checklist',
+    checklistLegend: 'from the checklist – deleting removes its tick there',
+    deleteRow: 'Delete row',
+    rowDeleted: '«{text}» deleted',
+    rowDeletedEmpty: 'Row deleted',
+    rowDeletedTick: '«{text}» deleted – tick removed from the checklist',
   },
 }

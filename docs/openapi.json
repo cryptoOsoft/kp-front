@@ -17972,6 +17972,13 @@
             "type": "array",
             "title": "Attributelists"
           },
+          "origins": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Origins"
+          },
           "vehicleTypes": {
             "items": {
               "type": "string"

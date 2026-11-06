@@ -22,7 +22,7 @@ import { canBeDone, offersDone, doneOf } from '../lib/objectDone'
 import { withResolvedPhotos } from '../lib/photoGeo'
 import type { AssignableRole } from '../lib/roleAssignment'
 import { SHAPE_MIN_M, SHAPE_MAX_M, SHAPE_DEFS, rotationRun, ROTATION_MAX_M, rotationBox, ROTATION_W_M, shapeAspect } from '../lib/shapes'
-import { readingPatch, symbolControls, symbolTitleOptions, symbolFieldOptions, symbolPresetFieldKeys } from '../lib/symbols'
+import { readingPatch, symbolControls, symbolTitleOptions, symbolFieldOptions, symbolPresetFieldKeys, vehicleOriginOptions } from '../lib/symbols'
 import { truppForLine, truppIsOut } from '../lib/truppLines'
 import type { useSymbols } from '../lib/useSymbols'
 import type { VehicleOverrides } from '../lib/useVehicleLayer'
@@ -105,8 +105,6 @@ export interface MapDetailPanelsProps {
   isVisible: (id: LayerId) => boolean
   toggleLayer: (id: LayerId) => void
   deleteDrawing: (id: string) => Promise<void>
-  /** a Wassertransport's pumps put on the Karte as Motorspritzen (useMapActions · placePumpSymbols) */
-  placePumpSymbols: (coords: LngLat[]) => void
 }
 
 export function MapDetailPanels({
@@ -120,7 +118,7 @@ export function MapDetailPanels({
   selectedDrawingId, patchDrawingLabelLive, commitDrawingLabel,
   changeMapEnding, reverseDrawing, setDrawingWallRole, objects, syncLineNoToTrupp, pickablePersonnel, linkTruppLine,
   unlinkLine, setSelectedDrawingId, setMode, setPanel, setGpsRouting, revertAll, gpsEndOf, releaseHere,
-  releaseOnSite, setDrawingAttachment, focusEntity, isVisible, toggleLayer, deleteDrawing, placePumpSymbols,
+  releaseOnSite, setDrawingAttachment, focusEntity, isVisible, toggleLayer, deleteDrawing,
 }: MapDetailPanelsProps) {
   // a Rechteck's figures, for its panel — editable or read-only alike
   const shapeFigures = selected?.kind === 'shape' && selected.shape === 'square' ? (() => {
@@ -340,6 +338,18 @@ export function MapDetailPanels({
               },
             }
             : undefined}
+          // …and where it comes from (05.11.2026): the feed cannot say that either. Same map,
+          // same locked read-out; the list is the station's ONE Herkunft list (lib/symbols).
+          origin={selected.live && selected.kind !== 'person'
+            ? tacticalLocked ? { value: vehicleOverrides[selected.id]?.herkunft ?? '' } : {
+              value: vehicleOverrides[selected.id]?.herkunft ?? '',
+              options: vehicleOriginOptions(),
+              onChange: (v: string) => setVehicleOverrides((m) => ({
+                ...m,
+                [selected.id]: { ...m[selected.id], herkunft: v.trim() || undefined },
+              })),
+            }
+            : undefined}
           // each row says what tells the lines apart — «Linie · 42 m → Hydrant H-142» (K11)
           connectedLines={drawings.filter((d) => [d.startAttachment, d.endAttachment].some((a) => a?.target.kind === 'object' && a.target.id === selected.id)).map((d) => ({
             id: d.id,
@@ -430,7 +440,8 @@ export function MapDetailPanels({
             ? {
               // the hose comes along when the Ø changes, in the same edit (DrawEditor · Schlauch)
               onChange: tacticalLocked ? undefined : (patch) => patchDrawing(patch),
-              onPlacePumps: tacticalLocked ? undefined : placePumpSymbols,
+              // its resting pumps on the map step aside while the section shows the live ones
+              lineId: selectedDrawing.id,
             }
             : undefined}
           // the anchored Trupp carries a COPY of the number (the AS chip prints it), so a

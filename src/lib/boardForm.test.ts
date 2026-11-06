@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { act, renderHook } from '@testing-library/react'
 import { useState } from 'react'
 import {
-  findForms, formAnno, formForPdf, formHasContent, isFormData, newFormPage, nextTrend, normalizeTime, pageStamp, pageTitles, putField, putLine, putRow, tableRows,
+  dropLine, dropRow, findForms, formAnno, formForPdf, formHasContent, isFormData, newFormPage, nextTrend, normalizeTime, pageStamp, pageTitles, putField, putLine, putRow, tableRows,
   type BoardFormData,
 } from './boardForm'
 import { BUNDLED_TEMPLATES } from './boardTemplates'
@@ -95,6 +95,16 @@ describe('writing on a page — keyed by ids, so a rename never loses a word', (
     expect(tableRows(b, abs).map((r) => r.cells.ort ?? '')).toEqual(['', '', '', '', '', 'Parkplatz Coop'])
     expect(putRow(b, 'absprachen', 'warteraum', { cells: { ort: '' } }).values.absprachen.rows).toEqual([])
   })
+  it('the bin deletes a written row or a line in one write, stamped for the merge; nothing there = same object', () => {
+    const a = putRow(putRow(fresh(), 'massnahmen', 'r1', { cells: { was: 'Riegel', wer: 'TLF 1' } }), 'massnahmen', 'r2', { cells: { was: 'Lüften' } })
+    const b = dropRow(a, 'massnahmen', 'r1', 42)
+    expect(b.values.massnahmen.rows?.map((r) => r.id)).toEqual(['r2'])
+    expect(b.t?.['r|massnahmen|r1|was']).toBe(42)
+    expect(dropRow(b, 'massnahmen', 'r1')).toBe(b)
+    const l = putLine(fresh(), 'problem', 'front', 'l1', { text: 'Rauch' })
+    expect(dropLine(l, 'problem', 'front', 'l1').values.problem.lines?.front).toEqual([])
+    expect(dropLine(l, 'problem', 'ordnung', 'l1')).toBe(l)
+  })
   it('an edited seed row is the operator’s from then on', () => {
     const d = fresh(['TLF 1'])
     const id = d.values.mittel.rows![0].id
@@ -128,7 +138,7 @@ describe('the snapshot — a later station edit never changes an added page', ()
     tpl.pages[0].title = 'Geändert'
     expect(d.page.sections).toHaveLength(6)
     expect(d.page.title).toEqual(EF.title)
-    expect(d.tpl).toEqual({ id: 'fks-erste-fuehrung', version: 1, title: FKS.title, source: FKS.source })
+    expect(d.tpl).toEqual({ id: 'fks-erste-fuehrung', version: FKS.version, title: FKS.title, source: FKS.source })
   })
 })
 
@@ -196,12 +206,13 @@ describe('the Rapport gets the page resolved, in the deployment’s words', () =
     expect(abs.rows).toHaveLength(6)
     expect(abs.rows[5].cells).toEqual(['warteraum', 'Zone d’attente', 'Parkplatz Coop'])
   })
-  it('a trend column prints WORDS (the PDF font has no ➚ ➘)', () => {
+  it('a trend column prints WORDS (the PDF font has no ➚ ➘), a Bereich its choice\'s label', () => {
     const p81 = FKS.pages.find((p) => p.id === 'problem-tendenz')!
-    const d = putRow(newFormPage(FKS, p81), 'probleme', 'r1', { cells: { problem: 'Brand Zisternenfahrzeug', tendenz: 'up' } })
-    const pdf = formForPdf(d, WORDS, 'de') as { landscape: boolean; sections: { rows: { cells: string[] }[] }[] }
+    const d = putRow(newFormPage(FKS, p81), 'probleme', 'r1', { cells: { bereich: 'spezial', problem: 'Brand Zisternenfahrzeug', tendenz: 'up' } })
+    const pdf = formForPdf(d, WORDS, 'de') as { landscape: boolean; sections: { columns: { kind: string }[]; rows: { cells: string[] }[] }[] }
     expect(pdf.landscape).toBe(true)
-    expect(pdf.sections[0].rows[0].cells).toEqual(['Brand Zisternenfahrzeug', 'wird schlimmer', '', ''])
+    expect(pdf.sections[0].rows[0].cells).toEqual(['Spezielles', 'Brand Zisternenfahrzeug', 'wird schlimmer', '', ''])
+    expect(pdf.sections[0].columns[0].kind).toBe('text') // the paper knows no menus
   })
 })
 
