@@ -1,0 +1,44 @@
+/* The Tafel's «Aufträge / Pendenzen» page (TafelPendenzen.tsx) — the table look is the Tafel's
+   own (TafelFormPage.module.css: .table .tr .th .td); these are the BGV form's extras: the ◷ at the
+   end of «Was», the Prio. digit, the two-line Status, the Zeit with its bell, done rows struck
+   through. Tokens only. */
+
+/* «Was» carries the ◷ to the Verlauf at its end */
+.was { position: relative; }
+.jump { flex: none; align-self: flex-start; color: var(--ink-dim); }
+.jump :global(.i) { width: 18px; height: 18px; }
+
+/* a done row: struck through and kept (owner pick 6A) — the words dimmed, the ticks full tone */
+.struck { color: var(--ink-dim); text-decoration: line-through; }
+.urgent { font-weight: var(--fw-bold); }
+
+.center { align-items: center; justify-content: center; }
+/* Prio. 1 — the paper's red digit; a quiet dot where none is set, so the cell reads as a door */
+.prio { width: var(--tap); min-height: var(--tap); font: var(--fw-heavy) var(--fs-4)/1 var(--body); color: var(--ink-faint); }
+.prioOn { color: var(--red-strong); }
+span.prio { display: inline-flex; align-items: center; justify-content: center; }
+.prioDot { font-size: var(--fs-4); }
+
+/* Status: two ticks, one over the other, each its word and time, as the form prints them */
+.status { flex-direction: column; justify-content: center; padding: var(--sp-1) 0; }
+.status > * + * { border-top: 1px dashed var(--ink-12); }
+.tickWord { flex: 1 1 auto; }
+.tickTime { flex: none; font-variant-numeric: tabular-nums; color: var(--ink-dim); }
+/* a tick this session cannot change is a read-out — full tone (TickRow's `:disabled` recipe,
+   doubled class so it outranks the module that loads last) */
+.tickRo.tickRo:disabled { opacity: 1; cursor: default; }
+
+/* Zeit: an Erinnerung's time with its bell, «überfällig» in red once it is past and open */
+.zeit { flex-direction: column; justify-content: center; padding: var(--sp-1) var(--sp-2); }
+.due { display: inline-flex; align-items: center; gap: var(--sp-1); font: var(--fw-bold) var(--fs-2)/var(--lh-2) var(--body); font-variant-numeric: tabular-nums; }
+.due :global(.i) { width: 16px; height: 16px; }
+.dueWord { font-size: var(--fs-1); color: var(--ink-dim); }
+.late .due, .late .dueWord { color: var(--red-strong); }
+
+/* the one-time «Als Pendenz im Verlauf eingetragen» under a row just typed on the page */
+.saved {
+  display: flex; align-items: center; gap: var(--sp-2); margin: 0; padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--ink-28); font-size: var(--fs-1); color: var(--ink-dim);
+}
+.saved :global(.i) { width: 16px; height: 16px; flex: none; }
+.empty { margin: 0; padding: var(--sp-3); font-size: var(--fs-2); color: var(--ink-dim); }

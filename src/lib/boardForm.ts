@@ -3,7 +3,7 @@ import { newId } from './ids'
 import { compareOrder, isOrderKey, keyBetween, keysFor } from './orderKey'
 import {
   editableColumns, isLabel, isTemplatePage, labelText, shownColumns, shownFixedRows, shownSections, tableAddsRows, writtenColumns,
-  type BoardTemplate, type Label, type TableSection, type TemplatePage,
+  type BoardTemplate, type Label, type LiveSection, type TableSection, type TemplatePage,
 } from './boardTemplate'
 import type { BoardAnno } from '../types'
 
@@ -548,6 +548,9 @@ export function pageStamp(d: BoardFormData, words: StampWords): string {
 
 // ── the Rapport ───────────────────────────────────────────────────────────────────────────────
 
+/** A live section's print, given its resolved heading (`base`) — see `formForPdf`. */
+export type LivePrint = (s: LiveSection, base: Record<string, unknown>) => Record<string, unknown>
+
 /** Trend words for the paper: Helvetica has no ➚ ➘ (the staging Plakat's lesson). */
 export interface TrendWords { up: string; same: string; down: string }
 
@@ -555,9 +558,10 @@ export interface TrendWords { up: string; same: string; down: string }
  * One page, resolved for the server (backend · app/report · BoardPageIn): every label in the
  * deployment's language, every row as the strings that print, in the layout's order. The server
  * draws the paper; it never has to know a template. `stamp`: the page's timeline (`pageStamp`),
- * printed in the footer.
+ * printed in the footer. `live`: what a LIVE section prints — it has no values here, its rows
+ * come from the Einsatz (lib/pendenzenPage · pendenzenForPdf); without one it prints its bar only.
  */
-export function formForPdf(d: BoardFormData, words: TrendWords, locale?: string, headLabels?: Record<'title' | 'address' | 'alarm' | 'el', string>, title?: string, stamp = ''): Record<string, unknown> {
+export function formForPdf(d: BoardFormData, words: TrendWords, locale?: string, headLabels?: Record<'title' | 'address' | 'alarm' | 'el', string>, title?: string, stamp = '', live?: LivePrint): Record<string, unknown> {
   const L = (l: Label | undefined) => labelText(l, locale)
   const trendWord = (t: string | undefined) => (t === 'up' ? words.up : t === 'same' ? words.same : t === 'down' ? words.down : '')
   const p = d.page
@@ -609,6 +613,7 @@ export function formForPdf(d: BoardFormData, words: TrendWords, locale?: string,
       if (s.type === 'text') {
         return { ...base, layout: s.layout ?? (s.fields.length > 1 ? 'row' : 'stack'), fields: s.fields.map((f) => ({ label: L(f.label), tone: f.tone ?? '', value: v.fields?.[f.id] ?? '' })) }
       }
+      if (s.type === 'live') return live?.(s, base) ?? base
       return base
     }),
   }

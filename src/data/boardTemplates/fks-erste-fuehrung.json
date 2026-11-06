@@ -1,7 +1,7 @@
 {
   "schema": "board-template/1",
   "id": "fks-erste-fuehrung",
-  "version": 2,
+  "version": 3,
   "title": { "de": "FKS – Erste Führung", "fr": "CSSP – Première Conduite", "it": "CSP – Prima coordinazione", "en": "FKS – First command" },
   "source": "FKS Plakat «Erste Führung» A3 V 1.0/10.09.2019; FKS Handbuch Führung Grossereignisse 09/2022, Kap. 8 Hilfsmittel (8.1 Problemerfassung, 8.6 Mittel, 8.8 Verbindungen, 8.9 Konzept, 8.11 Rapport)",
   "pages": [
@@ -218,6 +218,27 @@
           "fields": [
             { "id": "datum", "label": { "de": "Datum", "fr": "Date", "it": "Data", "en": "Date" }, "tone": "shade" },
             { "id": "zeit", "label": { "de": "Zeit", "fr": "Heure", "it": "Ora", "en": "Time" }, "tone": "shade", "type": "time" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pendenzen",
+      "title": { "de": "Aufträge / Pendenzen", "fr": "Missions / Points en suspens", "it": "Mandati / Pendenze", "en": "Tasks / Open items" },
+      "paper": "portrait",
+      "columns": 1,
+      "sections": [
+        {
+          "id": "pendenzen",
+          "type": "live",
+          "source": "pendenzen",
+          "height": 24,
+          "columns": [
+            { "id": "was", "label": { "de": "Was", "fr": "Quoi", "it": "Cosa", "en": "What" }, "w": 4.2 },
+            { "id": "wer", "label": { "de": "Wer", "fr": "Qui", "it": "Chi", "en": "Who" }, "w": 1.9 },
+            { "id": "prio", "label": { "de": "Prio.", "fr": "Prio.", "it": "Prio.", "en": "Prio." }, "w": 0.6 },
+            { "id": "status", "label": { "de": "Status", "fr": "Statut", "it": "Stato", "en": "Status" }, "w": 2 },
+            { "id": "zeit", "label": { "de": "Zeit", "fr": "Heure", "it": "Ora", "en": "Time" }, "w": 1.2 }
           ]
         }
       ]

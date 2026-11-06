@@ -158,6 +158,7 @@ import { useSessionRole, useWorkspaceFlags } from './workspace/access'
 import { useOfflinePrefetch } from './workspace/useOfflinePrefetch'
 import { loadReportPreflight, loadWhiteboard, requestReportStep } from './workspace/lazySurfaces'
 import { useTafelPages } from './workspace/useTafelPages'
+import { useTafelPendenzen } from './workspace/useTafelPendenzen'
 import type { OneShotRows, WorkspaceMode } from './workspace/types'
 import { WorkspaceMeldungen } from './workspace/WorkspaceMeldungen'
 import { WorkspaceSheets } from './workspace/WorkspaceSheets'
@@ -2177,6 +2178,12 @@ export function IncidentWorkspace({
     log, setSelectedDrawingId, setSelectedId, mode, pushEvent, composerOpenedAtRef: composerOpenedAt, activePlanId,
     uploadPhotoForRow, uploadMediaForRow, setComposerOpen, setNoteOn, player, timeline, running, undoHist, journal,
   })
+  // …and the Tafel's «Aufträge / Pendenzen» page, a view on those same Wiedervorlagen
+  const tafelPendenzen = useTafelPendenzen({
+    tafel, timeline, reminders, pushEvent, emit, canWrite: !readOnly, author: user?.display_name,
+    setJournalOpen, setJournalLandOn, undoHist, incidentId: incidentMeta.id, board,
+    showPlan: (planId) => { setJournalOpen(false); if (mode !== 'plans') clearMapUi(); setMode('plans'); setPanel(null); setActivePlanId(planId) },
+  })
 
   // --- Atemschutzüberwachung (SCBA monitoring): Trupp mutations live in useTruppActions ---
   /** WHERE a placed Trupp's symbol stands, in words — «Gebäude · 2. OG», «M6», «Karte · bei
@@ -3224,7 +3231,7 @@ export function IncidentWorkspace({
         setPickerOpen, symbolScale, symbolCaptions, mapSuppressedCaptions, georefFits, mapActions,
         replayBoard, replayBuilding, store, trails, deleteGhostTrail, armTrailDrop, building, gebaeude, logPlan,
         roster, addRecent, user, emit, planStacks, planFocus, effTrupps, truppCounterNames, teamNameTaken,
-        azAlarm, truppActions, newTruppFromMarker, showTrupp, planScale, setPlanScale, tafel,
+        azAlarm, truppActions, newTruppFromMarker, showTrupp, planScale, setPlanScale, tafel: tafelPendenzen.tafel,
         truppFinder: { open: () => setFindTruppOpen(true), disabled: placed.length === 0 },
         readingsChip: replayActive ? null : <ReadingsChip points={readingPoints} compact={isPhone} onGo={goToReading} />,
       }} />
@@ -3301,7 +3308,7 @@ export function IncidentWorkspace({
         setJournalOpen, setJournalLandOn, journalFromRapport, setJournalFromRapport, openRapport, readOnly,
         enterReplay, reminders, setNoteOn, setComposerOpen, reRaisePendenz, media, setPlayer, photoOnMap,
         tacticalLocked, placePhotos, showPhotoOnMap, player, isEditor, addPlayerEntry, composerOpen,
-        addJournal, noteOn, roleReadOnly, linkScoped,
+        addJournal, noteOn, roleReadOnly, linkScoped, openTafelPendenzen: linkScoped ? undefined : tafelPendenzen.openPage,
       }} />
       {sharePick && (
         <SharePositionSheet
