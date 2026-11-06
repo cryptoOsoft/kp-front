@@ -403,6 +403,11 @@
     background: transparent;
     border-radius: var(--r-hero) var(--r-hero) 0 0; }
   .sheet-grip span { width: 40px; height: 5px; border-radius: var(--r-pill); background: var(--border); }
+  /* …and a --tap tall target (it was the 24px band, hill climb r34): the pad hangs DOWN over the
+     head's top, never up – `.ctx` clips there, and above it is the map. The head is the same drag
+     already (useSheetDrag); its ✕ is positioned and later, so it stays on top of the pad. */
+  .sheet-grip { position: relative; }
+  .sheet-grip::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: var(--tap); }
   /* the whole header is a drag target for the sheet (components/SheetGrip · useSheetDrag), so it
      needs the same touch-action as the grip — otherwise the browser claims the vertical gesture
      for scrolling and the sheet never moves. `cursor: grab` says so on a pointer device. */

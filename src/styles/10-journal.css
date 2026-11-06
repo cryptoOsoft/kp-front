@@ -308,7 +308,8 @@
 /* each target is its OWN surface, not a segment of a shared bar — two destinations, not one
    control. Sized off the button: same height, same radius, same right edge, and the container
    takes the button's width as a floor, so the three read as one column rather than as two
-   oversized cards that happen to be nearby. */
+   oversized cards that happen to be nearby. (42 with a mouse; --tap under a finger, like the
+   button – 20-touch-floors.) */
 .hold-target { pointer-events: auto; cursor: pointer; display: flex; align-items: center; gap: 8px;
   padding: var(--sp-2) var(--sp-3); min-height: 42px;
   background: var(--surface); border: 1px solid var(--glass-line); border-radius: var(--r-sm);
