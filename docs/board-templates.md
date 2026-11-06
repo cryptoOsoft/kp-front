@@ -101,9 +101,10 @@ The Erste Führung's Problemerfassung box, the page «Problemerfassung» and a `
   back (`splitProblemEdit`): words, Tendenz and Bereich go to the problem's home; the page's own
   columns for it (Reaktion, Priorität, its place in the order, a box's Stichwort) stay on the
   page as a **satellite** – a row or line stored under the problem's view id (`ck~…`, `ln~…`,
-  `rw~…`). Everything is a form cell or a tick, so it merges per cell and per tick.
+  `rw~…`). Everything is a form cell or a checklist key, so it merges per cell and per item.
 - A problem from the checklist wears the checklist icon, and its words are the checklist's
-  (read-only, like a pre-printed cell; its Bereich is its phase's). Its Tendenz writes the tick.
+  (read-only, like a pre-printed cell; its Bereich is its phase's). Its Tendenz writes the checklist's
+  (`TemplateState.trends`, beside the tick, so an un-tick keeps it for the re-tick).
   Deleting it on the Tafel un-ticks it – «„…" gelöscht – Haken in der Checkliste entfernt ·
   Rückgängig». A problem typed on the Tafel is never matched to, nor written into, the checklist.
   The page's legend says it: «aus der Checkliste – Löschen nimmt dort den Haken weg».

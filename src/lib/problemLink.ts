@@ -17,16 +17,17 @@ import { isProblemTemplate, type ChecklistState, type ChecklistTemplate } from '
  * homes at draw time. So a tick made while no page is on the Tafel shows the moment the page is
  * added, an un-tick takes the line off every page, and two devices can never end with two copies
  * that disagree. An edit on a view is split back (`splitProblemEdit`): the problem's words, Tendenz
- * and Bereich go to its home (the checklist's tick trend, the other page's line or row); what only
- * THIS surface has for it (the table's Reaktion and Priorität, its place in the order, a quad's
- * Stichwort) is kept here, on a SATELLITE: a stored row or line under the problem's view id
- * (`ck~<template>~<item>`, `ln~<line>`, `rw~<row>`). Both kinds of write are form cells and ticks,
- * which already merge per cell (lib/boardFormMerge) and per tick (mergeWorkspace · mergeChecklists).
+ * and Bereich go to its home (the checklist's Tendenz beside the tick, the other page's line or
+ * row); what only THIS surface has for it (the table's Reaktion and Priorität, its place in the
+ * order, a quad's Stichwort) is kept here, on a SATELLITE: a stored row or line under the problem's
+ * view id (`ck~<template>~<item>`, `ln~<line>`, `rw~<row>`). Both kinds of write are form cells and
+ * checklist keys, which already merge per cell (lib/boardFormMerge) and per item (mergeWorkspace ·
+ * mergeChecklists).
  *
  * ⚠️ A problem typed on the Tafel is never matched to, nor written into, the checklist (owner): the
  * checklist's items are only ever its own. Deleting a checklist-born problem on the Tafel un-ticks
- * it; an un-tick in the checklist keeps the satellite, so ↶ (or ticking it again) brings back what
- * the Tafel wrote beside it. A checklist problem's words are the checklist's: read-only on the Tafel,
+ * it; an un-tick (here or in the checklist) keeps the satellite and the Tendenz, so ↶ (or ticking
+ * it again) brings back what was written beside it. A checklist problem's words are the checklist's: read-only on the Tafel,
  * like a pre-printed cell. Which sections take part is the template's (`problems: true`), which
  * checklist and which Bereich per phase the checklist's (`problems`, `phases[].area`) – nothing here
  * knows a station.
@@ -103,14 +104,15 @@ export function problemRegister(pages: readonly FormAnno[], source?: ProblemSour
   const seen = new Set<string>()
   for (const t of source?.templates ?? []) {
     if (!isProblemTemplate(t)) continue
-    const ticks = source?.checklists[t.id]?.ticks ?? {}
+    const state = source?.checklists[t.id]
+    const ticks = state?.ticks ?? {}
     for (const ph of t.phases ?? []) {
       for (const it of [...ph.items, ...(ph.branches ?? []).flatMap((b) => b.items)]) {
         const tk = ticks[it.id]
         const vid = `ck~${t.id}~${it.id}`
         if (!tk || seen.has(vid)) continue
         seen.add(vid)
-        const trend = asTrend(tk.trend)
+        const trend = asTrend(state?.trends?.[it.id])
         ticked.push({
           at: typeof tk.t === 'string' ? tk.t : '',
           p: { vid, home: { kind: 'tick', tpl: t.id, item: it.id }, text: it.text, ...(trend ? { trend } : {}), ...(ph.area ? { area: ph.area } : {}), checklist: true },

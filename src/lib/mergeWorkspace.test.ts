@@ -328,11 +328,14 @@ describe('mergeWorkspace – checklist ticks merge per tick (05.11.2026)', () =>
     expect(Object.keys(ticksOf(mergeWorkspace({}, mine, theirs))).sort()).toEqual(['b', 'c'])
   })
 
-  it('an un-tick on one device and a trend on another item both stand; an un-tick beats a trend on the same item', () => {
-    const base = { checklists: { pe: { ticks: { a: tick('1'), b: tick('2') } } } }
-    const mine = { checklists: { pe: { ticks: { b: tick('2', { trend: 'up' }) } } } } // un-ticked a, trend on b
-    const theirs = { checklists: { pe: { ticks: { a: tick('1', { trend: 'down' }), b: tick('2') } } } } // trend on a
-    expect(ticksOf(mergeWorkspace(base, mine, theirs))).toEqual({ b: tick('2', { trend: 'up' }) })
+  it('an un-tick on one device and a Tendenz on the same item on another both stand (06.11.2026)', () => {
+    const base = { checklists: { pe: { ticks: { a: tick('1'), b: tick('2') }, trends: {} } } }
+    const mine = { checklists: { pe: { ticks: { b: tick('2') }, trends: { b: 'up' } } } } // un-ticked a, Tendenz on b
+    const theirs = { checklists: { pe: { ticks: { a: tick('1'), b: tick('2') }, trends: { a: 'down' } } } } // Tendenz on a
+    const merged = mergeWorkspace(base, mine, theirs)
+    expect(ticksOf(merged)).toEqual({ b: tick('2') })
+    // a's Tendenz waits for the re-tick
+    expect((merged.checklists as Record<string, { trends: unknown }>).pe.trends).toEqual({ a: 'down', b: 'up' })
   })
 
   it('a branch picked on one device and a tick on another both stand', () => {

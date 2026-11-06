@@ -564,19 +564,20 @@ const byKey = (b: unknown, m: unknown, t: unknown) => mergeRecord(asRecord(b), a
  * device ticking «Energieträger» while another ticked «Personenbelegung» in the same list was
  * «both changed one record» → mine, and the other device's tick was gone – on the Problemerfassung,
  * where two officers tick at once and every tick is a line on the Tafel. Now each template's
- * `ticks` and `activeBranch` merge key by key (mergeRecord): ticks on different items both stand,
- * an un-tick beats a concurrent trend change on the same item (a delete wins), the same item
- * changed on both keeps mine. Every other key of a template state rides with mine.
+ * `ticks`, `activeBranch` and `trends` merge key by key (mergeRecord): ticks on different items
+ * both stand, the same item changed on both keeps mine. A problem's Tendenz lives in `trends`, not
+ * on its tick (06.11.2026), so an un-tick on one device and a Tendenz set on another both stand –
+ * the re-tick finds it. Every other key of a template state rides with mine.
  */
 export function mergeChecklists(b: unknown, m: unknown, t: unknown): Record<string, unknown> {
   const [B, M, T] = [asRecord(b), asRecord(m), asRecord(t)]
   const out: Record<string, unknown> = {}
   for (const k of new Set([...Object.keys(T), ...Object.keys(M)])) {
     const [sb, sm, st] = [asRecord(B[k]), asRecord(M[k]), asRecord(T[k])]
+    const byItem = (key: 'activeBranch' | 'trends') => (key in sm || key in st
+      ? { [key]: mergeRecord(asRecord(sb[key]), asRecord(sm[key]), asRecord(st[key])) } : {})
     const ticks = mergeRecord(asRecord(sb.ticks), asRecord(sm.ticks), asRecord(st.ticks))
-    const branchKeys = 'activeBranch' in sm || 'activeBranch' in st
-    const activeBranch = mergeRecord(asRecord(sb.activeBranch), asRecord(sm.activeBranch), asRecord(st.activeBranch))
-    out[k] = { ...st, ...sm, ticks, ...(branchKeys ? { activeBranch } : {}) }
+    out[k] = { ...st, ...sm, ticks, ...byItem('activeBranch'), ...byItem('trends') }
   }
   return out
 }

@@ -34,6 +34,7 @@
 import { apiGet } from './api'
 import { readThrough } from './idb'
 import genericAction from '../data/checklists/generic-action.json'
+import type { FormTrend } from './boardForm'
 
 // --- template schema (matches the bundled JSON) ----------------------------------
 
@@ -160,16 +161,20 @@ export interface ChecklistTemplate {
 
 // --- per-incident tick state (lives in the Saved workspace blob) ------------------
 
-/** One tick: presence in `ticks` = checked. Records when + who. `trend`: a `problems`
- *  template's Tendenz of the problem (the Tafel's own ➚ = ➘, lib/boardForm · FormTrend) –
- *  written from the checklist row and from the Tafel alike, one value in one place. */
-export interface Tick { t: string; by?: string; trend?: 'up' | 'same' | 'down' }
+/** One tick: presence in `ticks` = checked. Records when + who. */
+export interface Tick { t: string; by?: string }
 
 export interface TemplateState {
   /** itemId → tick. Absence = unchecked. */
   ticks: Record<string, Tick>
   /** phaseId → chosen branch id (ohne / mit C-FU) */
   activeBranch?: Record<string, string>
+  /** a `problems` template: itemId → the problem's Tendenz (the Tafel's own ➚ = ➘), written from the checklist row and from
+   *  the Tafel alike, one value in one place. Beside the ticks, not on them (staging review
+   *  06.11.2026, owner: un-ticking must not drop the Tendenz): an un-tick leaves it, so a re-tick
+   *  – or ↶ – brings it back. Read only for a ticked item (useChecklistActions writes it only
+   *  then); absent = no trend. */
+  trends?: Record<string, FormTrend>
 }
 
 /** templateId → its tick state. Rides the existing offline-cache / sync / LWW. */

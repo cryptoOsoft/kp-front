@@ -2002,11 +2002,12 @@ shape is checked by `app/checklist_templates.py · template_problem` on every do
 #### Problemerfassung (`"problems": true`, 05.11.2026)
 
 An `action` list whose ticks are PROBLEMS, not tasks done: a tick means «this is a problem».
-Under a ticked item a Tendenz ➚ = ➘ appears (none picked = no trend), and every ticked item stands
-on the Tafel – on the page «Problemerfassung» and in the Erste Führung's Problemerfassung box
-([`board-templates.md`](board-templates.md) › The Einsatz's problems). Ticked while neither page is
-on the Tafel, it shows once one is added. Un-ticking takes it off; deleting it on the Tafel
-un-ticks it. A problem typed on the Tafel never becomes a tick.
+At the end of a ticked item's line a Tendenz ➚ = ➘ appears (none picked = no trend), and every
+ticked item stands on the Tafel – on the page «Problemerfassung» and in the Erste Führung's
+Problemerfassung box ([`board-templates.md`](board-templates.md) › The Einsatz's problems). Ticked
+while neither page is on the Tafel, it shows once one is added. Un-ticking takes it off; deleting
+it on the Tafel un-ticks it. The Tendenz outlives an un-tick (a re-tick brings it back). A problem
+typed on the Tafel never becomes a tick.
 
 ```json
 {
