@@ -510,6 +510,8 @@ export function pendenzRows(events: TimelineEvent[], fallbackDate?: string): Pen
   const urgency = new Map<string, boolean>()
   const due = new Map<string, string>()
   const notes = new Map<string, { timeLabel: string; text: string }[]>()
+  /** the Tafel page's corrections of Was / Wer (types · reminder.edit), latest wins per field */
+  const edits = new Map<string, { text?: string; assignee?: string }>()
   // oldest → newest, so «the latest wins» falls out of the iteration order
   for (let i = events.length - 1; i >= 0; i--) {
     const e = events[i]
@@ -524,14 +526,21 @@ export function pendenzRows(events: TimelineEvent[], fallbackDate?: string): Pen
     // an «Erledigt» taken back (lib/reminders · reopened): open again on paper too, until a later
     // done row closes it with ITS time
     else if (r.op === 'reopened') doneAt.delete(r.id)
-    else if (r.op === 'note') notes.set(r.id, [...(notes.get(r.id) ?? []), { timeLabel: clock(e), text: e.text }])
+    // a correction is not a Meldung: it changes the item's words, and the Journal prints its row
+    else if (r.op === 'note' && r.edit) {
+      const was = edits.get(r.id) ?? {}
+      edits.set(r.id, {
+        text: r.edit.text?.trim() || was.text,
+        assignee: typeof r.edit.assignee === 'string' ? r.edit.assignee.trim() : was.assignee,
+      })
+    } else if (r.op === 'note') notes.set(r.id, [...(notes.get(r.id) ?? []), { timeLabel: clock(e), text: e.text }])
   }
   return [...created.entries()]
     .map(([id, e]) => ({
       // the BARE text — the row's own text carries the «Auftrag · » tag or the «Erinnerung gesetzt
       // für …» lead-in, and the section's own heading already says what these are
-      text: e.reminder?.text?.trim() || e.text,
-      assignee: e.reminder?.assignee,
+      text: edits.get(id)?.text || e.reminder?.text?.trim() || e.text,
+      assignee: (edits.get(id)?.assignee ?? e.reminder?.assignee) || undefined,
       urgent: !!urgency.get(id),
       erteilt: clock(e),
       erledigt: doneAt.get(id),

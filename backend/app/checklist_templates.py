@@ -17,6 +17,12 @@ document, not in the template.
 A visit template may say where it can be used (16.10.2026): ``"targets": ["object", "location"]``
 — at a catalogue object, at a place (a pin or an address with no object), or both. Absent means
 ``["object"]``, so every template written before stays exactly where it was.
+
+An ``action`` template may be a PROBLEM list (05.11.2026, the Problemerfassung): ``"problems": true``
+makes a tick mean «this is a problem» – the row offers a Tendenz, and every ticked item stands on
+the Tafel's problem sections (src/lib/problemLink). Each phase may name the Bereich its problems
+land in, ``"area": "front"`` – the id of a box of the Tafel's problem quad (``spezial`` in the
+bundled FKS page, not ``spezielles``). A phase without one lands on the problem table only.
 """
 
 from __future__ import annotations
@@ -51,6 +57,9 @@ def template_problem(tpl: Any) -> str | None:
         return "Checkliste braucht genau eines von 'phases' (action/rapport/visit) oder 'entries' (reference)"
     if "targets" in tpl and tpl["kind"] != "visit":
         return "Checkliste: 'targets' gibt es nur bei kind 'visit'"
+    problem = _problems_problem(tpl)
+    if problem:
+        return problem
     if tpl["kind"] == "visit":
         if not has_phases:
             return "Besuchs-Checkliste braucht 'phases'"
@@ -70,6 +79,27 @@ def _targets_problem(targets: Any) -> str | None:
 
 
 _DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+#: a Bereich is a box id of the Tafel's problem quad (backend · board_templates · Ident)
+_AREA_RE = re.compile(r"^[a-z0-9][a-z0-9-]*$")
+
+
+def _problems_problem(tpl: dict[str, Any]) -> str | None:
+    """``problems`` (a tick is a problem for the Tafel) only on an action list, ``phases[].area``
+    (the Bereich) only there, and an area is a box id."""
+    problems = tpl.get("problems")
+    if problems is not None and not isinstance(problems, bool):
+        return "Checkliste: 'problems' muss true/false sein"
+    if problems and tpl["kind"] != "action":
+        return "Checkliste: 'problems' gibt es nur bei kind 'action'"
+    for n, phase in enumerate(tpl.get("phases") or [], start=1):
+        if not isinstance(phase, dict) or "area" not in phase:
+            continue
+        if not problems:
+            return f"Checkliste: Abschnitt {n}: 'area' gibt es nur mit 'problems': true"
+        area = phase["area"]
+        if not isinstance(area, str) or not _AREA_RE.match(area) or len(area) > 64:
+            return f"Checkliste: Abschnitt {n}: 'area' muss eine Feld-id sein (z. B. 'front')"
+    return None
 
 
 def _manual_problem(tpl: dict[str, Any]) -> str | None:

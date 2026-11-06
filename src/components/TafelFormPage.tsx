@@ -9,12 +9,12 @@ import { fillTemplate, hhmm, pad2 } from '../lib/format'
 import { newId } from '../lib/ids'
 import { serverNow } from '../lib/serverClock'
 import {
-  colMinScale, editableColumns, labelText, shownColumns, shownFixedRows, shownSections, tableAddsRows, writtenColumns,
-  type QuadSection, type TableSection, type TemplateColumn, type TextSection,
+  colMinScale, editableColumns, labelText, problemColumns, shownColumns, shownFixedRows, shownSections, tableAddsRows, writtenColumns,
+  type Label, type QuadSection, type TableSection, type TemplateColumn, type TextSection,
 } from '../lib/boardTemplate'
 import {
-  boxLines, moveLine, moveRow, nextTrend, normalizeTime, pageStamp, putField, putHead, putLine, putRow, tableRows, writtenRows,
-  type BoardFormData, type FormHead,
+  boxLines, dropLine, dropRow, moveLine, moveRow, nextTrend, normalizeTime, pageStamp, putField, putHead, putLine, putRow, tableRows, writtenRows,
+  type BoardFormData, type EntrySource, type FormHead,
 } from '../lib/boardForm'
 import { NEW, navTarget, type NavAt, type NavKey, type NavSection } from '../lib/boardFormNav'
 import { Button, IconButton } from './Button'
@@ -24,6 +24,8 @@ import { Menu } from '../lib/overlays'
 import { BoardSignature } from './BoardSignature'
 import { ShellLoader } from './ShellLoader'
 import MiniKarte, { type MiniKarteProps } from './MiniKarte'
+import { TafelPendenzen } from './TafelPendenzen'
+import type { PendenzenPort } from '../lib/pendenzenPage'
 import s from './TafelFormPage.module.css'
 
 /**
@@ -50,6 +52,12 @@ import s from './TafelFormPage.module.css'
  * DOM order is the template's order, row-major — the Tab order and the iOS ↑↓ bar follow it.
  * Pre-printed cells of a fixed row (Signatur, Bezeichnung, the Traktanden) are text, not inputs, so
  * neither stops on them.
+ *
+ * A written row (and a problem line) is deleted by the bin at its end, shown while one stands in
+ * the row (05.11.2026, owner pick 7A) – one ↶ step, and the caller's toast says what went
+ * (`onChange`'s `act`). A problem section draws a VIEW (lib/problemLink · problemView): an entry
+ * from the checklist (`src: 'checklist'`) wears the checklist icon and keeps the checklist's words
+ * (read-only, like a pre-printed cell); an `area` column is a Bereich menu.
  */
 
 const T = () => appConfig.copy.tafel
@@ -104,8 +112,9 @@ interface CellProps {
   onMove?: (dir: -1 | 1, draft: string, changed: boolean) => void
 }
 
-/** One cell: an auto-growing textarea that commits once (see the file header for the keys). */
-function Cell({ k, kn, value, label, readOnly, time = false, placeholder, className, last = false, draftKey, onCommit, onNav, onClash, onMove }: CellProps) {
+/** One cell: an auto-growing textarea that commits once (see the file header for the keys).
+ *  Also the cell of the «Aufträge / Pendenzen» page (TafelPendenzen). */
+export function Cell({ k, kn, value, label, readOnly, time = false, placeholder, className, last = false, draftKey, onCommit, onNav, onClash, onMove }: CellProps) {
   const T0 = T()
   const [draft, setDraft] = useState(() => (draftKey ? readDraft<string | null>(draftKey, null) : null) ?? value)
   /** typed since the focus (or a kept draft came back): the one thing that makes a cell write */
@@ -330,6 +339,50 @@ function DoneButton({ on, readOnly, onToggle }: { on: boolean; readOnly: boolean
   )
 }
 
+/** An entry's bin (owner pick 7A): at the end of the row one stands in. Its press keeps the focus
+ *  where it is (the row stays «the focused row» until the click lands – iOS moves no focus to a
+ *  button, a mouse would). Out of the Tab order, like the trend button. */
+function BinButton({ onRemove }: { onRemove: () => void }) {
+  return (
+    <IconButton label={T().deleteRow} className={s.bin} tabIndex={-1}
+      onPointerDown={(e) => { e.preventDefault(); e.stopPropagation() }} onClick={onRemove}>
+      <Icon id="trash" />
+    </IconButton>
+  )
+}
+
+/** «aus der Checkliste» – the small mark in front of a checklist problem's words */
+const ChecklistMark = () => (
+  <span className={s.ckMark} role="img" aria-label={T().fromChecklist} title={T().fromChecklist}><Icon id="checklist" /></span>
+)
+
+/** A problem's Bereich (an `area` column): the station's choices in a menu, «Kein Bereich» to clear */
+function AreaPick({ value, options, label, onPick }: { value: string; options: readonly { id: string; label: Label }[]; label: string; onPick: (v: string) => void }) {
+  const t = T()
+  const word = labelText(options.find((o) => o.id === value)?.label) || value
+  return (
+    <Menu
+      align="start"
+      popupClassName="de-menu-pop"
+      itemClassName={() => 'de-menu-item'}
+      trigger={
+        <button type="button" className={cx(s.area, !value && s.areaEmpty)} aria-label={`${label}: ${word || t.areaNone}`} onPointerDown={keep}>
+          <span className={s.areaWord}>{word || t.areaPick}</span><Icon id="chevron-down" />
+        </button>
+      }
+      // action rows, not a radio group: a pick closes the menu (a Base UI radio row keeps it open,
+      // and the open modal menu then swallows the next tap on the page)
+      items={[
+        ...options.map((o) => ({
+          label: <span className={s.areaItem}>{labelText(o.label)}{o.id === value && <Icon id="check" />}</span>,
+          onClick: () => onPick(o.id),
+        })),
+        ...(value ? [{ label: t.areaNone, onClick: () => onPick('') }] : []),
+      ]}
+    />
+  )
+}
+
 /**
  * How many standard rulings each table's leftover height holds, by section id (owner, staging:
  * the Verbindungen beside a grown Abspracherapport had its last row stretched ~240px tall). The
@@ -378,6 +431,9 @@ function useFocusAfterRender(root: RefObject<HTMLElement | null>): (k: string) =
   return useCallback((k: string) => { want.current = k; bump() }, [])
 }
 
+/** A deletion by the bin: the entry's words, and whether it came from the checklist. */
+export interface TafelAct { removed: string; from?: EntrySource }
+
 export interface TafelFormPageProps {
   /** the page's anno id — the namespace of the drafts this device keeps for it */
   pageKey: string
@@ -386,7 +442,8 @@ export interface TafelFormPageProps {
   data: BoardFormData
   readOnly: boolean
   isPhone: boolean
-  onChange: (next: BoardFormData) => void
+  /** `act`: what an edit that is a DELETION took away (the bin) – the caller's toast names it */
+  onChange: (next: BoardFormData, act?: TafelAct) => void
   onRemove: () => void
   /** a cell this device wrote over another device's value for it, typed meanwhile — last writer
    *  wins, and the Verlauf says so (re-review of #338): where, what stands, what it replaced */
@@ -401,11 +458,17 @@ export interface TafelFormPageProps {
   scene?: MiniKarteProps
   /** a tap on the mini Karte opens the Karte */
   onOpenKarte?: () => void
+  /** what a live `pendenzen` section lists and writes (lib/pendenzenPage) — the Verlauf's */
+  pendenzen?: PendenzenPort
   /** px the floating chrome covers: top bar + page strip, the rails */
   inset: { top: number; left: number; right: number; bottom: number | string }
 }
 
-export function TafelFormPage({ pageKey, title, data, readOnly, isPhone, onChange, onRemove, onConflict, onPrint, pageCount = 1, printing = false, scene, onOpenKarte, inset }: TafelFormPageProps) {
+/** does the page show an entry from the checklist (lib/problemLink · problemView)? */
+const hasChecklistEntry = (d: BoardFormData) => Object.values(d.values).some((v) =>
+  (v.rows ?? []).some((r) => r.src === 'checklist') || Object.values(v.lines ?? {}).some((ls) => ls.some((l) => l.src === 'checklist')))
+
+export function TafelFormPage({ pageKey, title, data, readOnly, isPhone, onChange, onRemove, onConflict, onPrint, pageCount = 1, printing = false, scene, onOpenKarte, pendenzen, inset }: TafelFormPageProps) {
   const t = T()
   const page = data.page
   const sections = shownSections(page)
@@ -453,7 +516,8 @@ export function TafelFormPage({ pageKey, title, data, readOnly, isPhone, onChang
       // on any of the others puts the caret there.
       const room = adds && !isPhone ? Math.max(0, (sec.height ?? 0) - fixedRowIds.length * 2) : 0
       ids[sec.id] = { newId: adds ? newRow : undefined, ghosts: Math.max(0, room - written.length - 1) }
-      const typed = (cs: TemplateColumn[]) => cs.filter((c) => c.type !== 'trend').map((c) => c.id)
+      // the keys walk the typed cells: a trend button and a Bereich menu are tapped, not typed
+      const typed = (cs: TemplateColumn[]) => cs.filter((c) => c.type !== 'trend' && c.type !== 'area').map((c) => c.id)
       const fixed = (sec.fixedRows ?? []).map((r) => r.id)
       layout.push({
         kind: 'table', id: sec.id, cols: readOnly ? [] : typed(editableColumns(sec)),
@@ -533,9 +597,25 @@ export function TafelFormPage({ pageKey, title, data, readOnly, isPhone, onChang
     return false
   }
 
+  // ── deleting an entry: the bin at the end of the row one stands in ─────────────────────────
+  /** entries just deleted: the flush their focused cell does on the way out (blur) must not write
+   *  them back. Cleared after the render that took them away. */
+  const dropped = useRef(new Set<string>())
+  useEffect(() => { dropped.current.clear() })
+  const isDropped = (a: Addr) => (a.kind === 'line' || a.kind === 'tag' || a.kind === 'cell') && dropped.current.has(a.row)
+  const removeEntry = (a: Addr, words: string, from?: EntrySource) => {
+    if (readOnly || (a.kind !== 'cell' && a.kind !== 'line')) return
+    dropped.current.add(a.row)
+    ;(document.activeElement as HTMLElement | null)?.blur()
+    const at = serverNow()
+    const nextData = a.kind === 'cell' ? dropRow(data, a.sec, a.row, at) : dropLine(data, a.sec, a.box, a.row, at)
+    if (nextData !== data) onChange(nextData, { removed: words, ...(from ? { from } : {}) })
+  }
+
   // ── focus: where a key sent the cursor, resolved after the commit's render ───────────────────
   const focusAfterRender = useFocusAfterRender(rootRef)
   const onNav = (a: Addr, key: NavKey, draft: string, changed: boolean) => {
+    if (isDropped(a)) return
     const at = navAtOf(a)
     const target = navTarget(layout, at, key, emptyAfter(a, draft))
     // only what was typed is written: a cell passed through never overwrites another device's change
@@ -544,7 +624,7 @@ export function TafelFormPage({ pageKey, title, data, readOnly, isPhone, onChang
     if (target === 'blur') { (document.activeElement as HTMLElement | null)?.blur(); return }
     focusAfterRender(keyOf(target.sec, target.box, target.row, target.col))
   }
-  const commit = (a: Addr) => (v: string) => put(next(a, v, false))
+  const commit = (a: Addr) => (v: string) => { if (!isDropped(a)) put(next(a, v, false)) }
   /** where a cell is, in the deployment's words — the Verlauf row of a clash names it */
   const whereOf = (a: Addr): string => {
     if (a.kind === 'head') return t.head[a.col]
@@ -670,17 +750,19 @@ export function TafelFormPage({ pageKey, title, data, readOnly, isPhone, onChang
           const list = `${sec.id}/${c.id}`
           const box = ids[sec.id].lines![c.id]
           const label = labelText(c.label)
-          const lineRow = (id: string, text: string, trend: string | undefined, tag: string | undefined, isNew: boolean, i: number) => {
+          const lineRow = (id: string, text: string, trend: string | undefined, tag: string | undefined, isNew: boolean, i: number, src?: EntrySource) => {
             const a: Addr = { kind: 'line', sec: sec.id, box: c.id, row: id }
             const k = keyOf(sec.id, c.id, id, undefined)
+            const fromCk = src === 'checklist'
             return (
               <div key={id} className={cx(s.line, isNew && s.lineNew, drag?.id === id && s.dragging)}
                 data-ord-list={isNew ? undefined : list} data-ord-id={isNew ? undefined : id} style={isNew ? undefined : dragStyle(list, id, i)}>
                 {!isNew && grip(list, a, order)}
                 {sec.trend && (isNew ? <span className={s.trendGap} aria-hidden="true" />
                   : <TrendButton trend={trend} readOnly={readOnly} onNext={() => put(putLine(data, sec.id, c.id, id, { trend: nextTrend(trend) }, serverNow()))} />)}
+                {fromCk && <ChecklistMark />}
                 <Cell k={k} kn={isNew ? keyOf(sec.id, c.id, NEW, undefined) : undefined}
-                  value={text} label={label} readOnly={readOnly} className={s.grow}
+                  value={text} label={label} readOnly={readOnly || fromCk} className={s.grow}
                   last={k === lastKey} onMove={isNew ? undefined : onMove(a, k)}
                   onCommit={commit(a)} onNav={(key, d, ch) => onNav(a, key, d, ch)} draftKey={draftKey(k)} onClash={clash(a)} />
                 {sec.tag && !isNew && (
@@ -689,6 +771,7 @@ export function TafelFormPage({ pageKey, title, data, readOnly, isPhone, onChang
                     onCommit={commit({ kind: 'tag', sec: sec.id, box: c.id, row: id })} onNav={(key, d, ch) => onNav({ kind: 'tag', sec: sec.id, box: c.id, row: id }, key, d, ch)}
                     draftKey={draftKey(keyOf(sec.id, c.id, id, 'tag'))} onClash={clash({ kind: 'tag', sec: sec.id, box: c.id, row: id })} />
                 )}
+                {!isNew && !readOnly && <BinButton onRemove={() => removeEntry(a, text, src)} />}
               </div>
             )
           }
@@ -698,7 +781,7 @@ export function TafelFormPage({ pageKey, title, data, readOnly, isPhone, onChang
               onPointerDown={keep}
               onClick={(e) => { if (e.target === e.currentTarget) (e.currentTarget.querySelector<HTMLTextAreaElement>('[data-kn]'))?.focus() }}>
               <div className={s.boxLabel}>{label}</div>
-              {lines.map((l, i) => lineRow(l.id, l.text, l.trend, l.tag, false, i))}
+              {lines.map((l, i) => lineRow(l.id, l.text, l.trend, l.tag, false, i, l.src))}
               {!readOnly && lineRow(box.newId, '', undefined, undefined, true, lines.length)}
             </div>
           )
@@ -715,6 +798,9 @@ export function TafelFormPage({ pageKey, title, data, readOnly, isPhone, onChang
     const order = written.map((r) => r.id)
     const list = sec.id
     const { newId, ghosts = 0 } = ids[sec.id]
+    // a written row's bin stands in a column of its own at the row's end (owner pick 7A)
+    const bins = !readOnly && tableAddsRows(sec)
+    const pc = problemColumns(sec)
     // on a phone a column is never narrower than its head's longest piece needs (owner, 10.10.:
     // «Entwi/cklun/gs-» in a 70px column) — a wide sheet then scrolls sideways in its box. And the
     // template's weights scale those minimums (owner, 28.10.2026: «make each column a little bit
@@ -726,8 +812,9 @@ export function TafelFormPage({ pageKey, title, data, readOnly, isPhone, onChang
       gridTemplateColumns: [
         ...cols.map((c, i) => `minmax(${isPhone ? `calc(var(--tafel-col-min) * ${minScale[i]})` : '0'}, ${c.w ?? 1}fr)`),
         ...(sec.done ? ['auto'] : []),
+        ...(bins ? ['var(--tap)'] : []),
       ].join(' '),
-      ...(isPhone ? { minWidth: `calc(var(--tafel-col-min) * ${minScale.reduce((a, b) => a + b, 0)})` } : {}),
+      ...(isPhone ? { minWidth: `calc(var(--tafel-col-min) * ${minScale.reduce((a, b) => a + b, 0)}${bins ? ' + var(--tap)' : ''})` } : {}),
     }
     /** an empty ruling under the empty row: drawn like a row, and a tap on it writes in the empty
      *  row — the same column — so writing lands directly under the last entry */
@@ -742,11 +829,13 @@ export function TafelFormPage({ pageKey, title, data, readOnly, isPhone, onChang
         }}>
         {cols.map((c) => <span key={c.id} className={s.td} data-col={c.id} />)}
         {sec.done && <span className={s.td} />}
+        {bins && <span className={s.td} />}
       </div>
     )
-    const cellFor = (r: { id: string; cells: Record<string, string> }, c: TemplateColumn, isNew: boolean, i = -1) => {
+    const cellFor = (r: { id: string; cells: Record<string, string>; src?: EntrySource }, c: TemplateColumn, isNew: boolean, i = -1) => {
       const label = labelText(c.label)
       const fixedRow = fixedRows.has(r.id)
+      const fromCk = r.src === 'checklist'
       if (c.fixed && fixedRow) {
         const v = fixedRows.get(r.id)?.cells[c.id]
         if (c.type === 'symbol') return <span key={c.id} className={cx(s.td, s.sig)}><BoardSignature name={typeof v === 'string' ? v : labelText(v)} className={s.sigSvg} /></span>
@@ -766,13 +855,30 @@ export function TafelFormPage({ pageKey, title, data, readOnly, isPhone, onChang
       const a: Addr = { kind: 'cell', sec: sec.id, row: r.id, col: c.id }
       const k = keyOf(sec.id, undefined, r.id, c.id)
       const writtenRow = i >= 0
-      // the grip stands at the row's left edge, in its first typed cell
+      // the grip stands at the row's left edge, in its first typed cell (or the Bereich menu)
       const first = c.id === cols.find((x) => !(x.fixed && (x.type === 'symbol' || x.type === 'index')) && x.type !== 'trend')?.id
+      const gripped = writtenRow && first && order.length > 1 && !readOnly
+      if (c.type === 'area') {
+        const v = r.cells[c.id] ?? ''
+        // a checklist problem's Bereich is its phase's: read, not picked
+        if (readOnly || fromCk) {
+          return <span key={c.id} className={cx(s.td, s.fixed, gripped && s.tdGrip)}>{writtenRow && first && grip(list, a, order)}{labelText(c.options?.find((o) => o.id === v)?.label) || v}</span>
+        }
+        return (
+          <span key={c.id} className={cx(s.td, s.areaCell, gripped && s.tdGrip)}>
+            {writtenRow && first && grip(list, a, order)}
+            <AreaPick value={v} options={c.options ?? []} label={label} onPick={(x) => put(putRow(data, sec.id, r.id, { cells: { [c.id]: x } }, serverNow()))} />
+          </span>
+        )
+      }
+      // a checklist problem's words are the checklist's (lib/problemLink): read, never typed over
+      const ckWords = fromCk && c.id === pc?.text
       return (
-        <span key={c.id} className={cx(s.td, writtenRow && first && order.length > 1 && !readOnly && s.tdGrip)}>
+        <span key={c.id} className={cx(s.td, gripped && s.tdGrip, ckWords && s.tdCk)}>
           {writtenRow && first && grip(list, a, order)}
+          {ckWords && <ChecklistMark />}
           <Cell k={k} kn={isNew ? keyOf(sec.id, undefined, NEW, c.id) : undefined} onMove={writtenRow ? onMove(a, k) : undefined}
-            value={r.cells[c.id] ?? ''} label={label} readOnly={readOnly} time={c.type === 'time'}
+            value={r.cells[c.id] ?? ''} label={label} readOnly={readOnly || ckWords} time={c.type === 'time'}
             placeholder={c.type === 'time' ? '--:--' : undefined} last={k === lastKey}
             onCommit={commit(a)} onNav={(key, d, ch) => onNav(a, key, d, ch)} draftKey={draftKey(k)} onClash={clash(a)} />
         </span>
@@ -784,6 +890,7 @@ export function TafelFormPage({ pageKey, title, data, readOnly, isPhone, onChang
           {/* a head may break after a slash («Funktion/ Standort/ Name»), never inside a word */}
           {cols.map((c) => <span key={c.id} className={s.th} role="columnheader">{labelText(c.label).replace(/\//g, '/\u200b')}</span>)}
           {sec.done && <span className={s.th} role="columnheader"><span className={s.srOnly}>{t.done}</span></span>}
+          {bins && <span className={s.th} role="columnheader"><span className={s.srOnly}>{t.deleteRow}</span></span>}
         </div>
         {fixedList.map((r) => (
           <div key={r.id} className={cx(s.tr, s.trFixed, r.done && s.trDone)} role="row" style={grid}>
@@ -791,6 +898,7 @@ export function TafelFormPage({ pageKey, title, data, readOnly, isPhone, onChang
             {sec.done && <span className={cx(s.td, s.doneCell)}>
               <DoneButton on={!!r.done} readOnly={readOnly} onToggle={() => put(putRow(data, sec.id, r.id, { done: !r.done }, serverNow()))} />
             </span>}
+            {bins && <span className={s.td} />}
           </div>
         ))}
         {/* the entries, from the top, in their order (owner, 10.10. evening: «reorder, no fixed
@@ -802,12 +910,16 @@ export function TafelFormPage({ pageKey, title, data, readOnly, isPhone, onChang
             {sec.done && <span className={cx(s.td, s.doneCell)}>
               <DoneButton on={!!r.done} readOnly={readOnly} onToggle={() => put(putRow(data, sec.id, r.id, { done: !r.done }, serverNow()))} />
             </span>}
+            {bins && <span className={cx(s.td, s.binCell)}>
+              <BinButton onRemove={() => removeEntry({ kind: 'cell', sec: sec.id, row: r.id, col: '' }, (pc ? r.cells[pc.text] : undefined) ?? Object.values(r.cells).find((x) => x.trim()) ?? '', r.src)} />
+            </span>}
           </div>
         ))}
         {newId && (
           <div key={newId} className={cx(s.tr, s.trNew)} role="row" style={grid}>
             {cols.map((c) => cellFor({ id: newId, cells: {} }, c, true))}
             {sec.done && <span className={s.td} />}
+            {bins && <span className={s.td} />}
           </div>
         )}
         {Array.from({ length: newId ? ghosts : 0 }, (_, j) => ghostRow(`g${j}`))}
@@ -914,10 +1026,13 @@ export function TafelFormPage({ pageKey, title, data, readOnly, isPhone, onChang
             <section key={sec.id} className={cx(s.sec, sec.type === 'text' && s.secText)} data-sec={sec.id}
               style={{ gridColumn: cols > 1 && sec.span === 2 ? '1 / -1' : undefined }}>
               {sec.type !== 'text' && heading(labelText(sec.title), labelText(sec.subtitle))}
-              {sec.type === 'quad' ? quad(sec) : sec.type === 'table' ? table(sec) : sec.type === 'text' ? text(sec) : map(sec)}
+              {sec.type === 'quad' ? quad(sec) : sec.type === 'table' ? table(sec) : sec.type === 'text' ? text(sec)
+                : sec.type === 'live' ? <TafelPendenzen Cell={Cell} sec={sec} port={pendenzen} isPhone={isPhone} pageTitle={title ?? labelText(page.title)} /> : map(sec)}
             </section>
           ))}
         </div>
+        {/* what the checklist mark means – where a problem section shows one */}
+        {hasChecklistEntry(data) && <p className={s.legend}><Icon id="checklist" />{t.checklistLegend}</p>}
         {/* when the page was started and last written on — the paper prints the same line */}
         <p className={s.stamp}>{pageStamp(data, t)}</p>
       </div>

@@ -311,6 +311,41 @@ describe('mergeWorkspace — task-scoped cross-domain merges (no clobbering)', (
   })
 })
 
+describe('mergeWorkspace – checklist ticks merge per tick (05.11.2026)', () => {
+  const tick = (t: string, extra: Record<string, unknown> = {}) => ({ t, by: 'EL', ...extra })
+  const ticksOf = (m: Record<string, unknown>) => ((m.checklists as Record<string, { ticks: Record<string, unknown> }>).pe.ticks)
+
+  it('two devices ticking different items of one list both keep their tick', () => {
+    const base = { checklists: { pe: { ticks: { a: tick('1') } } } }
+    const mine = { checklists: { pe: { ticks: { a: tick('1'), b: tick('2') } } } }
+    const theirs = { checklists: { pe: { ticks: { a: tick('1'), c: tick('3') } } } }
+    expect(Object.keys(ticksOf(mergeWorkspace(base, mine, theirs))).sort()).toEqual(['a', 'b', 'c'])
+  })
+
+  it('the first ticks in a list on two devices (no ancestor for the list) both stand', () => {
+    const mine = { checklists: { pe: { ticks: { b: tick('2') } } } }
+    const theirs = { checklists: { pe: { ticks: { c: tick('3') } } } }
+    expect(Object.keys(ticksOf(mergeWorkspace({}, mine, theirs))).sort()).toEqual(['b', 'c'])
+  })
+
+  it('an un-tick on one device and a Tendenz on the same item on another both stand (06.11.2026)', () => {
+    const base = { checklists: { pe: { ticks: { a: tick('1'), b: tick('2') }, trends: {} } } }
+    const mine = { checklists: { pe: { ticks: { b: tick('2') }, trends: { b: 'up' } } } } // un-ticked a, Tendenz on b
+    const theirs = { checklists: { pe: { ticks: { a: tick('1'), b: tick('2') }, trends: { a: 'down' } } } } // Tendenz on a
+    const merged = mergeWorkspace(base, mine, theirs)
+    expect(ticksOf(merged)).toEqual({ b: tick('2') })
+    // a's Tendenz waits for the re-tick
+    expect((merged.checklists as Record<string, { trends: unknown }>).pe.trends).toEqual({ a: 'down', b: 'up' })
+  })
+
+  it('a branch picked on one device and a tick on another both stand', () => {
+    const base = { checklists: { fu: { ticks: {}, activeBranch: {} } } }
+    const mine = { checklists: { fu: { ticks: { a: tick('1') }, activeBranch: {} } } }
+    const theirs = { checklists: { fu: { ticks: {}, activeBranch: { p1: 'mit' } } } }
+    expect(mergeWorkspace(base, mine, theirs).checklists).toEqual({ fu: { ticks: { a: tick('1') }, activeBranch: { p1: 'mit' } } })
+  })
+})
+
 describe('mergeById — documented LWW data-loss (whole-object replacement, non-Trupp collections)', () => {
   // For every collection EXCEPT trupps, attendance and shifts the merge is per-OBJECT LWW with
   // WHOLE-OBJECT replacement — it does NOT merge field-by-field within a single object. So when

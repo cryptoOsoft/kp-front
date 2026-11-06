@@ -3,7 +3,7 @@ import { newId } from './ids'
 import { compareOrder, isOrderKey, keyBetween, keysFor } from './orderKey'
 import {
   editableColumns, isLabel, isTemplatePage, labelText, shownColumns, shownFixedRows, shownSections, tableAddsRows, writtenColumns,
-  type BoardTemplate, type Label, type TableSection, type TemplatePage,
+  type BoardTemplate, type Label, type LiveSection, type TableSection, type TemplatePage,
 } from './boardTemplate'
 import type { BoardAnno } from '../types'
 
@@ -30,14 +30,18 @@ import type { BoardAnno } from '../types'
 export const TAFEL_ID = 'tafel'
 
 export type FormTrend = 'up' | 'same' | 'down'
+/** Where a problem shown on a page comes from, in the VIEW a page is drawn from (lib/problemLink ·
+ *  problemView) – never stored: `checklist` = a ticked checklist item (its words are the
+ *  checklist's, a small icon says so). */
+export type EntrySource = 'checklist'
 /** one written line in a Problemerfassung box. `ord`: its place in the box (lib/orderKey · see
  *  `ordered`); `slot` is the ruling it was written on by the builds of 10.10.2026 only — read once,
  *  for the order, never written again */
-export interface FormLine { id: string; text: string; trend?: FormTrend; tag?: string; ord?: string; slot?: number }
+export interface FormLine { id: string; text: string; trend?: FormTrend; tag?: string; ord?: string; slot?: number; src?: EntrySource }
 /** one table row: the typed cells by column id (a trend column holds 'up' | 'same' | 'down').
  *  `seed` marks a row the page pre-filled (a vehicle in «Mittel») until somebody edits it.
  *  `ord` / `slot`: as on a line — the row's place among the written rows */
-export interface FormRow { id: string; cells: Record<string, string>; done?: boolean; seed?: boolean; ord?: string; slot?: number }
+export interface FormRow { id: string; cells: Record<string, string>; done?: boolean; seed?: boolean; ord?: string; slot?: number; src?: EntrySource }
 export interface FormSectionValue {
   /** quad: lines per box id */
   lines?: Record<string, FormLine[]>
@@ -258,7 +262,7 @@ export function normalizeTime(raw: string): string {
 }
 
 const sectionValue = (d: BoardFormData, sec: string): FormSectionValue => d.values[sec] ?? {}
-const withSection = (d: BoardFormData, sec: string, v: FormSectionValue): BoardFormData => ({ ...d, values: { ...d.values, [sec]: v } })
+export const withSection = (d: BoardFormData, sec: string, v: FormSectionValue): BoardFormData => ({ ...d, values: { ...d.values, [sec]: v } })
 /** Field-wise JSON equality of two plain objects (a line, a row, a row's cells). */
 const same = (a: object, b: object) => {
   const va = new Map(Object.entries(a)), vb = new Map(Object.entries(b))
@@ -366,6 +370,23 @@ function putRowRaw(d: BoardFormData, sec: string, id: string, patch: { cells?: R
     : empty ? keep.filter((r) => r.id !== id) : keep.map((r) => (r.id === id ? { ...after, ord: r.ord } : r))
   for (const r of next) if (r.slot !== undefined && !fixedIds.has(r.id)) delete r.slot
   return withSection(d, sec, { ...v, rows: next })
+}
+
+/** Delete a written table row (the bin at its end, 05.11.2026) – one ↶ step; the rows below close
+ *  up. A fixed row is the template's and stays: its typed cells are cleared instead. */
+export function dropRow(d: BoardFormData, sec: string, id: string, at?: number): BoardFormData {
+  const v = sectionValue(d, sec)
+  const list = v.rows ?? []
+  if (!list.some((r) => r.id === id)) return d
+  return stamped(d, withSection(d, sec, { ...v, rows: list.filter((r) => r.id !== id) }), at)
+}
+
+/** Delete a line of a Problemerfassung box – as emptying it does, in one tap. */
+export function dropLine(d: BoardFormData, sec: string, box: string, id: string, at?: number): BoardFormData {
+  const v = sectionValue(d, sec)
+  const list = v.lines?.[box] ?? []
+  if (!list.some((l) => l.id === id)) return d
+  return stamped(d, withSection(d, sec, { ...v, lines: { ...v.lines, [box]: list.filter((l) => l.id !== id) } }), at)
 }
 
 /** Write one field of a text section (an empty one is not stored). */
@@ -527,6 +548,9 @@ export function pageStamp(d: BoardFormData, words: StampWords): string {
 
 // ── the Rapport ───────────────────────────────────────────────────────────────────────────────
 
+/** A live section's print, given its resolved heading (`base`) — see `formForPdf`. */
+export type LivePrint = (s: LiveSection, base: Record<string, unknown>) => Record<string, unknown>
+
 /** Trend words for the paper: Helvetica has no ➚ ➘ (the staging Plakat's lesson). */
 export interface TrendWords { up: string; same: string; down: string }
 
@@ -534,9 +558,10 @@ export interface TrendWords { up: string; same: string; down: string }
  * One page, resolved for the server (backend · app/report · BoardPageIn): every label in the
  * deployment's language, every row as the strings that print, in the layout's order. The server
  * draws the paper; it never has to know a template. `stamp`: the page's timeline (`pageStamp`),
- * printed in the footer.
+ * printed in the footer. `live`: what a LIVE section prints — it has no values here, its rows
+ * come from the Einsatz (lib/pendenzenPage · pendenzenForPdf); without one it prints its bar only.
  */
-export function formForPdf(d: BoardFormData, words: TrendWords, locale?: string, headLabels?: Record<'title' | 'address' | 'alarm' | 'el', string>, title?: string, stamp = ''): Record<string, unknown> {
+export function formForPdf(d: BoardFormData, words: TrendWords, locale?: string, headLabels?: Record<'title' | 'address' | 'alarm' | 'el', string>, title?: string, stamp = '', live?: LivePrint): Record<string, unknown> {
   const L = (l: Label | undefined) => labelText(l, locale)
   const trendWord = (t: string | undefined) => (t === 'up' ? words.up : t === 'same' ? words.same : t === 'down' ? words.down : '')
   const p = d.page
@@ -567,7 +592,8 @@ export function formForPdf(d: BoardFormData, words: TrendWords, locale?: string,
         const fixed = new Map((s.fixedRows ?? []).map((r) => [r.id, r]))
         return {
           ...base, done: !!s.done, adds: tableAddsRows(s),
-          columns: cols.map((c) => ({ label: L(c.label), kind: c.type ?? 'text', w: c.w ?? 1 })),
+          // an `area` column prints as the words of its choice – a text column to the paper
+          columns: cols.map((c) => ({ label: L(c.label), kind: c.type === 'area' ? 'text' : c.type ?? 'text', w: c.w ?? 1 })),
           // the fixed rows, then the written ones in their order
           rows: tableRows(d, s).map((r) => ({
             fixed: fixed.has(r.id),
@@ -578,6 +604,7 @@ export function formForPdf(d: BoardFormData, words: TrendWords, locale?: string,
                 return c.type === 'symbol' ? (typeof x === 'string' ? x : L(x)) : L(x)
               }
               const x = r.cells[c.id] ?? ''
+              if (c.type === 'area') return L(c.options?.find((o) => o.id === x)?.label) || x
               return c.type === 'trend' ? trendWord(x) : x
             }),
           })),
@@ -586,6 +613,7 @@ export function formForPdf(d: BoardFormData, words: TrendWords, locale?: string,
       if (s.type === 'text') {
         return { ...base, layout: s.layout ?? (s.fields.length > 1 ? 'row' : 'stack'), fields: s.fields.map((f) => ({ label: L(f.label), tone: f.tone ?? '', value: v.fields?.[f.id] ?? '' })) }
       }
+      if (s.type === 'live') return live?.(s, base) ?? base
       return base
     }),
   }

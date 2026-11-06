@@ -40,6 +40,9 @@ import { downloadReportPdf, reportFilenameHint } from './reportPdf'
 import { resolvePlanAnnos } from './lineAttachments'
 import type { JournalLink } from './journalLinks'
 import { TAFEL_ID, findForms, formForPdf, pageStamp, pageTitles } from './boardForm'
+import { problemView, type ProblemSource } from './problemLink'
+import type { LiveSection } from './boardTemplate'
+import { isPendenzenPage, pendenzenForPdf } from './pendenzenPage'
 import { isDrawnBoardKind } from './workspace'
 import { signatureScope, type SignatureRole, type SignatureStrokes } from './reportSignature'
 
@@ -430,6 +433,11 @@ export function einsatzleiterForPdf(
  * drawing never reaching paper. The Lagekarte box gets the scene as a Kroki the server renders at
  * print time: auto-framed on the Lage (never the operator's Kroki crop, which has another shape),
  * and without captions or labels — the box has no room for the legend their numbers would need.
+ *
+ * ⚠️ The «Aufträge / Pendenzen» page (lib/pendenzenPage) is the SAME list as the Rapport's own
+ * «Aufträge / Pendenzen» section — same source, same columns, and that one carries the Meldungen
+ * too. Printed right after it, the sheet would be the list a second time. So it is left out while
+ * that section is printed (`pendenzen.inRapport`) and stands in for it when the section is off.
  */
 export function tafelPayload(
   board: BoardDoc | null | undefined,
@@ -437,11 +445,20 @@ export function tafelPayload(
   scene: DirectReportArgs['scene'],
   trupps: Trupp[],
   caption: string,
+  problems?: ProblemSource,
+  pendenzen: { timeline: readonly TimelineEvent[]; inRapport: boolean } = { timeline: [], inRapport: false },
 ): { boardPages: Record<string, unknown>[]; boardMap?: unknown; skizze?: Record<string, unknown> } {
   const annos = board?.[TAFEL_ID] ?? []
   const T = appConfig.copy.tafel
   const titles = pageTitles(annos)
-  const pages = findForms(annos).map((a) => formForPdf(a.form, { up: T.trendUp, same: T.trendSame, down: T.trendDown }, undefined, T.head, titles.get(a.id), pageStamp(a.form, T)))
+  // each page as the Tafel draws it: a problem section with every problem of the Einsatz, the
+  // checklist's ticks included (lib/problemLink · problemView); the «Aufträge / Pendenzen» page
+  // only while the Rapport's own section does not print the same list (see above)
+  const forms = findForms(annos)
+  const live = (s: LiveSection, base: Record<string, unknown>) => pendenzenForPdf(s, base, pendenzen.timeline, Date.now())
+  const pages = forms
+    .filter((a) => !(pendenzen.inRapport && isPendenzenPage(a.form)))
+    .map((a) => formForPdf(problemView(a, forms, problems), { up: T.trendUp, same: T.trendSame, down: T.trendDown }, undefined, T.head, titles.get(a.id), pageStamp(a.form, T), live))
   const wantsMap = findForms(annos).some((a) => a.form.page.sections.some((x) => x.type === 'map' && !x.hidden))
   const map = wantsMap && scene
     ? buildKrokiPayload({
@@ -554,7 +571,8 @@ export function buildDirectReportPayload(args: DirectReportArgs): Record<string,
 
   // the Tafel — its own switch, ON unless the operator took it off (an older draft has none)
   const tafel = draft.options.tafel !== false
-    ? tafelPayload(board, plans, scene, trupps, figureCaption)
+    ? tafelPayload(board, plans, scene, trupps, figureCaption, args.checklists && args.checklistTemplates ? { checklists: args.checklists, templates: args.checklistTemplates } : undefined,
+      { timeline: events, inRapport: !!draft.options.pendenzen })
     : { boardPages: [] as Record<string, unknown>[] }
   if (tafel.skizze) planPages.unshift(tafel.skizze)
 
