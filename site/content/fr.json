@@ -105,7 +105,7 @@
         "time": "03:12",
         "tag": "Binômes",
         "h3": "L’équipe 1 entre.",
-        "p": "Pression, moment du repli et temps depuis le dernier contact sont décomptés pour chaque équipe.\n            L’application alerte avant que la marge ne devienne trop courte – même si personne\n            ne regarde l’heure à ce moment-là."
+        "p": "Pression, moment du repli et temps depuis le dernier contact sont décomptés pour chaque équipe.\n            L’application alerte avant que la marge ne devienne trop courte – même si personne\n            ne regarde l’heure à ce moment-là.\n            KP Front émet les avertissements pertinents directement dans l’application, de manière visuelle et sonore.\n            Lorsque plusieurs appareils synchronisés sont utilisés, les états d’alerte sont synchronisés via la\n            connexion réseau existante. Les avertissements sonores peuvent être désactivés au besoin."
       },
       {
         "time": "03:18",
@@ -296,8 +296,8 @@
   },
   "sibling": {
     "eyebrow": "Projet apparenté",
-    "h2": "KP Front conduit à l’avant. KP Rück garde la vue d’ensemble à l’arrière.",
-    "p": "<strong>KP Rück</strong> reproduit sous forme numérique le tableau magnétique du poste de\n          commandement arrière : un tableau pour le personnel, les véhicules et le matériel.\n          Application distincte, même écriture – les deux reçoivent la même alarme du\n          système d’alarme et n’ont pas besoin l’une de l’autre.",
+    "h2": "KP Front apporte la profondeur tactique sur la place sinistrée. KP Rück apporte l’ampleur opérationnelle dans la situation d’ensemble.",
+    "p": "<strong>KP Rück</strong> reproduit sous forme numérique le tableau magnétique du poste de\n          commandement arrière : un tableau pour le personnel, les véhicules et le matériel.\n          Application distincte, même écriture – les deux reçoivent la même alarme du\n          système d’alarme et n’ont pas besoin l’une de l’autre. Les deux applications peuvent être engagées dans une même situation, en parallèle et indépendamment l’une de l’autre.",
     "cta": "Découvrir KP Rück",
     "setup": {
       "h3": "Exploiter les deux – sans tout configurer deux fois",
@@ -349,7 +349,7 @@
       },
       {
         "q": "KP Front fonctionne-t-il sans connexion Internet ?",
-        "a": "Oui. Installée comme application, KP Front fonctionne sur l’appareil : carte,\n          plans, binômes et journal restent utilisables même si le réseau tombe.\n          L’application charge d’elle-même les cartes et les plans autour d’une intervention, peu\n          après son ouverture – et le <strong>contrôle de disponibilité</strong> indique avant\n          l’intervention si les données nécessaires sont sur l’appareil. Après une coupure, les\n          modifications sont synchronisées dès qu’une connexion est de nouveau disponible ; ce qui\n          a été saisi entre-temps est conservé."
+        "a": "Oui. KP Front est en principe utilisable hors ligne. Les cartes et les autres données nécessaires sont\n          enregistrées localement. L’application charge d’elle-même les cartes et les plans autour d’une intervention,\n          peu après son ouverture – et le <strong>contrôle de disponibilité</strong> indique avant l’intervention si\n          les données nécessaires sont sur l’appareil. Hors ligne, les données météo et les autres données externes\n          dépendant du temps correspondent à l’état de la dernière mise à jour. Plusieurs appareils peuvent être\n          synchronisés via une connexion réseau existante, au besoin aussi au sein d’un réseau local propre, sans accès\n          à Internet. Après une coupure, les modifications sont synchronisées dès qu’une connexion est de nouveau\n          disponible ; ce qui a été saisi entre-temps est conservé."
       },
       {
         "q": "Peut-on l’adapter à nos procédures ?",

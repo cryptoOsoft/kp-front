@@ -105,7 +105,7 @@
         "time": "03:12",
         "tag": "Gruppas",
         "h3": "La gruppa 1 entra.",
-        "p": "Pressiun, temp da retratga e temp dapi l’ultim contact vegnan registrads per mintga gruppa.\n            L’applicaziun avertescha avant che la situaziun daventia critica."
+        "p": "Pressiun, temp da retratga e temp dapi l’ultim contact vegnan registrads per mintga gruppa.\n            L’applicaziun avertescha avant che la situaziun daventia critica.\n            KP Front signalisescha avertiments relevants directamain en l’applicaziun, en moda optica ed acustica.\n            Sche plirs apparats sincronisads vegnan utilisads, vegnan ils stadis d’avertiment sincronisads sur la\n            connexiun da rait existenta. Ils avertiments acustics pon vegnir deactivads sche necessari."
       },
       {
         "time": "03:18",
@@ -296,8 +296,8 @@
   },
   "sibling": {
     "eyebrow": "Project parent",
-    "h2": "KP Front maina davant. KP Rück mantegna la survista davos.",
-    "p": "<strong>KP Rück</strong> è la versiun digitala da la tavla magnetica en il post da commando\n          posteriur: ina tavla per persunal, vehichels e material. Las duas applicaziuns\n          survegnan il medem alarm dal sistem d’alarmaziun e funcziunan independentamain.",
+    "h2": "KP Front porta profunditad tactica al lieu d’acziun. KP Rück porta ladezza operativa en la situaziun generala.",
+    "p": "<strong>KP Rück</strong> è la versiun digitala da la tavla magnetica en il post da commando\n          posteriur: ina tavla per persunal, vehichels e material. Las duas applicaziuns\n          survegnan il medem alarm dal sistem d’alarmaziun e funcziunan independentamain. Ellas pon vegnir utilisadas en parallel en la medema situaziun.",
     "cta": "Vesair KP Rück",
     "setup": {
       "h3": "Manar omaduas applicaziuns – senza configurar tut duas giadas",
@@ -349,7 +349,7 @@
       },
       {
         "q": "Funcziuna KP Front senza connexiun a l’internet?",
-        "a": "Gea. Sco applicaziun installada funcziuna KP Front sin l’apparat: charta, plans, gruppas e\n          decurs restan utilisabels, era sche la rait croda ora. Chartas e plans enturn l’acziun chargia\n          l’applicaziun sezza, curt suenter ch’ella è vegnida averta – e la <strong>controlla da prontezza</strong>\n          mussa avant l’acziun sche las datas necessarias èn memorisadas sin l’apparat. Suenter\n          in’interrupziun vegnan las modificaziuns sincronisadas uschespert ch’ina connexiun è puspè\n          disponibla; quai ch’è vegnì registrà en il fratemp resta conservà."
+        "a": "Gea. KP Front è per principi utilisabel offline. Chartas ed autras datas necessarias vegnan memorisadas\n          localmain. Chartas e plans enturn l’acziun chargia l’applicaziun sezza, curt suenter ch’ella è vegnida averta\n          – e la <strong>controlla da prontezza</strong> mussa avant l’acziun sche las datas necessarias èn memorisadas\n          sin l’apparat. Offline correspundan datas da l’aura ed autras datas externas che dependan dal temp al stadi\n          da l’ultima actualisaziun. Plirs apparats pon vegnir sincronisads sur ina connexiun da rait existenta, sche\n          necessari era entaifer in’atgna rait locala senza access a l’internet. Suenter in’interrupziun vegnan las\n          modificaziuns sincronisadas uschespert ch’ina connexiun è puspè disponibla; quai ch’è vegnì registrà en il\n          fratemp resta conservà."
       },
       {
         "q": "Po l’applicaziun vegnir adattada?",
