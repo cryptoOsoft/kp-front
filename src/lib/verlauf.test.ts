@@ -422,6 +422,16 @@ describe('stripScale', () => {
     expect(s.end).toMatch(/16.50/)
   })
 
+  it('drops a stamp that would stand within 32px of its neighbouring hour', () => {
+    // the phone strip of round 30: 14:08–19:05 on 365px – 15:00 stands 64px in, its clock 24px
+    // clear of the stamp's: «14:08 15:00» ran together, so the stamp gives way (never the hour)
+    const s = stripScale(new Date('2026-07-02T14:08:00').getTime(), to, 365)
+    expect(s.marks[0].label).toMatch(/15.00/)
+    expect(s.start).toBeUndefined()
+    // …while the tablet's 523px leaves 52px of air: the stamp stays
+    expect(stripScale(new Date('2026-07-02T14:08:00').getTime(), to, 523).start).toMatch(/14.08/)
+  })
+
   it('never prints two labels closer than one label width', () => {
     const s = stripScale(from, to, 120)
     const lefts = s.marks.filter((m) => m.label).map((m) => m.frac * 120 - 23)

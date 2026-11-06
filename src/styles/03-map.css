@@ -31,6 +31,14 @@
 /* …on the app's own map (Lage, Karte) it stands at the floating inset, 16px from both edges – the
    right rail's right edge and the bottom-left chip's foot (MapLibre's 10px put it in the gutter) */
 .app > .maplibregl-map .maplibregl-ctrl-bottom-right > .maplibregl-ctrl-attrib.maplibregl-compact { margin: 0 var(--sp-4) var(--sp-4) 0; }
+/* …and under the right tool rail it hangs on the rail's GLYPH AXIS, not its edge (hill climb r31,
+   Opus 4: flush with the edge its centre stood 18px right of the glyph column above it). Moved by
+   the corner box's `right` (07-toolrail · .tool-rail's own inset) plus half of what the rail is
+   wider than the ⓘ: the compact rail's 60px – an expanded rail keeps its glyphs in that right-hand
+   column – or the labelled one's 92px (a per-device setting). The bottom stays the chip's 16px. */
+.app:has(.tool-rail) > .maplibregl-map .maplibregl-ctrl-bottom-right { right: calc(max(16px, env(safe-area-inset-right)) + (60px - 24px) / 2); }
+.app:has(.tool-rail.labelled:not(.expanded)) > .maplibregl-map .maplibregl-ctrl-bottom-right { right: calc(max(16px, env(safe-area-inset-right)) + (var(--vrail-w-labelled, 92px) - 24px) / 2); }
+.app:has(.tool-rail) > .maplibregl-map .maplibregl-ctrl-bottom-right > .maplibregl-ctrl-attrib.maplibregl-compact { margin-right: 0; }
 /* the ⓘ is 24px: a finger gets a pad out to --tap around it (it sits in the corner, so the
    pad reaches over the map, never over another control) */
 @media (pointer: coarse) {
