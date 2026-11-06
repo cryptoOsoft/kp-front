@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { drawingEditChanges, drawingLogName, endingFlags, endingOf, endingWireFlags, type LineEnding } from './drawingEdit'
 import { replayEmits } from './replay.test-utils'
 import type { Drawing } from '../types'
+import { appConfig } from '../config/appConfig'
 
 const line = (over: Partial<Drawing>): Drawing => ({
   id: 'd1', kind: 'line', coords: [[7.5, 47.4], [7.51, 47.41]], ...over,
@@ -67,6 +68,9 @@ describe('drawingEditChanges (the Verlauf line for editing a drawing)', () => {
     expect(drawingEditChanges(line({}), line({ hose: '110' }))).toEqual(['Schlauch: 110 mm'])
     expect(drawingEditChanges(line({ hose: '75' }), line({ hose: '2x75' }))).toEqual(['Schlauch auf 2× 75 geändert'])
     expect(drawingEditChanges(line({}), line({ relay: { flow: 1200, pumps: [{ atM: 300 }] } }))).toEqual([])
+    // …but «Pumpen auf Karte» puts Motorspritzen on the Karte, or takes them off
+    expect(drawingEditChanges(line({ relay: {} }), line({ relay: { showPumps: true } }))).toEqual([appConfig.copy.log.pumpsShown])
+    expect(drawingEditChanges(line({ relay: { showPumps: true } }), line({ relay: { pumps: [{ atM: 9 }] } }))).toEqual([appConfig.copy.log.pumpsHidden])
   })
 
   it('an unchanged drawing produces no lines', () => {

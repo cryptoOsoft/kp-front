@@ -102,8 +102,6 @@ export interface MapDetailPanelsProps {
   isVisible: (id: LayerId) => boolean
   toggleLayer: (id: LayerId) => void
   deleteDrawing: (id: string) => Promise<void>
-  /** a Wassertransport's pumps put on the Karte as Motorspritzen (useMapActions · placePumpSymbols) */
-  placePumpSymbols: (coords: LngLat[]) => void
 }
 
 export function MapDetailPanels({
@@ -117,7 +115,7 @@ export function MapDetailPanels({
   selectedDrawingId, patchDrawingLabelLive, commitDrawingLabel,
   changeMapEnding, reverseDrawing, setDrawingWallRole, objects, syncLineNoToTrupp, pickablePersonnel, linkTruppLine,
   unlinkLine, setSelectedDrawingId, setMode, setPanel, setGpsRouting, revertAll, gpsEndOf, releaseHere,
-  releaseOnSite, setDrawingAttachment, focusEntity, isVisible, toggleLayer, deleteDrawing, placePumpSymbols,
+  releaseOnSite, setDrawingAttachment, focusEntity, isVisible, toggleLayer, deleteDrawing,
 }: MapDetailPanelsProps) {
   // a Rechteck's figures, for its panel — editable or read-only alike
   const shapeFigures = selected?.kind === 'shape' && selected.shape === 'square' ? (() => {
@@ -431,7 +429,8 @@ export function MapDetailPanels({
             ? {
               // the hose comes along when the Ø changes, in the same edit (DrawEditor · Schlauch)
               onChange: tacticalLocked ? undefined : (patch) => patchDrawing(patch),
-              onPlacePumps: tacticalLocked ? undefined : placePumpSymbols,
+              // its resting pumps on the map step aside while the section shows the live ones
+              lineId: selectedDrawing.id,
             }
             : undefined}
           // the anchored Trupp carries a COPY of the number (the AS chip prints it), so a
