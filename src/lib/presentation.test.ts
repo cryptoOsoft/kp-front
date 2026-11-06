@@ -208,3 +208,11 @@ describe('fitting the presenter\'s section', () => {
     expect(below.angle).toBe(90)
   })
 })
+
+describe('a tag at the surface\'s edge', () => {
+  it('goes to the left when the right would leave the surface', () => {
+    const tags = placeTags([{ key: 'a', x: 370, y: 100, label: 'Führungsunterstützung' }], 390)
+    expect(tags.a.side).toBe('left')
+    expect(placeTags([{ key: 'b', x: 50, y: 100, label: 'Sandra' }], 390).b.side).toBe('right')
+  })
+})

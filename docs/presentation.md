@@ -43,7 +43,9 @@ Rules that span modules live here; each module's header says what it owns.
   A view names surfaces, ids and anchors only, never data: a follower opens them in its OWN copy
   of the Einsatz, so following never shows a session anything it could not already read. A plan
   this device does not have (a link sees fewer Objektpläne – `hasPlan`) is not followed; the
-  follower stays where it is. The Atemschutz-Link page runs no presentation at all.
+  follower stays where it is; a link session has no Tafel pages at all (`IncidentWorkspace ·
+  useTafelPages`, `enabled: !linkScoped`), so a link follower stays on the Tafel's Skizze while
+  the presenter is on a page. The Atemschutz-Link page runs no presentation at all.
 - **Detaching**: a pan, pinch or wheel by hand, a scroll by hand (wheel, touch, a scroll key)
   on a scrolled surface or in the Verlauf, a surface, Checkliste, symbol or the Verlauf opened or
   closed by hand – each turns the pill into the chip «Wieder folgen»; one tap jumps back to the

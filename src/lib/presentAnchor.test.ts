@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest'
-import { pathTo, resolvePath, scrollToAnchor, topAnchor } from './presentAnchor'
+import { anchorPoint, pathTo, resolvePath, scrollToAnchor, topAnchor } from './presentAnchor'
 
 /** jsdom lays nothing out: each element gets the box it is given */
 function box(el: Element, top: number, height: number) {
@@ -20,6 +20,15 @@ describe('a place in a scrolled surface', () => {
     document.body.innerHTML = `<div id="b"><section data-sec="ordnung"></section><section data-sec="front"><p>x</p><p id="u">y</p></section></div>`
     expect(resolvePath(document.getElementById('b')!, path)).toBe(document.getElementById('u'))
     expect(resolvePath(document.getElementById('b')!, ['data-sec=gone'])).toBeNull()
+  })
+
+  it('a row this layout lacks lands in its section, not nowhere', () => {
+    // the laptop's table has ten ruled rows, the phone's one: a ring on row 5 stands in the table
+    document.body.innerHTML = `<div id="c"><section data-sec="massnahmen"><div id="row0"></div></section></div>`
+    const sec = document.querySelector('[data-sec]')!
+    box(sec, 100, 200)
+    expect(anchorPoint(document.getElementById('c')!, { path: ['data-sec=massnahmen', '5'], x: 0.5, y: 0.25, r: 0 })).toEqual({ x: 150, y: 150, w: 300 })
+    expect(anchorPoint(document.getElementById('c')!, { path: ['data-sec=gone'], x: 0.5, y: 0.5, r: 0 })).toBeNull()
   })
 
   it('a follower scrolls the presenter\'s top row to its own top edge', () => {

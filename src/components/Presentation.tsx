@@ -18,6 +18,7 @@ import { useContext, useEffect, useLayoutEffect, useRef, useState, type CSSPrope
 import { createPortal } from 'react-dom'
 import type { MapRef } from 'react-map-gl/maplibre'
 import { appConfig } from '../config/appConfig'
+import { PHONE_QUERY } from '../lib/breakpoints'
 import { rowLift, type Box } from '../lib/floatRow'
 import { Icon } from '../lib/icons'
 import { anchorAt, anchorPoint } from '../lib/presentAnchor'
@@ -48,8 +49,9 @@ const PILL_OBSTACLES = '.wb-botleft > *, .armed-pill-row, .sel-bar, .coord-read'
  * Keeps the pill clear of the chips and pills of its row on a tablet or laptop (owner's laptop
  * screenshot 06.11.2026: «Du präsentierst» over «Messungen»): measured like the phone's floating
  * row (lib/floatRow · rowLift) – it rises only past what overlaps it sideways, so it stays on its
- * line wherever the line is free. On a phone it is the other way round: the pill is an obstacle
- * of THAT row (floatRow · OBSTACLE_SEL), and the chips rise above it.
+ * line wherever the line is free. On a phone it is the other way round: it stands on the bars'
+ * baseline (08-toasts · @media --phone), it is an obstacle of the chip row (floatRow ·
+ * OBSTACLE_SEL), and the chips rise above it.
  */
 function usePillLift(on: boolean) {
   const rowRef = useRef<HTMLDivElement>(null)
@@ -60,7 +62,7 @@ function usePillLift(on: boolean) {
     const place = () => {
       row.style.setProperty('--present-lift', '0px')
       const pill = row.lastElementChild?.getBoundingClientRect()
-      if (!pill || row.closest('.phone-tools')) return
+      if (!pill || row.closest('.phone-tools') || window.matchMedia(PHONE_QUERY).matches) return
       const box = (r: DOMRect): Box => ({ left: r.left, right: r.right, top: r.top, bottom: r.bottom })
       const obstacles = [...document.querySelectorAll(PILL_OBSTACLES)].map((el) => el.getBoundingClientRect()).filter((r) => r.width && r.height).map(box)
       row.style.setProperty('--present-lift', `${rowLift(box(pill), obstacles)}px`)
@@ -238,12 +240,12 @@ function RingMark({ r, presenter, style, tag }: { r: Ring; presenter: string | n
 }
 
 /** The rings' tags, kept off each other (lib/presentation · placeTags), from screen positions. */
-function tagsFor(rings: Ring[], at: (r: Ring) => { x: number; y: number } | null): Record<string, TagPlace> {
+function tagsFor(rings: Ring[], at: (r: Ring) => { x: number; y: number } | null, width?: number): Record<string, TagPlace> {
   const placed = rings.flatMap((r) => {
     const pt = at(r)
     return pt ? [{ key: r.key, ...pt, label: ringLabel(r) }] : []
   })
-  return placeTags(placed)
+  return placeTags(placed, width)
 }
 
 /** A line drawn with «Zeigen»: the person's colour on a light halo, and its tip as a mark (the
@@ -269,7 +271,7 @@ const pathOf = (pts: readonly { x: number; y: number }[]) => pts.map((q, i) => `
  *  map. The points are projected in the map's own `move` (never while rendering), one frame late
  *  at most. */
 export function MapRings({ mapRef, rings, strokes = [], presenter }: { mapRef: React.RefObject<MapRef | null>; rings: Ring[]; strokes?: Stroke[]; presenter: string | null }) {
-  const [drawn, setDrawn] = useState<{ host: HTMLElement; at: Record<string, { x: number; y: number }>; lines: Record<string, { x: number; y: number }[]> } | null>(null)
+  const [drawn, setDrawn] = useState<{ host: HTMLElement; at: Record<string, { x: number; y: number }>; lines: Record<string, { x: number; y: number }[]>; w: number } | null>(null)
   useEffect(() => {
     const map = mapRef.current?.getMap()
     if (!map || (!rings.length && !strokes.length)) return
@@ -281,7 +283,7 @@ export function MapRings({ mapRef, rings, strokes = [], presenter }: { mapRef: R
         for (const r of rings) if (r.at.lng != null && r.at.lat != null) at[r.key] = map.project([r.at.lng, r.at.lat])
         const lines: Record<string, { x: number; y: number }[]> = {}
         for (const s of strokes) lines[s.key] = s.line.points.map(([lng, lat]) => map.project([lng, lat]))
-        setDrawn({ host: map.getContainer(), at, lines })
+        setDrawn({ host: map.getContainer(), at, lines, w: map.getContainer().clientWidth })
       })
     }
     project()
@@ -289,7 +291,7 @@ export function MapRings({ mapRef, rings, strokes = [], presenter }: { mapRef: R
     map.on('resize', project)
     return () => { cancelAnimationFrame(raf); map.off('move', project); map.off('resize', project) }
   }, [mapRef, rings, strokes])
-  const tags = tagsFor(rings, (r) => drawn?.at[r.key] ?? null)
+  const tags = tagsFor(rings, (r) => drawn?.at[r.key] ?? null, drawn?.w)
   if (!drawn || (!rings.length && !strokes.length)) return null
   return createPortal(
     <div className="present-rings" data-present-host="" aria-hidden>
@@ -339,11 +341,11 @@ export function BoardRings({ rings, strokes = [], presenter, mapY, size }: {
  * TafelFormPage). A form reflows from a laptop's two columns to a phone's one, so a place on it
  * is an anchor – the row or box under the finger and where in it (lib/presentAnchor); a line is
  * its first point's anchor and the rest as offsets in that element's widths, so it scales with
- * the row. The layer is the page's visible band (`top`: the top bar's reserve) and clips what is
+ * the row. The layer is the page's visible band (`top`, `bottom`: the form's own insets) and clips what is
  * scrolled away – those stand as edge arrows instead. Positions are read every frame while
  * there are marks (they live seconds), so they ride the page's own scroll.
  */
-export function PageMarks({ p, top }: { p: BoardPresentation; top: number }) {
+export function PageMarks({ p, top, bottom }: { p: BoardPresentation; top: number; bottom: string }) {
   const layerRef = useRef<HTMLDivElement>(null)
   const [root, setRoot] = useState<HTMLElement | null>(null)
   useEffect(() => { setRoot(layerRef.current?.parentElement?.querySelector<HTMLElement>('[data-testid="tafel-page"]') ?? null) }, [])
@@ -361,7 +363,7 @@ export function PageMarks({ p, top }: { p: BoardPresentation; top: number }) {
     },
   })
   const rings = p.pageRings, strokes = p.pageStrokes
-  const [drawn, setDrawn] = useState<{ at: Record<string, { x: number; y: number }>; lines: Record<string, { x: number; y: number }[]> } | null>(null)
+  const [drawn, setDrawn] = useState<{ at: Record<string, { x: number; y: number }>; lines: Record<string, { x: number; y: number }[]>; w: number } | null>(null)
   useEffect(() => {
     const layer = layerRef.current
     if (!root || !layer || (!rings.length && !strokes.length)) return
@@ -378,16 +380,16 @@ export function PageMarks({ p, top }: { p: BoardPresentation; top: number }) {
         const q = s.line.anchor && anchorPoint(root, s.line.anchor)
         if (q) lines[s.key] = s.line.points.map(([dx, dy]) => ({ x: q.x - l.left + dx * q.w, y: q.y - l.top + dy * q.w }))
       }
-      const sig = JSON.stringify([at, lines])
-      if (sig !== last) { last = sig; setDrawn({ at, lines }) }
+      const sig = JSON.stringify([at, lines, l.width])
+      if (sig !== last) { last = sig; setDrawn({ at, lines, w: l.width }) }
       raf = requestAnimationFrame(tick)
     }
     tick()
     return () => cancelAnimationFrame(raf)
   }, [root, rings, strokes])
-  const tags = tagsFor(rings, (r) => drawn?.at[r.key] ?? null)
+  const tags = tagsFor(rings, (r) => drawn?.at[r.key] ?? null, drawn?.w)
   return (
-    <div ref={layerRef} className="present-rings present-page-marks" data-present-host="" aria-hidden style={{ top }}>
+    <div ref={layerRef} className="present-rings present-page-marks" data-present-host="" aria-hidden style={{ top, bottom }}>
       {drawn && strokes.map((s) => {
         const pts = drawn.lines[s.key]
         return pts?.length ? <LineMark key={s.key} s={s} presenter={p.presenter} d={pathOf(pts)} tip={pts[pts.length - 1]} /> : null

@@ -958,12 +958,14 @@ textarea.note-pill-input { resize: none; overflow: hidden; display: block; line-
 .present-card-text b { color: var(--ink); font-size: var(--fs-3); font-weight: var(--fw-bold); }
 .present-card .ip-btn { flex: none; }
 
-.app.phone-tools .present-row { bottom: var(--float-bottom); max-width: calc(100vw - 16px); }
-.app.phone-tools:has(.fab-entry) .present-row { bottom: calc(var(--float-bottom) + var(--float-h) + var(--float-gap)); }
-.app.phone-tools:has(.armed-pill-row) .present-row { bottom: calc(var(--float-bottom) + var(--tap) + var(--sp-2)); }
-/* a phone: the name card takes the row's width (`data-asking`), the field the part «Folgen»
-   leaves – «Vorname Name» in Sora 16px must fit a 390px phone */
-@media (max-width: 600px) {
+/* a phone, on every surface: on the floating baseline (the bars', --float-bottom) – never over
+   the nav bar of a module surface – and over the Eintrag-FAB's row or an armed tool's pill. The
+   name card takes the row's width (`data-asking`), the field the part «Folgen» leaves – «Vorname
+   Name» in Sora 16px must fit a 390px phone (owner's iPhone, 06.11.2026) */
+@media (--phone) {
+  .present-row { bottom: var(--float-bottom); max-width: calc(100vw - 16px); }
+  .app:has(.fab-entry) .present-row { bottom: calc(var(--float-bottom) + var(--float-h) + var(--float-gap)); }
+  .app.phone-tools:has(.armed-pill-row) .present-row { bottom: calc(var(--float-bottom) + var(--tap) + var(--sp-2)); }
   .present-row[data-asking] { left: 8px; right: 8px; transform: none; max-width: none; align-items: stretch; }
   .present-row[data-asking] .present-pill { padding-right: var(--sp-2); }
   .present-row[data-asking] .present-ask { width: 100%; }

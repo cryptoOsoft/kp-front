@@ -49,26 +49,32 @@ export function pathTo(root: Element, el: Element): string[] {
   return steps.slice(0, MAX_STEPS)
 }
 
-/** The element a path names below `root`, or null where it does not resolve. A keyed step is
- *  matched on the attribute's value by walking (no selector: the value is data, and jsdom has no
- *  `CSS.escape` – see Journal · findRow). */
-export function resolvePath(root: Element, path: readonly string[]): Element | null {
+/** How far a path resolves below `root`: the deepest element reached, and whether it is the one
+ *  named. A keyed step is matched on the attribute's value by walking (no selector: the value is
+ *  data, and jsdom has no `CSS.escape` – see Journal · findRow). A phone renders fewer ruled rows
+ *  in a Tafel table than a laptop, so a path that ends in a row the phone lacks still lands in
+ *  its table – near, not lost. */
+export function resolveDeepest(root: Element, path: readonly string[]): { el: Element; exact: boolean } {
   let at: Element = root
   for (const step of path) {
     const eq = step.indexOf('=')
+    let next: Element | null = null
     if (eq > 0) {
       const attr = step.slice(0, eq), value = step.slice(eq + 1)
-      let hit: Element | null = null
-      for (const c of at.querySelectorAll(`[${attr}]`)) if (c.getAttribute(attr) === value) { hit = c; break }
-      if (!hit) return null
-      at = hit
+      for (const c of at.querySelectorAll(`[${attr}]`)) if (c.getAttribute(attr) === value) { next = c; break }
     } else {
-      const next: Element | undefined = at.children[Number(step)]
-      if (!next) return null
-      at = next
+      next = at.children[Number(step)] ?? null
     }
+    if (!next) return { el: at, exact: false }
+    at = next
   }
-  return at
+  return { el: at, exact: true }
+}
+
+/** The element a path names below `root`, or null where it does not resolve all the way. */
+export function resolvePath(root: Element, path: readonly string[]): Element | null {
+  const hit = resolveDeepest(root, path)
+  return hit.exact ? hit.el : null
 }
 
 /** The place under a client point inside `root` (a tap or a line's start on a form page). */
@@ -78,10 +84,12 @@ export function anchorAt(root: Element, x: number, y: number, target: Element | 
   return { path: pathTo(root, el), x: clamp01((x - r.left) / (r.width || 1)), y: clamp01((y - r.top) / (r.height || 1)), r: scrollRatio(root) }
 }
 
-/** Where an anchored place is on this screen (client px), or null when it does not resolve. */
+/** Where an anchored place is on this screen (client px): in the element it names, or – where
+ *  this layout lacks it – at the same fractions of the deepest one that is there. Null when not
+ *  even the first step resolves. */
 export function anchorPoint(root: Element, a: Anchor): { x: number; y: number; w: number } | null {
-  const el = resolvePath(root, a.path)
-  if (!el) return null
+  const { el } = resolveDeepest(root, a.path)
+  if (el === root && a.path.length) return null
   const r = el.getBoundingClientRect()
   return { x: r.left + a.x * r.width, y: r.top + a.y * r.height, w: r.width }
 }
@@ -113,18 +121,20 @@ export function topAnchor(scroller: Element): Anchor {
   return { path: el === scroller ? [] : pathTo(scroller, el), x: 0, y: clamp01((top - r.top) / (r.height || 1)), r: scrollRatio(scroller) }
 }
 
-/** Scroll `scroller` so the anchored place stands at its top edge. False when the path did not
- *  resolve (the ratio stood in) – the caller may try again once the surface has rendered. */
+/** Scroll `scroller` so the anchored place stands at its top edge – or, where this layout lacks
+ *  the element, the top of the deepest one that is there; the scroll's ratio where not even the
+ *  first step resolves. False unless the place itself was found – the caller tries again while
+ *  the surface is still rendering. */
 export function scrollToAnchor(scroller: HTMLElement, a: Anchor): boolean {
-  const el = a.path.length ? resolvePath(scroller, a.path) : null
-  if (!el) {
+  const { el, exact } = resolveDeepest(scroller, a.path)
+  if (el === scroller) {
     const room = scroller.scrollHeight - scroller.clientHeight
     if (room > 0) scroller.scrollTop = a.r * room
     return a.path.length === 0
   }
   const r = el.getBoundingClientRect()
-  scroller.scrollTop += r.top + a.y * r.height - scroller.getBoundingClientRect().top
-  return true
+  scroller.scrollTop += r.top + (exact ? a.y * r.height : 0) - scroller.getBoundingClientRect().top
+  return exact
 }
 
 const SKIP = '.journal-drawer, .navrail, .tool-rail, .present-row, [role="dialog"]'

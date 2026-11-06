@@ -263,15 +263,17 @@ export function tagBox(r: { x: number; y: number; label: string }, place: TagPla
  * Name tags that do not cover each other, nor another ring: two people pointing at the same
  * window put their rings a finger apart, and the second tag sat on the first («Sandra Meier ·
  * Link» half under «Führungsunterstützung»). Rings in screen px, OLDEST first: a ring keeps its
- * place when a newer one arrives – the newer one moves (right, left, a row down or up …).
- * When nothing is free, the default (right) stands.
+ * place when a newer one arrives – the newer one moves (right, left, a row down or up …). A tag
+ * also stays inside the surface's `width` when one is given. When nothing is free, the default
+ * (right) stands.
  */
-export function placeTags(rings: readonly { key: string; x: number; y: number; label: string }[]): Record<string, TagPlace> {
+export function placeTags(rings: readonly { key: string; x: number; y: number; label: string }[], width = Infinity): Record<string, TagPlace> {
   const circles: Box[] = rings.map((r) => ({ x0: r.x - RING_R, y0: r.y - RING_R, x1: r.x + RING_R, y1: r.y + RING_R }))
   const taken: Box[] = []
   const out: Record<string, TagPlace> = {}
   rings.forEach((r, i) => {
-    const free = (b: Box) => !taken.some((t) => hits(t, b)) && !circles.some((c, j) => j !== i && hits(c, b))
+    // …and inside the surface (`width`, px): a ring at the right edge wears its tag on the left
+    const free = (b: Box) => b.x0 >= 0 && b.x1 <= width && !taken.some((t) => hits(t, b)) && !circles.some((c, j) => j !== i && hits(c, b))
     const place = CANDIDATES.find((p) => free(tagBox(r, p))) ?? CANDIDATES[0]
     out[r.key] = place
     taken.push(tagBox(r, place))

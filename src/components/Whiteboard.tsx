@@ -2135,21 +2135,22 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
   // history and its ↶ stay wired exactly as on the Skizze.
   const formPage = formOpen ? pages.find((p) => p.id === page) : undefined
   if (formPage) {
+    // the bottom: the strip's row and its air, so the last ruling scrolls above it — on a
+    // phone above THE floating row (15-mobile · --float-bottom), on a tablet above the row
+    const pageBottom = isPhone ? 'calc(var(--float-bottom, 72px) + var(--float-h) + 16px)' : 'calc(16px + var(--float-h) + 24px)'
     return (
       <div className="whiteboard wb-tafel-page">
         {/* the strip in the row a plan's «which place» chips stand in (owner, before the release) */}
         <div className="wb-botleft">{strip}</div>
         {/* the Präsentationsmodus' rings and lines on the page, and «Zeigen» on it */}
-        {presentation && <PageMarks key={`marks-${formPage.id}`} p={presentation} top={topRes} />}
+        {presentation && <PageMarks key={`marks-${formPage.id}`} p={presentation} top={topRes} bottom={pageBottom} />}
         <TafelFormPage key={formPage.id} pageKey={formPage.id} title={titles.get(formPage.id)} data={formPage.form} readOnly={readOnly} isPhone={isPhone}
           onChange={(next) => editPage(formPage.id, next)} onRemove={() => void removePage(formPage.id)}
           // typed over another device's value for the same cell: the later stands, the Verlauf says so
           onConflict={(where, kept, lost) => log('warn', fillTemplate(appConfig.copy.journal.tafelConflict, { page: titles.get(formPage.id) ?? labelText(formPage.form.page.title), where, kept, lost }), { subjectId: formPage.id })}
           onPrint={incidentId ? (all) => void printPages(all ? pages : [formPage]) : undefined} pageCount={pages.length} printing={printing}
           scene={tafel?.scene} onOpenKarte={tafel?.onOpenKarte}
-          // the bottom: the strip's row and its air, so the last ruling scrolls above it — on a
-          // phone above THE floating row (15-mobile · --float-bottom), on a tablet above the row
-          inset={{ top: topRes, left: isPhone ? 0 : side.l, right: isPhone ? 0 : side.l, bottom: isPhone ? 'calc(var(--float-bottom, 72px) + var(--float-h) + 16px)' : 'calc(16px + var(--float-h) + 24px)' }} />
+          inset={{ top: topRes, left: isPhone ? 0 : side.l, right: isPhone ? 0 : side.l, bottom: pageBottom }} />
       </div>
     )
   }

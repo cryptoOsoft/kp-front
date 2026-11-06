@@ -597,8 +597,11 @@ export function usePresentation({
   const available = live && reachable && follow.kind !== 'none'
   const shown = available ? rings : []
   const shownLines = available ? strokes : []
-  const mapRings = useMemo(() => (available && joined ? ringsOn(rings, { surface: 'map' }) : []), [available, joined, rings])
-  const mapStrokes = useMemo(() => (available && joined ? strokesOn(strokes, { surface: 'map' }) : []), [available, joined, strokes])
+  // only while the Karte is on screen: the map stays mounted under every other surface, and a
+  // ring's tag showed through at its edge
+  const onMap = available && joined && mode === 'map'
+  const mapRings = useMemo(() => (onMap ? ringsOn(rings, { surface: 'map' }) : []), [onMap, rings])
+  const mapStrokes = useMemo(() => (onMap ? strokesOn(strokes, { surface: 'map' }) : []), [onMap, strokes])
   const presenter = snap?.active ? snap.presenter?.client ?? null : null
   const pageHere = activePlanId === TAFEL_ID ? tafelPage : null
   const onPage = { surface: 'page' as const, planId: activePlanId, page: pageHere ?? SKIZZE }
