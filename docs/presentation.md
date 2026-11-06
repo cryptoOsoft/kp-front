@@ -10,10 +10,12 @@ Rules that span modules live here; each module's header says what it owns.
 | `backend/app/presentation.py` | the in-memory broker: one presentation per Einsatz, its room, the message ring buffer, the lazy timeout |
 | `backend/app/api/presentation.py` | the routes and their authorisation |
 | `backend/app/auth/incident_link.py` | the two allowlist entries for the view and alarm links |
-| `src/lib/presentation.ts` | the pure half: the follow state machine, rings, the view throttle |
-| `src/workspace/usePresentation.ts` | the hook: the poll, presenting, following, pointing |
-| `src/lib/useZeigen.ts` | «Zeigen»: one-finger taps become pointers, two fingers still pan |
-| `src/components/Presentation.tsx` | the pill, the rings, the «Präsentieren» card |
+| `src/lib/presentation.ts` | the pure half: the follow state machine, rings and lines, fitting a section, edge arrows, the throttle |
+| `src/lib/presentAnchor.ts` | a place in a scrolled surface that survives another screen (scroll, form-page marks) |
+| `src/lib/checklistPick.ts` | the open Checkliste per Einsatz, readable and settable from outside the surface |
+| `src/workspace/usePresentation.ts` | the hook: the poll, presenting, following, pointing, drawing |
+| `src/lib/useZeigen.ts` | «Zeigen»: one-finger taps become rings, drags lines, two fingers still pan |
+| `src/components/Presentation.tsx` | the pill, the rings and lines (Karte, plan, form page), the edge arrows, the «Präsentieren» card |
 
 ## What the operator sees
 
@@ -22,18 +24,54 @@ Rules that span modules live here; each module's header says what it owns.
   over («Übernehmen») – the old presenter's tablet may be the one that is gone, and «Starten»
   must never be a dead end.
 - **Presenter pill** (bottom centre): «Du präsentierst · N folgen · avatars · Zeigen · Beenden».
-- **Everyone else**: «<Name> präsentiert · Folgen». Following mirrors the Karte (centre, zoom,
-  bearing) or the Plan (the open plan, its centre and zoom relative to «eingepasst») and, on the
-  Tafel, the page. The pill becomes «Folgst <Name> · Zeigen · ✕».
-- **Detaching**: a pan, pinch or wheel by hand, or a surface switched by hand, turns the pill into
-  the chip «Wieder folgen»; one tap jumps back to the presenter's current view.
+- **Everyone else**: «<Name> präsentiert · Folgen». The pill becomes «Folgst <Name> · Zeigen · ✕».
+  Following mirrors (owner picks 06.11.2026, «follow ALL of these»):
+  - the **surface**: the Karte, the Plan (the open plan; on the Tafel the page), the Checklisten,
+    Atemschutz, Anwesenheit, Mittel and the Rapport;
+  - the **section**, fitted (owner pick «Fit + edge arrows»): the presenter sends its FREE area –
+    the Karte's centre, zoom, bearing and size in px with its own detail panel left out; the
+    Plan's centre and extent in board units – and a follower fits that whole area into its own
+    free area (`lib/presentation · fitZoom`, `fitScale`), so a portrait phone following a laptop
+    zooms out instead of cutting the sides off. Nothing changes for the presenter;
+  - the **scroll** of a scrolled surface – a module, a Checkliste, a Tafel form page – and of an
+    open Verlauf, as an anchor (`lib/presentAnchor`): the element at the top edge and how far into
+    it, found again by the way down to it – keyed where the surface renders a key (`data-sec`,
+    `data-box` on a form page, `data-ev` on a Verlauf row), else by child index – with the whole
+    scroll's ratio as the fallback. Never raw px: a phone reflows the same list much taller;
+  - the open **Checkliste** (`lib/checklistPick`), the open **symbol detail** (the Karte's
+    selected symbol, the plan's selected object) and the **Verlauf drawer** (open or closed).
+  A view names surfaces, ids and anchors only, never data: a follower opens them in its OWN copy
+  of the Einsatz, so following never shows a session anything it could not already read. A plan
+  this device does not have (a link sees fewer Objektpläne – `hasPlan`) is not followed; the
+  follower stays where it is. The Atemschutz-Link page runs no presentation at all.
+- **Detaching**: a pan, pinch or wheel by hand, a scroll by hand (wheel, touch, a scroll key)
+  on a scrolled surface or in the Verlauf, a surface, Checkliste, symbol or the Verlauf opened or
+  closed by hand – each turns the pill into the chip «Wieder folgen»; one tap jumps back to the
+  presenter's current view.
 - **Zeigen**: a switch in the pill for everyone joined. On, a one-finger tap (or a click) leaves a
-  named ring that fades after four seconds (`RING_MS`), and nothing under it is selected, placed
-  or drawn; two fingers still pan and zoom, on the Karte and the Plan alike (the Plan counts
-  pointers, so the first finger is handed over at the second – `useZeigen · handOver`). Everyone
-  joined sees everyone's rings; a view-link holder's name carries «· Link». Tags of rings close
-  together are kept off each other and off the other rings (`lib/presentation · placeTags`: the
-  newer ring's tag moves left, then a row down or up; the older keeps its place).
+  named ring that fades after four seconds (`RING_MS`); a press-and-drag draws a line that
+  follows the finger and fades the same way once the finger is up (owner pick 06.11.: nothing
+  kept). Nothing under either is selected, placed or drawn into the Einsatz; two fingers still pan
+  and zoom, on the Karte and the Plan alike (the Plan counts pointers, so the first finger is
+  handed over at the second – `useZeigen · handOver`), and a second finger mid-line ends the line.
+  Rings and lines stand on the Karte (lng/lat), on a plan or the Tafel's Skizze (plan space, a
+  line on the storey it started on) and on a Tafel form page (anchored – a ring to the row or box
+  under the finger, a line to its first point, the rest as offsets in that element's widths, so
+  it scales with the reflowed row). Everyone joined sees everyone's; a view-link holder's name
+  carries «· Link». Tags of rings close together are kept off each other and off the other rings
+  (`lib/presentation · placeTags`: the newer ring's tag moves left, then a row down or up; the
+  older keeps its place).
+- **Edge arrows**: a ring or a line's tip outside what a screen shows (beyond the free area – a
+  detail panel over it counts as not shown) stands as a small named arrow at the edge, pointing
+  at it (`lib/presentation · edgeArrow`; every mark carries `data-present-mark`, its surface
+  `data-present-host`, and `components/Presentation · EdgeArrows` measures one against the other
+  every frame while marks live). Informational – a tap on it does nothing, so a follower is never
+  detached by it.
+- **The pill's place**: bottom centre. On a tablet or laptop it rises past whatever overlaps it
+  sideways in that row – the bottom-left chips («Messungen», Gebäude, the page strip), an armed
+  tool's pill, the selection bar, the coordinate read-out – by a measured lift (`usePillLift`, the
+  phone row's `rowLift`). On a phone the chip row rises past the pill instead (it is an obstacle
+  in `lib/floatRow · OBSTACLE_SEL`), and a link holder's name card takes the row's width.
 - **A link holder's name**: asked once per device when they first tap «Folgen» (empty = «Gast»),
   kept in `localStorage` (`kp-front-present-name`, a device flag). The server cleans it
   (`api/presentation · clean_link_name`: NFC; every Unicode control/format/private character –
@@ -41,8 +79,6 @@ Rules that span modules live here; each module's header says what it owns.
   combining marks per base; 40 characters) and an empty result is «Gast». On the public demo
   every link holder is «Gast». On the presenter's row a link holder's avatar wears a chain badge,
   so a self-chosen «Führungsunterstützung» cannot pass as the FU.
-- **Surfaces presented**: the Karte and the Plan/Tafel. On any other surface (Atemschutz,
-  Checklisten …) the presenter sends nothing and the room stays where it was.
 
 ## ⚠️ Nothing of it is record
 
@@ -96,7 +132,18 @@ needs no new infrastructure on the proxy, the service worker or the tests.
 
 - The presenter's view is throttled to one per 150 ms, leading + trailing (`lib/presentation ·
   throttle`); the server floors it at 100 ms per client and pointers at 120 ms
-  (`MIN_INTERVAL_S`). A follower eases to each view over 300 ms so a stream reads as one move.
+  (`MIN_INTERVAL_S`). A follower eases to each view over 300 ms so a stream reads as one move,
+  and puts a scroll in place over the next 1.2 s while its surface renders (a surface that
+  restores its own remembered scroll on mount must not have the last word).
+- ⚠️ **Lines** travel as `stroke` signals carrying the WHOLE line so far, at most one per 250 ms
+  while it grows (`STROKE_MS`, trailing – the finger-up always goes) – so a follower sees it
+  appear while it is drawn, and a lost update loses nothing. The client simplifies to at most
+  120 points (`capPoints`, Douglas–Peucker); the server refuses more (`MAX_STROKE_POINTS`) and
+  floors a client at 150 ms. Lines do NOT go into the 64-message buffer the views and rings
+  share: they have their own, one entry per line (an update replaces it), at most 12 lines
+  (`STROKES_KEPT`) – so a poll's answer stays bounded in bytes and a drawing never pushes a ring
+  out. Link sessions together get 8 line updates a second (`LINK_STROKES_PER_S`), beside their
+  pointer budget.
 - The poll is the presence: a parked poll counts as «still here».
 - A pointer is handed out for `POINTER_TTL_S` (4 s) and only to a poll that already knew the
   presentation: a device that just looked, or a tab back from the background, draws no stale rings.

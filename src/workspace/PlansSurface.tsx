@@ -79,7 +79,7 @@ export interface PlansSurfaceProps {
   emit: (op_type: string, payload?: Record<string, unknown>, opts?: { observed?: string }) => void
   /** the Plan's per-document undo stacks and the handles the Whiteboard reports up (workspace/usePlanStacks) */
   planStacks: ReturnType<typeof usePlanStacks>
-  planFocus: { x: number; y: number; floor: number; annoId?: string; twinEntityId?: string; flash?: boolean; scale?: number; nonce: number } | null
+  planFocus: { x: number; y: number; floor: number; annoId?: string; twinEntityId?: string; flash?: boolean; scale?: number; span?: { w: number; h: number }; nonce: number } | null
   /** the Präsentationsmodus on the Plan (workspace/usePresentation · board) */
   presentation?: BoardPresentation
   effTrupps: Trupp[]

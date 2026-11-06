@@ -91,7 +91,7 @@ export const linksCopy: Localizable<Pick<Copy, Keys>> = {
   },
   presentation: {
     title: 'Présenter',
-    lede: 'Quiconque a ce lien ou l’intervention ouverte suit ta carte. Tous peuvent montrer, rien n’est enregistré.',
+    lede: 'Quiconque a ce lien ou l’intervention ouverte suit ton écran. Tous peuvent montrer, rien n’est enregistré.',
     start: 'Démarrer',
     runningMine: 'Tu présentes.',
     runningOther: '{name} présente.',
@@ -108,7 +108,7 @@ export const linksCopy: Localizable<Pick<Copy, Keys>> = {
     end: 'Terminer',
     leave: 'Ne plus suivre',
     followAgain: 'Suivre à nouveau',
-    hint: 'Montrer est actif – un tap pose un point, déplacer avec deux doigts',
+    hint: 'Montrer est actif – un tap pose un point, glisser trace une ligne, déplacer avec deux doigts',
     link: 'Lien',
     me: 'Moi',
     askName: 'Ton nom pour les autres',

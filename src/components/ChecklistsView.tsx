@@ -1,5 +1,5 @@
 import { LoadingStatus } from './ShellLoader'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '../lib/icons'
 import type { ChecklistState, ChecklistTemplate, Item, TemplateState } from '../lib/checklists'
 import { allEntries, warmTemplates, matchEntries, searchEntries, templateProgress } from '../lib/checklists'
@@ -18,33 +18,14 @@ import { SearchField } from './SearchField'
 import { appConfig } from '../config/appConfig'
 import { fillTemplate } from '../lib/format'
 import { useMediaQuery } from '../lib/useIsPhone'
+import { onChecklistShow, readPicked, writePicked, type ChecklistSel } from '../lib/checklistPick'
 import s from './Checklists.module.css'
 
 const EMPTY_STATE: TemplateState = { ticks: {}, activeBranch: {} }
 
-/** what the main pane shows: a tickable list, a Stichwort, a device's chapter page (id = the
- *  device name) or an Anleitung */
-type Sel = { kind: 'tpl' | 'entry' | 'manual' | 'device'; id: string }
+/** what the main pane shows – the pick and its memory per Einsatz live in lib/checklistPick */
+type Sel = ChecklistSel
 const sameSel = (a: Sel | null, b: Sel | null) => a === b || (!!a && !!b && a.kind === b.kind && a.id === b.id)
-
-/* The pick (which list is open, and on a narrow screen whether the chooser or the list shows),
-   per Einsatz. sessionStorage so a reload of the tab keeps it too; memory as the fallback when
-   storage is blocked. */
-type Picked = { sel?: Sel | null; railOpen?: boolean }
-const pickedMemory = new Map<string, Picked>()
-const pickedKey = (k: string) => `kp.cl.picked.${k}`
-function readPicked(k: string): Picked | null {
-  if (pickedMemory.has(k)) return pickedMemory.get(k)!
-  try {
-    const raw = sessionStorage.getItem(pickedKey(k))
-    return raw ? (JSON.parse(raw) as Picked) : null
-  } catch { return null }
-}
-function writePicked(k: string, patch: Picked) {
-  const next = { ...readPicked(k), ...patch }
-  pickedMemory.set(k, next)
-  try { sessionStorage.setItem(pickedKey(k), JSON.stringify(next)) } catch { /* memory only */ }
-}
 
 // The Checkliste surface: a left rail with the action checklists (FU, Lagerapport) and —
 // directly below, not behind a tab — the searchable EL tactical Stichworte. The main pane
@@ -136,6 +117,10 @@ export function ChecklistsView({
     else nav.go(pathTo(v))
   }
   const pick = (v: Sel) => nav.go(pathTo(v))
+  // the Präsentationsmodus puts a follower on the presenter's pick (lib/checklistPick)
+  const pickRef = useRef(pick)
+  useEffect(() => { pickRef.current = pick })
+  useEffect(() => onChecklistShow(scrollKey, (v) => pickRef.current(v)), [scrollKey])
   const setRailOpen = (open: boolean) => nav.go(open || !sel ? [null] : pathTo(sel))
   // a restored item gets its levels back once the devices are known (a chapter's device); the
   // levels change with the layout (the phone's list is one of them)

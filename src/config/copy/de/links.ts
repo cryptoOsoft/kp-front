@@ -132,10 +132,11 @@ export const linksCopy = {
     tapHint: 'Auf der Karte zeigen',
   },
   // Präsentationsmodus (docs/presentation.md): the «Präsentieren» card in «Einsatz teilen» and the
-  // pill bottom-centre. «Zeigen» is the switch that turns a tap into a fading pointer.
+  // pill bottom-centre. «Zeigen» is the switch that turns a tap into a fading pointer and a drag into a
+  // fading line.
   presentation: {
     title: 'Präsentieren',
-    lede: 'Wer diesen Link oder den Einsatz offen hat, folgt deiner Karte. Alle können zeigen, nichts wird gespeichert.',
+    lede: 'Wer diesen Link oder den Einsatz offen hat, folgt deinem Bildschirm. Alle können zeigen, nichts wird gespeichert.',
     start: 'Starten',
     runningMine: 'Du präsentierst gerade.',
     runningOther: '{name} präsentiert gerade.',
@@ -152,7 +153,7 @@ export const linksCopy = {
     end: 'Beenden',
     leave: 'Nicht mehr folgen',
     followAgain: 'Wieder folgen',
-    hint: 'Zeigen ist an – ein Tipp setzt einen Punkt, verschieben mit zwei Fingern',
+    hint: 'Zeigen ist an – tippen setzt einen Punkt, ziehen zeichnet eine Linie, verschieben mit zwei Fingern',
     link: 'Link',
     me: 'Ich',
     askName: 'Dein Name für die anderen',

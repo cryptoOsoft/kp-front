@@ -92,7 +92,7 @@ export const linksCopy: Localizable<Pick<Copy, Keys>> = {
   },
   presentation: {
     title: 'Present',
-    lede: 'Everyone with this link or the incident open follows your map. Everyone can point, nothing is saved.',
+    lede: 'Everyone with this link or the incident open follows your screen. Everyone can point, nothing is saved.',
     start: 'Start',
     runningMine: 'You are presenting.',
     runningOther: '{name} is presenting.',
@@ -109,7 +109,7 @@ export const linksCopy: Localizable<Pick<Copy, Keys>> = {
     end: 'End',
     leave: 'Stop following',
     followAgain: 'Follow again',
-    hint: 'Pointing is on – a tap sets a point, pan with two fingers',
+    hint: 'Pointing is on – tap sets a point, drag draws a line, pan with two fingers',
     link: 'Link',
     me: 'Me',
     askName: 'Your name for the others',
