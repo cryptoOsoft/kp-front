@@ -1466,6 +1466,8 @@ describe('the Gebäude north dial answers one tap, every time', () => {
     const bar = within(document.querySelector('.view-bar') as HTMLElement)
     for (const name of [appConfig.copy.nav.fit, appConfig.copy.nav.zoomOut, appConfig.copy.nav.zoomIn]) expect(bar.getByRole('button', { name })).toBeTruthy()
     expect(document.querySelector('.wb-tools .vrail-nbtn')).toBeNull()
+    // Einpassen wears its key, as the rail's tools wear theirs (lib/hotkeys · FIT_KEY)
+    expect(bar.getByRole('button', { name: appConfig.copy.nav.fit }).querySelector('.rail-key')?.textContent).toBe('0')
     expect(screen.getAllByRole('button', { name: TURN })).toHaveLength(1)
     expect(within(canvas as HTMLElement).queryByRole('img', { name: appConfig.copy.whiteboard.northTitle })).toBeNull()
   })

@@ -82,19 +82,12 @@ export function ToolRail({ primary, tools, active, open = false, onPick, toolRef
   const [expanded, setExpandedState] = useState(lastExpanded)
   const setExpanded = (v: boolean) => { lastExpanded = v; setExpandedState(v) }
   const nav = appConfig.copy.navRail
-  // the tile's shortcut letter (lib/hotkeys · TOOL_KEY) – the same badge as the left rail, shown
-  // by the device pref «Tastenkürzel anzeigen» (lib/prefs · keyHints) and, in CSS, only with a
-  // mouse and keyboard. Not on the phone's folded bar: its «+» tile is a door to many tools.
-  const [keyHints] = useKeyHints()
   // PHONE: the bar keeps Auswahl · «+» · Messen, and everything that PUTS SOMETHING ON THE
   // SURFACE moves into the «+» sheet (lib/toolFold, components/Palette) — five wide tiles with
   // the footer's two, nothing scrolls. The vertical rail has the room and is unchanged.
   const phone = useIsPhone()
   const bar = phone ? barTools(tools) : tools
-  const keyHint = (toolId: string) => {
-    const k = keyHints && hotkeys && !phone ? railToolKey(toolId) : undefined
-    return k ? <span className="rail-key" aria-hidden>{k}</span> : null
-  }
+  const keyHint = (toolId: string) => (hotkeys ? <RailKey k={railToolKey(toolId)} /> : null)
   /** the armed tool that came out of the sheet, which the «+» tile wears while it is armed */
   const face = phone ? addFace(tools, active) : null
 
@@ -210,6 +203,18 @@ export function ToolRail({ primary, tools, active, open = false, onPick, toolRef
     </aside>
   )
   return phone || controls == null ? aside : <>{aside}<ViewBar label={nav.viewBar}>{controls}</ViewBar></>
+}
+
+/** A tile's shortcut letter (lib/hotkeys) – the same badge as the left rail, shown by the device
+ *  pref «Tastenkürzel anzeigen» (lib/prefs · keyHints) and, in CSS (04b-rail · .rail-key), only
+ *  with a mouse and keyboard, in the tile's top-left corner. Never on a phone: its folded bar's
+ *  tiles are doors to many tools. The rail puts it on its tools; a surface puts it on a view-bar
+ *  button whose key its keyboard layer binds (MapToolDocks · Ebenen B, Whiteboard · Einpassen 0) –
+ *  the Karte viewer, which has no keyboard layer, puts none. The tile must be `position: relative`. */
+export function RailKey({ k }: { k: string | undefined }) {
+  const [keyHints] = useKeyHints()
+  const phone = useIsPhone()
+  return k && keyHints && !phone ? <span className="rail-key" aria-hidden>{k}</span> : null
 }
 
 /** The tablet/laptop home of a ToolRail's view controls: one small bar in the bottom corner on

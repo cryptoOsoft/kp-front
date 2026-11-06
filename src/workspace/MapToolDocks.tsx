@@ -11,11 +11,12 @@ import { type ViewsApi, MapViewsButton } from '../components/MapViewsMenu'
 import { MeasurePanel } from '../components/MeasurePanel'
 import { Palette } from '../components/Palette'
 import { ToolDock } from '../components/ToolDock'
-import { ToolRail } from '../components/ToolRail'
+import { RailKey, ToolRail } from '../components/ToolRail'
 import { appConfig } from '../config/appConfig'
 import { armedToolIcon, armedToolName } from '../lib/armedTool'
 import { isAtemschutzTrupp } from '../lib/atemschutz'
 import { formatSymbolName } from '../lib/format'
+import { PANEL_KEY } from '../lib/hotkeys'
 import { Icon } from '../lib/icons'
 import { layerPresetLabel, type LayerPreset } from '../lib/layerPreset'
 import { Overlay } from '../lib/overlays'
@@ -264,7 +265,7 @@ export function MapToolDocks({
                     the compass menu now, testing feedback 2026-07-14) */}
                 {/* which preset the Ebenen match is lit in the panel and said in the name — no mark
                     on the glyph (05.10.2026, owner: «no need for this indicator») */}
-                <button className={`vrail-nbtn vrail-layers ${panel === 'layers' ? 'on' : ''}`} title={`${appConfig.copy.panels.layers} · ${layerPresetLabel(layersPreset)}`} aria-label={`${appConfig.copy.panels.layers} – ${layerPresetLabel(layersPreset)}`} aria-pressed={panel === 'layers'} onClick={() => togglePanel('layers')}><span className="vrail-glyph"><Icon id="layers" /></span><span className="vrail-label">{appConfig.copy.panels.layers}</span></button>
+                <button className={`vrail-nbtn vrail-layers ${panel === 'layers' ? 'on' : ''}`} title={`${appConfig.copy.panels.layers} · ${layerPresetLabel(layersPreset)}`} aria-label={`${appConfig.copy.panels.layers} – ${layerPresetLabel(layersPreset)}`} aria-pressed={panel === 'layers'} onClick={() => togglePanel('layers')}><span className="vrail-glyph"><Icon id="layers" /></span><span className="vrail-label">{appConfig.copy.panels.layers}</span><RailKey k={PANEL_KEY.layers} /></button>
                 {/* multi-purpose compass: always shown, rotates to the live bearing, and opens the
                     saved-views menu (Nach Norden · Einpassen · Standort · Koordinaten · saved
                     framings · Ansicht speichern). `|| isEl` as on MapUtility's twin: saved views

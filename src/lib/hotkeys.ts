@@ -35,8 +35,10 @@
 // has no keyboard to read them for. They used to appear only while ⌘/Ctrl/Alt was held, and only
 // on the left rail; a hint that is hidden until you already know the shortcut teaches nothing.
 // The top bar's Verlauf and Eintrag wear theirs too (PANEL_KEY · J, E; staging review 06.11.2026,
-// S6: «listed like the sidebar tools»). Every badge source is a table the keyboard decodes
-// (SURFACE_KEY, TOOL_KEY, PANEL_KEY), so a badge cannot name a letter that does nothing.
+// S6: «listed like the sidebar tools»), and so do the tool rail's view-bar buttons that have a
+// key: the Karte's Ebenen (B) and the Plan's Einpassen (FIT_KEY · 0). Zoom − / + wear none – their
+// keys ARE their glyphs. Every badge source is a constant the keyboard decodes (SURFACE_KEY,
+// TOOL_KEY, PANEL_KEY, FIT_KEY), so a badge cannot name a letter that does nothing.
 
 export type ToolCmd =
   | 'select' | 'lasso' | 'symbol' | 'line' | 'area' | 'circle' | 'note' | 'team' | 'measure'
@@ -98,6 +100,8 @@ const TOOL_KEYS: Record<string, ToolCmd> = Object.fromEntries(
  *  and the keyboard (PANEL_KEYS below) both read. Einstellungen (⌘ ,) and Hilfe (?) are not
  *  bare letters and live in resolveHotkey. */
 export const PANEL_KEY = { journal: 'J', composer: 'E', layers: 'B' } as const satisfies Partial<Record<PanelCmd, string>>
+/** «Einpassen» – the key resolveHotkey decodes and the Plan's view-bar button wears (ToolRail · RailKey) */
+export const FIT_KEY = '0'
 const PANEL_KEYS: Record<string, PanelCmd> = Object.fromEntries(
   Object.entries(PANEL_KEY).map(([p, k]) => [k.toLowerCase(), p]),
 ) as Record<string, PanelCmd>
@@ -134,7 +138,7 @@ export function resolveHotkey(e: KeyboardEvent): HotkeyCommand | null {
   if (key === '+' || key === '=') return { type: 'view', view: 'zoomIn' }
   if (key === '-' || key === '_') return { type: 'view', view: 'zoomOut' }
   if (/^[0-9]$/.test(key)) {
-    if (key === '0') return { type: 'fit' }
+    if (key === FIT_KEY) return { type: 'fit' }
     return { type: 'module', n: Number(key) } // 1..9 → the plan module with that number
   }
   if (key.length !== 1) return null

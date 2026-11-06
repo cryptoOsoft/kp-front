@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
-import { ToolRail } from './ToolRail'
+import { RailKey, ToolRail } from './ToolRail'
+import { PANEL_KEY } from '../lib/hotkeys'
 import { appConfig } from '../config/appConfig'
 import { slimTools, MAP_READONLY_TOOLS } from '../lib/readOnlyTools'
 import { loadPrefs, savePrefs } from '../lib/prefs'
@@ -351,5 +352,28 @@ describe('the shortcut letters', () => {
     phone = true
     rail()
     expect(letters()).toEqual([])
+  })
+
+  // the view bar's buttons that have a key wear it the same way (owner, 06.11.2026)
+  describe('on the view bar', () => {
+    const bar = () => rail({ controls: <button className="vrail-nbtn vrail-layers">{appConfig.copy.panels.layers}<RailKey k={PANEL_KEY.layers} /></button> })
+    const barLetter = () => document.querySelector('.view-bar .vrail-nbtn .rail-key')?.textContent ?? null
+
+    it('Ebenen wears B', () => {
+      bar()
+      expect(barLetter()).toBe('B')
+    })
+
+    it('follows the same device pref', () => {
+      savePrefs({ ...loadPrefs(), keyHints: false })
+      bar()
+      expect(barLetter()).toBeNull()
+    })
+
+    it('never on a phone, where the controls are the folded bar\'s', () => {
+      phone = true
+      bar()
+      expect(document.querySelector('.rail-key')).toBeNull()
+    })
   })
 })

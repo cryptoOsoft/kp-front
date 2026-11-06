@@ -124,7 +124,9 @@
   font-family: var(--body); font-size: var(--fs-micro); font-weight: var(--fw-medium);
   line-height: 1; text-box: trim-both cap alphabetic;
   color: var(--ink-faint); pointer-events: none; }
-:is(.nav-item, .vrail-tool).on .rail-key { color: color-mix(in srgb, var(--on-accent-ink) 70%, transparent); }
+:is(.nav-item, .vrail-tool, .vrail-nbtn).on .rail-key { color: color-mix(in srgb, var(--on-accent-ink) 70%, transparent); }
 .rail.expanded:not(.dragging) .rail-key { top: 50%; translate: 0 -50%; left: auto; right: 10px; }
 .vrail.expanded:not(.dragging) .rail-key { right: auto; left: 10px; }
-@media (hover: hover) and (pointer: fine) { .rail:not(.folded) .rail-key { display: block; } }
+/* …and on the view bar's buttons that have a key (ToolRail · RailKey: Ebenen B, Einpassen 0) –
+   the same corner, the same gate; the bar is never on a phone */
+@media (hover: hover) and (pointer: fine) { :is(.rail:not(.folded), .view-bar) .rail-key { display: block; } }

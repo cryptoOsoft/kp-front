@@ -119,7 +119,8 @@ import { ArmedSymbolGlyph, ArmedToolPill } from './ArmedToolPill'
 import { armedToolIcon, armedToolName } from '../lib/armedTool'
 import { PlanCompass } from './PlanCompass'
 import { OrientSlider } from './OrientSlider'
-import { ToolRail } from './ToolRail'
+import { RailKey, ToolRail } from './ToolRail'
+import { FIT_KEY } from '../lib/hotkeys'
 import { TafelPageStrip } from './TafelPageStrip'
 import { TafelFormPage } from './TafelFormPage'
 import { findForms, pageTitles, type FormSeed } from '../lib/boardForm'
@@ -2802,7 +2803,7 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
                   be switched. A word that answers a press with nothing is worse than no word. */}
               {/* «Einpassen» — where the map's view bar carries its compass / views button: the
                   one control that puts the whole surface back in front of you. */}
-              <button className="vrail-nbtn vrail-fit" title={appConfig.copy.nav.fit} aria-label={appConfig.copy.nav.fit} disabled={scale === 1 && pos.x === 0 && pos.y === 0} onClick={() => applyView(1, { x: 0, y: 0 })}><span className="vrail-glyph"><Icon id="cross" /></span><span className="vrail-label">{appConfig.copy.nav.fit}</span></button>
+              <button className="vrail-nbtn vrail-fit" title={appConfig.copy.nav.fit} aria-label={appConfig.copy.nav.fit} disabled={scale === 1 && pos.x === 0 && pos.y === 0} onClick={() => applyView(1, { x: 0, y: 0 })}><span className="vrail-glyph"><Icon id="cross" /></span><span className="vrail-label">{appConfig.copy.nav.fit}</span><RailKey k={FIT_KEY} /></button>
               {/* the Gebäude's north dial (PlanCompass) – where the Karte's view bar carries its
                   compass, and on a phone in the bottom bar beside «Einpassen» (20.10.2026, UX sweep
                   M7; it floated top-right until then). It turns with the view, and where the building
