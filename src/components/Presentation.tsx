@@ -18,11 +18,11 @@ import { useContext, useEffect, useLayoutEffect, useRef, useState, type CSSPrope
 import { createPortal } from 'react-dom'
 import type { MapRef } from 'react-map-gl/maplibre'
 import { appConfig } from '../config/appConfig'
-import { PHONE_QUERY } from '../lib/breakpoints'
 import { rowLift, type Box } from '../lib/floatRow'
 import { Icon } from '../lib/icons'
 import { anchorAt, anchorPoint } from '../lib/presentAnchor'
 import { edgeArrow, initials, personTone, placeTags, type Rect, type Ring, type Stroke, type TagPlace } from '../lib/presentation'
+import { useIsPhone } from '../lib/useIsPhone'
 import { useZeigen } from '../lib/useZeigen'
 import { PresentationContext, storedPresentName, type BoardPresentation, type Presentation } from '../workspace/usePresentation'
 import { Chip } from './Chip'
@@ -62,7 +62,7 @@ function usePillLift(on: boolean) {
     const place = () => {
       row.style.setProperty('--present-lift', '0px')
       const pill = row.lastElementChild?.getBoundingClientRect()
-      if (!pill || row.closest('.phone-tools') || window.matchMedia(PHONE_QUERY).matches) return
+      if (!pill) return
       const box = (r: DOMRect): Box => ({ left: r.left, right: r.right, top: r.top, bottom: r.bottom })
       const obstacles = [...document.querySelectorAll(PILL_OBSTACLES)].map((el) => el.getBoundingClientRect()).filter((r) => r.width && r.height).map(box)
       row.style.setProperty('--present-lift', `${rowLift(box(pill), obstacles)}px`)
@@ -103,7 +103,8 @@ function PillBody({ p }: { p: Presentation }) {
   }, [hintAt])
   const hint = p.zeigen && hintAt > 0
   const shown = p.available && !!p.state
-  const rowRef = usePillLift(shown)
+  const phone = useIsPhone()
+  const rowRef = usePillLift(shown && !phone)
 
   if (!shown || !p.state) return null
   const s = p.state
@@ -341,11 +342,11 @@ export function BoardRings({ rings, strokes = [], presenter, mapY, size }: {
  * TafelFormPage). A form reflows from a laptop's two columns to a phone's one, so a place on it
  * is an anchor – the row or box under the finger and where in it (lib/presentAnchor); a line is
  * its first point's anchor and the rest as offsets in that element's widths, so it scales with
- * the row. The layer is the page's visible band (`top`, `bottom`: the form's own insets) and clips what is
+ * the row. The layer is the page's visible band (`top`, and the form's own foot reserve) and clips what is
  * scrolled away – those stand as edge arrows instead. Positions are read every frame while
  * there are marks (they live seconds), so they ride the page's own scroll.
  */
-export function PageMarks({ p, top, bottom }: { p: BoardPresentation; top: number; bottom: string }) {
+export function PageMarks({ p, top }: { p: BoardPresentation; top: number }) {
   const layerRef = useRef<HTMLDivElement>(null)
   const [root, setRoot] = useState<HTMLElement | null>(null)
   useEffect(() => { setRoot(layerRef.current?.parentElement?.querySelector<HTMLElement>('[data-testid="tafel-page"]') ?? null) }, [])
@@ -369,6 +370,9 @@ export function PageMarks({ p, top, bottom }: { p: BoardPresentation; top: numbe
     if (!root || !layer || (!rings.length && !strokes.length)) return
     let raf = 0, last = ''
     const tick = () => {
+      // the band ends where the form's own foot reserve starts (TafelFormPage · inset.bottom)
+      const foot = getComputedStyle(root).paddingBottom
+      if (layer.style.bottom !== foot) layer.style.bottom = foot
       const l = layer.getBoundingClientRect()
       const at: Record<string, { x: number; y: number }> = {}
       for (const r of rings) {
@@ -389,7 +393,7 @@ export function PageMarks({ p, top, bottom }: { p: BoardPresentation; top: numbe
   }, [root, rings, strokes])
   const tags = tagsFor(rings, (r) => drawn?.at[r.key] ?? null, drawn?.w)
   return (
-    <div ref={layerRef} className="present-rings present-page-marks" data-present-host="" aria-hidden style={{ top, bottom }}>
+    <div ref={layerRef} className="present-rings present-page-marks" data-present-host="" aria-hidden style={{ top }}>
       {drawn && strokes.map((s) => {
         const pts = drawn.lines[s.key]
         return pts?.length ? <LineMark key={s.key} s={s} presenter={p.presenter} d={pathOf(pts)} tip={pts[pts.length - 1]} /> : null

@@ -928,7 +928,7 @@ textarea.note-pill-input { resize: none; overflow: hidden; display: block; line-
 .present-line-halo { stroke: var(--surface); stroke-width: 8px; opacity: .85; }
 .present-line-ink { stroke: var(--tone); stroke-width: 4px; }
 .present-line[data-done], .present-line-tip[data-done] { animation: present-line-fade 4s ease-out forwards; }
-.present-line-tip { position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: var(--tone);
+.present-line-tip { position: absolute; width: 10px; height: 10px; transform: translate(-50%, -50%); border-radius: 50%; background: var(--tone);
   box-shadow: 0 0 0 2px var(--surface); }
 @keyframes present-line-fade { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
 /* a form page's layer: the page's visible band, clipping what is scrolled away (an edge arrow
@@ -966,7 +966,7 @@ textarea.note-pill-input { resize: none; overflow: hidden; display: block; line-
   .present-row { bottom: var(--float-bottom); max-width: calc(100vw - 16px); }
   .app:has(.fab-entry) .present-row { bottom: calc(var(--float-bottom) + var(--float-h) + var(--float-gap)); }
   .app.phone-tools:has(.armed-pill-row) .present-row { bottom: calc(var(--float-bottom) + var(--tap) + var(--sp-2)); }
-  .present-row[data-asking] { left: 8px; right: 8px; transform: none; max-width: none; align-items: stretch; }
+  .present-row[data-asking] { left: var(--sp-2); right: var(--sp-2); transform: none; max-width: none; align-items: stretch; }
   .present-row[data-asking] .present-pill { padding-right: var(--sp-2); }
   .present-row[data-asking] .present-ask { width: 100%; }
   .present-row[data-asking] .present-name { width: 100%; }

@@ -1486,12 +1486,16 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
     },
   })
   useUserMoved(canvasEl, !!presentation?.onUserMove, () => presentation?.onUserMove?.())
-  // the detail open here goes to the presenter's followers; a follower opens the presenter's
-  useEffect(() => { presentation?.onSelect(selId) }, [selId, !!presentation]) // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    const want = presentation?.select
-    if (want && want.id !== selId) setSelId(want.id && annos.some((a) => a.id === want.id) ? want.id : null)
-  }, [presentation?.select?.nonce]) // eslint-disable-line react-hooks/exhaustive-deps
+  // the detail open here goes to the presenter's followers; a follower opens the presenter's (once
+  // per request – adjusted while rendering, React's way for state that follows a prop)
+  const reportSel = presentation?.onSelect
+  useEffect(() => { reportSel?.(selId) }, [selId, reportSel])
+  const [selectSeen, setSelectSeen] = useState<number | null>(null)
+  const wantSel = presentation?.select
+  if (wantSel && wantSel.nonce !== selectSeen) {
+    setSelectSeen(wantSel.nonce)
+    if (wantSel.id !== selId) setSelId(wantSel.id && annos.some((a) => a.id === wantSel.id) ? wantSel.id : null)
+  }
 
   // a Verlauf row asked to revisit a plan point. Apply once per request (tracked
   // by nonce); if it arrives mid mode-switch before the stage is measured, the
@@ -2135,22 +2139,21 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
   // history and its ↶ stay wired exactly as on the Skizze.
   const formPage = formOpen ? pages.find((p) => p.id === page) : undefined
   if (formPage) {
-    // the bottom: the strip's row and its air, so the last ruling scrolls above it — on a
-    // phone above THE floating row (15-mobile · --float-bottom), on a tablet above the row
-    const pageBottom = isPhone ? 'calc(var(--float-bottom, 72px) + var(--float-h) + 16px)' : 'calc(16px + var(--float-h) + 24px)'
     return (
       <div className="whiteboard wb-tafel-page">
         {/* the strip in the row a plan's «which place» chips stand in (owner, before the release) */}
         <div className="wb-botleft">{strip}</div>
         {/* the Präsentationsmodus' rings and lines on the page, and «Zeigen» on it */}
-        {presentation && <PageMarks key={`marks-${formPage.id}`} p={presentation} top={topRes} bottom={pageBottom} />}
+        {presentation && <PageMarks key={`marks-${formPage.id}`} p={presentation} top={topRes} />}
         <TafelFormPage key={formPage.id} pageKey={formPage.id} title={titles.get(formPage.id)} data={formPage.form} readOnly={readOnly} isPhone={isPhone}
           onChange={(next) => editPage(formPage.id, next)} onRemove={() => void removePage(formPage.id)}
           // typed over another device's value for the same cell: the later stands, the Verlauf says so
           onConflict={(where, kept, lost) => log('warn', fillTemplate(appConfig.copy.journal.tafelConflict, { page: titles.get(formPage.id) ?? labelText(formPage.form.page.title), where, kept, lost }), { subjectId: formPage.id })}
           onPrint={incidentId ? (all) => void printPages(all ? pages : [formPage]) : undefined} pageCount={pages.length} printing={printing}
           scene={tafel?.scene} onOpenKarte={tafel?.onOpenKarte}
-          inset={{ top: topRes, left: isPhone ? 0 : side.l, right: isPhone ? 0 : side.l, bottom: pageBottom }} />
+          // the bottom: the strip's row and its air, so the last ruling scrolls above it — on a
+          // phone above THE floating row (15-mobile · --float-bottom), on a tablet above the row
+          inset={{ top: topRes, left: isPhone ? 0 : side.l, right: isPhone ? 0 : side.l, bottom: isPhone ? 'calc(var(--float-bottom, 72px) + var(--float-h) + 16px)' : 'calc(16px + var(--float-h) + 24px)' }} />
       </div>
     )
   }
