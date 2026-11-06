@@ -108,7 +108,7 @@ export function PressureSheet({ t, sub, title, hint, last, alarmBar, chosen = fa
   const who = t ? truppSheetSub(t) : sub
   return (
     <MiniSheet title={title} sub={who} ariaLabel={t ? `${title} · ${t.name}` : title} onClose={onClose}
-      footer={footer && <Button className={s.pressureSheetFooter} onClick={footer.onClick}>{footer.label}</Button>}>
+      footer={footer && <SheetFoot className={s.modalFoot}><Button block onClick={footer.onClick}>{footer.label}</Button></SheetFoot>}>
       <PressureGrid value={last} alarmBar={alarmBar} onPick={onPick} chosen={chosen} ariaLabel={title} />
       {/* under the grid, like the Kanal pad's hint: what a tap does */}
       {hint && <p className={s.miniHint}>{hint}</p>}
@@ -194,7 +194,7 @@ export function KanalPickSheet({ value, sub, name, takeLabel, onPick, onClose }:
     <MiniSheet title={az.funkkanalUnit} sub={sub} ariaLabel={name ? `${az.funkkanalUnit} · ${name}` : az.funkkanalUnit} onClose={onClose} className={pad ? s.miniSheetPad : undefined}
       footer={pad ? undefined : (
         <SheetFoot className={s.modalFoot}>
-          <button type="button" className="ip-btn" onClick={onClose}>{az.cancel}</button>
+          <button type="button" className={cx('ip-btn', s.footCancel)} onClick={onClose}>{az.cancel}</button>
           <button type="button" className="ip-btn primary" onClick={() => void pick(typed)}>{takeLabel ?? az.save}</button>
         </SheetFoot>
       )}>
@@ -289,7 +289,7 @@ export function AuftragSheet({ t, leitungOptions, lite = false, onSave, onClose 
       footer={(
         <SheetFoot className={s.modalFoot}>
           {/* the one footer: [danger] · Abbrechen · primary (docs/ui-conventions · editor sheets) */}
-          <button type="button" className="ip-btn" onClick={onClose}>{az.cancel}</button>
+          <button type="button" className={cx('ip-btn', s.footCancel)} onClick={onClose}>{az.cancel}</button>
           <button type="button" className="ip-btn primary" onClick={() => void save()}>{az.save}</button>
         </SheetFoot>
       )}>
@@ -469,7 +469,7 @@ export function TruppSheet({ t, personnel, legacyRoster, presentIds, stationIds,
       className={s.miniSheetTall}
       footer={(
         <SheetFoot className={s.modalFoot}>
-          <button type="button" className="ip-btn" onClick={onClose}>{az.cancel}</button>
+          <button type="button" className={cx('ip-btn', s.footCancel)} onClick={onClose}>{az.cancel}</button>
           <button type="button" className="ip-btn primary" aria-disabled={!canSave} onClick={() => void save()}>{az.save}</button>
         </SheetFoot>
       )}>

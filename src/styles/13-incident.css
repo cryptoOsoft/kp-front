@@ -788,8 +788,10 @@
 /* block: the full width of its container */
 .ip-btn.block { display: flex; width: 100%; }
 /* primary: THE primary fill (--btn-primary: ink by day, light grey by night) — never --accent,
-   which is the station's red and would make every «OK» read as an alarm */
-.ip-btn.primary { background: var(--btn-primary); color: var(--on-btn-primary); border-color: var(--btn-primary); }
+   which is the station's red and would make every «OK» read as an alarm. 800: a primary IS the
+   single action of its surface (docs/ui-conventions · Type, «800 on the single action»; every one
+   measured 700 until r35, 06.11.2026) */
+.ip-btn.primary { background: var(--btn-primary); color: var(--on-btn-primary); border-color: var(--btn-primary); font-weight: var(--fw-heavy); }
 @media (hover: hover) {
   .ip-btn.primary:hover { background: var(--btn-primary-hover); border-color: var(--btn-primary-hover); }
 }
@@ -984,9 +986,10 @@ button.list-row:disabled { opacity: var(--disabled); cursor: default; }
    ellipsises, and a drill must never lose the word that says so (the card's title line spaces
    its own badge via flex gap) */
 .ip-menu-row .ip-badge { flex: none; }
-/* the per-row «Abschliessen» is COMPACT (29.09.2026): 12.5/700 at its word's width, still --tap
-   tall — five 14px buttons down the list out-shouted the row's real action, opening it */
-.ip-hist-close { font-size: var(--fs-1); padding: 0 12px; flex: none; }
+/* the per-row «Abschliessen» / «Wieder öffnen» stays at its word's width (29.09.2026: five of them
+   down the list must not out-shout the row's real action, opening it) — but at THE button's
+   14/700 since r35 (06.11.2026): a 44px button with a 12.5px label was a third button size */
+.ip-hist-close { padding: 0 12px; flex: none; }
 .ip-hist-sub, .ip-ds-sub { font: var(--fw-medium) var(--fs-1) var(--body); color: var(--ink-faint); margin-top: 2px; }
 /* when it ran (05.10.2026): day · start–end · duration, a step stronger than the address under it —
    it is what tells two «Brand» rows apart at 3am. Tabular figures so the spans line up. */
@@ -1605,12 +1608,14 @@ button.rp-sign-row:disabled { cursor: default; }
   border: 1px solid var(--blue-45); }
 .wheelpop-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 12px; }
 .wheelpop-actions .wheelpop-btn.clear { margin-right: auto; }
+/* Jetzt / OK: THE button's type, 14/700 (r35, 06.11.2026 – it was 12.5 on a 44px button), OK the
+   single action at 800 */
 .wheelpop-btn { min-height: 44px; padding: 8px 12px; border-radius: var(--r-sm);
   border: 1px solid var(--glass-line); background: var(--surface); color: var(--ink);
-  font: var(--fw-bold) var(--fs-1) var(--body); cursor: pointer; white-space: nowrap; }
+  font: var(--fw-bold) var(--fs-2) var(--body); cursor: pointer; white-space: nowrap; }
 .wheelpop-btn.clear { color: var(--red-strong); border-color: var(--del-edge); }
 .wheelpop-btn.clear svg { width: 14px; height: 14px; display: block; }
-.wheelpop-btn.primary { background: var(--btn-primary); border-color: var(--btn-primary); color: var(--on-btn-primary); }
+.wheelpop-btn.primary { background: var(--btn-primary); border-color: var(--btn-primary); color: var(--on-btn-primary); font-weight: var(--fw-heavy); }
 /* a note that blocks (a Wiedervorlage in the past) holds «OK» back until the wheels move — aria-
    disabled, so a tap on it still rings the note that says why (WheelPicker · commit) */
 .wheelpop-btn:disabled, .wheelpop-btn[aria-disabled='true'] { opacity: var(--disabled); cursor: default; }
