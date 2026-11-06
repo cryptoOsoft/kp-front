@@ -24,6 +24,7 @@ export const journalCopy: Localizable<Pick<Copy, 'journal' | 'tafelPendenzen' | 
     open: 'Log',
     add: 'Entry',
     addHint: 'Tap for an entry – hold, then slide onto a voice memo or a photo',
+    keyTitle: '{label} – key {key}',
     title: 'Log',
     empty: 'No events recorded yet',
     surfaceMap: 'Map',

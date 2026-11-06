@@ -100,8 +100,17 @@
 .topbar.fit-9:has(.ip-switch-btn > .ip-badge-exercise) .ip-switch-glyph { display: none; }
 /* «Eintrag» gives its word LAST (29.09.2026, sweep K2): its glyph is the journal pen now, not a
    «+» that the rail's «+ Symbol» beside it also wears, so a bare glyph still says what it is */
-.topbar.fit-11 .tb-act-add .tb-act-label { display: none; }
+.topbar.fit-11 .tb-act-add :is(.tb-act-label, .tb-key) { display: none; }
 .topbar.fit-11 .tb-act-add { min-width: var(--tap); padding-inline: 8px; }
+/* ── Verlauf (J) and Eintrag (E) wear their shortcut letter (TopBar · keyHint, S6 06.11.2026):
+   the rails' `.rail-key` – same face, size and colour (04b-rail.css), the same pref and the same
+   hover + fine-pointer gate – but IN THE ROW after the word, where a menu prints its shortcut: a
+   corner of a 42px-tall button is its glyph's. It leaves with the word – Verlauf's at fit-6
+   (`span` above), Eintrag's at fit-11 – and while the Eintrag is an ✕ or recording. */
+.tb-act .tb-key { position: relative; top: auto; left: auto; z-index: 1; }
+.tb-act-add.cancelling .tb-key { display: none; }
+.tb-act.on .tb-key { color: color-mix(in srgb, var(--on-accent-ink) 70%, transparent); }
+@media (hover: hover) and (pointer: fine) { .tb-act .tb-key { display: block; } }
 /* every chip in the bar is at least a tap wide, its glyph and its number together */
 .topbar .tb-az { min-width: var(--tap); justify-content: center; }
 .topbar .tb-az > .i { flex: none; }

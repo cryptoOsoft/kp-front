@@ -67,7 +67,7 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
       {
         id: 'tastatur', title: 'Raccourcis clavier', icon: 'type', only: 'keyboard',
         blocks: [
-          { kind: 'lead', text: 'Avec un clavier, tout est accessible sans souris. Les raccourcis restent sans effet pendant la saisie dans un champ de texte. Lorsqu’une zone de la barre de gauche possède une touche, celle-ci est inscrite dessus.' },
+          { kind: 'lead', text: 'Avec un clavier, tout est accessible sans souris. Les raccourcis restent sans effet pendant la saisie dans un champ de texte. Lorsqu’une zone de l’une des deux barres, ou «Journal» et «Entrée» en haut, possède une touche, celle-ci est inscrite dessus.' },
           { kind: 'sub', text: 'Changer de zone' },
           { kind: 'list', items: [
             'Les chiffres ouvrent le module de plan portant ce numéro – ceux qui existent dépendent des modules du corps : [[1]] module 1, [[2]] ou [[3]] le module « 2/3 », [[4]] module 4 …',

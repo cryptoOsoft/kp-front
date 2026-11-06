@@ -176,10 +176,21 @@ describe('Journal · the Pendenzen block', () => {
   it('swaps the whole time column between the clock and the age', () => {
     setup({ openReminders: open })
     const times = () => [...document.querySelectorAll('.jr-when')].map((e) => e.textContent ?? '')
-    expect(times().every((t) => /^\d{2}:\d{2}$/.test(t))).toBe(true)
+    expect(times().every((t) => /^\d{2}:\d{2}/.test(t))).toBe(true)
     fireEvent.click(document.querySelector('.jr-when')!)
-    expect(times().every((t) => /^\d{2}:\d{2}$/.test(t))).toBe(false)
+    expect(times().every((t) => /^\d{2}:\d{2}/.test(t))).toBe(false)
     expect(times()).toHaveLength(open.length)
+  })
+
+  // S5 (staging review 06.11.2026): across midnight a bare «23:43» above «00:40» read as the newer
+  it('puts the day under the clock of an item raised on another day, and only there', () => {
+    setup({ openReminders: [
+      pendenz('p1', 'Gestern erfasst', { createdAt: new Date(Date.now() - 86_400_000).toISOString() }),
+      pendenz('p2', 'Heute erfasst', { createdAt: new Date().toISOString() }),
+    ] })
+    const days = [...document.querySelectorAll('.jr-when')].map((e) => e.querySelector('small')?.textContent ?? null)
+    expect(days[0]).toMatch(/^\d{2}\.\d{2}\.$/)
+    expect(days[1]).toBeNull()
   })
 
   // ⚠️ The ring ticks off in BOTH places, and it is the same call in both — one appended `done`
