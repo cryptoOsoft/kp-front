@@ -1,6 +1,15 @@
 /* map */
 #map { position: absolute; inset: 0; background: var(--map-bg); }
 .maplibregl-ctrl-attrib { font-size: var(--fs-micro) !important; }
+/* The map's ⓘ (MapAttribution · bottom-right) steps LEFT of the view bar that holds that corner on
+   a tablet or laptop (07-toolrail · .view-bar, staging review 06.11.2026 S2): 8px of air to the
+   bar's left edge (`--view-bar-w`, measured by ToolRail) and centred on its height. The −10px take
+   back the control's own MapLibre margin. A phone hides the ⓘ in `.app` altogether (15-mobile). */
+@media (--not-phone) {
+  :root:has(.view-bar) .app .maplibregl-ctrl-bottom-right {
+    right: calc(16px + var(--view-bar-w, 0px) + var(--float-gap) - 10px);
+    bottom: calc(16px + (var(--view-bar-h) - 24px) / 2 - 10px); }
+}
 /* The Lage map's twin of the plan canvas's tool cursors (.wb-canvas.tool-* below). `.placing`
    alone only covered a symbol/shape already picked from the palette — arming Linie, Fläche,
    Messen, Notiz or Trupp left the plain grab hand, so an armed tool was indistinguishable from

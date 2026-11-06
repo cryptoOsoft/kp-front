@@ -44,12 +44,14 @@
    a desktop operator can leave for a different section halfway through a point pair, while a
    phone shows the map's ordinary tool bar behind the mode card. The TopBar stays: incident
    identity, clock and operational status remain useful context while placing landmarks. */
-.app.georef-mode :is(.navrail, .tool-rail, .layers-card, .mapctl-backdrop, .ctx, .coord-read, .sel-bar) {
+/* (`.tool-rail + .view-bar`: the Karte rail's view bar goes with it, the Plan half's stays) */
+.app.georef-mode :is(.navrail, .tool-rail, .tool-rail + .view-bar, .layers-card, .mapctl-backdrop, .ctx, .coord-read, .sel-bar) {
   display: none;
 }
 /* the tool rail steps aside for the mode's own action bar — one bar at a time, so it is never in
-   doubt that a mode is running (the phone mock's rule, applied on every form factor) */
-.whiteboard.wb-georef-armed .wb-tools { display: none; }
+   doubt that a mode is running (the phone mock's rule, applied on every form factor); its view
+   bar goes with it (ToolRail · ViewBar is the rail's next sibling) */
+.whiteboard.wb-georef-armed :is(.wb-tools, .wb-tools + .view-bar) { display: none; }
 
 /* (the old .wb-modules/.wb-mod/.wb-objpick document-switcher sidebar was removed — plan
    docs are picked in the left NavRail and the PlanPicker modal below; CSS pruned 2026-07-12) */
@@ -454,7 +456,7 @@
    bottom-left row (.wb-botleft) where a plan's Objekt / Gebäude / Massstab chips stand, which
    already clears the nav rail, the phone's bars, the FAB and the safe areas (THE floating row,
    15-mobile · --float-bottom) and is already reserved by the board's fit (lib/whiteboard ·
-   chipRowInset). It wears that row's FLOATING family (01-tokens · --float-*: the glass, one row
+   bottomInset). It wears that row's FLOATING family (01-tokens · --float-*: the glass, one row
    height --float-h, --r-sm), holding the 44px segmented track and «+ Seite». Many pages scroll
    sideways inside it (the open one scrolled into view); «+ Seite» always stays in view. A Tafel
    PAGE pads its foot by the row (Whiteboard · inset.bottom), so its last ruling scrolls above. */

@@ -79,8 +79,15 @@ sheets, overlays, the button spec and the touch vocabulary. Phone-only layout is
   stands is: the TOP BAR has ONE 8px gap between every neighbour and no groups at all (a wider
   «group gap» was tried and read as holes); the LEFT rail keeps 14px of air around the plan
   tiles; the TOOL rail's tools are ONE undivided list (the `sep` entries left `mapTools` /
-  `planTools`) and its one hairline is the FOOT's, above the generic controls (Ebenen · compass ·
-  zoom) — a real seam, where «select vs. create» was noise; the map-utility cluster has air; and
+  `planTools`), and the generic controls (Ebenen · Ansichten/compass · zoom; the Plan's Einpassen ·
+  north dial · zoom) are set apart as a real seam, where «select vs. create» was noise: on a tablet
+  or laptop they are their own small **view bar** in the bottom corner on the rail's side
+  (`ToolRail` · `ViewBar`, `.view-bar`, staging review 06.11.2026 — the rail's old pinned footer
+  cost the tools ~245px and a laptop scrolled «Messen» away), on the phone the folded bar's pinned
+  end. Whatever shares that corner clears it through ONE reserve, `--view-bar-reserve`: the
+  rail's foot, the detail panel, the Verlauf drawer, Ebenen and the Ansichten menu (which open
+  upward from it) and the Plan's fit (`lib/whiteboard · VIEW_BAR_INSET`); the map's ⓘ stands left
+  of it. Below a 700px window the rail's labelled tiles are 50px, not 56; the map-utility cluster has air; and
   the Einsatz menu draws ONE hairline, above the identity row (the small-caps label heads «App»
   on its own, but the signed-in row is not an action and the rule says «the list ends here»).
   The Trupps section heads draw no rule either (29.09.2026 — see the Atemschutz board).

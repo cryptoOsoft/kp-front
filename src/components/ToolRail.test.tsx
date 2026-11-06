@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { ToolRail } from './ToolRail'
 import { appConfig } from '../config/appConfig'
 import { slimTools, MAP_READONLY_TOOLS } from '../lib/readOnlyTools'
@@ -30,7 +30,7 @@ describe('the read-only tool rail', () => {
       tools={slimTools(appConfig.copy.mapTools, MAP_READONLY_TOOLS)}
       active="select"
       onPick={onPick}
-      footer={<button>{appConfig.copy.nav.zoomIn}</button>}
+      controls={<button>{appConfig.copy.nav.zoomIn}</button>}
     />)
     return onPick
   }
@@ -48,7 +48,7 @@ describe('the read-only tool rail', () => {
     }
   })
 
-  it('keeps the pinned footer — a viewer still needs to zoom and reach Ebenen', () => {
+  it('keeps the view controls — a viewer still needs to zoom and reach Ebenen', () => {
     renderSlim()
     expect(screen.getByRole('button', { name: appConfig.copy.nav.zoomIn })).toBeTruthy()
   })
@@ -57,6 +57,41 @@ describe('the read-only tool rail', () => {
     const onPick = renderSlim()
     fireEvent.click(screen.getByRole('button', { name: 'Messen' }))
     expect(onPick).toHaveBeenCalledWith('measure')
+  })
+})
+
+// ── The view controls stand apart from the tools (staging review 06.11.2026, S2 pick C) ─────────
+// On a tablet or laptop Ebenen · Ansichten · − + are their own small bar in the corner, the rail's
+// next sibling, so the rail's column is the tools' alone. The phone's folded bar keeps them at
+// its pinned end.
+describe('the view bar', () => {
+  const renderRail = () => render(<ToolRail
+    className="tool-rail"
+    primary={appConfig.copy.primarySymbol}
+    tools={appConfig.copy.mapTools}
+    active="select"
+    onPick={vi.fn()}
+    controls={<><button>{appConfig.copy.panels.layers}</button><button>{appConfig.copy.nav.zoomIn}</button></>}
+  />)
+
+  it('holds the controls beside the rail on a tablet, and the rail holds only tools', () => {
+    const { container } = renderRail()
+    const rail = container.querySelector('aside.tool-rail') as HTMLElement
+    const bar = screen.getByRole('group', { name: appConfig.copy.navRail.viewBar })
+    // the next sibling: the stylesheet keys the rail's foot and the georef hide off the pair
+    expect(rail.nextElementSibling).toBe(bar)
+    expect(within(bar).getByRole('button', { name: appConfig.copy.panels.layers })).toBeTruthy()
+    expect(within(bar).getByRole('button', { name: appConfig.copy.nav.zoomIn })).toBeTruthy()
+    expect(within(rail).queryByRole('button', { name: appConfig.copy.panels.layers })).toBeNull()
+    expect(rail.querySelector('.vrail-nav, .vrail-sep-foot')).toBeNull()
+  })
+
+  it('stays in the folded bar on a phone', () => {
+    phone = true
+    const { container } = renderRail()
+    expect(screen.queryByRole('group', { name: appConfig.copy.navRail.viewBar })).toBeNull()
+    const nav = container.querySelector('aside.tool-rail .vrail-nav') as HTMLElement
+    expect(within(nav).getByRole('button', { name: appConfig.copy.panels.layers })).toBeTruthy()
   })
 })
 
@@ -75,7 +110,7 @@ describe('the two-state Auswahl', () => {
       tools={tools}
       active={active}
       onPick={onPick}
-      footer={<button>{appConfig.copy.nav.zoomIn}</button>}
+      controls={<button>{appConfig.copy.nav.zoomIn}</button>}
     />)
     return onPick
   }
@@ -136,7 +171,7 @@ describe('the Beschriftung device preference', () => {
       active="select"
       onPick={vi.fn()}
       labels={labels}
-      footer={<button>{appConfig.copy.nav.zoomIn}</button>}
+      controls={<button>{appConfig.copy.nav.zoomIn}</button>}
     />)
 
   it('carries the labelled class when the preference is on', () => {
@@ -169,7 +204,7 @@ it('keeps its expanded state across a remount (surface switch)', () => {
     tools: slimTools(appConfig.copy.mapTools, MAP_READONLY_TOOLS),
     active: 'select',
     onPick: vi.fn(),
-    footer: <button>{appConfig.copy.nav.zoomIn}</button>,
+    controls: <button>{appConfig.copy.nav.zoomIn}</button>,
   })
   const first = render(<ToolRail {...props()} />)
   fireEvent.click(screen.getByRole('button', { name: 'Ausklappen' }))
@@ -204,7 +239,7 @@ describe('the rail marks the edge that still has tools behind it', () => {
     tools={appConfig.copy.mapTools}
     active="select"
     onPick={vi.fn()}
-    footer={<button>{appConfig.copy.nav.zoomIn}</button>}
+    controls={<button>{appConfig.copy.nav.zoomIn}</button>}
   />)
 
   it('marks both ends mid-scroll', () => {
@@ -240,7 +275,7 @@ describe('the phone bar', () => {
       tools={appConfig.copy.mapTools}
       active={active}
       onPick={onPick}
-      footer={null}
+      controls={null}
     />)
     return onPick
   }
@@ -275,7 +310,7 @@ describe('the phone bar', () => {
   })
 
   it('leaves the vertical rail every tool and its old word', () => {
-    render(<ToolRail className="tool-rail" primary={appConfig.copy.primarySymbol} tools={appConfig.copy.mapTools} active="select" onPick={vi.fn()} footer={null} />)
+    render(<ToolRail className="tool-rail" primary={appConfig.copy.primarySymbol} tools={appConfig.copy.mapTools} active="select" onPick={vi.fn()} controls={null} />)
     for (const name of ['Linie', 'Trupp', appConfig.copy.primarySymbol.label]) expect(screen.getByRole('button', { name })).toBeTruthy()
   })
 })
@@ -284,7 +319,7 @@ describe('the phone bar', () => {
 describe('the shortcut letters', () => {
   const rail = (over: Partial<React.ComponentProps<typeof ToolRail>> = {}) => render(
     <ToolRail className="tool-rail" primary={appConfig.copy.primarySymbol} tools={appConfig.copy.mapTools}
-      active="line" onPick={vi.fn()} footer={null} {...over} />)
+      active="line" onPick={vi.fn()} controls={null} {...over} />)
   const letters = () => [...document.querySelectorAll('.vrail-tool .rail-key')].map((el) => el.textContent)
 
   it('are on every tool tile by default – Symbol included', () => {

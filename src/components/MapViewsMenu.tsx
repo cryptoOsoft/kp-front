@@ -215,7 +215,7 @@ function CompassGlyph({ bearing, className }: { bearing: number; className: stri
  * The multi-purpose compass: always visible (it rotates to the live bearing as an indicator),
  * and tapping it opens the saved-views popover — `Nach Norden`, the team's saved framings, and
  * `Aktuelle Ansicht speichern`. The trigger styling is supplied by the caller so it sits
- * natively in either the right tool-rail footer (`rail`) or the top-right map HUD (`util`).
+ * natively in either the tool rail's view bar (`rail`) or the top-right map HUD (`util`).
  */
 export function MapViewsButton({ api, bearing, readOnly, variant, btnClassName, activeClassName, glyphClassName, label, open, onOpenChange, coordsOn, onToggleCoords }: {
   api: ViewsApi

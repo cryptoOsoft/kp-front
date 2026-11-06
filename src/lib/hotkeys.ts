@@ -16,7 +16,7 @@
 // Absperrkreis → U (Umkreis, which is what it draws), Koordinaten → X (the x/y of a coordinate).
 // R used to be «Norden ausrichten» and is the Rapport's now, because the two commands are not
 // comparable: resetting the rotation has a permanent control on every form factor — the compass
-// (rail footer on a tablet, the floating cluster on a phone, the utility cluster on desktop) is
+// (the rail's view bar on a tablet, the floating cluster on a phone, the utility cluster on desktop) is
 // always on screen, it ROTATES to the live bearing, so it announces itself precisely when the
 // command is wanted, its menu opens on «Nach Norden», and MapView eases back to 0 by itself
 // within a few degrees of north. The Rapport had no key at all, it is the last surface with a

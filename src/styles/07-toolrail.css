@@ -3,7 +3,8 @@
    whiteboard tool rail (.wb-tools) so tools sit in the same place in both modes.
    ============================================================ */
 /* top-anchored to mirror the left NavRail (same top, same max-height); the inner
-   .vrail-scroll handles overflow so the pinned map-nav footer never scrolls away */
+   .vrail-scroll handles overflow. On a tablet or laptop its foot stands above the view bar
+   (below, `:has(+ .view-bar)`). */
 /* content-height, packed at the same compact spacing as the left NavRail (a matched pair).
    top/bottom both set + margin-block:auto centres it vertically WHEN there's room, but lets it
    grow downward (toward the bottom edge) to fit a long list before it has to scroll. The top
@@ -19,16 +20,12 @@
    NavRail — but leftward, since it's anchored to the right edge. apply() sets it on toggle;
    the left-edge grip sets it live per-pixel during a drag. */
 .vrail { width: var(--vrail-w, 60px); }
-/* pinned map-nav footer (folded in from the old top-right cluster): zoom / fit /
-   coordinate buttons. Always a single column — it fits the slim compact rail (mirrors the
-   left rail's single-column footer) and, by keeping the footer height constant, the tool
-   area above stays the same height whether collapsed or expanded, so the tools don't
-   re-spread when you expand. A wide item (the compass) spans the column. */
-/* footer is a flex column identical to .vrail-scroll, so the footer buttons slide in and
-   align exactly like the tool buttons above (a single grid column behaved differently) */
+/* The view controls (`.vrail-nbtn`: Ebenen · Ansichten/compass · − +, the Plan's Einpassen ·
+   north dial · − +). On a tablet or laptop they are the VIEW BAR's (below); `.vrail-nav` is
+   their home only in the phone's folded bar (ToolRail · phone), which 15-mobile lays out. */
 .vrail-nav { flex: none; display: flex; flex-direction: column; gap: 4px; }
-/* footer buttons ARE tool buttons: same ink, height, glyph column and expanded label —
-   no brighter/heavier treatment, no different alignment */
+/* a view button IS a tool button: same ink, glyph box, hover and armed pill — no
+   brighter/heavier treatment */
 /* font: inherit, exactly as on the left rail's .nav-item and on .vrail-exp below — a <button> does
    not inherit the page font, so once the rail is expanded «Ebenen» and «Ansichten» came out in the
    browser's own face while «Einklappen» directly beneath them, and the whole left rail, did not. */
@@ -47,8 +44,7 @@
 @media (hover: hover) { .vrail-nbtn.on:hover:not(:disabled) { background: var(--ink-fill-hover); } }
 .vrail-nbtn:disabled { opacity: var(--disabled); cursor: default; }
 /* zoom ± is a MOUSE affordance: every touch form factor pinches, so the two buttons only cost
-   rail height the tools need more. Phones already drop the whole footer (15-mobile.css); this
-   covers the tablet band in between.
+   room. The phone's bar drops them (15-mobile.css); this covers the tablet band in between.
    ⚠️ `pointer: coarse` as well as the width. Width alone does NOT cover the primary device: an
    iPad in LANDSCAPE is 1194 CSS px, so a width-only rule kept the buttons on exactly the screen
    they were removed for. The two conditions together mean: gone on anything you touch, kept on
@@ -89,9 +85,11 @@
    did, so a footer button was sized by its content: its label got 64px where a tool's got 75.
    «Vergrössern» (66.5px in Sora) therefore clipped in the footer while a longer word like
    «Absperrkreis» (71px) sat comfortably in the list above it — same rail, same font, eleven
-   pixels apart for no reason anyone could see. */
+   pixels apart for no reason anyone could see. (The view buttons left the rail for the view bar
+   on 06.11.2026; `.vrail-nbtn` stays here for the day one is a rail tile again.)
+   The tile is `--vrail-tile` tall: 56px, 50px in a window under 700px (below). */
 .vrail.labelled:not(.expanded):not(.dragging) :is(.vrail-tool, .vrail-nbtn) {
-  flex-direction: column; gap: 0; height: 56px; justify-content: center; width: 100%; }
+  flex-direction: column; gap: 0; height: var(--vrail-tile); justify-content: center; width: 100%; }
 .vrail.labelled:not(.expanded):not(.dragging) .vrail-glyph { width: auto; min-width: 0; height: 26px; }
 .vrail.labelled:not(.expanded):not(.dragging) .vrail-label {
   display: block; padding: 0 2px; text-align: center; max-width: 100%;
@@ -125,9 +123,9 @@
 }
 .vrail-tool:disabled { opacity: var(--disabled); cursor: default; }
 /* ⚠️ The tools are ONE list — no divider inside it (22.09.2026; the lists in config/copy carry no
-   `sep` entries any more). The one hairline this rail draws is the FOOT's: it sets the generic
-   controls (Ebenen · compass · zoom) apart from the tools that act on the surface, which is a
-   real seam, where «select vs. create» was noise. */
+   `sep` entries any more). The generic controls (Ebenen · compass · zoom) are set apart from the
+   tools that act on the surface by standing in their own bar (the view bar, below; the phone's
+   folded bar draws no seam at all, 15-mobile) — a real seam, where «select vs. create» was noise. */
 .vrail-sep { height: 1px; flex: none; background: var(--border); margin: 4px 8px; }
 /* one-shot actions + the display-mode switch read as discrete push-buttons
    (faint resting fill + hairline), visually distinct from the flat, sticky modal
@@ -135,6 +133,51 @@
 /* the grip hangs off the LEFT edge — this rail is anchored right and opens leftward (mirror of
    the nav-grip). The rest of it is the shared base. */
 .vrail-grip { left: -7px; }
+
+/* ── The view bar (ToolRail · ViewBar; staging review 06.11.2026, S2 owner pick C) ─────────────
+   Tablet and laptop: the surface's view controls — the Karte's Ebenen · Ansichten · − +, the
+   Plan's Einpassen · north dial · − + — in ONE small bar in the bottom corner on the tool rail's
+   side (the rail is right-anchored; the bar shares its 16px inset). They were the rail's pinned
+   footer, ~245px of a column that needed it for the tools: a 1440×900 laptop scrolled «Messen»
+   under the edge. «Anschauen» and «zeichnen» are two things, and now they look it. The phone's
+   folded bar keeps them at its pinned end (ToolRail · phone, 15-mobile) and never renders this.
+   ⚠️ What stands in the same corner has to clear it, and every rule says so through ONE
+   reserve, `--view-bar-reserve` (16px inset + the bar + the 8px floating gap): the rail's foot
+   (below), the detail panel (06-contextpanel), the Verlauf drawer (10-journal), Ebenen and the
+   Ansichten menu, which open upward from it (05-navrail), and the Plan's fit
+   (lib/whiteboard · VIEW_BAR_INSET mirrors it). The map's ⓘ stands to its left (03-map,
+   `--view-bar-w` measured by ToolRail). Gated on the bar being there (`:root:has(.view-bar)`),
+   so a surface without it (replay) keeps the whole height.
+   The tile height is the rail's: 56px, and 50px in a window under 700px tall, so eight labelled
+   tools fit a 1366×768 laptop (a 660px viewport) without scrolling. */
+:root { --vrail-tile: 56px;
+  --view-bar-h: calc(var(--vrail-tile) + 2 * var(--bar-pad) + 2px);
+  --view-bar-reserve: calc(16px + var(--view-bar-h) + var(--float-gap)); }
+@media (max-height: 699px) { :root { --vrail-tile: 50px; } }
+.view-bar { position: absolute; right: max(16px, env(safe-area-inset-right)); bottom: 16px; z-index: var(--z-dock);
+  display: flex; align-items: center; gap: 4px; padding: var(--bar-pad);
+  background: var(--glass); backdrop-filter: blur(14px) saturate(1.4); border: 1px solid var(--glass-line);
+  box-shadow: var(--e4); border-radius: var(--r-bar); }
+/* each button: glyph over its word, as on the labelled rail — and the words stay on whatever the
+   rail's «Beschriftung» says: the bar has the width, and «Ebenen» / «Ansichten» are read at a
+   glance where a bare compass is recalled (owner: «Ebenen and Ansichten keep their words»).
+   `position: relative` is the box a shortcut letter would hang in (04b-rail · .rail-key). */
+.view-bar .vrail-nbtn { position: relative; flex-direction: column; justify-content: center; gap: 0;
+  height: var(--vrail-tile); min-width: 76px; padding: 0 8px; }
+.view-bar .vrail-glyph { width: auto; min-width: 0; height: 26px; }
+.view-bar .vrail-label { display: block; white-space: nowrap; text-align: center;
+  font-size: var(--fs-micro); font-weight: var(--fw-bold); line-height: 1.1; }
+/* − + are glyph-only squares — «Verkleinern» / «Vergrössern» need no reading (the title says it),
+   and two words that long would double the bar. A hairline sets them off from the buttons that
+   open something; it goes with them on a touch screen (.vrail-zoom is display:none there). */
+.view-bar .vrail-zoom { min-width: 46px; width: 46px; padding: 0; }
+.view-bar .vrail-zoom .vrail-label { display: none; }
+.view-bar :not(.vrail-zoom) + .vrail-zoom { margin-left: var(--sp-2); }
+.view-bar :not(.vrail-zoom) + .vrail-zoom::before { content: ''; position: absolute; left: -6px; top: 25%; bottom: 25%;
+  width: 1px; background: var(--border); }
+/* the rail's foot stands above the bar; it stays centred in the band that is left */
+:is(.tool-rail, .wb-tools):has(+ .view-bar) { bottom: var(--view-bar-reserve);
+  max-height: calc(100dvh - 88px - var(--view-bar-reserve)); }
 
 /* (.toputil / .tu-btn / .tu-divider / .compass migrated → MapUtility.module.css) */
 

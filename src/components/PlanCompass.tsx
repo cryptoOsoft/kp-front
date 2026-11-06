@@ -1,20 +1,20 @@
 /*
  * *The north dial is the ONE door to «Gebäude drehen»* (29.09.2026), on every device
  * (`PlanCompass`); it also shows the angle. Since 20.10.2026 (UX sweep M7) it lives where the
- * Karte's compass does: in the tool rail's footer on a tablet, in the bottom tool bar on a phone.
+ * Karte's compass does: in the tool rail's view bar on a tablet or laptop (bottom corner, since
+ * 06.11.2026), in the bottom tool bar on a phone.
  */
 
 import { useState, type ReactNode } from 'react'
 import { appConfig } from '../config/appConfig'
 import { Icon } from '../lib/icons'
 import { Popover } from '../lib/overlays'
-import { useIsPhone } from '../lib/useIsPhone'
 import s from './PlanCompass.module.css'
 
 /**
  * The Gebäude's north dial. Rendered by the Whiteboard while a footprint stack is on screen.
  *
- * `variant="rail"` is the tile in the plan rail's footer, beside «Einpassen» – the Karte's
+ * `variant="rail"` is the tile in the plan rail's view controls, beside «Einpassen» – the Karte's
  * compass slot (MapToolDocks · MapViewsButton): the same glyph, turning with the view, the same
  * `.vrail-views` tile, so the phone's bottom bar keeps it like the Karte's (15-mobile · the
  * pinned `.vrail-views`/`.vrail-fit` tiles). It floated top-right until 20.10.2026 – the corner
@@ -33,7 +33,6 @@ export function PlanCompass({ deg, controls, northUnknown = false, variant }: {
   northUnknown?: boolean
   variant: 'rail' | 'float'
 }) {
-  const phone = useIsPhone()
   // controlled, so the open rail tile wears the rail's «on» pill like the Karte's compass does
   const [open, setOpen] = useState(false)
   const W = appConfig.copy.whiteboard
@@ -63,9 +62,9 @@ export function PlanCompass({ deg, controls, northUnknown = false, variant }: {
     <Popover
       ariaLabel={W.orientMenuTitle}
       popupClassName="wb-orient-popup"
-      // out of the rail towards the plan: leftward from the tablet's right-edge rail, upward from
-      // the phone's bottom bar – never back over the control that opened it
-      side={variant === 'float' ? 'bottom' : phone ? 'top' : 'left'} align="end" zIndex={60}
+      // out of its bar towards the plan: upward from the view bar in the bottom corner (tablet,
+      // laptop) and from the phone's bottom bar – never back over the control that opened it
+      side={variant === 'float' ? 'bottom' : 'top'} align="end" zIndex={60}
       open={open} onOpenChange={setOpen}
       trigger={
         <button type="button" className={`${look} ${s.btn}${open && variant === 'rail' ? ' on' : ''}`}

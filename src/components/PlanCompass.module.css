@@ -1,5 +1,5 @@
 /* The Gebäude's north dial (PlanCompass.tsx). Two homes:
-   · the RAIL tile – the plan rail's footer on a tablet, the bottom tool bar on a phone. It is a
+   · the RAIL tile – the plan rail's view bar on a tablet, the bottom tool bar on a phone. It is a
      `.vrail-nbtn .vrail-views` tile, so 07-toolrail and 15-mobile size and place it exactly like
      the Karte's compass; this file only turns its glyph and quiets the read-out;
    · the FLOAT chip below – the viewport's top-right corner, only on a plan with no rail at all.

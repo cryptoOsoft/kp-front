@@ -367,7 +367,7 @@ The rules that are easy to break:
   same display like we have for our plans normally -> not this clipping here»). The reader keeps
   the box of an Einsatz's plan with no tool bar under it — on a phone ending 18px above the one
   bar, on a tablet the whole surface — and its own fit (`lib/whiteboard · containFit` with
-  `chipRowInset`) keeps the floating row free; the Karte's chip row stands exactly where the
+  `bottomInset`) keeps the floating row free; the Karte's chip row stands exactly where the
   reader's own `.wb-botleft` would (8px above the bar on a phone, 16px off the foot beside the rail
   on a tablet). The Karte's root wears `.phone-tools` (its docks stack like an Einsatz's), so
   `Karte.module.css` must keep the reader out of that two-bar box. Round 3 ended the reader a

@@ -104,7 +104,7 @@ interface Props {
   showHistory?: boolean
   /** phone-only surface controls folded into the bar: a primary view action (locate →
    *  centre on incident on the map; fit → fit-to-view on the plan). Null on desktop,
-   *  where these live in the rail footer. */
+   *  where these live in the tool rail's view bar. */
   mapNav?: { action: { icon: string; label: string; onClick: () => void } } | null
   /** map weather reading, rendered as a readout next to "Eintrag" (replaces the floating
    *  corner badge). Null off the map / while loading. */

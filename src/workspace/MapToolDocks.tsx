@@ -233,11 +233,11 @@ export function MapToolDocks({
             : undefined} />
       )}
 
-      {/* the Verlauf drawer now docks INBOARD of this rail (see .journal-drawer /
-          .journal-scrim), so the rail — and its pinned zoom/fit footer — stays put
-          instead of being buried + replaced by a floating cluster. */}
+      {/* the Verlauf drawer docks INBOARD of this rail and stops above its view bar (see
+          .journal-drawer / .journal-scrim), so the rail stays put instead of being buried +
+          replaced by a floating cluster. */}
       {/* the rail is the SAME object for everyone — a locked surface just gets the slim tool set
-          (map: Auswahl · Messen; plan: Auswahl), in the same place, with the same footer. Replay is the exception:
+          (map: Auswahl · Messen; plan: Auswahl), in the same place, with the same view bar. Replay is the exception:
           its scrubber owns the bottom band that the Messen readout would land in. */}
       {mapUI && !replayActive && (
         <ToolRail
@@ -254,12 +254,12 @@ export function MapToolDocks({
           active={tool}
           open={draftOpen}
           onPick={pick}
-          footer={(() => {
+          controls={(() => {
             const c = appConfig.copy.nav
             return (
               <>
-                {/* Ebenen — PINNED so it never scrolls out of reach on short iPads; the
-                    Basiskarte choice lives inside its panel (the BaseSwitcher popover and
+                {/* Ebenen — in the view bar (the phone: the bar's pinned end), so it never scrolls
+                    out of reach on short iPads; the Basiskarte choice lives inside its panel (the BaseSwitcher popover and
                     the standalone Koordinaten button are folded away — coords is a row in
                     the compass menu now, testing feedback 2026-07-14) */}
                 {/* which preset the Ebenen match is lit in the panel and said in the name — no mark
@@ -270,9 +270,8 @@ export function MapToolDocks({
                     framings · Ansicht speichern). `|| isEl` as on MapUtility's twin: saved views
                     live in the shared blob, which the el record slice never pushes. */}
                 <MapViewsButton api={viewsApi} bearing={view.bearing} readOnly={readOnly || isEl} variant="rail" btnClassName="vrail-nbtn vrail-views" activeClassName="on" glyphClassName="vrail-compass" label={appConfig.copy.mapViews.title} open={viewsOpen && !(sharePick && shareParent === 'views')} onOpenChange={toggleViews} coordsOn={coord.mode !== 'off'} onToggleCoords={coord.cycle} />
-                {/* zoom ±: desktop only (.vrail-zoom is hidden under 1024px). Every touch form
-                    factor pinches, and on a tablet the two buttons cost rail space that the
-                    tools above need more. */}
+                {/* zoom ±: mouse only (.vrail-zoom is hidden under 1024px and on a coarse
+                    pointer). Every touch form factor pinches. */}
                 <button className="vrail-nbtn vrail-zoom" title={c.zoomOut} aria-label={c.zoomOut} onClick={() => mapRef.current?.zoomOut()}><span className="vrail-glyph"><Icon id="minus" /></span><span className="vrail-label">{c.zoomOut}</span></button>
                 <button className="vrail-nbtn vrail-zoom" title={c.zoomIn} aria-label={c.zoomIn} onClick={() => mapRef.current?.zoomIn()}><span className="vrail-glyph"><Icon id="plus" /></span><span className="vrail-label">{c.zoomIn}</span></button>
               </>

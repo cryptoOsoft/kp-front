@@ -28,6 +28,13 @@
   backdrop-filter: blur(14px) saturate(1.4); border: 1px solid var(--glass-line); border-radius: var(--r-hero); z-index: var(--z-chrome);
   box-shadow: var(--e4); max-height: calc(100dvh - 104px - env(safe-area-inset-bottom) - var(--kb-inset, 0px));
   display: flex; flex-direction: column; overflow: hidden; }
+/* …and on a tablet or laptop it stops above the view bar in the bottom corner (07-toolrail ·
+   .view-bar): the panel's lane runs over the bar's left half. With the keyboard up, whichever
+   reserve is larger wins – the keys cover the bar anyway. */
+@media (--not-phone) {
+  :root:has(.view-bar) .ctx { max-height: calc(100dvh - 88px - env(safe-area-inset-bottom)
+    - max(var(--view-bar-reserve), 16px + var(--kb-inset, 0px))); }
+}
 /* A Plan's Ebenen list describes the projections in the selected object's detail panel, so both
    stay visible on tablet/desktop. Put Ebenen in the lane immediately left of `.ctx`; the map keeps
    its single-slot behaviour. `--plan-ctx-w` follows the tablet narrowing in 15-mobile.css, and

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { clamp01, floorGeometry, floorLabel, OFF_BOARD_Y, planUrl, storeyTowards, TILE_AR, tileAspectOf, TOP_INSET, pdfPageOf, signedFloor, withPdfPage, floorSections, floorCrossings, containFit, chipRowInset, sideInsets } from './whiteboard'
+import { clamp01, floorGeometry, floorLabel, OFF_BOARD_Y, planUrl, storeyTowards, TILE_AR, tileAspectOf, TOP_INSET, pdfPageOf, signedFloor, withPdfPage, floorSections, floorCrossings, containFit, bottomInset, sideInsets } from './whiteboard'
 
 describe('planUrl', () => {
   it('leaves absolute http(s) URLs untouched', () => {
@@ -163,21 +163,22 @@ describe('containFit — a plan opens WHOLE between the bars (sweep B8)', () => 
   const A4L = 1 / Math.SQRT2 // landscape sheet
   const insets = (w: number, phone: boolean) => {
     const side = sideInsets(w, phone)
-    return { top: TOP_INSET, bottom: chipRowInset(phone), l: side.l, r: side.r }
+    return { top: TOP_INSET, bottom: bottomInset(phone), l: side.l, r: side.r }
   }
 
-  it('laptop 1440×900, portrait: fitted to the HEIGHT, its foot above the chip row', () => {
+  it('laptop 1440×900, portrait: fitted to the HEIGHT, its foot above the chip row and the view bar', () => {
     const f = containFit({ w: 1440, h: 900 }, A4P, insets(1440, false))
-    expect(f.h).toBe(900 - TOP_INSET - chipRowInset(false))
+    expect(f.h).toBe(900 - TOP_INSET - bottomInset(false))
     expect(f.w).toBeCloseTo(f.h / A4P, 6)
-    // the sheet's foot (centred in the free lane) ends at the chip row's top less its air
-    expect(TOP_INSET + f.h).toBe(900 - 76)
+    // the sheet's foot (centred in the free lane) ends at the view bar's top less its air — the
+    // taller of the two bottom corners (07-toolrail · --view-bar-reserve)
+    expect(TOP_INSET + f.h).toBe(900 - 94)
   })
 
   it('laptop 1440×900, landscape: whole sheet inside both the rails and the bars', () => {
     const f = containFit({ w: 1440, h: 900 }, A4L, insets(1440, false))
     expect(f.w).toBeLessThanOrEqual(1440 - 88 - 92)
-    expect(f.h).toBeLessThanOrEqual(900 - TOP_INSET - 76)
+    expect(f.h).toBeLessThanOrEqual(900 - TOP_INSET - 94)
     expect(f.h / f.w).toBeCloseTo(A4L, 6)
   })
 
@@ -185,8 +186,8 @@ describe('containFit — a plan opens WHOLE between the bars (sweep B8)', () => 
     // the phone canvas ends at the tool bar (700px tall at 390×844)
     const f = containFit({ w: 390, h: 700 }, A4P, insets(390, true))
     expect(f.w).toBeLessThanOrEqual(390)
-    expect(f.h).toBeLessThanOrEqual(700 - TOP_INSET - chipRowInset(true))
-    expect(f.w === 390 || f.h === 700 - TOP_INSET - chipRowInset(true)).toBe(true)
+    expect(f.h).toBeLessThanOrEqual(700 - TOP_INSET - bottomInset(true))
+    expect(f.w === 390 || f.h === 700 - TOP_INSET - bottomInset(true)).toBe(true)
   })
 
   it('iPad 820×1180 (portrait) and 1180×820 (landscape) contain either sheet', () => {
