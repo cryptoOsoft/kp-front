@@ -9,7 +9,7 @@ import type { LngLat } from '../types'
 const route: LngLat[] = [[7.55, 47.5], [7.57, 47.5]]
 const setup = (value: RelayValue = {}) => {
   const onChange = vi.fn()
-  const hook = renderHook(({ v }) => useRelay({ coords: route, profile: null, profileLoading: false, value: v, onChange }), { initialProps: { v: value } })
+  const hook = renderHook(({ v }) => useRelay({ coords: route, profile: null, profileLoading: false, value: v, defaultHose: '75', onChange }), { initialProps: { v: value } })
   return { ...hook, onChange }
 }
 
@@ -85,7 +85,7 @@ describe('useRelay — what an edit writes', () => {
   })
 
   it('read-only without a writer', () => {
-    const { result } = renderHook(() => useRelay({ coords: route, profile: null, profileLoading: false, value: {} }))
+    const { result } = renderHook(() => useRelay({ coords: route, profile: null, profileLoading: false, value: {}, defaultHose: '75' }))
     expect(result.current.readOnly).toBe(true)
   })
 })
@@ -112,7 +112,7 @@ describe('dismissRelayBubble — the map tap that only closes the map bubble', (
   // the panel that publishes and the map that reads are two components, as in the app
   const published = () => {
     const panel = renderHook(() => {
-      const ctrl = useRelay({ coords: route, profile: null, profileLoading: false, value: {}, onChange: () => {} })
+      const ctrl = useRelay({ coords: route, profile: null, profileLoading: false, value: {}, defaultHose: '75', onChange: () => {} })
       usePublishRelay(ctrl, true)
       return ctrl
     })

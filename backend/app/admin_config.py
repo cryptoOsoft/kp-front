@@ -204,6 +204,9 @@ EXAMPLE_CONFIG: dict[str, Any] = {
         "entryPressureMin": 270,
         # Modul-Pläne warn «nicht die Einsatzadresse» only when the nearest object is farther (m)
         "nearbyObjectWarnM": 25,
+        # the hose Ø a Leitung without one reads as, and the one a Messen Wassertransport starts on
+        "defaultLineHose": "40",
+        "defaultRelayHose": "75",
     },
     "roster": {
         "source": "manual",

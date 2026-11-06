@@ -8,6 +8,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Combo } from './Combo'
+import { Sheet } from '../lib/overlays/Sheet'
 
 afterEach(cleanup)
 
@@ -22,10 +23,12 @@ function openAt(top: number) {
   return screen.getByRole('listbox')
 }
 
-/** The same picker inside a clipping ancestor (a bottom Sheet's `.ip-body`), both boxes pinned. */
-function openInSheet(sheet: DOMRect, trigger: DOMRect) {
-  const { container } = render(<div style={{ overflowY: 'auto' }}>{picker}</div>)
-  vi.spyOn(container.firstElementChild as HTMLElement, 'getBoundingClientRect').mockReturnValue(sheet)
+/** The same picker inside a clipping ancestor, both boxes pinned — inside a modal `Sheet`
+ *  (`modal`) or a non-modal dock like the `.ctx` detail panel. */
+function openInPanel(panel: DOMRect, trigger: DOMRect, modal = true) {
+  const scroller = <div data-testid="scroller" style={{ overflowY: 'auto' }}>{picker}</div>
+  render(modal ? <Sheet open onClose={vi.fn()} title="Material erfassen">{scroller}</Sheet> : scroller)
+  vi.spyOn(screen.getByTestId('scroller'), 'getBoundingClientRect').mockReturnValue(panel)
   const btn = screen.getByRole('button', { name: /Name wählen/ })
   vi.spyOn(btn, 'getBoundingClientRect').mockReturnValue(trigger)
   fireEvent.click(btn)
@@ -50,18 +53,26 @@ describe('ComboMenu · where the portalled menu lands', () => {
     // A 260px bottom sheet with the picker as its first field — «Material erfassen», the EL
     // sheet's Einsatzleiter. Below the trigger the SHEET has 176px; above it the sheet has ~20,
     // the viewport 528. Nothing clips a menu portalled to <body>, so it takes the 528.
-    const menu = openInSheet(new DOMRect(0, 508, 375, 260), new DOMRect(24, 540, 200, 40))
+    const menu = openInPanel(new DOMRect(0, 508, 375, 260), new DOMRect(24, 540, 200, 40))
     expect(menu.style.top).toBe('auto')
     expect(menu.style.bottom).toBe('232px') // 768 − 540 + 4 → its bottom edge clears the trigger
     expect(menu.style.maxHeight).toBe('440px')
   })
 
-  it('still refuses to spill past a short sheet\'s BOTTOM edge when it opens downward', () => {
-    // a 400px panel ending far above the fold: 400 − 140 − 12 = 248px below is room enough, so
-    // the menu drops — and is sized off the PANEL (248), not off the 616px the window has left
-    const menu = openInSheet(new DOMRect(0, 0, 375, 400), new DOMRect(24, 100, 200, 40))
+  it('still refuses to spill past a modal sheet\'s BOTTOM edge when it opens downward', () => {
+    // a 400px sheet ending far above the fold: 400 − 140 − 12 = 248px below is room enough, so
+    // the menu drops — and is sized off the SHEET (248), not off the 616px the window has left
+    const menu = openInPanel(new DOMRect(0, 0, 375, 400), new DOMRect(24, 100, 200, 40))
     expect(menu.style.top).toBe('144px')
     expect(menu.style.maxHeight).toBe('248px')
+  })
+
+  it('opens a short NON-modal panel\'s field down into the screen under it', () => {
+    // the `.ctx` detail panel sizes to its content: its body ends 30px under «Bezeichnung», the
+    // map is free below. Measured against the panel it flipped up (owner, 05.11.2026).
+    const menu = openInPanel(new DOMRect(700, 88, 360, 250), new DOMRect(716, 268, 328, 40), false)
+    expect(menu.style.top).toBe('312px') // 308 + 4
+    expect(menu.style.bottom).toBe('')
   })
 
   it('matches the trigger\'s width and takes the room that is actually there', () => {

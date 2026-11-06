@@ -9,6 +9,7 @@ import { matchesQuery, searchQuery } from '../lib/search'
 import { usePopoverGuard } from '../lib/overlays/popoverGuard'
 import { visibleViewportBottom } from '../lib/useKeyboardInset'
 import { fullViewHeight } from '../lib/iosKeyboard'
+import { MIN_MENU_H, placeComboMenu, type MenuPos } from '../lib/comboPlacement'
 import c from './ComboMenu.module.css'
 
 /**
@@ -30,55 +31,23 @@ import c from './ComboMenu.module.css'
  * --surface in a modal are two skins, not one control pretending to be two.
  */
 
-/** Where the portalled menu goes. Recomputed on scroll/resize while it is open. */
-interface MenuPos { left: number; top: number; width: number; maxH: number; up: boolean }
-
-/** Ceiling for the portalled menu. Not a target — the menu takes whatever room the trigger
- *  actually has (see `place`); this only stops it from becoming a curtain over the form it
- *  belongs to. ~9 name rows, which is enough that a Mannschaft rarely needs scrolling before
- *  the search narrows it. It used to be 252px in one copy and 280px in the other: on a
- *  full-height Rapport the roster then scrolled inside a short box with half the sheet empty
- *  underneath it. */
-const MAX_MENU_H = 440
-/** Floor: two or three rows and a search box. Below this a menu is a sliver, not a list — so a
- *  DOWN menu is allowed to spend it even where the sheet is shorter, and an UP menu may not
- *  (see `place`), because an up menu's overflow goes off the top of the screen. */
-const MIN_MENU_H = 140
-/** Breathing room kept between the menu and whichever edge it is measured against. */
-const EDGE = 12
-/** Floor for the menu's WIDTH: what the search row needs to show its longest placeholder whole
- *  (fr «Rechercher une personne …», 228px of 16px Sora + 63px of icon, paddings and menu pad).
- *  The menu used to take exactly the trigger's width, and a narrow field cut its own search to
- *  «Suchen oder ei…» (owner, 30.10.2026) — the names under it ellipsed for the same reason. The
- *  menu grows to the right from the trigger's left edge and steps left only to stay on screen
- *  (see `place`). ⚠️ A longer placeholder in any language needs this raised. */
-const MIN_MENU_W = 300
-
-/** The nearest ancestor that actually clips its content (a Sheet's `.ip-body`, any
- *  `overflow: auto/scroll/hidden` panel) — falling back to the viewport when there is none.
- *  `place()` measures the room BELOW the trigger against THIS, not `window.innerHeight`: a
- *  trigger near the top of a short `ip-fit` sheet has plenty of WINDOW space below it, but the
- *  menu is portalled straight to `<body>`, so sizing it off the window let it run taller than
- *  the sheet itself and spill past its bottom edge into the backdrop — a dropdown that reads as
- *  broken chrome rather than an open menu.
- *  ⚠️ ABOVE is deliberately NOT measured against it (05.09.). Nothing actually clips the
- *  portalled menu, and the room above a bottom sheet is exactly the room a bottom sheet has:
- *  measuring it against the sheet's own top edge left «Material erfassen» and the EL sheet's
- *  Einsatzleiter picker with ~20px above and ~170px below, i.e. a cramped down-menu with half
- *  the screen empty over it. Above the sheet the menu is over the backdrop, which is where a
- *  dropdown opened from a sheet's first field belongs. */
-function clipBounds(el: HTMLElement): { top: number; bottom: number } {
+/** The bottom a DOWN menu may not pass, or null: the screen alone decides (lib/comboPlacement).
+ *  Only a MODAL frame bounds it — a Sheet / Overlay popup (Base UI's open dialog), where the
+ *  nearest clipping ancestor is the sheet's `.ip-body` and a menu run past it spills into the
+ *  backdrop (05.09.2026). A non-modal dock — the `.ctx` detail panel over the map, a tool dock,
+ *  a page — clips its content too, but under it is the working map, and `.ctx` sizes to its
+ *  content: measured against ITS body, a short Fahrzeug panel opened «Bezeichnung» upward or as
+ *  a 140px sliver with the screen free below (owner, 05.11.2026). */
+function frameBottom(el: HTMLElement): number | null {
+  const frame = el.closest('[role="dialog"][data-open], [role="alertdialog"][data-open]')
+  if (!frame) return null
   let node = el.parentElement
-  while (node && node !== document.body) {
+  while (node && node !== frame.parentElement) {
     const oy = getComputedStyle(node).overflowY
-    if (oy === 'auto' || oy === 'scroll' || oy === 'hidden' || oy === 'clip') {
-      const r = node.getBoundingClientRect()
-      return { top: r.top, bottom: r.bottom }
-    }
+    if (oy === 'auto' || oy === 'scroll' || oy === 'hidden' || oy === 'clip') return node.getBoundingClientRect().bottom
     node = node.parentElement
   }
-  // the fixed frame's full height: the installed iPhone app collapses innerHeight under the keys
-  return { top: 0, bottom: fullViewHeight() }
+  return null
 }
 
 export interface ComboMenuState {
@@ -142,7 +111,7 @@ export function useComboMenu(openTick?: number): [ComboMenuState, ComboMenuRefs]
   // opened from OUTSIDE (openTick): same entry as a tap on the trigger
   useEffect(() => { if (openTick) { setSearch(''); setOpen(true) } }, [openTick])
 
-  // Place the portalled menu under (or above, near the viewport bottom) the trigger. The menu is
+  // Place the portalled menu under (or above, near the screen's bottom) the trigger. The menu is
   // portalled to <body> precisely so the scrolling sheet / overflow-hidden panel the field sits
   // in cannot clip it — fatal on a phone, where the lower fields sit right at the scroll edge.
   useEffect(() => {
@@ -150,34 +119,19 @@ export function useComboMenu(openTick?: number): [ComboMenuState, ComboMenuRefs]
     const place = () => {
       const el = pick.current
       if (!el) return
-      const r = el.getBoundingClientRect()
-      const bound = clipBounds(el)
       // The VISIBLE screen, not the layout viewport: the OS keyboard shrinks only the former,
       // and a menu measured against `window.innerHeight` kept opening downward INTO the keyboard
       // — the operator saw a search row and nothing else (Feldtest 08.09., «man sieht nix
       // mehr»). visibleViewportBottom() also reads the VirtualKeyboard API, because on Android
       // (`overlays-content`) NEITHER viewport shrinks and the visual viewport alone lies.
-      const vv = window.visualViewport
-      const visTop = vv ? vv.offsetTop : 0
-      const visBottom = visibleViewportBottom()
-      // below: against the clipping ancestor. above: against the VIEWPORT — see clipBounds.
-      const below = Math.min(bound.bottom, visBottom) - r.bottom - EDGE
-      const above = r.top - Math.max(0, visTop) - EDGE
-      // Flip up when the room below has run out AND the viewport genuinely offers more, with
-      // enough of it to be a list. Both anchors leave the trigger uncovered: an up menu ends
-      // 4px above `r.top`, a down one starts 4px below `r.bottom` — so a picker whose trigger
-      // is itself a field (and the menu's own search row) always stays reachable.
-      const up = below < 200 && above > below && above >= MIN_MENU_H
-      // TAKE the room that is there: `below`/`above` already hold the real space, so MAX_MENU_H
-      // only has to stop the menu becoming a full-screen curtain over the form it belongs to.
-      // ⚠️ The MIN floor is for the DOWN case only — an up menu capped above its room would run
-      // its top (where the search row sits) off the top of the screen.
-      const maxH = up ? Math.min(MAX_MENU_H, above) : Math.min(MAX_MENU_H, Math.max(MIN_MENU_H, below))
-      // never narrower than MIN_MENU_W (or the screen), never off its right edge
-      const viewW = document.documentElement.clientWidth
-      const width = Math.max(r.width, Math.min(MIN_MENU_W, viewW - 2 * EDGE))
-      const left = width > r.width ? Math.max(0, Math.min(r.left, viewW - EDGE - width)) : r.left
-      setPos({ left, top: up ? r.top : r.bottom, width, maxH, up })
+      setPos(placeComboMenu({
+        trigger: el.getBoundingClientRect(),
+        visTop: window.visualViewport?.offsetTop ?? 0,
+        visBottom: visibleViewportBottom(),
+        viewH: fullViewHeight(),
+        frameBottom: frameBottom(el),
+        viewW: document.documentElement.clientWidth,
+      }))
     }
     place()
     window.addEventListener('scroll', place, true)
@@ -347,7 +301,11 @@ export function ComboMenu<V>({ state, menuRef, classes, copy, entries, groups, s
       // position:fixed that is viewport-bottom + 4, which (together with the inline `bottom`)
       // stretched the menu into a 0-height sliver OFF-screen whenever the trigger sat low.
       // That is the phone bottom sheet's "the dropdown does nothing".
-      style={{ left: pos.left, width: pos.width, maxHeight: pos.maxH, ...(pos.up ? { top: 'auto', bottom: fullViewHeight() - pos.top + 4 } : { top: pos.top + 4 }) }}>
+      // `footInset`: the room ran to the screen's foot, so the home indicator's band comes off
+      // it — still never below the floor a down menu is allowed (lib/comboPlacement)
+      style={{ left: pos.left, width: pos.width,
+        maxHeight: pos.footInset ? `max(${MIN_MENU_H}px, calc(${pos.maxH}px - env(safe-area-inset-bottom)))` : pos.maxH,
+        ...(pos.up ? { top: 'auto', bottom: fullViewHeight() - pos.top + 4 } : { top: pos.top + 4 }) }}>
       {searchShown && (
         <li className={c.searchRow}>
           <SearchField

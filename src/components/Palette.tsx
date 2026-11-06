@@ -15,7 +15,8 @@ import { useIsPhone } from '../lib/useIsPhone'
 import { addTools } from '../lib/toolFold'
 import { SheetGrab, useSwipeDismiss } from '../lib/overlays'
 
-// the geometric "Formen" section (Pfeil · Rechteck) renders right after this FireGIS category.
+// the geometric «Formen» section (Pfeil · Rechteck) renders right after this pack category,
+// before Wasser (the pack's order: tools/gen_symbols.py · ORDER).
 const FORMEN_AFTER_CAT = 'Gefahren'
 
 function ShapeCell({ kind, onPick }: { kind: ShapeKind; onPick: (k: ShapeKind) => void }) {
@@ -176,7 +177,7 @@ export function Palette({ sym, onPick, onClose, onPickShape, tools, onPickTool }
                       {sym.symbols.filter((s) => s.cat === cat).map((s) => <Cell key={s.name} name={s.name} svg={s.svg} onPick={onPick} />)}
                     </div>
                   </section>
-                  {/* the geometric Formen (Pfeil · Rechteck) sit between Gefahren and Führung */}
+                  {/* the geometric Formen (Pfeil · Rechteck) sit between Gefahren and Wasser */}
                   {onPickShape && cat === FORMEN_AFTER_CAT && (
                     <section>
                       <div className="sym-ghead">{appConfig.copy.shapes.sectionTitle}</div>

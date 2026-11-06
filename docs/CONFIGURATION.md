@@ -29,6 +29,7 @@ config JSON: [§1](#1-deployment-config-the-json-the-deployment-owner-edits).
   - [`doctrine.alarmBarRueckzug` – the quieter line on Rückzug](#doctrinealarmbarrueckzug--the-quieter-line-for-a-trupp-on-rückzug)
   - [`doctrine.entryPressureMin` – the one question about a low Eingangsdruck](#doctrineentrypressuremin--the-one-question-about-a-low-eingangsdruck)
   - [`doctrine.nearbyObjectWarnM` – when the nearest object is «nicht die Einsatzadresse»](#doctrinenearbyobjectwarnm--when-the-nearest-object-is-nicht-die-einsatzadresse)
+  - [`doctrine.defaultLineHose` / `defaultRelayHose` – the Ø a Linie and a Wassertransport start on](#doctrinedefaultlinehose--defaultrelayhose--the-ø-a-linie-and-a-wassertransport-start-on)
 - [2. Reference / Werkleitungs layers – station-supplied](#2-reference--werkleitungs-layers--station-supplied-nothing-bundled)
   - [2a. Raster layer (WMS / WMTS)](#2a-raster-layer-wms--wmts--paste-a-url-template) ·
     [2b. Vector layer (GeoJSON)](#2b-vector-layer-geojson--for-pointslines-you-own)
@@ -311,7 +312,8 @@ both now have browser pages – §9e and §9f.
     "vehicles": [],                               // e.g. { "id": "tlf", "label": "TLF", "winfapAlias": "TLF" }
     // Data-driven Auswahl-Vorschläge: each entry attaches a suggestion list to one symbol
     // field. `field` is "title" (the symbol's title combobox) or a detail-row key (e.g. "Typ",
-    // "Einheit"). Free typing in the Lage always stays possible – these only prefill. Edit on
+    // "Einheit"). However short the list, the field is a dropdown that also takes free typing
+    // (Karte and Plan alike) – these only prefill. Edit on
     // the «Symbolfelder» sheet of the Arbeitsmappe (§9h) or in the config JSON via CLI.
     // ⚠️ Verwaltung › Fahrzeuge & Symbole only SHOWS them – that table has no editor.
     "attributeLists": [
@@ -355,6 +357,8 @@ both now have browser pages – §9e and §9f.
                                                   // its own colour (overridable per Trupp)
     "nearbyObjectWarnM": 25,                      // Modul-Pläne: warn «nicht die Einsatzadresse»
                                                   // only beyond this many metres – see below
+    "defaultLineHose": "40",                      // the Ø a Leitung without one reads as, and the
+    "defaultRelayHose": "75",                     // one a Messen Wassertransport starts on – see below
     "equipment": [                                // Ausrüstung a Trupp can take in – short labels,
       { "id": "retthaube", "label": "Retthaube" }, // printed on the card and the Rapport. Absent /
       { "id": "wbk", "label": "WBK" },             // empty = these three shipped defaults. Ids are
@@ -559,6 +563,30 @@ E.6, 23.10.2026).
 
 Set it on **Station › Doktrin** or in the config file. A stored value outside the range is served
 as `25` and logged, the rest of the document stays.
+
+### `doctrine.defaultLineHose` / `defaultRelayHose` – the Ø a Linie and a Wassertransport start on
+
+A Leitung's «Schlauch» row (line editor) stores its Ø only once somebody picks one. Until then a
+plain line reads as **`defaultLineHose`**, and one that carries a Wassertransport as
+**`defaultRelayHose`** – a Wassertransport line is a transport line, and those laid since
+04.11.2026 were computed on 75 (`lib/hydraulics · lineHose`). Adding a Wassertransport in the line
+editor writes the relay Ø out in the same edit, so the row never jumps under the operator's finger;
+a picked Ø is never touched. A Wassertransport under **Messen › Strecke** is no Leitung yet and
+starts on **`defaultRelayHose`**; «Als Leitung auf die Karte» (or «Als Linie übernehmen» with it
+open) writes that Ø onto the new Leitung. Owner pick 05.11.2026: a plain Linie is a 40 mm
+Druckleitung, a Wassertransport a 75 mm Transportleitung.
+
+| | |
+| --- | --- |
+| Values | `"40"`, `"55"`, `"75"`, `"2x75"` (the identical double line), `"110"` – the frontend's `HoseSize` |
+| `defaultRelayHose` | every value but `"40"`: the 40 mm friction table (GVB Behelf TLF/MS) ends at 500 l/min, below a relay's usual flows. A Leitung that IS 40 mm still computes as one |
+| Unset in the config | `defaultLineHose` `40`, `defaultRelayHose` `75` (`lib/hydraulics · SHIPPED_HOSE`) |
+
+Set it on **Station › Doktrin › Schläuche** or in the config file; read through `hoseDefaults()`
+(`src/lib/hydraulics.ts`). A value this build does not know falls back to the shipped Ø. ⚠️ A
+changed default re-reads every Leitung that never had a Ø written, in open Einsätze too: a planning
+number, not a record, but a Wassertransport on such a line re-plans its pumps. The Ø written when
+a relay is added is an ordinary «Schlauch» edit and writes its Verlauf row («Schlauch: 75 mm»).
 
 ### ⚠️ `alarms.groups[].color` is not a colour
 

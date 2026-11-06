@@ -98,12 +98,14 @@ export const symbolsCopy: Localizable<Pick<Copy, 'symbolNames' | 'symbolAliases'
   // En-têtes de catégories de la palette, indexés par la clé de catégorie allemande.
   symbolCategories: {
     'Schadenlage': 'Situation des dégâts',
-    'Gefahren': 'Dangers',
-    'Gebäude': 'Bâtiment',
-    'Wasser': 'Eau',
+    'Fahrzeuge / Mittel': 'Véhicules / Matériel',
     'Führung': 'Conduite',
     'Personen / Sanität': 'Personnes / Sanitaire',
     'Partner': 'Partenaires',
+    'Gefahren': 'Dangers',
+    'Wasser': 'Eau',
+    'Gebäude': 'Bâtiment',
+    'Karte': 'Carte',
   },
   symbolAliases: {
     'VKF Feuer': ['incendie', 'feu', 'foyer', 'flammes', 'Brand', 'Brandherd', 'Flammen'],

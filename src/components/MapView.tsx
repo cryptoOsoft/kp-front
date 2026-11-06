@@ -720,7 +720,7 @@ export const MapView = forwardRef<MapRef, MapViewProps>(function MapView(props, 
       // A line states its length (plus the hose hint); a Fläche states what it covers. Same
       // toggle, same geodesic maths the Messen tool uses — the area used to be computed for
       // the editor panel only and could never reach the map.
-      if (d.showDistance && !isArea) { const len = pathLengthM(d.coords); lines.push({ text: `${fmtDistance(len)} · ${hoseLengthHint(len, hoseLines(d.hose))}`, words: false }) }
+      if (d.showDistance && !isArea) { const len = pathLengthM(d.coords); lines.push({ text: `${fmtDistance(len)} · ${hoseLengthHint(len, hoseLines(d))}`, words: false }) }
       if (d.showDistance && isArea) lines.push({ text: fmtArea(polygonAreaM2(d.coords)), words: false })
       // Abschnitt: the Leiter rides the name line («Abschnitt 1 · Oblt Steiner»), the Auftrag
       // gets its own — who leads where must be readable off the Lage, not only in the panel.

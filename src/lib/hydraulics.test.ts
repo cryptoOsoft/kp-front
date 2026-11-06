@@ -1,5 +1,11 @@
-import { describe, expect, it } from 'vitest'
-import { lossPer100m, planRelay, pumpRange, resolveRelay, sourceBar, withPumpOverride, withoutPins, RELAY, type RelayRequest } from './hydraulics'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { DeploymentConfig } from './deploymentConfig'
+import { hoseDefaults, hoseLines, lineHose, lossPer100m, relayAddPatch, planRelay, pumpRange, resolveRelay, sourceBar, withPumpOverride, withoutPins, RELAY, type RelayRequest } from './hydraulics'
+
+// the station's doctrine, swapped per test (hoseDefaults reads it at use)
+let deployment: DeploymentConfig = {}
+vi.mock('./deploymentConfig', () => ({ getDeploymentConfig: () => deployment }))
+afterEach(() => { deployment = {} })
 
 // A flat 75 mm line at 800 l/min loses 0.98 bar / 100 m (AGV KB 06.07) — 0.0098 bar per metre —
 // which makes every position below a hand calculation.
@@ -21,6 +27,15 @@ describe('lossPer100m — the AGV tables', () => {
     const l = lossPer100m(55, 1200) // the 55 mm table ends at 1000 l/min, 7.85 bar
     expect(l.bar).toBeCloseTo(7.85 * 1.2 ** 2, 6)
     expect(l).toMatchObject({ inTable: false, above: true })
+  })
+
+  // GVB Behelf TLF/MS, ø 40 at 100 m: the table ends at 500 l/min (one Strahlrohr's worth)
+  it('reads the 40 mm table, and flags a flow past its end', () => {
+    expect(lossPer100m(40, 300)).toEqual({ bar: 3.35, inTable: true, above: false })
+    expect(lossPer100m(40, 500)).toEqual({ bar: 10, inTable: true, above: false })
+    const l = lossPer100m(40, 800)
+    expect(l.bar).toBeCloseTo(10 * 1.6 ** 2, 6)
+    expect(l.above).toBe(true)
   })
 
   it('estimates below the table too, but does not flag a loss that small', () => {
@@ -146,13 +161,15 @@ describe('pumpRange — where a pump may be dragged', () => {
 })
 
 describe('the stored relay', () => {
-  it('fills in the defaults: 75 mm, 800 l/min, Hydrant 6 bar', () => {
-    expect(resolveRelay(undefined, undefined)).toEqual({ hose: '75', flow: 800, source: 'hydrant', startBar: 6, pumps: [] })
-    expect(resolveRelay(undefined, { source: 'pumpe' }).startBar).toBe(RELAY.defaultPumpBar)
+  it('fills in the defaults: the host\'s Ø, 800 l/min, Hydrant 6 bar', () => {
+    expect(resolveRelay(undefined, undefined, '75')).toEqual({ hose: '75', flow: 800, source: 'hydrant', startBar: 6, pumps: [] })
+    expect(resolveRelay(undefined, undefined, '40').hose).toBe('40')
+    expect(resolveRelay('110', undefined, '40').hose).toBe('110')
+    expect(resolveRelay(undefined, { source: 'pumpe' }, '75').startBar).toBe(RELAY.defaultPumpBar)
   })
 
   it('a Löschweier starts at 0 bar whatever number it carries', () => {
-    expect(sourceBar(resolveRelay(undefined, { source: 'weier', startBar: 6 }))).toBe(0)
+    expect(sourceBar(resolveRelay(undefined, { source: 'weier', startBar: 6 }, '75'))).toBe(0)
   })
 
   it('keeps pump overrides by index, with nulls before and none after', () => {
@@ -164,5 +181,78 @@ describe('the stored relay', () => {
   it('«Alle automatisch» drops every pin and keeps a set output', () => {
     expect(withoutPins([{ atM: 100, bar: 8 }, { atM: 500 }])).toEqual([{ bar: 8 }])
     expect(withoutPins([{ atM: 100 }])).toBeUndefined()
+  })
+})
+
+// owner 05.11.2026: a plain Linie is a 40 mm Druckleitung, a Wassertransport a 75 mm
+// Transportleitung – both station doctrine
+describe('hoseDefaults — the Ø a Leitung and a Messen relay start on', () => {
+  it('ships 40 for a Linie and 75 for a Wassertransport', () => {
+    expect(hoseDefaults()).toEqual({ line: '40', relay: '75' })
+    expect(lineHose({})).toBe('40')
+  })
+
+  it('takes the station\'s doctrine', () => {
+    deployment = { doctrine: { defaultLineHose: '55', defaultRelayHose: '2x75' } }
+    expect(hoseDefaults()).toEqual({ line: '55', relay: '2x75' })
+    expect(lineHose({})).toBe('55')
+    expect(lineHose({ relay: {} })).toBe('2x75')
+    expect(hoseLines({})).toBe(1)
+    expect(hoseLines({ relay: {} })).toBe(2)
+  })
+
+  it('a Leitung\'s own Ø wins over the default', () => {
+    deployment = { doctrine: { defaultLineHose: '2x75' } }
+    expect(lineHose({ hose: '40' })).toBe('40')
+    expect(hoseLines({})).toBe(2)
+    expect(hoseLines({ hose: '75' })).toBe(1)
+  })
+
+  it('falls back on a value this build does not know, and never starts a relay on 40', () => {
+    deployment = { doctrine: { defaultLineHose: '90' as never, defaultRelayHose: '40' } }
+    expect(hoseDefaults()).toEqual({ line: '40', relay: '75' })
+  })
+})
+
+// lead 05.11.2026: a Leitung with a Wassertransport is a transport line – the ones laid since #536
+// (04.11.) were computed on 75 and must not re-plan to 40; a picked Ø always wins
+describe('lineHose — which default a Leitung without a Ø reads as', () => {
+  it('absent with a relay: the relay default', () => {
+    expect(lineHose({ relay: {} })).toBe('75')
+    expect(lineHose({ relay: { flow: 1200 } })).toBe('75')
+  })
+
+  it('absent without a relay: the Linie default', () => {
+    expect(lineHose({})).toBe('40')
+  })
+
+  it('a picked 40 stays 40 with a relay', () => {
+    expect(lineHose({ hose: '40', relay: {} })).toBe('40')
+  })
+})
+
+describe('relayAddPatch — adding a Wassertransport to a Leitung in the line editor', () => {
+  it('a Leitung without a Ø stores the relay default, with an empty relay, in one edit', () => {
+    expect(relayAddPatch({})).toEqual({ hose: '75', relay: {} })
+    deployment = { doctrine: { defaultRelayHose: '110' } }
+    expect(relayAddPatch({})).toEqual({ hose: '110', relay: {} })
+  })
+
+  it('a picked Ø is never touched', () => {
+    expect(relayAddPatch({ hose: '40' })).toEqual({ relay: {} })
+  })
+
+  it('a relay already stored keeps its assumptions; the Ø is still written out', () => {
+    expect(relayAddPatch({ relay: { flow: 600 } })).toEqual({ hose: '75' })
+    expect(relayAddPatch({ hose: '55', relay: { flow: 600 } })).toBeNull()
+  })
+})
+
+describe('a 40 mm Leitung in the relay', () => {
+  it('computes with the 40 mm table: 400 l/min loses 6.15 bar per 100 m', () => {
+    // 6 bar at the hydrant, 2 bar at the inlet: the first pump stands at 4 / 0.0615 m
+    const plan = planRelay(flat({ hose: '40', flow: 400, lengthM: 200 }))
+    expect(plan.loss).toEqual({ bar: 6.15, inTable: true, above: false })
+    expect(plan.pumps[0].dist).toBeCloseTo(4 / 0.0615, 6)
   })
 })

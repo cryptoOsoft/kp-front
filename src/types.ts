@@ -57,8 +57,10 @@ export type ShapeKind = 'arrow' | 'cloud' | 'square' | 'rotation'
 export type LineContent = 'S' | 'W' | 'WW' | 'H' | 'P' | 'N' | 'T' | 'G'
 
 /** A Leitung's hose diameter (mm). «2x75» is the identical double line: two 75 mm hoses side by
- *  side, each carrying half the water (lib/hydraulics · HOSES). Absent = 75 mm. */
-export type HoseSize = '55' | '75' | '2x75' | '110'
+ *  side, each carrying half the water (lib/hydraulics · HOSES). Absent = the station's relay
+ *  default on a Leitung with a Wassertransport, else its Linie default (lib/hydraulics ·
+ *  lineHose; shipped 75 / 40 mm). */
+export type HoseSize = '40' | '55' | '75' | '2x75' | '110'
 /** Where a Wassertransport starts: a Hydrant (its Ruhedruck), a Löschweier (no pressure — the
  *  first pump stands at the source) or a pump (its output). */
 export type RelaySource = 'hydrant' | 'weier' | 'pumpe'
@@ -473,7 +475,8 @@ export interface Drawing {
    *  a sheet (tacticalObjects · SHARED_PATH_PROPS, planProjection · projectOnto). Absent = Linie. */
   role?: 'wand'
   /** the hose diameter of a Leitung (lines only; the line editor's «Schlauch» row). Absent =
-   *  75 mm. Crosses to a sheet like the other FKS fields (SHARED_PATH_PROPS). */
+   *  the station's relay or Linie default (lib/hydraulics · lineHose). Crosses to a sheet like the other
+   *  FKS fields (SHARED_PATH_PROPS). */
   hose?: HoseSize
   /** the Wassertransport assumptions of this Leitung — flow, source, pumps moved by hand
    *  (lines only; DrawEditor · Messung). Absent = the defaults. Planning data, not a record:
