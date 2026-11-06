@@ -97,7 +97,8 @@
    Rapport read too. r16 had 16 on top but 22 +
    a scrollbar gutter (~32 visible) at the sides against an 8px gap, and shadowed cards 8px apart
    read as one slab. The 12 at the foot is what pays for the gap's +4: the 1180×820 iPad and the
-   1536×864 laptop both stand their two rows whole with no scroll (measured r20: 0px to spare).
+   1536×864 laptop both stand their two rows whole with no scroll (measured r20: 0px to spare; the
+   laptop since its 3-column cap, r33: 110px).
    ⚠️ No `scrollbar-gutter` reserve any more (r16's `stable both-edges` kept 22/22 by adding a
    gutter to BOTH sides, so the visible inset was never the padding): a board that fits shows the
    padding exactly; one that scrolls shows its scrollbar where a scrollbar goes. An overlay
@@ -127,7 +128,13 @@
    card stretched into an empty box the height of a neighbour's). Each card ends where its content
    ends; what lines up across a row is the first line — name and clock — which every card opens
    with at the same height. */
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(288px, 1fr));
+/* THREE columns at most (hill climb r33, 06.11.2026): the 1536px laptop fitted four, so three out
+   Trupps and one inside filled the first row and the other two inside stood under them – an L over
+   two rows with a hole under the out row. The track's floor is a third of the board (less the two
+   gaps), so auto-fill never makes a fourth column at any width; under three × 288 it still drops to
+   two and one as before. The tablet already ran three, so the board reads the same from the iPad up. */
+.grid { display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(max(288px, calc((100% - 2 * var(--page-gap)) / 3)), 1fr));
   gap: var(--page-gap); align-items: start; }
 /* ⚠️ The «Raus»-Abschnitt this separated is GONE (17.08.) — a Trupp that came back keeps its slot
    on every screen size (see AtemschutzView · board). The rule is kept out of the sheet rather than
@@ -1844,7 +1851,8 @@ button.crewLine { cursor: pointer; -webkit-tap-highlight-color: transparent; }
    red stays in the head only — the card's ground below it stays quiet (24.10.).
    The wash is 22 % by day, 16 % at night (hill climb r18, 05.11.2026: at 12 % the mint band was
    the board's quietest block beside the out cards' filled tiles; night one token step, its dark
-   ground shows a tint sooner). The three tiers keep one strength, so they stay comparable; the
+   ground shows a tint sooner; the calm green 26 % at night since r33, below). By day the three
+   tiers keep one strength, so they stay comparable; the
    calm clock wears `--green-strong` (`.trowClockVal`, every board since r19) like fällig's and
    überfällig's strong inks (plain green would be 3.3:1 on the day band).
    2px under the crew line (its own 4px pad over it on a mouse, 2px on touch): the band closes
@@ -1854,7 +1862,13 @@ button.crewLine { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .grid .trowIn .trowHead { background: var(--green-22); border-bottom-color: var(--green); }
 .grid .trowWarn .trowHead { background: var(--amber-22); border-bottom-color: var(--amber); }
 .grid .trowCrit .trowHead { background: var(--red-22); border-bottom-color: var(--red); }
-:global(:root[data-theme="night"]) .grid .trowIn .trowHead { background: var(--green-16); }
+/* …and the calm green at 26 % rather than 16 at night (hill climb r33, 06.11.2026): at 16
+   the band (HSL L ~21 %) sat close to the out cards' sunk ground beside it, so the inside and the
+   out rows read as one dark slab. 26 % lifts it ~3.5 % (L ~24 %, the amber band's lightness at 16).
+   ⚠️ Not the --green-28 token: on it the clock caption's --ink-dim computes to 4.48:1, under AA; at 26
+   it is 4.68 (the clock's --green-strong 4.75, the name's ink ~7.3). Amber and red stay at 16 – they
+   already stood lighter (~24 %) and 28 took their strong inks to ~4.1:1. Day unchanged. */
+:global(:root[data-theme="night"]) .grid .trowIn .trowHead { background: color-mix(in srgb, var(--green) 26%, transparent); }
 :global(:root[data-theme="night"]) .grid .trowWarn .trowHead { background: var(--amber-16); }
 :global(:root[data-theme="night"]) .grid .trowCrit .trowHead { background: var(--red-16); }
 /* the clock's caption steps up one ink tier on the stronger wash: --ink-faint measured 4.49:1 on it
