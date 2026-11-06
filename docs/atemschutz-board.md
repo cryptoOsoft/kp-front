@@ -259,8 +259,10 @@ good but we don't need the triangle thing. red and notfall is already enough»):
   cleared on a re-park): «Zur Tafel» (focused) / «Als «nicht eingesetzt» schliessen». Not while
   a crew is still inside, and the stand-down runs only after the FINAL «Abschliessen», re-checked
   against the Trupps as they stand then — a crew sent in meanwhile never gets an Austritt.
-  Crews still INSIDE are the Abschluss's own FIRST question, by name («2 Trupps sind noch drin:
-  Trupp 1 (…), Trupp 2 (…).»), «Zur Tafel» focused, closing anyway the quiet answer — and after
+  Crews still INSIDE are the Abschluss's own FIRST question, by name – «2 Trupps sind noch drin:»
+  and one line per Trupp, «**Trupp 1** – Muster Leo / Graf Eva» (owner pick mock 4, 06.11.2026) –
+  «Abbrechen» + «Trotzdem abschliessen» on one row, «Zur Tafel» focused and full width under them
+  on every device (a narrow phone stacks the three, «Zur Tafel» last) — and after
   the Abschluss the app lands on HOME (useIncidentLifecycle · completeRapport, 05.10.2026; home is «Karte &
   Objekte» since 16.10.2026), never opens another: the closed Einsatz is forgotten on the device
   and `prefs.landedAt` keeps a cold start at home too, until one is opened by hand or a NEWER alarm arrives (pickBootIncident).

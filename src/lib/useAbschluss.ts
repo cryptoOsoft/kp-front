@@ -5,7 +5,7 @@ import { closeTimeOf, isIncidentRunning, type IncidentMeta } from './api/inciden
 import type { ReportMeta } from './workspace'
 import type { MediaQueueApi } from './useMediaQueue'
 import { abschlussFacts, missingSteps, type AbschlussStep } from './abschluss'
-import { abschlussEndeItem, abschlussOpenPoints, abschlussSheet, insideAbschlussMessage, registeredAbschlussMessage } from './abschlussOpen'
+import { abschlussEndeItem, abschlussOpenPoints, abschlussSheet, insideAbschlussSpec, registeredAbschlussMessage } from './abschlussOpen'
 import { serverNowIso } from './serverClock'
 import { truppInNotfall, truppLogName, truppStillDeployed, truppStillRegistered } from './atemschutz'
 import { fillTemplate } from './format'
@@ -143,7 +143,7 @@ export function useAbschluss({
     if (inside.length > 0) {
       const answer = await confirmDialog({
         title: A.insideTitle,
-        message: insideAbschlussMessage(inside),
+        ...insideAbschlussSpec(inside),
         confirmLabel: A.insideClose,
         altLabel: A.registeredToBoard,
         cancelLabel: appConfig.copy.cancel,

@@ -35,13 +35,23 @@ export interface ConfirmItem {
   done?: boolean
 }
 
+/**
+ * A line that only NAMES something, with its name in bold (owner pick «Trupps noch drin» mock 4,
+ * 06.11.2026): «**Trupp 4** – Weber Fabian / Moser Simon / Weber Nina». Not a target and not an
+ * open point – no bullet, no chevron; one per thing, so a list of crews is read down, not across.
+ */
+export interface ConfirmLine {
+  head?: string
+  text: string
+}
+
 export interface ConfirmSpec {
   title?: string
   message: string
   /** the open points, as a LIST. «Noch offen: Zeiten, Mittel, Einsatzleiter, Kurzbericht,
    *  Rückmeldung ELZ. Trotzdem abschliessen? …» is a paragraph nobody reads to the end — and
    *  it is the one part of the sentence somebody has to act on, item by item. */
-  items?: (string | ConfirmItem)[]
+  items?: (string | ConfirmItem | ConfirmLine)[]
   /** the sentence AFTER the list — what happens if you go ahead anyway */
   note?: string
   confirmLabel: string
@@ -100,10 +110,15 @@ export function ConfirmCard({ open, title, message, items, note, confirmLabel, c
   const confirmBtn = (
     <button key="confirm" ref={confirmRef} className={safeAnswer ? 'ip-btn' : `ip-btn ${danger ? 'ip-btn-danger' : 'primary'}`} onClick={() => onResolve(true)}>{confirmLabel}</button>
   )
-  // the filled answer always stands on the right, where the thumb expects the primary
+  // the filled answer always stands LAST: on the right, where the thumb expects the primary – and
+  // with three answers and the safe one the alt («Zur Tafel», «Raus melden»), on a row of its own
+  // under the other two, full width, on every device (owner pick «Trupps noch drin» mock 4,
+  // 06.11.2026; `.confirm-card-safe` in 08-toasts). One order everywhere: the phone's
+  // wrap-reverse had put «Abbrechen» alone at the bottom there and «Zur Tafel» at it on a laptop.
   const actions = safeAnswer === 'cancel' ? [confirmBtn, altBtn, cancelBtn]
     : safeAnswer === 'alt' ? [cancelBtn, confirmBtn, altBtn]
     : [cancelBtn, altBtn, confirmBtn]
+  const safeRow = safeAnswer === 'alt' && !!altLabel
   return (
     // every route out of here — backdrop, Esc, ✕-less cancel — resolves FALSE. There is no path
     // by which not answering counts as yes.
@@ -115,7 +130,7 @@ export function ConfirmCard({ open, title, message, items, note, confirmLabel, c
             is «Abbrechen» (23.09.2026): an Enter or Space from a tablet's keyboard cover — pressed to
             «get the dialog away» — would otherwise confirm the one thing that cannot be taken
             back. Going ahead is still one tap away. */}
-        <Dialog.Popup role="alertdialog" className={`confirm-card ui-dialog${altLabel ? ' confirm-card-three' : ''}`} initialFocus={safeAnswer === 'alt' && altLabel ? altRef : danger || safeAnswer === 'cancel' ? cancelRef : confirmRef} aria-label={title ?? message}>
+        <Dialog.Popup role="alertdialog" className={`confirm-card ui-dialog${altLabel ? ' confirm-card-three' : ''}${safeRow ? ' confirm-card-safe' : ''}`} initialFocus={safeAnswer === 'alt' && altLabel ? altRef : danger || safeAnswer === 'cancel' ? cancelRef : confirmRef} aria-label={title ?? message}>
           {title && <Dialog.Title className="confirm-title" render={<h3 />}>{title}</Dialog.Title>}
           {/* An empty message renders NOTHING, not an empty paragraph with its own margin: some
               confirms are a title and two buttons («Stationsdrucker offline» — the title already
@@ -129,7 +144,9 @@ export function ConfirmCard({ open, title, message, items, note, confirmLabel, c
             <ul className="confirm-list">
               {items.map((it) => typeof it === 'string'
                 ? <li key={it}>{it}</li>
-                : (
+                : !('onClick' in it)
+                  ? <li key={it.head ?? it.text} className="confirm-line">{it.head && <b>{it.head}</b>}{it.head && ' – '}{it.text}</li>
+                  : (
                   <li key={it.label} className="confirm-list-go">
                     {/* a full-width row, not a link in a bullet: ≥44px so a thumb lands on it at
                         3am, and the whole line is the target rather than the word alone */}
