@@ -27,7 +27,7 @@ describe('filterTutorials', () => {
     const all = offeredTutorials(editor, withVisits)
     expect(filterTutorials(all, 'all')).toHaveLength(15)
     expect(filterTutorials(all, 'fu')).toHaveLength(15)
-    expect(filterTutorials(all, 'el')).toHaveLength(9)
+    expect(filterTutorials(all, 'el')).toHaveLength(8)
     expect(filterTutorials(all, 'as').map((t) => t.id)).toEqual(['zurechtfinden', 'trupps', 'notfall', 'nachschlagen', 'objektbesuch'])
     expect(filterTutorials(offeredTutorials(editor, { objectVisits: false }), 'fu')).toHaveLength(14)
   })

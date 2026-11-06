@@ -50,7 +50,8 @@ export interface TutorialMeta {
 export const TUTORIALS: readonly TutorialMeta[] = [
   { id: 'zurechtfinden', tracks: ['alle'], surface: 'karte', sandbox: 'none', minutes: 4 },
   { id: 'einsatzEroeffnen', tracks: ['fu', 'el'], surface: 'karte', sandbox: 'uebung-self', minutes: 3 },
-  { id: 'lageZeichnen', tracks: ['fu', 'el'], surface: 'einsatz', sandbox: 'uebung', minutes: 5 },
+  // not in the el track: an el cannot draw (tacticalLocked), so its steps could never complete
+  { id: 'lageZeichnen', tracks: ['fu'], surface: 'einsatz', sandbox: 'uebung', minutes: 5 },
   { id: 'planGebaeude', tracks: ['fu'], surface: 'einsatz', sandbox: 'uebung', minutes: 5 },
   { id: 'tafel', tracks: ['fu'], surface: 'einsatz', sandbox: 'uebung', minutes: 4 },
   { id: 'checkliste', tracks: ['fu'], surface: 'einsatz', sandbox: 'uebung', minutes: 3 },
@@ -65,13 +66,8 @@ export const TUTORIALS: readonly TutorialMeta[] = [
   { id: 'objektbesuch', tracks: ['alle'], surface: 'visit', sandbox: 'none', minutes: 4, optional: 'objectVisits' },
 ] as const
 
-export const TRACKS: readonly Track[] = ['fu', 'el', 'as', 'alle']
-
 export const tutorialMeta = (id: TutorialId): TutorialMeta => {
   const m = TUTORIALS.find((t) => t.id === id)
   if (!m) throw new Error(`unknown tutorial ${id}`)
   return m
 }
-
-/** the tutorials of one track, in the plan's order (the FU track is the whole Einsatz set) */
-export const tutorialsOf = (track: Track): TutorialMeta[] => TUTORIALS.filter((t) => t.tracks.includes(track))

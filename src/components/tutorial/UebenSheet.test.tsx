@@ -55,7 +55,7 @@ describe('UebenSheet', () => {
     // Plan & Gebäude is FU only – it stays pinned under «Einsatzleitung»
     fireEvent.click(within(screen.getByRole('group', { name: 'Nach Funktion filtern' })).getByRole('button', { name: /Einsatzleitung/ }))
     expect(rowOf('planGebaeude').textContent).toContain('Fortsetzen')
-    expect(screen.getByText('0 von 9 erledigt')).toBeTruthy()
+    expect(screen.getByText('0 von 8 erledigt')).toBeTruthy()
   })
 
   it('pins nothing without a run to finish', () => {
