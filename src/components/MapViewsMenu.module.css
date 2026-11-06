@@ -15,7 +15,8 @@
    localizes the name, so the global keyframes were unreachable), and the menu is opened dozens
    of times an Einsatz — 150 ms before it is usable, every time, is not worth the flourish. */
 /* sits in the same place as the measure/draw ToolDock: vertically centred, just left of the
-   right tool rail, and tracking its width (--vrail-w) — see .wb-dock-map */
+   right tool rail, and tracking its width (--vrail-w) — see .wb-dock-map. Opened from the view
+   bar (tablet/laptop) it stands on that bar instead (05-navrail · `.lc-panel, .mv-dock`). */
 .dock { position: fixed; right: calc(var(--vrail-w, 60px) + 26px); top: 50%; transform: translateY(-50%); }
 /* …see .map-util in app.css: with no tool rail on screen this dock has nothing to sit beside,
    so app.css re-anchors it under the floating cluster. The global class is the handle for it. */

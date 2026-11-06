@@ -4,11 +4,11 @@
 /*
  * *A plan opens with the WHOLE sheet between the bars* (sweep B8, 07.10.2026, owner option 1):
  * `lib/whiteboard · containFit` contains it in the canvas less the top bar (`TOP_INSET`), the
- * side rails (`sideInsets`) and the bottom-left chip row (`chipRowInset` — 76px on a tablet,
- * 58px on a phone, where the row stands just above the tool bar; the Gebäude keeps
- * `STACK_CHIP_ROW`). The chips never cover the sheet's legend at fit, and «Einpassen» is scale 1
- * of the same box. The constants mirror the CSS like `TOP_INSET` does: move the chip row and
- * they move with it. (The Karte has no inset-aware fit to follow: its `fitBounds` takes a flat
+ * side rails (`sideInsets`) and the bottom reserve (`bottomInset` — on a tablet the taller of the
+ * bottom-left chip row and the bottom-right view bar, 94px; 58px on a phone, where the row stands
+ * just above the tool bar; the Gebäude keeps `STACK_CHIP_ROW`). Neither the chips nor the bar
+ * cover the sheet's legend or title block at fit, and «Einpassen» is scale 1 of the same box. The
+ * constants mirror the CSS like `TOP_INSET` does: move the chip row or the bar and they move with it. (The Karte has no inset-aware fit to follow: its `fitBounds` takes a flat
  * padding.)
  */
 
@@ -89,7 +89,16 @@ export const STACK_CHIP_ROW = 56
  */
 export const CHIP_ROW_INSET = 76
 export const CHIP_ROW_INSET_PHONE = 58
-export const chipRowInset = (phone: boolean): number => (phone ? CHIP_ROW_INSET_PHONE : CHIP_ROW_INSET)
+/**
+ * …and the tablet's bottom-RIGHT corner is the tool rail's view bar (07-toolrail · .view-bar,
+ * staging review 06.11.2026 S2: Einpassen · north dial · − +), which reaches higher than the chips:
+ * `--view-bar-reserve` = 16px off the foot + a 56px tile + 2 × 6px pad + 2px border + 8px air.
+ * A wide sheet's bottom-right corner — where a plan's title block is — ran under it. The reserve
+ * is the whole width (the fit is one box), and 94 also covers the 50px tiles of a short window.
+ */
+export const VIEW_BAR_INSET = 94
+/** The fit's bottom reserve: the chip row on a phone, the taller of row and view bar elsewhere. */
+export const bottomInset = (phone: boolean): number => (phone ? CHIP_ROW_INSET_PHONE : Math.max(CHIP_ROW_INSET, VIEW_BAR_INSET))
 /**
  * THE fitted board: the plan's sheet contained in the free area — the canvas less the top bar,
  * the side rails and the bottom reserve. Every «eingepasst» (the opening view, «Einpassen», a

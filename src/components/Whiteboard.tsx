@@ -73,7 +73,7 @@ import { dismissNearbyBanner, nearbyBannerDismissed, nearbyBannerKey } from '../
 import { ghostTrailLabel, type TruppTrail } from '../lib/truppTrails'
 import { carryDoors, copyGrundriss, grundrissOf, wallRolePatch, wallRoleWire, wandBlock, wandBlockHint, DOOR_SYMBOL, GEBAEUDE_CATEGORY, GRUNDRISS_STYLE } from '../lib/grundriss'
 import { StoreyCopySheet } from './StoreyCopySheet'
-import { planUrl, tileAspectOf, TOP_INSET, STACK_VPAD, STACK_CHIP_ROW, STACK_READINGS_LANE, STACK_LABEL_LANE, chipRowInset, containFit, sideInsets, clamp01, floorLabel, floorGeometry, signedFloor, floorCrossings, storeyTowards } from '../lib/whiteboard'
+import { planUrl, tileAspectOf, TOP_INSET, STACK_VPAD, STACK_CHIP_ROW, STACK_READINGS_LANE, STACK_LABEL_LANE, bottomInset, containFit, sideInsets, clamp01, floorLabel, floorGeometry, signedFloor, floorCrossings, storeyTowards } from '../lib/whiteboard'
 import { loadHiddenFloors, saveHiddenFloors, shownFloors } from '../lib/floorPrefs'
 import { arrowEdgePadPx, attachInsetPx, boundaryPoint, candidateAttachment, DEFAULT_OBJECT_ROUTING, DETACH_SHOW_PROGRESS, detachAnnos, dwellFor, flipLine, forkPortPoint, wireFreed, isMagnetAnno, lineEndTargets, relationshipNetwork, resolveLinePoints, withDetach, type AnnoDetachPatch, type AttachableLine, type MagneticTarget } from '../lib/lineAttachments'
 import { packFrameRing, packPagePlacement, pagePlacement, regionCorners, stackGroundFit } from '../lib/stackFit'
@@ -119,7 +119,8 @@ import { ArmedSymbolGlyph, ArmedToolPill } from './ArmedToolPill'
 import { armedToolIcon, armedToolName } from '../lib/armedTool'
 import { PlanCompass } from './PlanCompass'
 import { OrientSlider } from './OrientSlider'
-import { ToolRail } from './ToolRail'
+import { RailKey, ToolRail } from './ToolRail'
+import { FIT_KEY } from '../lib/hotkeys'
 import { TafelPageStrip } from './TafelPageStrip'
 import { TafelFormPage } from './TafelFormPage'
 import type { PendenzenPort } from '../lib/pendenzenPage'
@@ -454,7 +455,7 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
   }, [onTafel])
   /** the top lane the fit keeps clear: the floating bar, and on the Tafel its page strip too */
   // (the Tafel's page strip stands in the bottom row the chip reserve already keeps clear —
-  // `botRes`, lib/whiteboard · chipRowInset — so the top reserve is the top bar's alone)
+  // `botRes`, lib/whiteboard · bottomInset — so the top reserve is the top bar's alone)
   const topRes = TOP_INSET
   // The slim read-only rail (Auswahl · Messen) — never on a viewer-only or selection-only
   // document, which has no tool rail for ANYONE, so a locked editor and a viewer keep seeing the
@@ -567,10 +568,11 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
   // view hook because the stack zooms one step deeper than a sheet does (see MAX_SCALE_STACK).
   const stack = !!(active.floorStack && building && building.floors.length)
   // the Gebäude also keeps its «+ UG» off the bottom-left chip row (lib/whiteboard ·
-  // STACK_CHIP_ROW), and an ordinary sheet keeps its foot off it (chipRowInset, sweep B8);
+  // STACK_CHIP_ROW), and an ordinary sheet keeps its foot off it and off the view bar
+  // (bottomInset, sweep B8 + staging review 06.11.2026);
   // `vShift` is where the centre of the lane between bar and row lies — the board transform,
   // the zoom focus (useBoardView) and «centre on» all read it
-  const botRes = stack ? STACK_CHIP_ROW : chipRowInset(isPhone)
+  const botRes = stack ? STACK_CHIP_ROW : bottomInset(isPhone)
   const vShift = (topRes - botRes) / 2
   // ⚠️ A sheet drawn from tiles zooms by its PAPER size (lib/planTiles · paperMaxScale): the fit it
   // is measured against is computed further down, so the ceiling lives in state and the view hook
@@ -950,7 +952,7 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
   const { addPage, editPage, viewOf, printPages, printing, removePage } = usePlanTafelPages({
     onTafel, pages, titles, page, setPageSel, readOnly, tafel, incidentId, add, patchCommit, annos: annosAll, commit: boardDoc.commit, emit, log, onStepLabel,
   })
-  // expose fit-to-view (the phone top bar's Fit button calls it; desktop uses the rail footer)
+  // expose fit-to-view (the phone top bar's Fit button calls it; tablet/desktop use the view bar)
   useEffect(() => { if (fitRef) fitRef.current = () => applyView(1, { x: 0, y: 0 }); return () => { if (fitRef) fitRef.current = null } })
   /**
    * Cmd/Ctrl+D — duplicate the ONE selected annotation, a small nudge away so the copy is visibly
@@ -2798,9 +2800,9 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
           </div>
 
           {/* floating zoom — only when the tool rail is hidden (viewer-only documents, replay);
-              with the rail present, zoom/fit lives in its pinned footer (mirrors the map's
+              with the rail present, zoom/fit live in its view bar (mirrors the map's
               ToolRail). The phone keeps it either way: there the rail is a bottom bar whose
-              footer cluster is CSS-hidden, so this is the plan's only zoom control. */}
+              zoom buttons are CSS-hidden, so this is the plan's only zoom control. */}
           {/* the tool's number while a measure node is in the hand — fixed top-centre, where
               nothing moves while it changes; the label under the finger is suppressed above.
               Same class and reasoning as the Lage's readout (11-measure.css). */}
@@ -2817,7 +2819,7 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
             </div>
           )}
 
-          {/* the Gebäude's north dial lives in the rail's footer (below). A plan with NO rail – a
+          {/* the Gebäude's north dial lives in the rail's view bar (below). A plan with NO rail – a
               replay, a viewer-only document – keeps it as a read-out in the viewport's top-right
               corner, NOT on the paper. Rendered AFTER the floating zoom so the chip can step
               below it (PlanCompass.module.css). */}
@@ -2903,29 +2905,29 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
             if (id === 'symbol') { setTool('symbol'); setPaletteOpen(true); return }
             setTool(tool === id ? 'pan' : (id as BoardTool)); setPending(null)
           }}
-          footer={
+          controls={
             <>
-              {/* ⚠️ NO Ebenen row here (15.09.2026). The map rail's footer opens a panel with
+              {/* ⚠️ NO Ebenen row here (15.09.2026). The map's view bar opens a panel with
                   the deployment's layers in it; this one opened an empty room — the Plan's twin
                   rows went with the unified object model, and the sheet is lent nothing that can
                   be switched. A word that answers a press with nothing is worse than no word. */}
-              {/* «Einpassen» — where the map rail carries its compass / views button: the one
-                  control that puts the whole surface back in front of you. */}
-              <button className="vrail-nbtn vrail-fit" title={appConfig.copy.nav.fit} aria-label={appConfig.copy.nav.fit} disabled={scale === 1 && pos.x === 0 && pos.y === 0} onClick={() => applyView(1, { x: 0, y: 0 })}><span className="vrail-glyph"><Icon id="cross" /></span><span className="vrail-label">{appConfig.copy.nav.fit}</span></button>
-              {/* the Gebäude's north dial (PlanCompass) – where the Karte's rail carries its compass,
-                  and on a phone in the bottom bar beside «Einpassen» (20.10.2026, UX sweep M7; it
-                  floated top-right until then). It turns with the view, and where the building can
-                  be turned it is THE door to «Gebäude drehen» on every device – one door, so the
+              {/* «Einpassen» — where the map's view bar carries its compass / views button: the
+                  one control that puts the whole surface back in front of you. */}
+              <button className="vrail-nbtn vrail-fit" title={appConfig.copy.nav.fit} aria-label={appConfig.copy.nav.fit} disabled={scale === 1 && pos.x === 0 && pos.y === 0} onClick={() => applyView(1, { x: 0, y: 0 })}><span className="vrail-glyph"><Icon id="cross" /></span><span className="vrail-label">{appConfig.copy.nav.fit}</span><RailKey k={FIT_KEY} /></button>
+              {/* the Gebäude's north dial (PlanCompass) – where the Karte's view bar carries its
+                  compass, and on a phone in the bottom bar beside «Einpassen» (20.10.2026, UX sweep
+                  M7; it floated top-right until then). It turns with the view, and where the building
+                  can be turned it is THE door to «Gebäude drehen» on every device – one door, so the
                   rail's old separate compass tile (gone 29.09.2026, sweep K6) does not come back. */}
               {stack && fpView && (
                 <PlanCompass variant="rail" deg={northDeg ?? shownAngle} northUnknown={northDeg == null}
                   controls={canOrient && !readOnly ? orientControls : undefined} />
               )}
-              {/* zoom ±: desktop only (.vrail-zoom is hidden under 1024px) — the plan pinches
-                  on every touch form factor, and «Einpassen» above covers the one state that
-                  matters. «+» on top, like the Karte's (owner pick C9, 05.11.2026). Its own group
-                  behind the rails' one hairline (owner pick C12), hidden with the buttons. */}
-              <span className="vrail-sep rail-sep vrail-zoom" aria-hidden />
+              {/* zoom ±: mouse only (.vrail-zoom is hidden under 1024px and on a coarse pointer)
+                  — the plan pinches on every touch form factor, and «Einpassen» above covers the
+                  one state that matters. «+» first, like the Karte's (owner pick C9, 05.11.2026).
+                  The pair is its own group behind the rails' one hairline (owner pick C12): the
+                  view bar draws it before the first .vrail-zoom (07-toolrail), hidden with them. */}
               <button className="vrail-nbtn vrail-zoom" title={appConfig.copy.nav.zoomIn} aria-label={appConfig.copy.nav.zoomIn} disabled={scale >= maxScale} onClick={() => zoom(1.3)}><span className="vrail-glyph"><Icon id="plus" /></span><span className="vrail-label">{appConfig.copy.nav.zoomIn}</span></button>
               <button className="vrail-nbtn vrail-zoom" title={appConfig.copy.nav.zoomOut} aria-label={appConfig.copy.nav.zoomOut} disabled={scale <= MIN_SCALE} onClick={() => zoom(1 / 1.3)}><span className="vrail-glyph"><Icon id="minus" /></span><span className="vrail-label">{appConfig.copy.nav.zoomOut}</span></button>
 

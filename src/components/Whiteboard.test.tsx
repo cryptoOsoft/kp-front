@@ -379,7 +379,7 @@ describe('a locked line on the plan (BoardAnno.locked — the twin of Drawing.lo
 
   // (the «beside Ebenen» case is gone with the Plan's Ebenen button, 15.09.2026 — the detail
   //  slot is the plan's alone now; see Whiteboard · editorSlotFree)
-  it('has no Ebenen row in its rail footer – the panel it opened listed nothing', () => {
+  it('has no Ebenen button in its view controls – the panel it opened listed nothing', () => {
     renderPlan([line])
     expect(screen.queryAllByRole('button', { name: appConfig.copy.panels.layers })).toHaveLength(0)
   })
@@ -1449,18 +1449,25 @@ describe('the Gebäude north dial answers one tap, every time', () => {
       hist={{}} setHist={() => {}} focus={null}
     />)
     const canvas = container.querySelector('.wb-canvas')!
-    // the dial, in the rail's footer (UX sweep M7, 20.10.2026 – it was on the canvas, top-right)
-    const dial = () => within(container.querySelector('.wb-tools') as HTMLElement).getByRole('button', { name: TURN })
+    // the dial, in the rail's view bar (UX sweep M7, 20.10.2026 – it was on the canvas, top-right;
+    // the rail's footer until the bar took the view controls, staging review 06.11.2026)
+    const dial = () => within(container.querySelector('.view-bar') as HTMLElement).getByRole('button', { name: TURN })
     return { onReorient, canvas, dial }
   }
   const isOpen = (dial: HTMLElement) => dial.getAttribute('aria-expanded') === 'true'
 
   // sweep K6 (29.09.2026): a second compass tile opened the same popover a second way. Since
-  // 20.10.2026 (M7) the one door sits where the Karte's compass does – in the rail's footer – and
+  // 20.10.2026 (M7) the one door sits where the Karte's compass does – in the rail's view bar – and
   // the viewport's corner is empty.
-  it('is the ONLY door, in the rail footer like the Karte’s compass', () => {
+  it('is the ONLY door, in the view bar like the Karte’s compass', () => {
     const { dial, canvas } = renderStack()
-    expect(dial().closest('.vrail-nav')).toBeTruthy()
+    expect(dial().closest('.view-bar')).toBeTruthy()
+    // …with the rest of the Plan's view controls, none of them left in the tool rail
+    const bar = within(document.querySelector('.view-bar') as HTMLElement)
+    for (const name of [appConfig.copy.nav.fit, appConfig.copy.nav.zoomOut, appConfig.copy.nav.zoomIn]) expect(bar.getByRole('button', { name })).toBeTruthy()
+    expect(document.querySelector('.wb-tools .vrail-nbtn')).toBeNull()
+    // Einpassen wears its key, as the rail's tools wear theirs (lib/hotkeys · FIT_KEY)
+    expect(bar.getByRole('button', { name: appConfig.copy.nav.fit }).querySelector('.rail-key')?.textContent).toBe('0')
     expect(screen.getAllByRole('button', { name: TURN })).toHaveLength(1)
     expect(within(canvas as HTMLElement).queryByRole('img', { name: appConfig.copy.whiteboard.northTitle })).toBeNull()
   })

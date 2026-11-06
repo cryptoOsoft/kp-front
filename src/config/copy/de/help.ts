@@ -64,7 +64,7 @@ export const helpCopy = {
           ] },
           { kind: 'sub', text: 'Linke Leiste', only: 'wide' },
           { kind: 'list', items: [
-            'Mit Tastatur und Maus steht an den Feldern der linken und der rechten Leiste, die ein Tastaturkürzel haben, der Buchstabe dazu (abschaltbar in den **Einstellungen**: «Tastenkürzel anzeigen»). Alle Kürzel stehen unter **Tastaturkürzel**.',
+            'Mit Tastatur und Maus steht an den Feldern der linken und der rechten Leiste, die ein Tastaturkürzel haben, der Buchstabe dazu – ebenso an «Verlauf» und «Eintrag» oben (abschaltbar in den **Einstellungen**: «Tastenkürzel anzeigen»). Alle Kürzel stehen unter **Tastaturkürzel**.',
             'Im Kartenbereich sind **Ebenen** und der **Karten**-Umschalter unten angeheftet – immer sichtbar.',
             'Am rechten Rand der Leiste ziehen klappt sie mit Beschriftungen auf bzw. wieder zu.',
           ], only: 'wide' },
@@ -92,7 +92,7 @@ export const helpCopy = {
       {
         id: 'tastatur', title: 'Tastaturkürzel', icon: 'type', only: 'keyboard',
         blocks: [
-          { kind: 'lead', text: 'Wer mit Tastatur arbeitet, erreicht alles ohne Maus. Kürzel wirken nicht, während in einem Textfeld getippt wird. Wo ein Feld in der linken Leiste eine Taste hat, steht sie darauf.' },
+          { kind: 'lead', text: 'Wer mit Tastatur arbeitet, erreicht alles ohne Maus. Kürzel wirken nicht, während in einem Textfeld getippt wird. Hat ein Feld in einer der beiden Leisten eine Taste, steht sie darauf – ebenso an «Verlauf» und «Eintrag» oben.' },
           { kind: 'sub', text: 'Bereiche wechseln' },
           { kind: 'list', items: [
             'Zahlen öffnen das Plan-Modul mit dieser Nummer – welche es gibt, richtet sich nach den Modulen dieser Wehr: [[1]] Modul 1, [[2]] oder [[3]] das Modul «2/3», [[4]] Modul 4 …',

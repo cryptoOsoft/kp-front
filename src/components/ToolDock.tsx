@@ -103,8 +103,10 @@ export function ToolDock({ groups }: { groups: DockItem[][] }) {
 /** The tablet column dock stands level with the tool rail beside it: same top edge, and never
  *  past the rail band's foot (owner 20.10.2026: centred on the screen, the shorter dock stood
  *  higher than the rail). The rail is centred in the band under the top bar and its height
- *  follows its tools, so the dock reads the rail's top rather than guessing it. Off on a phone,
- *  where the dock is a bottom bar (15-mobile) and the CSS centring is the fallback until measured. */
+ *  follows its tools, so the dock reads the rail's top rather than guessing it. The foot is the
+ *  view bar's top less the floating gap where the bar stands in the corner (07-toolrail ·
+ *  .view-bar), the screen's 16px edge otherwise. Off on a phone, where the dock is a bottom bar
+ *  (15-mobile) and the CSS centring is the fallback until measured. */
 function useRailLevel(ref: RefObject<HTMLDivElement | null>, on: boolean): CSSProperties | undefined {
   const [level, setLevel] = useState<CSSProperties>()
   useLayoutEffect(() => {
@@ -114,7 +116,9 @@ function useRailLevel(ref: RefObject<HTMLDivElement | null>, on: boolean): CSSPr
     const read = () => {
       const host = (dock.offsetParent as HTMLElement | null)?.getBoundingClientRect().top ?? 0
       const top = rail.getBoundingClientRect().top
-      setLevel({ top: top - host, transform: 'none', maxHeight: window.innerHeight - top - 16 })
+      const bar = document.querySelector('.view-bar')?.getBoundingClientRect()
+      const foot = bar?.height ? bar.top - 8 : window.innerHeight - 16
+      setLevel({ top: top - host, transform: 'none', maxHeight: foot - top })
     }
     read()
     const ro = new ResizeObserver(read)

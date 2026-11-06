@@ -202,7 +202,7 @@
    open collapsed the panel to a 46px square. */
 html.rail-dragging .layers-card { transition: none; }
 /* tap-outside catcher behind the phone's Ebenen sheet (the `.mapctl` launcher it was named for
-   is long gone — the Ebenen button lives in the tool rail's footer now) */
+   is long gone — the Ebenen button lives in the tool rail's view bar now) */
 .mapctl-backdrop { position: fixed; inset: 0; z-index: var(--z-dock-scrim); }
 
 /* layers card — sits in the tool docks' spot: vertically centred just left of the right tool rail.
@@ -228,6 +228,16 @@ html.rail-dragging .layers-card { transition: none; }
   background: var(--float-bg); backdrop-filter: var(--float-blur); box-shadow: var(--float-edge);
   color: var(--ink); border-radius: var(--r-surface);
   z-index: var(--z-floating-card); }
+
+/* …but Ebenen and the Ansichten menu open from the VIEW BAR (07-toolrail · .view-bar) on a tablet
+   or laptop: in the same lane beside the rail, standing on the bar instead of hanging from the
+   top bar — they rise from the button that opened them, and the bar stays in sight under them.
+   A long Ebenen list scrolls in .lc-body as before. (The Karte's Gefahrgut card is opened from the
+   rail and keeps the top.) */
+@media (--not-phone) {
+  :root:has(.view-bar) :is(.lc-panel, .mv-dock) { top: auto; bottom: var(--view-bar-reserve); transform: none;
+    max-height: calc(100dvh - var(--rail-top) - var(--view-bar-reserve)); }
+}
 
 /* REPLAY (and any other view without the tool rail): both docks are positioned against
    `--vrail-w` — a rail that is not on screen there. They were opening centred beside a phantom,

@@ -15,7 +15,7 @@ export const shellCopy: Localizable<Pick<Copy, Keys>> = {
     mittel: 'Materiale',
   },
   navRail: { map: 'Mappa', plansGroup: 'Piani', plansChoose: 'Scegli piano', rapportGroup: 'Intervento', pageGroup: 'Scegli pagina', assign: 'Assegna piano', expand: 'Espandi', collapse: 'Comprimi', resize: 'Adatta barra',
-    scrollMore: 'Mostra altri',
+    scrollMore: 'Mostra altri', viewBar: 'Visualizzazione',
   },
   panels: { layers: 'Livelli', history: 'Diario' },
   layerPanel: {

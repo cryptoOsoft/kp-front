@@ -135,61 +135,31 @@
    a fine pointer – a touch-only device has no keyboard to read it for. No modifier-held reveal any
    more: a hint hidden until you already know the shortcut taught nothing. The phone's folded bar
    never wears them (its tiles are doors to groups, and a bar you touch needs no letter).
-   Placement follows the tile's shape, because the badge must never sit on its glyph or its word:
-     · icon-only (default): the glyph stays on the tile's centre, the ONE icon axis of the rail,
-       and the letter HANGS beside it as a subscript tag – 4–5px right of the glyph's ink, its
-       baseline on the glyph's foot line (hill climb r29, Opus 5: centred on the glyph's middle at
-       3px, r21, and at the glyph's weight, «TN» and «FT» fused into one word; set low and quieter
-       it reads as a tag OF the glyph, not as a second letter beside it – r21's centring had been
-       Sol's reply to r20's foot-line letter at the glyph's weight). ⚠️ The letter never moves its
-       glyph (hill climb r22, Opus 1: r21 stepped lettered glyphs 5px left to centre the pair, and
-       the icon column zig-zagged between lettered and unlettered rows); the alarm/count dot keeps
-       the top-right;
-     · words under the glyph (`.labelled`): the TOP-LEFT corner – the word occupies the bottom half
-       of the tile, the glyph only the middle of the top half, and the alarm / count / open dots
-       all hang off the right;
-     · expanded (word beside the glyph): vertically centred at the tile's far end – the left rail's
-       right end, the right rail's left end – the free side of the row. */
-/* A bare letter, no keycap (04.11.2026, hill climb: the framed chip on every tile's corner added a
-   second small object exactly where the glyph has to be recognised at a glance). It is a hint for
-   whoever looks for it, so it is the quietest text in the rail: the faint ink, 11px (--fs-micro,
-   the smallest step) at the regular weight (r29; 500 until then, near the glyphs' own stroke).
-   ⚠️ Inset so the letter's ink stays ≥4px clear of the tile's curved corner (05.11.2026, hill
-   climb r13: at 4/2px it ran into the selected pill's radius); on the ink pill it takes the pill's
-   own text colour, muted (below). The body face, not the mono (hill climb r20, Opus 5): the mono's
-   narrow caps rendered ~8px and thin; Sora's are the bar's own letters, wide enough to read.
-   `text-box: trim-both cap alphabetic` makes the letter's box its cap height, so the box's bottom
-   IS the baseline: «bottom: 50% − 9px» stands it on the 22px glyph's foot line (the icon's ink
-   ends 9px under the tile's middle; measured ±1px on every lettered tile, r29).
-   ⚠️ The room for it comes from the TILE, not the glyph (hill climb r23, Opus 3: hung at 50% + 13px
-   in a 46px tile, the letter's ink ended ~2px from the selected ink pill's edge and read clipped).
-   The widest glyphs' ink ends 9px right of the tile centre; the letter starts 4–5px after it
-   (`left: 50% + 13px`, the cap's ≈ 1px side bearing included) and is ≤ 9px wide («M», «C», «U»),
-   so it ends at 50% + 22px – and wherever letters show, EVERY tile is 56px wide (1px at the
-   rail's sides instead of --bar-pad's 6 – 3px from r23 to r28, a 52px tile; the 60px rail
-   unchanged), leaving ≥ 6px from the letter to the pill's edge (measured r29). The tiles stay
-   46px tall; the expanded rail keeps its 6px, so its glyph column stays put.
-   On the ink pill the letter is the pill's own text colour at 70 %, so it recedes there as it does
-   on the resting tiles beside it. */
-.rail-key { display: none; position: absolute; left: calc(50% + 13px); bottom: calc(50% - 9px);
+   ONE PLACE on a tile, with the words under the glyph or without them (staging review 06.11.2026,
+   S1 + S3, owner: the letters «look different with and without a label», and in the hover state
+   the corner one sat «more top than left»): the TOP-LEFT corner, its INK the same 6px from the
+   tile's top and left edges. Measured on the ink, not the box: `text-box: trim-both cap
+   alphabetic` makes the box the capital's height, so `top` IS the ink's top; a stem letter's
+   (K · P · L …) ≈ 1px left side bearing is taken off `left`, and the round and diagonal ones
+   (C · S · V) sit that pixel further out – their optical overshoot, as measured on the rendered
+   ink (Sora 11/400 – the regular weight, hill climb r29). At 6/6 the ink's corner stands 3.5px inside the tile's 12px
+   curve (12 − 6·√2), so a hovered or armed tile's fill frames it evenly. The glyph keeps the
+   tile's centre (the rail's one icon axis); the alarm / count / open dots all hang off the right.
+     · expanded (word beside the glyph): vertically centred at the row's free end – the left rail's
+       right end, the right rail's left end – where a menu prints its shortcut; there the corner
+       would stand alone, far from the glyph it names.
+   A bare letter, no keycap (the 04.11.2026 hill-climb look): a framed chip in the corner was a
+   second small object on top of the glyph that has to be recognised at a glance, and at the
+   corner it covered the Auswahl arrow's tip. The body face at 11px, regular, not the mono, whose narrow
+   caps rendered thin at this size. On the armed ink tile it takes the tile's own text colour,
+   muted, so it recedes there as it does on the resting tiles. */
+.rail-key { display: none; position: absolute; top: 6px; left: 5px;
   font-family: var(--body); font-size: var(--fs-micro); font-weight: var(--fw-regular);
-  font-variant-numeric: tabular-nums; line-height: 1; text-box: trim-both cap alphabetic;
+  line-height: 1; text-box: trim-both cap alphabetic;
   color: var(--ink-faint); pointer-events: none; }
-:is(.nav-item, .vrail-tool).on .rail-key { color: color-mix(in srgb, var(--on-here) 70%, transparent); }
-.rail.labelled:not(.expanded):not(.dragging) .rail-key { top: 4px; bottom: auto; right: auto; left: 6px; }
-.rail.expanded:not(.dragging) .rail-key { left: auto; right: 10px; bottom: auto; top: 50%; translate: 0 -50%; }
+:is(.nav-item, .vrail-tool, .vrail-nbtn).on .rail-key { color: color-mix(in srgb, var(--on-here) 70%, transparent); }
+.rail.expanded:not(.dragging) .rail-key { top: 50%; translate: 0 -50%; left: auto; right: 10px; }
 .vrail.expanded:not(.dragging) .rail-key { right: auto; left: 10px; }
-@media (hover: hover) and (pointer: fine) {
-  .rail:not(.folded) .rail-key { display: block; }
-  /* the 56px tile (above) – for EVERY tile of a rail that shows letters, lettered or not (Pläne,
-     Präsentation, the expand chevron, the right rail's foot): ONE «where you are» plate, so the
-     selection keeps its silhouette as you switch surfaces (hill climb r33, Sol 1 – r30 had put the
-     unlettered tiles back to a 48px square, and Pläne's selected plate stood 8px narrower than
-     Karte's, Trupps' and Rapport's). Every glyph sits on the tile's centre, which is the rail's one
-     icon axis (measured 0px off, r33). The grips step out by the same 5px, so they still start at
-     the tiles' edge and never cover one (05-navrail · .nav-grip), and their mark, now flush with
-     the grip's inner edge, stays where it was – on the rail's border */
-  .rail:not(.folded):not(.labelled):not(.expanded):has(.rail-key) { padding-inline: 1px; }
-  .navrail:not(.folded):not(.labelled):not(.expanded):has(.rail-key) .nav-grip { right: -18px; padding-left: 0; }
-  .vrail:not(.folded):not(.labelled):not(.expanded):has(.rail-key) .vrail-grip { left: -18px; padding-right: 0; }
-}
+/* …and on the view bar's buttons that have a key (ToolRail · RailKey: Ebenen B, Einpassen 0) –
+   the same corner, the same gate; the bar is never on a phone */
+@media (hover: hover) and (pointer: fine) { :is(.rail:not(.folded), .view-bar) .rail-key { display: block; } }

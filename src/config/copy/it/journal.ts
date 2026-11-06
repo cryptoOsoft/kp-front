@@ -24,6 +24,7 @@ export const journalCopy: Localizable<Pick<Copy, 'journal' | 'tafelPendenzen' | 
     open: 'Diario',
     add: 'Voce',
     addHint: 'Tocca per una voce – tieni premuto, poi scorri su memo vocale o foto',
+    keyTitle: '{label} – tasto {key}',
     title: 'Diario',
     empty: 'Nessun evento registrato',
     surfaceMap: 'Mappa',

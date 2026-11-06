@@ -181,8 +181,10 @@ export function LayerPanel({ layers, onToggle, onOpacity, twins = [], twinsAfter
      side card never has it. */
   const swipe = useSwipeDismiss({ onClose: onClose ?? (() => {}), enabled: !!onClose })
 
+  // `lc-panel` tells Ebenen apart from the other cards that wear `.layers-card` (the Karte's
+  // Gefahrgut): it is opened from the view bar, so on a tablet it opens upward from there (05-navrail)
   return (
-    <div className="layers-card" ref={cardRef} {...swipe}>
+    <div className="layers-card lc-panel" ref={cardRef} {...swipe}>
       <SheetGrab />
       <div className="lc-title">
         {appConfig.copy.panels.layers}

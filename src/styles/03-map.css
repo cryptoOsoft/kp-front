@@ -44,6 +44,15 @@
 @media (pointer: coarse) {
   .maplibregl-ctrl-attrib-button::after { content: ''; position: absolute; inset: calc((var(--tap) - 24px) / -2); }
 }
+/* …and on a tablet or laptop it steps LEFT of the view bar that holds that corner (07-toolrail ·
+   .view-bar, staging review 06.11.2026 S2): 8px of air to the bar's left edge (`--view-bar-w`,
+   measured by ToolRail) and centred on its height. The control's own 16px margin (above) is the
+   inset, so the corner box moves by the bar alone. A phone hides the ⓘ in `.app` (15-mobile). */
+@media (--not-phone) {
+  :root:has(.view-bar) .app > .maplibregl-map .maplibregl-ctrl-bottom-right {
+    right: calc(var(--view-bar-w, 0px) + var(--float-gap));
+    bottom: calc((var(--view-bar-h) - 24px) / 2); }
+}
 /* The Lage map's twin of the plan canvas's tool cursors (.wb-canvas.tool-* below). `.placing`
    alone only covered a symbol/shape already picked from the palette — arming Linie, Fläche,
    Messen, Notiz or Trupp left the plain grab hand, so an armed tool was indistinguishable from

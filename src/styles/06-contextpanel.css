@@ -31,6 +31,13 @@
   backdrop-filter: blur(14px) saturate(1.4); border-radius: var(--r-hero); z-index: var(--z-chrome);
   box-shadow: var(--e4); max-height: calc(100dvh - var(--rail-top) - 16px - env(safe-area-inset-bottom) - var(--kb-inset, 0px));
   display: flex; flex-direction: column; overflow: hidden; }
+/* …and on a tablet or laptop it stops above the view bar in the bottom corner (07-toolrail ·
+   .view-bar): the panel's lane runs over the bar's left half. With the keyboard up, whichever
+   reserve is larger wins – the keys cover the bar anyway. */
+@media (--not-phone) {
+  :root:has(.view-bar) .ctx { max-height: calc(100dvh - 88px - env(safe-area-inset-bottom)
+    - max(var(--view-bar-reserve), 16px + var(--kb-inset, 0px))); }
+}
 /* A Plan's Ebenen list describes the projections in the selected object's detail panel, so both
    stay visible on tablet/desktop. Put Ebenen in the lane immediately left of `.ctx`; the map keeps
    its single-slot behaviour. `--plan-ctx-w` follows the tablet narrowing in 15-mobile.css, and
@@ -982,6 +989,10 @@ span.jr-pinned-from { color: var(--ink-dim); }
    18px under the clock to reach a 44px row floor that is gone). On every pointer: a mouse needs
    24px, and 21 drawn was under it (04.11.2026). */
 .jr-pinned-row .jr-when::before { content: ''; position: absolute; z-index: 1; top: -2px; bottom: -2px; left: 0; width: 50px; }
+/* the day under the clock, for an item raised on another day than today (Journal · rowDay, S5
+   06.11.2026). A second line rather than a wider column: the clock stays on the log's 38px axis,
+   and «20.09.» at the micro size (≈40px) reaches only 2px into the 10px gap before the ring. */
+.jr-when small { display: block; font-size: var(--fs-micro); line-height: 1.3; }
 /* «meldet sich selbst» — the only mark a timed Erinnerung needs in this list. At the right end,
    where nothing competes with it: the ring moved into the icon slot at the front. */
 /* the Fälligkeit, as a clock AND the time it stands for — see Journal.tsx. `align-self` rather
