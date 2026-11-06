@@ -79,6 +79,9 @@ export interface MapToolDocksProps {
   pickShape: (kind: ShapeKind) => void
   teamPick: LngLat | null
   trupps: Trupp[]
+  /** trupp id → the colour it wears on the Lage / plan (useTruppActions · truppColors) – the
+   *  «Welcher Trupp?» rows lead with it as the hollow identity ring */
+  truppColors: Record<string, string>
   placeTruppOnMap: (id: string, atCoord?: LngLat, revive?: { id: string; trail: GeoTrailPoint[] }) => string | undefined
   placeGenericTeam: (c: LngLat) => void
 }
@@ -89,7 +92,7 @@ export function MapToolDocks({
   measure, pendingShape, setPendingShape, setRotStart, rotStart, tacticalLocked, createLine,
   createArea, replayActive, railLabels, slimMapTools, pick, panel, layersPreset, togglePanel, viewsApi,
   view, readOnly, isEl, viewsOpen, sharePick, shareParent, toggleViews, coord, mapRef, paletteOpen,
-  sym, setPaletteOpen, pickShape, teamPick, trupps, placeTruppOnMap, placeGenericTeam,
+  sym, setPaletteOpen, pickShape, teamPick, trupps, truppColors, placeTruppOnMap, placeGenericTeam,
 }: MapToolDocksProps) {
   return (
     <>
@@ -326,7 +329,7 @@ export function MapToolDocks({
                 key={t.id} className={`wb-trupp-opt${here ? ' placed' : ''}`} disabled={here}
                 onClick={() => { placeTruppOnMap(t.id, teamPick); setTeamPick(null); setTool('select') }}
               >
-                <span className="wb-trupp-cap" /><b>{t.name}</b>
+                <span className="wb-trupp-ring" style={{ color: truppColors[t.id] }} /><b>{t.name}</b>
                 {/* «AS» — see the plan's twin of this picker (Whiteboard · wb-trupp-as) */}
                 {isAtemschutzTrupp(t) && <span className="wb-trupp-as" title={appConfig.copy.atemschutz.kindAtemschutz}>{appConfig.copy.atemschutz.asMark}</span>}
                 {here

@@ -1075,9 +1075,12 @@ a.jr-link-url { color: var(--blue); text-decoration: underline; text-underline-o
 .ig-intro { margin: 0 0 var(--sp-2); font-size: var(--fs-2); font-weight: var(--fw-bold); color: var(--ink); }
 .ig-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-3); counter-reset: ig; }
 .ig-steps li { display: flex; align-items: center; gap: var(--sp-3); counter-increment: ig; }
-.ig-steps li::before { content: counter(ig); flex: none; width: 26px; height: 26px; display: grid; place-items: center;
-  border-radius: 50%; background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent);
-  font: var(--fw-bold) var(--fs-2) var(--mono); }
+/* the step number is a RING, not a disc (settled, karte-review7 #4 – a disc reads as a button; the
+   Anleitungen' `.mn-num` idiom), in ink: it was a red-tinted disc, and red is the alarm colour (r36,
+   06.11.2026). Drawn with an inset shadow, so the 1.5px line costs no layout. */
+.ig-steps li::before { content: counter(ig); flex: none; width: 22px; height: 22px; display: grid; place-items: center;
+  border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--ink-faint); color: var(--ink);
+  font: var(--fw-bold) var(--fs-1) var(--body); font-variant-numeric: tabular-nums; }
 .ig-step-text { font-size: var(--fs-2); line-height: 1.4; color: var(--ink); }
 .ig-step-text .i { width: 16px; height: 16px; vertical-align: -3px; margin: 0 2px; color: var(--accent); }
 .ig-note { margin: var(--sp-3) 0 0; font-size: var(--fs-1); color: var(--ink-dim); }

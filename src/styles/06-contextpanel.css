@@ -231,7 +231,13 @@
 /* both boxes --tap tall (27x): every box control in the panel is, at every pointer */
 .kv-key, .kv-val { box-sizing: border-box; min-height: var(--tap); font-size: var(--fs-2); color: var(--ink); border: none; background: var(--fill-soft); border-radius: var(--r-sm);
   padding: 8px 12px; min-width: 0; font-family: var(--body); }
-.kv-key { flex: 0 0 var(--ctx-lbl); font-weight: var(--fw-medium); color: var(--ink-dim); }
+/* …but the KEY reads as the label it is (r36, 06.11.2026): bare at rest, in the label column like
+   «Von Geschoss» / «Horizontal», only the value on the field plate. Still an input – its plate
+   comes back under a hovering mouse and on focus. Its 12px text inset is paid into the gutter
+   (the negative margin), so the word starts at the label column's edge, not 12px inside it. */
+.kv-key { flex: 0 0 calc(var(--ctx-lbl) + var(--sp-3)); margin-left: calc(-1 * var(--sp-3)); font-weight: var(--fw-medium); color: var(--ink-dim);
+  background: transparent; }
+@media (hover: hover) { .kv-key:hover:not(:focus) { background: var(--fill-soft); } }
 .kv-val { flex: 1; font-family: var(--mono); }
 /* borderless boxes, so the one field focus (--focus-*, 28.09.2026) draws its edge as an inset
    ring; the field turns to the sheet's white like every other focused field — no blue wash */

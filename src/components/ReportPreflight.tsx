@@ -1406,7 +1406,7 @@ export function ReportPreflight({
                     <Icon id="chevron-down" className="chev" />
                   </button>
                 }
-                popupClassName="rp-print-menu"
+                popupClassName="rp-print-menu rp-pdf-menu"
                 itemClassName={() => 'rp-print-menu-item'}
                 // «Abschnitte» used to be a fold ON the page — a section of the rapport that is
                 // not part of the rapport: it is neither recorded nor printed, it is how the
