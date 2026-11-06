@@ -5,6 +5,7 @@ import { useHoldEntry } from '../lib/useHoldEntry'
 import { HoldChargeRing, HoldTargets } from './HoldTargets'
 import { EntryGlyph } from '../lib/icons'
 import { useGeorefMode } from '../lib/georefMode'
+import { tut } from '../lib/tutorials/anchors'
 
 // Mobile field-capture FAB. Same tap / long-hold gesture as the TopBar "Eintrag": tap opens
 // the composer, hold offers Sprachnotiz · Foto, tap-while-recording stops it. The hold acts on
@@ -47,6 +48,7 @@ export function FabEntry({ recording, recStartedAt, onTap, onHoldStart, onHoldSt
       aria-label={recording ? appConfig.copy.journal.recordStop : appConfig.copy.journal.add}
       title={recording ? appConfig.copy.journal.recordStop : appConfig.copy.journal.addHint}
       data-hold-target="cancel"
+      {...tut('fab.entry')}
       {...handlers}
     >
       {latched && <HoldTargets placement="above" anchor={anchor} onPick={pick} />}

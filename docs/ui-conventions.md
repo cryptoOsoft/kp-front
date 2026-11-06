@@ -168,6 +168,11 @@ reopens, while the head's subtitle says when («Schadenlage · erledigt 10:57»)
   tap-toggle `DockInfo`/`InfoTip` also stay bespoke (free-type + in-menu toggle / a tablet tap
   model don't map cleanly to Base UI Select/Tooltip); the admin `Select` stays hand-rolled too,
   keyboard-driven and unportalled.
+  ONE `Popover` is persistent (05.11.2026): the «Üben» Sprechblase (`components/tutorial`)
+  stands on its control while the learner works around it – controlled and never closed by an
+  outside press, `takeFocus={false}` and `guard={false}` (it is no transient layer, so it must not
+  hold the popoverGuard warm and leave every Sheet deaf to its backdrop). It sits on
+  `--z-tutorial`, under the Meldeleiste; only on a control inside a modal does it rise over it.
 
 Three rules the primitives own, so no surface re-answers them (18.09.2026):
 

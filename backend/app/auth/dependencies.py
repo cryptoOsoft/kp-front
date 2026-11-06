@@ -189,6 +189,18 @@ async def get_record_writer(current_user: Annotated[User, Depends(get_current_us
     return current_user
 
 
+async def get_lern_opener(current_user: Annotated[User, Depends(get_current_user)]) -> User:
+    """An editor, OR the ``el`` role — the door on ``POST /incidents/lernen`` («Üben», owner
+    05.11.2026: an el may open a Lern-Übung). Same people as ``get_record_writer`` today, but its
+    own dependency on purpose: widening the record door must not widen who may create an
+    incident. What the el gets through it is narrow by construction — an Übung since creation,
+    titled «Lernen ·», which it can never mark real (api/incidents · patch_incident). No link
+    session."""
+    if current_user.role not in ("editor", "el") or getattr(current_user, "link_kind", None):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Bearbeiter-Berechtigung erforderlich")
+    return current_user
+
+
 async def get_append_writer(
     request: Request,
     access_token: Annotated[str | None, Cookie()] = None,
@@ -368,12 +380,40 @@ async def get_editor_or_admin(
     raise _credentials_exc
 
 
+async def get_incident_deleter(
+    request: Request,
+    access_token: Annotated[str | None, Cookie()] = None,
+    admin_session: Annotated[str | None, Cookie()] = None,
+    db: AsyncSession = Depends(get_db),
+) -> User | None:
+    """``get_editor_or_admin``'s answers plus the ``el`` role — the door on ``DELETE /incidents/{id}``.
+    The el gets through so it can throw away the Lern-Übung it opened («Üben», 05.11.2026); the
+    handler lets it delete only a Lern-Übung (``source='training'``, an Übung since creation),
+    because a station Übung stays the editors' and a real Einsatz needs the admin session whoever
+    asks (api/incidents · delete_incident)."""
+    user = None
+    if access_token:
+        try:
+            user = await get_current_user(request, access_token, db)
+        except HTTPException:
+            user = None
+    if user is not None and user.role in ("editor", "el") and not getattr(user, "link_kind", None):
+        return user
+    if await _admin_session_valid(admin_session):
+        return None
+    if user is not None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Bearbeiter-Berechtigung erforderlich")
+    raise _credentials_exc
+
+
 CurrentUser = Annotated[User, Depends(get_current_user)]
 CurrentEditor = Annotated[User, Depends(get_current_editor)]
 CurrentRecordWriter = Annotated[User, Depends(get_record_writer)]
+CurrentLernOpener = Annotated[User, Depends(get_lern_opener)]
 CurrentAppendWriter = Annotated[User, Depends(get_append_writer)]
 CurrentAtemschutzWriter = Annotated[User, Depends(get_atemschutz_writer)]
 OptionalUser = Annotated[User | None, Depends(get_optional_user)]
 CurrentAdmin = Annotated[None, Depends(get_current_admin)]
 UserOrAdmin = Annotated[User | None, Depends(get_user_or_admin)]
 EditorOrAdmin = Annotated[User | None, Depends(get_editor_or_admin)]
+IncidentDeleter = Annotated[User | None, Depends(get_incident_deleter)]

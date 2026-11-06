@@ -37,6 +37,8 @@ export type HomeActions = {
   onCreate: () => void
   onObjectVisits?: () => void
   onSettings: () => void
+  /** «Üben» (the tutorials sheet); absent where this session may start none */
+  onUeben?: () => void
   onHelp: () => void
   onInstall?: () => void
   onLogout: () => void
@@ -176,7 +178,7 @@ export function LauncherBody({
  *  session (appScreen gives it no viewer), so every account door is drawn here. */
 export function HomeMenu({
   close, onDevice, trouble, onTrouble, onTroubleDismiss, linkScoped, isEditor, user, incidents, activeId, opening,
-  alarms, taking, onTake, onDismissAlarm, onOpenIncident, onHistory, onCreate, onObjectVisits, onSettings, onHelp,
+  alarms, taking, onTake, onDismissAlarm, onOpenIncident, onHistory, onCreate, onObjectVisits, onSettings, onUeben, onHelp,
   onInstall, onLogout,
 }: HomeActions & { close: () => void; onDevice: () => void }) {
   return (
@@ -198,6 +200,7 @@ export function HomeMenu({
         onObjectVisits={onObjectVisits ? () => { close(); onObjectVisits() } : undefined}
         onSettings={() => { close(); onSettings() }}
         offline={{ label: appConfig.copy.karte.device.title, onOpen: onDevice }}
+        onUeben={onUeben ? () => { close(); onUeben() } : undefined}
         onHelp={() => { close(); onHelp() }}
         onInstall={onInstall ? () => { close(); onInstall() } : undefined}
         onLogout={() => { close(); onLogout() }}

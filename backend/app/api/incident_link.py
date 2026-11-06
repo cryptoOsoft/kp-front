@@ -115,7 +115,7 @@ from ..auth.secret_token import secret_matches
 from ..database import get_db
 from ..deployment_config import config_row
 from ..incident_service import get_incident_or_404
-from ..models import INCIDENT_ACTIVE_STATUSES, DeploymentConfig, Incident
+from ..models import INCIDENT_ACTIVE_STATUSES, LERN_UEBUNG_SOURCE, DeploymentConfig, Incident
 from ..schemas import ViewLinkOut
 
 router = APIRouter(prefix="/incident-link", tags=["incident-link"])
@@ -356,11 +356,17 @@ async def _open_atemschutz_session(token: str, response: Response, db: AsyncSess
 async def _open_incident_rows(db: AsyncSession) -> list[Incident]:
     """Every Einsatz a standing link may bind to right now — `Incident.is_open`, as a query.
     Übungen INCLUDED, deliberately: the Atemschutzüberwachung is exactly what gets drilled,
-    and a laminated QR that goes dead in the Übung defeats the training purpose."""
+    and a laminated QR that goes dead in the Übung defeats the training purpose. A Lern-Übung
+    («Üben», `models · LERN_UEBUNG_SOURCE`) is NOT: one learner's tutorial must never capture
+    the station's terminal, nor turn a real Einsatz beside it into «choose»."""
     rows = (
         await db.execute(
             select(Incident)
-            .where(Incident.is_archived.is_(False), Incident.status.in_(INCIDENT_ACTIVE_STATUSES))
+            .where(
+                Incident.is_archived.is_(False),
+                Incident.status.in_(INCIDENT_ACTIVE_STATUSES),
+                Incident.source != LERN_UEBUNG_SOURCE,
+            )
             .order_by(Incident.started_at.desc())
         )
     ).scalars()

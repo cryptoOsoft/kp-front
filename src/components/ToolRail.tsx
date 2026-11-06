@@ -8,6 +8,7 @@ import { useIsPhone } from '../lib/useIsPhone'
 import { addFace, barTools } from '../lib/toolFold'
 import { railToolKey } from '../lib/hotkeys'
 import { useKeyHints } from '../lib/useDevicePrefs'
+import { tut, toolAnchor } from '../lib/tutorials/anchors'
 
 export interface ToolDef {
   id: string
@@ -131,6 +132,7 @@ export function ToolRail({ primary, tools, active, open = false, onPick, toolRef
         aria-label={shown.label}
         aria-pressed={on}
         onClick={() => onPick(target)}
+        {...toolAnchor('tool', t.id)}
       >
         <span className="vrail-glyph"><Icon id={shown.icon} /></span><span className="vrail-label">{shown.label}</span>
         {keyHint(shown.id)}
@@ -178,6 +180,7 @@ export function ToolRail({ primary, tools, active, open = false, onPick, toolRef
                 aria-pressed={on}
                 aria-haspopup={phone ? 'dialog' : undefined}
                 onClick={() => onPick(primary.id)}
+                {...tut('tool.add')}
               >
                 <span className="vrail-glyph"><Icon id={face?.icon ?? primary.icon} /></span><span className="vrail-label">{label}</span>
                 {keyHint(primary.id)}

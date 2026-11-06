@@ -199,6 +199,8 @@ webhooks cannot call a `divera247.com/api/...` URL. There is no loopback.
   Einsatz is far more often a Nachalarm or a reworded group SMS than a second Einsatz, and
   opening it would split the operational picture in two. The incoming-alarm banner then offers
   both «öffnen» and «zuordnen» – zuordnen is the one that keeps the GPS milestones together.
+  A «Lernen ·» Übung (a tutorial, `source='training'`) never counts as running (05.11.2026):
+  a learner practising at home must not hold the next real alarm.
 - **Push goes out** to every subscribed editor browser, so a killed app still says «Neuer Einsatz»
   (needs the VAPID pair – [`SETUP.md`](SETUP.md)). The dispatch travels with `Urgency: high` and a
   TTL of ~2 h (`push.py · NEW_ALARM_TTL_SECONDS`), so a phone in Doze or briefly out of coverage

@@ -1,0 +1,30 @@
+/* The «Üben» sheet (UebenSheet.tsx): the lede, the filter chips, the pinned row, then ONE
+   ListGroup of ListRows. The rows are the shared ListRow; this file only fills their lead slot
+   (the ✓ ring) and their end slot (the «Fortsetzen» pill), tints the pinned one and places the
+   pieces. */
+
+.lede { margin: 0 0 var(--sp-3); font: var(--fw-medium) var(--fs-2)/var(--lh-2) var(--body); color: var(--ink-dim); }
+
+/* the chips WRAP on a phone (four full names do not fit 390px) – never a sideways lane */
+.chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin: 0 0 var(--sp-4); }
+.count { margin-left: var(--sp-1); font-weight: var(--fw-medium); font-variant-numeric: tabular-nums; opacity: .75; }
+
+/* the pinned row above the list: the run to finish, on a quiet blue ground (two classes: out-rank
+   the shared row's `background: none`) */
+.pinned:global(.list-row) { margin: 0 0 var(--sp-3); border-radius: var(--r-sm); background: var(--blue-8); }
+
+/* the lead: an empty ring (not yet) · a ring with a blue quarter (interrupted / running) · a
+   green ring with the ✓ (done on this device) */
+.mark { display: grid; place-items: center; box-sizing: border-box; width: 28px; height: 28px; border-radius: 50%;
+  border: 2px solid var(--ink-16); color: var(--green); }
+.mark[data-state='resume'] { border-color: var(--ink-16); border-top-color: var(--blue); border-right-color: var(--blue); }
+.mark[data-state='done'] { border-color: var(--green); }
+.mark :global(.i) { width: 16px; height: 16px; }
+
+/* the quiet line: the tag, then what you will do */
+.sub { display: inline; }
+.sub > :global(.ip-badge) { margin-right: var(--sp-2); vertical-align: 1px; }
+
+/* «Fortsetzen» – the row IS the button, this says what a tap does, in the primary's ink */
+.resume { display: inline-flex; align-items: center; min-height: 36px; padding: 0 var(--sp-3); border-radius: var(--r-sm);
+  background: var(--ink-fill); color: var(--on-accent-ink); font: var(--fw-bold) var(--fs-2) var(--body); white-space: nowrap; }

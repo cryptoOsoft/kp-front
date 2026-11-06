@@ -387,6 +387,8 @@ async def test_a_tracker_that_is_not_a_station_vehicle_gets_rows_but_no_rapport_
         {"lat": None, "lng": None},
         {"started_at": datetime.now(UTC) - timedelta(hours=25)},
         {"status": "abgeschlossen"},
+        # a Lern-Übung, seeded at the station's centre: the TLF parked there is no «vor Ort»
+        {"source": "training"},
     ],
 )
 async def test_only_an_active_einsatz_is_observed(db_session, incident, change):
