@@ -136,6 +136,9 @@ export function IconSprite() {
       {/* who LEADS — the Gruppenführer crown in the Trupp picker. Outline while it is an offer,
           filled by the caller (.teamCrownOn) once it is the state, so the leader reads as a
           fact rather than as one more button that could still be pressed. */}
+      {/* «Üben» (05.11.2026): a mortarboard – the tutorial pill and the «Üben» rows. Not #checklist
+          or #star: the first is a surface, the second a favourite. */}
+      <symbol id="learn" viewBox="0 0 24 24"><path d="M12 4.5 22 9.5l-10 5-10-5z" stroke-linejoin="round" /><path d="M6 11.5v5c3 2.5 9 2.5 12 0v-5M22 9.5v5" stroke-linecap="round" /></symbol>
       <symbol id="star" viewBox="0 0 24 24"><path d="m12 3.8 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" stroke-linejoin="round" /></symbol>
       {/* Checklisten (rail, Karte, visits, admin): ONE clipboard with two ticks – #clipboard's
           shape, 2 units wider so the ticks have room (hill climb r17, Opus 11: the old stacked sheets

@@ -40,6 +40,7 @@ import { ClockVal, RowEnter, TruppCard, TruppRow } from './TruppCard'
 import { tabState, tierMark } from './truppCardText'
 import { notfallStrips } from '../lib/notfall'
 import { TruppForm, type FormMode, type TruppSubmitExtra } from './TruppForm'
+import { tut } from '../lib/tutorials/anchors'
 
 /**
  * The last incoming `focus` nonce this view has already rung the bell for — MODULE scope, not
@@ -1581,7 +1582,7 @@ export function AtemschutzView({
         {bellButton}
         {/* in focus mode «+ Trupp» lives in the rail beside the strip — not a second one up here */}
         {canEdit && !focusMode && (
-          <button className={s.newBtn} data-fold={HEAD_FOLD.newTrupp} onClick={() => openForm('create')} aria-label={az.newTrupp} title={az.newTrupp}>
+          <button className={s.newBtn} data-fold={HEAD_FOLD.newTrupp} onClick={() => openForm('create')} aria-label={az.newTrupp} title={az.newTrupp} {...tut('trupps.new')}>
             {/* the full word where it fits, the short one where the head's ladder has run out of
                 everything else — never a bare «+» (every button on the ASÜ board has a word) */}
             <Icon id="plus-bold" /><span className="fold-long">{az.newTrupp}</span><span className="fold-short">{az.newTruppShort}</span>

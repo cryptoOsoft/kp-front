@@ -60,6 +60,19 @@
 .help-sec { padding-top: var(--sp-5); scroll-margin-top: 12px; }
 .help-sec > h3 { display: flex; align-items: center; gap: var(--sp-2); margin: 0 0 var(--sp-2); font-size: var(--fs-3); font-weight: var(--fw-heavy); color: var(--ink); }
 .help-sec > h3 .i { width: 19px; height: 19px; color: var(--blue); }
+/* «▶ Ausprobieren · Trupps · 6 Min. ›» under a section title (owner pick H = A, 05.11.2026): THE
+   button (secondary, 44px), side by side where they fit, each on its own line where not; the
+   glyph blue like the heading's, the tutorial and its minutes quiet after the verb */
+.help-try { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin: 0 0 var(--sp-3); }
+.help-try > .ip-btn { max-width: 100%; }
+/* a phone column is too narrow for two side by side: one button per line, the whole width, the
+   words from the start */
+@media (max-width: 720px) { .help-try > .ip-btn { flex: 1 1 100%; justify-content: flex-start; } .help-try-chev { margin-left: auto; } }
+.help-try > .ip-btn > .i:first-child { width: 14px; height: 14px; color: var(--blue); }
+/* said whole, never «Atemschutznotfall · 4 …»: where the line is short it wraps inside the button,
+   which grows past its 44px floor (min-height) */
+.help-try-what { min-width: 0; text-align: left; padding-block: var(--sp-1); font-weight: var(--fw-medium); color: var(--ink-dim); }
+.help-try-chev { width: 14px; height: 14px; color: var(--ink-faint); }
 .help-lead { margin: 0 0 var(--sp-3); font-size: var(--fs-2); line-height: 1.55; color: var(--ink-dim); }
 .help-sub { margin: var(--sp-4) 0 var(--sp-2); font-size: var(--fs-2); font-weight: var(--fw-bold); color: var(--ink); }
 .help-list { margin: var(--sp-1) 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: var(--sp-2); }

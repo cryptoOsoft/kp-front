@@ -194,6 +194,11 @@ reopens, while the head's subtitle says when («Schadenlage · erledigt 10:57»)
   tap-toggle `DockInfo`/`InfoTip` also stay bespoke (free-type + in-menu toggle / a tablet tap
   model don't map cleanly to Base UI Select/Tooltip); the admin `Select` stays hand-rolled too,
   keyboard-driven and unportalled.
+  ONE `Popover` is persistent (05.11.2026): the «Üben» Sprechblase (`components/tutorial`)
+  stands on its control while the learner works around it – controlled and never closed by an
+  outside press, `takeFocus={false}` and `guard={false}` (it is no transient layer, so it must not
+  hold the popoverGuard warm and leave every Sheet deaf to its backdrop). It sits on
+  `--z-tutorial`, under the Meldeleiste; only on a control inside a modal does it rise over it.
 - **One look per overlay kind** (hill climb r35, 06.11.2026 – converged on what most of them
   already did). A **modal** dims the room with ONE scrim, `.ui-backdrop`'s rgba(20,28,40,.32) + 2px
   blur (13-incident · «ONE modal scrim» paints `.modal-backdrop`, `.mp-backdrop` and `.help-scrim`

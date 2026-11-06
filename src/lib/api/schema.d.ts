@@ -614,6 +614,35 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/incidents/lernen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Open Lern Uebung
+         * @description The «Lernen · <Modul>» Übung a tutorial runs on («Üben», 05.11.2026) — for an editor AND
+         *     an ``el``. Reuses the station's newest OPEN Lern-Übung (renamed to this tutorial, its scene
+         *     and whatever the learner did in it kept: owner pick O7, «Weiter mit …» goes on in the same
+         *     Übung); only when there is none is one created and seeded (tutorial_seed). Always
+         *     ``is_exercise`` + ``exercise_since_creation`` + ``source='training'``, so it is stats-excluded,
+         *     deletable by its learner and never a real Einsatz (an el may not mark it real, patch_incident).
+         *     Per station, not per account: two learners on one station share it, like any Übung.
+         *
+         *     403 in the demo, like ``POST /incidents``: the demo is ONE living incident (the client runs
+         *     the tutorial on it instead).
+         */
+        post: operations["open_lern_uebung_api_incidents_lernen_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/incidents/{incident_id}": {
         parameters: {
             query?: never;
@@ -632,15 +661,18 @@ export interface paths {
          *
          *     TWO doors, because they answer different questions:
          *
-         *     · **Übungen** — any editor, any time. An exercise is not an operational record; it exists to
-         *       be thrown away, and needing an admin for it would make the tidy-up cost more than the
-         *       exercise. That is the whole point of the flag, and a Wehr that cannot clear its own
-         *       practice runs stops marking them as practice runs. A viewer still cannot (403).
+         *     · **Übungen** — any editor, any time. An ``el`` only a Lern-Übung (``source='training'``,
+         *       «Üben» 05.11.2026): it opens the one a tutorial runs on, and the done card's «Übung löschen»
+         *       is its own (``IncidentDeleter``); a station Übung stays the editors'. An exercise is not
+         *       an operational record; it exists to be thrown away, and needing an admin for it would make
+         *       the tidy-up cost more than the exercise. That is the whole point of the flag, and a Wehr
+         *       that cannot clear its own practice runs stops marking them as practice runs. A viewer still
+         *       cannot (403).
          *       «Übung» here means CREATED as one and never marked real since
          *       (``exercise_since_creation``) — a real Einsatz someone marked Übung later is a real
          *       Einsatz for this door.
          *
-         *     ⚠️ The door is ``EditorOrAdmin``, not ``CurrentEditor``: the Verwaltung's own incident list
+         *     ⚠️ The door admits the admin cookie alone (``IncidentDeleter``, not ``CurrentEditor``): the Verwaltung's own incident list
          *       offers this button, and /admin is reached with an ADMIN cookie that need not be
          *       accompanied by an editor login. Requiring both made that control fail for exactly the
          *       person the Verwaltung exists for.
@@ -5847,6 +5879,108 @@ export interface components {
             /** Latest Seq */
             latest_seq: number;
         };
+        /**
+         * LernUebungIn
+         * @description `POST /api/incidents/lernen` — only the tutorial's id; the server owns title and scene.
+         */
+        LernUebungIn: {
+            /**
+             * Tutorial
+             * @enum {string}
+             */
+            tutorial: "lageZeichnen" | "planGebaeude" | "tafel" | "checkliste" | "trupps" | "notfall" | "anwesenheit" | "material" | "verlauf" | "rapport" | "wiedergabe";
+        };
+        /** LernUebungOut */
+        LernUebungOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Divera Id */
+            divera_id?: number | null;
+            /** Title */
+            title: string;
+            /** Type */
+            type?: string | null;
+            /** Priority */
+            priority?: string | null;
+            /** Address */
+            address?: string | null;
+            /** Lat */
+            lat?: number | null;
+            /** Lng */
+            lng?: number | null;
+            /** Status */
+            status: string;
+            /** Source */
+            source: string;
+            /** Source Ref */
+            source_ref?: string | null;
+            /**
+             * Auto Opened
+             * @default false
+             */
+            auto_opened?: boolean;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /** Closed At */
+            closed_at?: string | null;
+            /** Last Closed At */
+            last_closed_at?: string | null;
+            /** Is Archived */
+            is_archived: boolean;
+            /**
+             * Is Exercise
+             * @default false
+             */
+            is_exercise?: boolean;
+            /**
+             * Exercise Since Creation
+             * @default false
+             */
+            exercise_since_creation?: boolean;
+            /** Report Done At */
+            report_done_at?: string | null;
+            /** Editor Opened At */
+            editor_opened_at?: string | null;
+            /**
+             * Capture Writes
+             * @default 0
+             */
+            capture_writes?: number;
+            /** Capture Last At */
+            capture_last_at?: string | null;
+            /** Workspace Rev */
+            workspace_rev: number;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Text */
+            text?: string | null;
+            /** Details Json */
+            details_json?: {
+                [key: string]: unknown;
+            } | null;
+            /** Map Workspace Json */
+            map_workspace_json?: {
+                [key: string]: unknown;
+            } | null;
+            /** Reused */
+            reused: boolean;
+        };
         /** LinkTokenIn */
         LinkTokenIn: {
             /** Token */
@@ -8905,6 +9039,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["IncidentFull"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    open_lern_uebung_api_incidents_lernen_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                access_token?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LernUebungIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LernUebungOut"];
                 };
             };
             /** @description Validation Error */

@@ -182,6 +182,16 @@ async def test_nothing_is_recorded_for_a_finished_einsatz(db_session, incident, 
     assert await _rows(db_session, incident) == []
 
 
+async def test_a_lern_uebung_gets_no_track(db_session, traccar, monkeypatch):
+    """A tutorial («Üben», source 'training') is not an Einsatz the fleet drives to."""
+    lern = Incident(title="Lernen · Trupps", source="training", status="offen", is_exercise=True)
+    db_session.add(lern)
+    await db_session.commit()
+    traccar.append(_pos(1, 47.5163, 7.5617))
+    await _sweep(db_session, monkeypatch)
+    assert await _rows(db_session, lern) == []
+
+
 async def test_every_open_einsatz_gets_its_own_track(db_session, traccar, monkeypatch):
     """Two Einsätze running at once each need the full picture — a shared fleet is sampled into
     both, because a replay of one must not depend on what the other was doing."""

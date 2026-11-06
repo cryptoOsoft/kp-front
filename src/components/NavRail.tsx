@@ -16,6 +16,7 @@ import { PlanGlyph } from './PlanGlyph'
 import { GroupChooser, type GroupRow } from './GroupChooser'
 import { SURFACE_KEY } from '../lib/hotkeys'
 import { controlChipLabel } from '../lib/abschlussOpen'
+import { tut } from '../lib/tutorials/anchors'
 
 
 interface Props {
@@ -205,7 +206,7 @@ export function NavRail(p: Props) {
       {rail.edge.top && <button type="button" className="nav-more rail-more rail-more-up" aria-label={nav.scrollMore} onClick={() => rail.nudge(-1)}><Icon id="chevron-down" /></button>}
       {rail.edge.bottom && <button type="button" className="nav-more rail-more rail-more-down" aria-label={nav.scrollMore} onClick={() => rail.nudge(1)}><Icon id="chevron-down" /></button>}
       <div ref={rail.scrollRef} className={`nav-scroll rail-scroll${rail.edge.top ? ' more-top' : ''}${rail.edge.bottom ? ' more-bottom' : ''}`}>
-        <button className={`nav-item${p.mode === 'map' ? ' on' : ''}`} aria-pressed={p.mode === 'map'} aria-label={nav.map} onClick={() => p.onMode('map')}>
+        <button className={`nav-item${p.mode === 'map' ? ' on' : ''}`} aria-pressed={p.mode === 'map'} aria-label={nav.map} onClick={() => p.onMode('map')} {...tut('rail.map')}>
           <span className="nav-glyph"><Icon id="map" /></span>
           <span className="nav-label">{nav.map}</span>
           {keyHint(SURFACE_KEY.map)}
@@ -230,6 +231,7 @@ export function NavRail(p: Props) {
             aria-pressed={p.mode === 'plans'}
             aria-label={`${nav.plansGroup} · ${folded.target.code}`}
             aria-haspopup={folded.many ? 'dialog' : undefined}
+            {...tut('rail.plans')}
             {...(folded.many ? { 'data-holdaction': true as const } : null)}
             onPointerDown={(e) => { held.current = false; if (folded.many) holdProps.onPointerDown(e) }}
             onClick={() => {
@@ -266,12 +268,12 @@ export function NavRail(p: Props) {
         })}
 
         {!p.fold && <div className="nav-sep rail-sep" />}
-        <button className={`nav-item${p.mode === 'checklists' ? ' on' : ''}`} aria-pressed={p.mode === 'checklists'} aria-label={appConfig.copy.modes.checklists} onClick={() => p.onMode('checklists')}>
+        <button className={`nav-item${p.mode === 'checklists' ? ' on' : ''}`} aria-pressed={p.mode === 'checklists'} aria-label={appConfig.copy.modes.checklists} onClick={() => p.onMode('checklists')} {...tut('rail.checklists')}>
           <span className="nav-glyph"><Icon id="checklist" /></span>
           <span className="nav-label">{appConfig.copy.modes.checklists}</span>
           {keyHint(SURFACE_KEY.checklists)}
         </button>
-        <button className={`nav-item${p.mode === 'atemschutz' ? ' on' : ''}`} aria-pressed={p.mode === 'atemschutz'} aria-label={appConfig.copy.modes.atemschutz} onClick={() => p.onMode('atemschutz')}>
+        <button className={`nav-item${p.mode === 'atemschutz' ? ' on' : ''}`} aria-pressed={p.mode === 'atemschutz'} aria-label={appConfig.copy.modes.atemschutz} onClick={() => p.onMode('atemschutz')} {...tut('rail.atemschutz')}>
           {/* ⚠️ A STOPWATCH, not the pressure dial this item wore until 04.09. The surface is
               «Trupps» now and it carries work squads too — a Manometer names a cylinder half of
               them do not have, while the clocks (Kontaktuhr, Einsatzzeit, Pause) are what every
@@ -285,14 +287,14 @@ export function NavRail(p: Props) {
             full pages there; a second tap or a hold on that tile chooses between them. Everywhere
             else they keep the tiles they have always had. */}
         {!p.fold && (
-          <button className={`nav-item${p.mode === 'anwesenheit' ? ' on' : ''}`} aria-pressed={p.mode === 'anwesenheit'} aria-label={appConfig.copy.modes.anwesenheit} onClick={() => p.onMode('anwesenheit')}>
+          <button className={`nav-item${p.mode === 'anwesenheit' ? ' on' : ''}`} aria-pressed={p.mode === 'anwesenheit'} aria-label={appConfig.copy.modes.anwesenheit} onClick={() => p.onMode('anwesenheit')} {...tut('rail.anwesenheit')}>
             <span className="nav-glyph"><Icon id="people" /></span>
             <span className="nav-label">{appConfig.copy.modes.anwesenheit}</span>
             {keyHint(SURFACE_KEY.anwesenheit)}
           </button>
         )}
         {!p.fold && (
-          <button className={`nav-item${p.mode === 'mittel' ? ' on' : ''}`} aria-pressed={p.mode === 'mittel'} aria-label={appConfig.copy.modes.mittel} onClick={() => p.onMode('mittel')}>
+          <button className={`nav-item${p.mode === 'mittel' ? ' on' : ''}`} aria-pressed={p.mode === 'mittel'} aria-label={appConfig.copy.modes.mittel} onClick={() => p.onMode('mittel')} {...tut('rail.mittel')}>
             <span className="nav-glyph"><Icon id="box" /></span>
             <span className="nav-label">{appConfig.copy.modes.mittel}</span>
             {keyHint(SURFACE_KEY.mittel)}
@@ -316,6 +318,7 @@ export function NavRail(p: Props) {
              «there is something», a count cannot be read off a coloured circle */
           aria-label={rapportCount ? `${rapportWord} · ${openWords(rapportCount)}` : rapportWord}
           aria-haspopup={p.fold ? 'dialog' : undefined}
+          {...tut('rail.rapport')}
           {...(p.fold ? { 'data-holdaction': true as const } : null)}
           onPointerDown={(e) => { heldR.current = false; if (p.fold) holdRapport.onPointerDown(e) }}
           onClick={() => {

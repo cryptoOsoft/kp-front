@@ -290,6 +290,26 @@ async def test_divera_auto_open_suppressed_while_incident_running(client, webhoo
     assert [i.title for i in (await db_session.execute(select(Incident))).scalars()] == ["Verunreinigung Bachweg"]
 
 
+async def test_divera_auto_open_is_not_held_by_a_lern_uebung(client, webhook_secret, db_session):
+    """A tutorial's Übung («Üben», source `training`) is nobody's Einsatz: a learner practising
+    at home must not hold the next real alarm in the pool."""
+    db_session.add(
+        Incident(
+            title="Lernen · Trupps",
+            source="training",
+            status="offen",
+            is_exercise=True,
+            exercise_since_creation=True,
+            started_at=datetime.now(UTC) - timedelta(minutes=10),
+        )
+    )
+    await db_session.commit()
+
+    r = await client.post("/api/divera/webhook", json=DIVERA_PAYLOAD, headers={"X-Webhook-Secret": "hook-secret-123"})
+    assert r.status_code == 200
+    assert r.json()["incident_id"] is not None
+
+
 async def test_divera_auto_open_ignores_stale_open_incident(client, webhook_secret, db_session):
     """An open incident older than the 4h running window (unfinished rapport) must not
     suppress auto-open for a genuinely new alarm."""

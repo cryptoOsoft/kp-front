@@ -232,6 +232,7 @@
   --z-map-util: 40;          /* compass · zoom · Standort · wind — the floating glass clusters */
   --z-map-util-raised: 41;   /* the phone's share pill, over them */
   --z-replay: 50;            /* Wiedergabe */
+  --z-tutorial: 52;          /* «Üben»: the pill, the Sprechblase, the done card – under every message */
   --z-messages: 54;          /* the message lane (.ml) */
   --z-fab: 55;               /* the phone's capture button */
   --z-topbar: 56;            /* the top bar, over everything on the canvas */
@@ -243,6 +244,7 @@
   --z-dialog-scrim: 80;      /* `.ui-backdrop` — the modal scrim */
   --z-dialog: 81;            /* `.ip-sheet.ui-dialog` — the modal itself */
   --z-dialog-menu: 85;       /* a Combo opened INSIDE a modal */
+  --z-tutorial-sheet: 86;    /* …the Sprechblase on a control INSIDE a modal (the phone's «+» sheet), and «Zeigen»'s ring */
   --z-admin: 100;            /* the /admin shell — a fixed surface over the whole app */
   --z-blocking-scrim: 120;   /* «WebGL verloren» · the intake picker */
   --z-blocking: 121;

@@ -8,7 +8,7 @@ test:
   never enabled answers the same (nothing to compare against);
 - resolution: exactly one open Einsatz → bound; none → «idle» (a structured answer, not the
   probing 404 — the holder is station-internal); several → «choose», and the pick binds and
-  STICKS across the poll until that Einsatz closes; Übungen count as open;
+  STICKS across the poll until that Einsatz closes; Übungen count as open, a Lern-Übung never;
 - scope: the terminal is the alarm link's read surface and never writes; the standing AS
   session writes exactly the ak slice, stamped `atemschutz-fix` so the record says which
   credential wrote (a 16-char column budget — see test_the_stamp_fits_the_source_columns);
@@ -148,6 +148,27 @@ async def test_an_uebung_counts_as_open(client, standing_as_key, db_session):
     r = await _exchange(client, f"s{STANDING_AS_KEY}")
     assert r.status_code == 200 and r.json()["status"] == "ok"
     assert r.json()["incident_id"] == str(inc.id)
+
+
+async def test_a_lern_uebung_is_never_bound(client, terminal_key, standing_as_key, db_session):
+    """A learner's tutorial («Üben», source 'training') must not capture the station's terminal,
+    and a real Einsatz beside it must not turn into «choose»."""
+    lern = _incident(title="Lernen · Trupps", source="training", is_exercise=True)
+    db_session.add(lern)
+    await db_session.commit()
+    for token in (f"t{TERMINAL_KEY}", f"s{STANDING_AS_KEY}"):
+        r = await _exchange(client, token)
+        assert r.status_code == 200 and r.json() == {"status": "idle"}, r.text
+        # not even when asked for by id
+        assert (await _exchange(client, token, incident_id=str(lern.id))).json() == {"status": "idle"}
+
+    real = _incident()
+    db_session.add(real)
+    await db_session.commit()
+    await db_session.refresh(real)
+    for token in (f"t{TERMINAL_KEY}", f"s{STANDING_AS_KEY}"):
+        r = await _exchange(client, token)
+        assert r.json() == {"status": "ok", "incident_id": str(real.id)}
 
 
 async def test_two_open_einsaetze_answer_choose_and_the_pick_binds(client, terminal_key, db_session):

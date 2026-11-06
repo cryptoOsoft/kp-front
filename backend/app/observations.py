@@ -7,12 +7,12 @@ screen was asleep. The replay reads these events to show the wind as it stood at
 (`src/lib/replay · stateAt`), so the record needs exactly one per reading, whoever is looking.
 
 The scheduler now observes every ``WEATHER_OBSERVE_SECONDS`` per ACTIVE Einsatz
-(`vehicle_presence.active_incidents`: open, started within 24 h, real coordinate), and writes
-ONE event under the derived id ``wx:<incident>:<observed_at>`` in the shape the client emitted —
-``weather.observe`` with ``{"weather": WeatherData}`` — so the replay reads it unchanged. The
-same reading seen again (MeteoSwiss publishes every 10 min, the job can tick between) is the
-same id and writes nothing. The client's emit is gone; an older build's copy is dropped at the
-ingest endpoint (`api/events · SERVER_OBSERVED_OPS`).
+(`vehicle_presence.active_incidents`: open, not a Lern-Übung, started within 24 h, real
+coordinate), and writes ONE event under the derived id ``wx:<incident>:<observed_at>`` in the
+shape the client emitted — ``weather.observe`` with ``{"weather": WeatherData}`` — so the replay
+reads it unchanged. The same reading seen again (MeteoSwiss publishes every 10 min, the job
+can tick between) is the same id and writes nothing. The client's emit is gone; an older
+build's copy is dropped at the ingest endpoint (`api/events · SERVER_OBSERVED_OPS`).
 
 Wind shift (D2-c): each observation is compared with the ESTABLISHED wind. A turn of at least
 ``WIND_SHIFT_DEG`` at ``WIND_SHIFT_MIN_KMH`` or more, held over two consecutive observations on

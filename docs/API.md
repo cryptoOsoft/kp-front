@@ -65,7 +65,7 @@ PIN-kiosk flow issuing JWTs as **httpOnly cookies** (single-origin, so no tokens
 | `/api/integrations/credentials*` | integration credentials + their audit trail (see below) | admin |
 | `/api/integrations/*` (the rest) | the Objektbesuche organizer API: catalogue, objects by the organizer's own ids, visit programmes and lists, the change feed, visits, reports and photos ([`object-visits.md`](object-visits.md)) | organizer key (`Authorization: Bearer`, fail-closed) |
 | `/api/station-workbook/*` | the station-data `.xlsx` – export, preview, import (see below) | admin |
-| `/api/incidents/*` | incident CRUD, workspace sync, notes, append-only events (`…/{id}/events`, `snapshot`, `samples`, `state`, `verify`); `PUT …/workspace/record` is the record slice an `el` session may write; a workspace save (full, `…/trupps` or `…/record`) stamped with an older `schemaVersion` than the stored blob is **409 `workspace_older_build`** – the slices send `schemaVersion` since 30.10.2026, one without it counts as 3 ([`sync-and-offline.md`](sync-and-offline.md)); whole-incident hard delete is the narrow exception | editor (mutations, incl. deleting an **Übung** created as one) · `el` (record slice, journal, Einsatzdaten) · admin (hard delete of a real, archived Einsatz) |
+| `/api/incidents/*` | incident CRUD, workspace sync, notes, append-only events (`…/{id}/events`, `snapshot`, `samples`, `state`, `verify`); `PUT …/workspace/record` is the record slice an `el` session may write; a workspace save (full, `…/trupps` or `…/record`) stamped with an older `schemaVersion` than the stored blob is **409 `workspace_older_build`** – the slices send `schemaVersion` since 30.10.2026, one without it counts as 3 ([`sync-and-offline.md`](sync-and-offline.md)); whole-incident hard delete is the narrow exception | editor (mutations, incl. deleting an **Übung** created as one) · `el` (record slice, journal, Einsatzdaten, a Lern-Übung: `POST …/lernen` and deleting one) · admin (hard delete of a real, archived Einsatz) |
 | `/api/objects/*`, `/api/reference/*` | object library + plans, reference geodata layers; `GET /api/reference/{id}/alignments?v=N` serves the station-approved fit of one plan revision | read auth · admin (writes) |
 | `/api/reference/objects`, `/api/reference/building` | «Karte & Objekte»: every station object (key boxes included) with plans, floors and last visit; the Gebäude card's register facts for any point, no incident ([`karte-objekte.md`](karte-objekte.md)) | account sessions + admin · never a link (403) |
 | `/api/admin/plan-alignments/*` | the pre-computed plan alignments: list (metadata only – never the building outlines), outline (one sheet’s reference geometry, drawn per review tile), preview (`?thumbnail=true`), approve (with optional corrected pairs), reject, retry, undo, and `PUT …/floors` – the whole Geschoss list of one revision, replaced as one document: each row is a `page` + signed `index` + `part` (a storey drawn in several pieces – two wings of one 1. OG – has one row per drawing, each with its own `clip` and `join`; absent = 0). Nothing reaches an incident before an approval. Every row carries `marker_notes` (list and detail): what this revision's own `§` markers said – `warnings[]` as codes plus `storeys_found`/`storeys_written`/`geo_pairs`, `null` on an unmarked sheet – so a plan that prepared nothing can say why | admin |
@@ -90,6 +90,14 @@ PIN-kiosk flow issuing JWTs as **httpOnly cookies** (single-origin, so no tokens
 | `/api/diag/telemetry*` | telemetry status (incl. the queued payloads verbatim), consent on/off, install-id rotation | admin |
 
 The exact request/response shapes are in [`openapi.json`](openapi.json) / the live `/docs`.
+
+**`POST /api/incidents/lernen`** – the «Üben» door (05.11.2026). Body `{ "tutorial": "<id>" }`, one
+of the tutorials that run on a seeded Übung (`LernUebungIn`; anything else is 422). Answers
+`IncidentFull` plus `reused`: the station's newest OPEN Lern-Übung (`source='training'`, Übung
+since creation, title «Lernen ·») renamed to this tutorial with its workspace kept, or – only
+when there is none – a new one, seeded around the station's map centre with its roster
+(`backend/app/tutorial_seed.py`) and audited as `incident.create`. Editor and `el`; 403 in the
+demo and for every other session. Who may delete or change it: [`roles-and-access.md`](roles-and-access.md) › «Üben».
 
 **Three routes outside `/api/*`**, all unauthenticated because the caller has no session to
 offer – a container runtime, a monitor, or the browser itself:

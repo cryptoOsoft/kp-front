@@ -26,7 +26,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from . import audit, live_wait
 from .config import settings
 from .geocode import geocode
-from .models import DeploymentConfig, Incident
+from .models import LERN_UEBUNG_SOURCE, DeploymentConfig, Incident
 from .schemas import AlarmsConfig, DeploymentConfigIn, load_stored_config
 from .transaction_hooks import after_completion
 from .vehicle_presence import last_activity
@@ -151,6 +151,7 @@ async def open_pooled_alarm(db: AsyncSession, *, source: str, ref: str) -> Incid
             .where(
                 Incident.is_archived.is_(False),
                 Incident.started_at > datetime.now(UTC) - timedelta(hours=4),
+                Incident.source != LERN_UEBUNG_SOURCE,  # never a tutorial (models · LERN_UEBUNG_SOURCE)
             )
             .order_by(Incident.started_at.desc())
             .limit(1)

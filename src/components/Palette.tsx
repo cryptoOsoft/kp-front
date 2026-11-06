@@ -14,6 +14,7 @@ import { bareBlack } from '../lib/glyphTile'
 import { useIsPhone } from '../lib/useIsPhone'
 import { addTools } from '../lib/toolFold'
 import { SheetGrab, useSwipeDismiss } from '../lib/overlays'
+import { tut, toolAnchor } from '../lib/tutorials/anchors'
 
 // the geometric «Formen» section (Pfeil · Rechteck) renders right after this pack category,
 // before Wasser (the pack's order: tools/gen_symbols.py · ORDER).
@@ -51,7 +52,7 @@ interface PaletteTool { id: string; icon: string; label: string; sep?: boolean; 
 /** a tool in the sheet: the same cell a symbol gets, wearing the glyph its rail tile wears */
 function ToolCell({ tool, onPick }: { tool: PaletteTool; onPick: (id: string) => void }) {
   return (
-    <button className="sym-cell sym-cell-tool" title={tool.label} onClick={() => onPick(tool.id)} draggable={false}>
+    <button className="sym-cell sym-cell-tool" title={tool.label} onClick={() => onPick(tool.id)} draggable={false} {...toolAnchor('add', tool.id)}>
       <span className="sym-cell-in">
         <span className="sym-tool-glyph"><Icon id={tool.icon} /></span>
         <small>{tool.label}</small>
@@ -145,7 +146,7 @@ export function Palette({ sym, onPick, onClose, onPickShape, tools, onPickTool }
               answers a question nobody asks — how many symbols the pack has changes nothing
               about the one you are looking for. */}
           <SearchField ref={inputRef} className="sym-search" value={q} onChange={setQ}
-            placeholder={appConfig.copy.symbolSearchPlaceholder} aria-label={appConfig.copy.symbolSearchPlaceholder} />
+            placeholder={appConfig.copy.symbolSearchPlaceholder} aria-label={appConfig.copy.symbolSearchPlaceholder} {...tut('add.search')} />
           <button className="sym-close" onClick={onClose} title={appConfig.copy.closeDialog} aria-label={appConfig.copy.closeDialog}><Icon id="close" /></button>
         </div>
 

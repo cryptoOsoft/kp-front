@@ -20,6 +20,11 @@ export type PopoverChange = Pick<PopoverRootChangeEventDetails, 'reason' | 'even
  * trigger may be left out. The element's own tap handler opens and closes it; `onOpenChange`'s
  * second argument says why Base UI wants it closed, so that handler's own press can be ignored
  * (it would otherwise close the popover, and the tap reopen it).
+ * PERSISTENT mode (05.11.2026 – the «Üben» Sprechblase, components/tutorial): a controlled popover
+ * that stands while the learner works AROUND it – it ignores the close requests, takes no focus
+ * (`takeFocus={false}`, so a field being typed in keeps the keys) and does not register with the
+ * popoverGuard (`guard={false}`: it is no transient layer, and a standing entry there would leave
+ * every Sheet deaf to its backdrop and Esc). `arrowClassName` draws Base UI's Arrow at the anchor.
  * NOTE: for surfaces that must NOT be dismissed/focus-managed and must let the map stay live
  * underneath (map tool-docks like MapViewsMenu), keep the hand-rolled dock — do not use this.
  */
@@ -45,27 +50,35 @@ export interface PopoverProps {
    *  against it, and a panel of prose read flush to the glass reads as one that has been cut. On
    *  a phone the difference is not cosmetic — the Rapport's Kontrolle popover lost its first
    *  column of text off the left edge. A property of the surface being finite, not of a call site. */
-  collisionPadding?: number
+  collisionPadding?: PopoverPositionerProps['collisionPadding']
   /** what the popup must stay inside (default: the anchor's clipping ancestors). An anchor inside
    *  a scrolling panel passes the page (`document.documentElement`), so the popup may overflow
    *  the panel instead of being squeezed into it. */
   collisionBoundary?: PopoverPositionerProps['collisionBoundary']
   open?: boolean
   onOpenChange?: (open: boolean, change: PopoverChange) => void
+  /** register with the popoverGuard (default true) – false only for a PERSISTENT popover */
+  guard?: boolean
+  /** move focus into the popup on open and back on close (default true) */
+  takeFocus?: boolean
+  /** draw Base UI's Arrow at the anchor, with this class */
+  arrowClassName?: string
 }
 
-export function Popover({ trigger, anchor, children, ariaLabel, popupClassName, side = 'bottom', align = 'end', sideOffset = 8, alignOffset, collisionPadding = 10, collisionBoundary, zIndex, open, onOpenChange }: PopoverProps) {
+export function Popover({ trigger, anchor, children, ariaLabel, popupClassName, side = 'bottom', align = 'end', sideOffset = 8, alignOffset, collisionPadding = 10, collisionBoundary, zIndex, open, onOpenChange, guard = true, takeFocus = true, arrowClassName }: PopoverProps) {
   // uncontrolled callers give us no `open` to read, so the Root reports it — a popover open over
   // a Sheet/Overlay keeps that sheet's backdrop/Esc dismissal off (popoverGuard)
   const [isOpen, setIsOpen] = useState(false)
-  usePopoverGuard(open ?? isOpen)
+  usePopoverGuard(guard && (open ?? isOpen))
   return (
     <BasePopover.Root open={open} onOpenChange={(next, { reason, event }) => { setIsOpen(next); onOpenChange?.(next, { reason, event }) }}>
       {trigger && <BasePopover.Trigger render={trigger} />}
       <BasePopover.Portal>
         <BasePopover.Positioner anchor={anchor} side={side} align={align} sideOffset={sideOffset} alignOffset={alignOffset} collisionPadding={collisionPadding} collisionBoundary={collisionBoundary} style={zIndex != null ? { zIndex } : undefined}>
           {/* `ui-pop`: shared exit hook — see 13-incident.css [data-ending-style] */}
-          <BasePopover.Popup className={popupClassName ? `ui-pop ${popupClassName}` : 'ui-pop'} aria-label={ariaLabel}>
+          <BasePopover.Popup className={popupClassName ? `ui-pop ${popupClassName}` : 'ui-pop'} aria-label={ariaLabel}
+            initialFocus={takeFocus ? undefined : false} finalFocus={takeFocus ? undefined : false}>
+            {arrowClassName && <BasePopover.Arrow className={arrowClassName} />}
             {children}
           </BasePopover.Popup>
         </BasePopover.Positioner>

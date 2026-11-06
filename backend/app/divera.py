@@ -37,7 +37,7 @@ from .config import settings
 from .credentials import get as credential
 from .database import dialect_insert
 from .divera_responses import cached_catalogue, classify_answers, ensure_catalogue, parse_responses_by_alarm, resolvable
-from .models import DiveraEmergency, Incident
+from .models import LERN_UEBUNG_SOURCE, DiveraEmergency, Incident
 from .push import notify_new_alarm
 from .schemas import DiveraWebhookPayload
 
@@ -345,7 +345,13 @@ async def maybe_auto_open(db: AsyncSession, em: DiveraEmergency) -> Incident | N
         await db.execute(
             select(func.count())
             .select_from(Incident)
-            .where(Incident.is_archived.is_(False), Incident.started_at > cutoff)
+            # a Lern-Übung is a tutorial, not an Einsatz a Nachalarm could belong to (models ·
+            # LERN_UEBUNG_SOURCE)
+            .where(
+                Incident.is_archived.is_(False),
+                Incident.started_at > cutoff,
+                Incident.source != LERN_UEBUNG_SOURCE,
+            )
         )
     ).scalar_one()
     if running:

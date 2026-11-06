@@ -34,6 +34,7 @@ import { WheelPopover, type WheelValue } from './WheelPicker'
 import { dayRange } from '../lib/zeitplanFormat'
 import { keyboardMargin, useKeyboardInset } from '../lib/useKeyboardInset'
 import { nextCompact } from '../lib/composerFit'
+import { tut } from '../lib/tutorials/anchors'
 
 // `C` (appConfig.copy.journal) is read at the top of each component below rather than captured
 // here at module-load, so the locale resolved at boot (config/copy) applies.
@@ -844,6 +845,7 @@ export function JournalComposer({ onSubmit, onClose, incidentStartAt, uploadAudi
           // already has the caret, and is what every other way of opening the sheet relies on.
           ref={attachText}
           className="jc-text"
+          {...tut('verlauf.composer')}
           value={text}
           onChange={(e) => {
             const v = stripUnprintable(e.target.value)
