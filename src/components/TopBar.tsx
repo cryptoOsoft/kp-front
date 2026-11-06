@@ -246,7 +246,7 @@ export function TopBar({ incident, startedAt, endedAt, recording, recStartedAt, 
         <button className={`tb-act ${journalOpen ? 'on' : ''} ${reminderCount > 0 ? 'has-rem' : ''}`} aria-pressed={journalOpen} onClick={onToggleJournal} {...tut('top.verlauf')}
           aria-label={reminderCount > 0 ? appConfig.copy.journal.openCount.replace('{n}', String(reminderCount)) : appConfig.copy.journal.open}
           title={keyTitle(reminderCount > 0 ? appConfig.copy.journal.openCount.replace('{n}', String(reminderCount)) : appConfig.copy.journal.open, PANEL_KEY.journal)}>
-          <Icon id="history" /><span>{appConfig.copy.journal.open}</span>{keyHint(PANEL_KEY.journal)}
+          <Icon id="verlauf" /><span>{appConfig.copy.journal.open}</span>{keyHint(PANEL_KEY.journal)}
           {reminderCount > 0 && <span className="tb-rem-count" aria-label={appConfig.copy.journal.openCount.replace('{n}', String(reminderCount))}>{reminderCount}</span>}
         </button>
         {onAddEntry && (

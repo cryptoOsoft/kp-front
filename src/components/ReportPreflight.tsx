@@ -1530,9 +1530,9 @@ export function ReportPreflight({
             to what they were. Outside the scrolling body on purpose: it is a flex item of the
             surface, like the head, so it cannot scroll away from under the thumb. A tab holding a
             Mindestangabe that is still open carries the page's OPEN mark after its word – the
-            dashed ring its section heads wear (StatusMark, hill climb r24; an amber corner dot
-            until then read as a notification badge, a second language for «offen»). The amber
-            stays the head's «n offen» chip's, the count. A done tab carries nothing: a tab is a
+            broken amber ring its section heads wear (StatusMark, hill climb r24/r26; an amber
+            corner dot until then read as a notification badge, a second language for «offen»).
+            The count stays the head's «n offen» chip's. A done tab carries nothing: a tab is a
             way to a page, not a section, and discs on two of three tabs read as bullets. */}
         <PhoneTabBar<PhoneTab>
           ariaLabel={P.tabsLabel}
@@ -1544,7 +1544,7 @@ export function ReportPreflight({
             return {
               value: t,
               title: open ? `${P.tabs[t]} – ${P.headStillOpen}` : P.tabs[t],
-              label: <>{P.tabs[t]}{open && <StatusMark done={false} />}</>,
+              label: <span>{P.tabs[t]}{open && <StatusMark done={false} />}</span>,
             }
           })}
         />
@@ -2133,20 +2133,16 @@ export function ReportPreflight({
                   flagged inline — corrections go through the row's arrow (Anwesenheit) */}
               {attendanceCount > 0 && (
                 <div className="rp-check-extra">
-                  <div className="rp-people">
+                  <div className="rp-people rp-names">
                     {rows.map((r) => (
                       <span key={r.personId} className="rp-person">
-                        {/* the name is line 1 with the departure time at its right edge, so the
-                            amber times stand in one column instead of trailing wherever a name
-                            ended; the Funktion is line 2 (`<i>`), under both (council 04.11.2026,
-                            round 5 — 13-incident.css `.rp-person`) */}
+                        {/* ONE line: the name, with the departure time at its right edge so the
+                            times stand in one column (13-incident.css `.rp-person`). No Funktion
+                            here (owner pick A, 05.11.2026): as a second line it doubled the list's
+                            height and the card showed half the people – this list is the check
+                            «sind alle drauf», and that needs the names. The Bemerkung stays on the
+                            Anwesenheit tab and the printed Anwesenheitsblatt. */}
                         <span className="rp-person-txt">{r.name}</span>
-                        {/* the job they had — «Einsatzleiter», «Fahrer TLF» — read straight off
-                            their Bemerkung, the same string the printed Personal-/Anwesenheits-
-                            blatt puts under the name. At the end of an Einsatz this list IS the
-                            check «wer war da, und als was», so the function belongs on it. */}
-                        {(attendance[r.personId]?.note ?? '').trim()
-                          && <i>{(attendance[r.personId]!.note ?? '').trim()}</i>}
                         {/* only somebody who actually LEFT gets a time. hoursRows fills an open
                             block with the Einsatzende, which put «· bis 09:00» behind every name
                             on the list — the exception it exists to flag then read as the rule. */}

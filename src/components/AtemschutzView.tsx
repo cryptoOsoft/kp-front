@@ -15,7 +15,7 @@ import { cx } from '../lib/cx'
 import { newId } from '../lib/ids'
 import { Button } from './Button'
 import { Menu, Overlay, Popover } from '../lib/overlays'
-import { NotfallBanner, NotfallPageHead, NotfallStrip, type SafetyActProps } from './AtemschutzNotfall'
+import { NotfallBanner, NotfallPageHead, NotfallPageSafety, NotfallStrip, type SafetyActProps } from './AtemschutzNotfall'
 import { DoubleAssignmentBanner } from './DoubleAssignmentBanner'
 import { alarmBarFor, deriveTruppLive, safetyCandidates, safetyInside, safetyReady, truppInNotfall, earlyEntryCorrection, truppEditPatch, truppFieldGroupsChanged, truppLogName, type TruppFieldGroup, fmtClock, isAtemschutzTrupp, truppAlarm, truppFieldsOf, truppHeadName, truppInField, truppStillDeployed, truppTransferState, type TruppAlarm, type TruppLive } from '../lib/atemschutz'
 import { foreignContactAgo } from '../lib/contactEcho'
@@ -1020,6 +1020,8 @@ export function AtemschutzView({
     const nonce = focusNonceOf(t.id)
     const seen = nonce == null ? undefined : () => flashSeen.current.get(t.id) === nonce
     const flashed = nonce == null ? undefined : () => flashSeen.current.set(t.id, nonce)
+    // the link board's page of a Trupp in a running Notfall (NotfallPageHead · NotfallPageSafety)
+    const nfPage = focusMode && frozenAt == null && truppInNotfall(t)
     return (
     compact && !focusMode && openRow !== t.id ? (
       <TruppRow
@@ -1070,11 +1072,14 @@ export function AtemschutzView({
       lite={!!lite}
       onCollapse={compact && !focusMode ? () => setOpenRow(null) : undefined}
       // the handed-over phone board: the card IS the page, and the Notfall Trupp's page opens on
-      // the Notfall itself (Atemschutz-Link redesign R1, 30.10.2026 — AtemschutzNotfall)
+      // the Notfall itself (Atemschutz-Link redesign R1, 30.10.2026 — AtemschutzNotfall): the
+      // information on top, its Sicherungstrupp act down with the tiles (owner pick E3, 06.11.2026)
       page={focusMode}
-      pageHead={focusMode && frozenAt == null && truppInNotfall(t) ? (
-        <NotfallPageHead t={t} now={now} sinceContactSec={live.get(t.id)?.sinceContactSec ?? null} {...safetyFor(t)}
-          otherSafety={noCandidates ? undefined : (trigger) => candidateMenu(t.id, trigger)} />
+      pageHead={nfPage ? (crew) => (
+        <NotfallPageHead t={t} now={now} sinceContactSec={live.get(t.id)?.sinceContactSec ?? null} crew={crew} />
+      ) : undefined}
+      pageSafety={nfPage ? (
+        <NotfallPageSafety {...safetyFor(t)} otherSafety={noCandidates ? undefined : (trigger) => candidateMenu(t.id, trigger)} />
       ) : undefined}
       // the Atemschutznotfall's two held doors (F1) — a closed Einsatz raises and ends nothing
       onNotfall={canEdit && triggerNotfall && frozenAt == null ? () => { freezeOrder(); triggerNotfall(t.id) } : undefined}
@@ -1305,11 +1310,12 @@ export function AtemschutzView({
     shareLinkActive, syncStatus, lastSyncedAt, skewLoud, canEdit,
   ].join('|'))
 
-  /* The Notfall's Sicherungstrupp doors, as the banner (every board) and the link page's head
-   * (focusMode) both offer them — ONE set (AtemschutzNotfall · safetyAct). «Sicherungstrupp
-   * bestimmen» (owner, 30.10.2026, «Becomes Sicherung»), and on the link page «Anderer ⌄» beside a
-   * ready one, are the same candidate menu: every other Atemschutz-Trupp, grouped under the phone
-   * board's own heads — Bereit, Drin, Draussen — then «Neuen Trupp anmelden (Sichern)». A crew
+  /* The Notfall's Sicherungstrupp doors, as the banner (every board) and the link page's foot
+   * (focusMode, NotfallPageSafety) both offer them — ONE set (AtemschutzNotfall · safetyAct).
+   * «Sicherungstrupp bestimmen» (owner, 30.10.2026, «Becomes Sicherung»), and on the link page
+   * «Anderer ⌄» beside a ready one, are the same candidate menu: every other Atemschutz-Trupp,
+   * grouped under the phone board's own heads — Bereit, Drin, Draussen — then «Neuen Trupp
+   * anmelden (Sichern)». A crew
    * bereit or inside turns «Sichern» in one act (designateSafety: its own Verlauf row, one ↶); a
    * crew that is out needs a fresh bottle first, so its pick opens its re-entry form on «Sichern». */
   const candidateMenu = (forId: string, trigger: ReactElement) => (
@@ -1346,7 +1352,7 @@ export function AtemschutzView({
     defineSafety: noCandidates ? undefined : (trigger) => candidateMenu(t.id, trigger),
   })
   // the link board: which red strips stand under its header (lib/notfall · notfallStrips), and
-  // whether the open page is the Notfall itself (its red rail and tint, `.bodyFocusNf`)
+  // whether the open page is the Notfall itself (its red left edge, `.bodyFocusNf`)
   const nfStrips = focusMode ? notfallStrips(notfallTrupps, focusId) : []
   const focusInNotfall = focusMode && notfallTrupps.some((t) => t.id === focusId)
 
@@ -1556,9 +1562,9 @@ export function AtemschutzView({
         {/* «Überwachung abgeben»: the QR, beside the bell, because the realistic handover in an
             Einsatz is «Handy scannen lassen» and the FU is standing on THIS page when they
             decide to. Green while a link is live. Folded it keeps a WORD («Abgeben», hill climb
-            r8, 04.11.2026: the bare QR glyph did not say «hand over» on the phone head) – the word
-            alone in the tiles' type since r21, the glyph gives way (Atemschutz.module · .shareBtn);
-            only the second rank, the ladder's last word, leaves the glyph alone. */}
+            r8, 04.11.2026: the bare QR glyph did not say «hand over» on the phone head) – glyph + word
+            in the tiles' type since r26 (Atemschutz.module · .shareBtn); only the second rank, the
+            ladder's last word, leaves the glyph alone. */}
         {onShareLink && (
           <button
             type="button"
@@ -1789,6 +1795,8 @@ export function AtemschutzView({
                 <button
                   key={t.id} type="button" role="tab" aria-selected={t.id === focusId}
                   className={cx(s.tab, t.id === focusId && s.tabOn, sev === 1 && s.tabWarn, sev >= 2 && s.tabCrit,
+                    // a Notfall's tab: on its own page the plain open tab, the name red (`.tabOn.tabNf`, E3)
+                    alarm.reason === 'notfall' && s.tabNf,
                     // idle grey = a crew that is out — its break clock ticks in this quiet tone; a crew
                     // at the door says «Bereit» in green instead (R1, 30.10.2026)
                     lv.status === 'raus' && s.tabIdle)}

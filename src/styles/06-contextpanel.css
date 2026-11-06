@@ -24,8 +24,11 @@
    `.ip-sheet` already answers in 13-incident.css; without one it falls back to 0px and this is
    the rule it always was. Stays at this specificity on purpose: the phone bottom-sheet override
    in 15-mobile.css replaces the max-height wholesale and must keep winning. */
+/* No edge (r35, 06.11.2026): the sheets draw none, --e4 is the outline – a 1px --glass-line ring
+   was this panel's alone among them. Its 16px inset (not the sheets' 24) is the editor rows': the
+   label column and the control edge need the width, so title and ✕ both stand 16 in. */
 .ctx { position: absolute; right: calc(var(--vrail-w, 60px) + 26px); top: var(--rail-top); width: 360px; background: var(--glass);
-  backdrop-filter: blur(14px) saturate(1.4); border: 1px solid var(--glass-line); border-radius: var(--r-hero); z-index: var(--z-chrome);
+  backdrop-filter: blur(14px) saturate(1.4); border-radius: var(--r-hero); z-index: var(--z-chrome);
   box-shadow: var(--e4); max-height: calc(100dvh - var(--rail-top) - 16px - env(safe-area-inset-bottom) - var(--kb-inset, 0px));
   display: flex; flex-direction: column; overflow: hidden; }
 /* A Plan's Ebenen list describes the projections in the selected object's detail panel, so both
@@ -53,7 +56,9 @@
    on phones only the grip + header stay pinned and everything else scrolls (the pinned
    desktop copy is hidden there, and vice versa). Rendered by all .ctx editors. */
 .ctx-footer-inline { display: none; }
-.ctx-head { padding: 16px 16px 12px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-soft); }
+/* no hairline under the head (r35, 06.11.2026): no other sheet draws one – its title and the 12px
+   below it already end the head */
+.ctx-head { padding: 16px 16px 12px; display: flex; align-items: center; gap: 12px; }
 .ph { width: 46px; height: 46px; border-radius: var(--r-ctl); border: 2px solid var(--blue); color: var(--blue);
   display: grid; place-items: center; font-family: var(--mono); font-size: var(--fs-1); background: var(--surface-2); flex: none; }
 .ph svg { width: 30px; height: 30px; }
@@ -419,9 +424,11 @@
 .spread-unit > .spread-btn:last-child { border-radius: 0 calc(var(--r-sm) - 1px) calc(var(--r-sm) - 1px) 0; }
 .spread-unit > .spread-btn + .spread-btn { border-left: 1px dashed var(--border); }
 /* each half a full 44px target; the drawn glyph at 22px, the bar a touch heavier than the arrow
-   so the thin stroke still reads as «stopped» */
-.spread-btn { width: 44px; height: 44px; padding: 0; border: none; background: transparent; color: var(--ink);
+   so the thin stroke still reads as «stopped». The pad reaches over the capsule's 1px border, top
+   and bottom: on a fractional row offset the bare 44 measured 43 (hill climb r34). */
+.spread-btn { position: relative; width: 44px; height: 44px; padding: 0; border: none; background: transparent; color: var(--ink);
   cursor: pointer; display: grid; place-items: center; transition: background .14s var(--ease), color .14s var(--ease); }
+.spread-btn::after { content: ''; position: absolute; inset: -1px 0; }
 .spread-btn .i { width: 22px; height: 22px; stroke-width: 2.4; }
 .spread-btn.grenze .i { stroke-width: 3; }
 .spread-btn:focus-visible { outline-offset: -2px; }
@@ -456,7 +463,9 @@
 .ctx-caprow .useg-btn { padding: 4px 12px; }
 
 .ctx-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 12px 16px; }
-.ctx-actions > .btn { flex: 1 1 140px; }
+/* the foot is a SHEET footer, so its buttons speak THE button's 14/700 (r35, 06.11.2026) – the
+   12.5 of the bare `.btn` below is the dense dock button's (Georef, Massstab), not a sheet's */
+.ctx-actions > .btn { flex: 1 1 140px; font-size: var(--fs-2); }
 /* the foot's glyphs are one size (16px, the family's) — the bin's 18 in its square */
 .ctx-actions > .btn .i { width: 16px; height: 16px; }
 /* «Entfernen» as a SQUARE (27.09.2026): removal is rare and should not be a wide target — the
@@ -598,12 +607,24 @@
   .hist-ev.clickable:hover .hist-go { opacity: 1; transform: translateX(2px); }
 }
 /* the clock: the anchor a reader scans the log by, so at the 12.5px floor (hill climb r9 — at
-   `--fs-micro` 11 it stood a size under the sentence and the ruler labels), tabular, in the faint
-   ink. Same type as the Pendenzen clock (.jr-when), same 44px column. On the SENTENCE's line
-   height and lead (r11), so it shares the first line's centre instead of floating between lines. */
-.hist-ev .t { width: 44px; padding-top: var(--jr-lead); font: var(--fw-regular) var(--fs-1)/calc(var(--fs-2) * var(--lh-2)) var(--mono);
-  color: var(--ink-faint); font-variant-numeric: tabular-nums; }
-/* timeline node + connector. 24px with a 12px glyph and the --border hairline (owner pick A6,
+   `--fs-micro` 11 it stood a size under the sentence and the ruler labels), tabular. Same type as
+   the Pendenzen clock (.jr-when), same 44px column. On the SENTENCE's line height and lead (r11),
+   so it shares the first line's centre instead of floating between lines.
+   ⚠️ Two steps, one per minute (hill climb r28, Opus 3: seven «19:05» in a row at one weight read
+   as a stuck column): the FIRST stamp of a minute bold in the secondary ink, every stamp below it
+   that prints the same clock (`data-same`, Journal) regular in the faint one – each row keeps its
+   stamp, the eye lands on where the minute changes. By WEIGHT as well as ink (r29, Opus 2): the
+   two inks alone sit too close to tell apart (both have to clear 4.5:1 on the drawer). Bold, not
+   600 – 600 is no step on the weight scale (01-tokens).
+   ⚠️ The Pendenzen clock (.jr-when) wears the FIRST step, from this one rule (hill climb r30, Opus
+   2): every Pendenz stamp is its own time, the age a Gruppenführer scans, and in the regular faint
+   ink it read as a «repeat» – quieter than the log's first stamps on the same axis. Each clock keeps
+   its own face and line (the `font-*` longhands, never the shorthand, which would reset the weight). */
+.hist-ev .t { width: 44px; padding-top: var(--jr-lead); font-family: var(--mono); font-size: var(--fs-1);
+  line-height: calc(var(--fs-2) * var(--lh-2)); font-variant-numeric: tabular-nums; }
+:is(.hist-ev .t, .jr-when) { font-weight: var(--fw-bold); color: var(--ink-dim); }
+.hist-ev .t[data-same] { font-weight: var(--fw-regular); color: var(--ink-faint); }
+/* timeline node + connector. 24px with a 12px glyph and a hairline ring (owner pick A6,
    05.11.2026: round 11 had grown it to 28/16, and the size was never what told two rows apart —
    the kind colour carries the difference). A ring, not a bare fill, since r11 (at --border-soft
    a people glyph read as a pale smudge on the white drawer by day). Centred in its 28px band
@@ -612,11 +633,18 @@
    wear INK as their kind colour, the same three steps as the tinted kinds (fill · ring · glyph,
    cf. --blue-12 / --blue-22 / --blue-strong): hill climb r24, Opus 5 – a --surface-2 disc with
    a --border hairline and an --ink-dim glyph was white on the white drawer and all but vanished
-   by day. Same base in the legend and the filter menu (10-journal). */
+   by day. ONE paint for the row, the legend and the filter menu (10-journal sizes those two).
+   ⚠️ The glyph's STROKE is the disc's, not the icon set's 1.8 (hill climb r30, Opus 4): 1.8 is drawn
+   for a 22px glyph, and at 12px it is 0.9px of ink – anti-aliased to a light-grey smudge however
+   dark the ink (measured r29: the glyph WAS full --ink, nothing dimmed it). 2.6 is 1.3px, the stem
+   of the sentence beside it, on every kind alike so the tinted discs keep matching the neutral
+   ones. The neutral ring is --ink-28 (was 16), a step a reader can see on the white drawer; the
+   tinted kinds keep their own rings (10-journal · .jr-ic-*). */
 .hist-ev .ic { position: relative; width: var(--jr-disc); height: var(--jr-disc); justify-self: center;
-  margin-top: calc((var(--jr-band) - var(--jr-disc)) / 2); border-radius: 50%; background: var(--ink-8);
-  border: 1px solid var(--ink-16); color: var(--ink); font-size: var(--fs-2); display: grid; place-items: center; flex: none; }
-.hist-ev .ic > .i { width: 12px; height: 12px; }
+  margin-top: calc((var(--jr-band) - var(--jr-disc)) / 2); font-size: var(--fs-2); display: grid; place-items: center; flex: none; }
+:is(.hist-ev, .jr-legend, .jr-filter-menu) .ic { border-radius: 50%; background: var(--ink-8);
+  border: 1px solid var(--ink-28); color: var(--ink); }
+:is(.hist-ev, .jr-legend, .jr-filter-menu) .ic > .i { width: 12px; height: 12px; stroke-width: 2.6; }
 /* ⚠️ Each row draws its OWN HALF of the connector — top edge → node, node → bottom edge — and
    the row clips them (overflow above). The old line was a fixed 16px stub hanging off the node,
    which reached the next node only on a single-line row: an audio row carries «Durchhören» and
@@ -798,8 +826,14 @@ span.jr-rem { cursor: default; }
    heading sits flush while scrolled and keeps its air when it is not. */
 .jr-pinned-head { flex: none; position: sticky; top: -8px; z-index: 3; margin-top: -8px;
   padding: 8px 7px 6px; background: var(--jr-pinned-bg);
-  display: flex; align-items: center; gap: 8px; font: var(--fw-bold) var(--fs-2) var(--body); color: var(--ink); }
-.jr-pinned-head .i { width: 16px; height: 16px; flex: none; }
+  display: flex; align-items: center; gap: var(--sp-1); font: var(--fw-bold) var(--fs-2) var(--body); color: var(--ink); }
+/* the head's glyph (#pendenzen): the rows' open ring in small – 10px across inside its 16px box,
+   a 2px line (3 of 24 at 16px) in the rings' own amber (10-journal · .jr-ring-open), so the head
+   names its rows by their mark (hill climb r28, Opus 2). The box's 3px of air + the head's 4px gap
+   + the «P»'s own 1px bearing leave the ring 8px off the label's ink (measured). 1px down: centred
+   on the line box it stood 1px above the label's x-height middle, where the status marks sit (r27) */
+.jr-pinned-head .i { width: 16px; height: 16px; flex: none; stroke-width: 3; translate: 0 1px;
+  color: var(--amber-strong); }
 /* a row scrolling up under the heading dissolves into it rather
    than being sliced through its letters */
 .jr-pinned-head::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 12px;
@@ -920,7 +954,8 @@ span.jr-pinned-from { color: var(--ink-dim); }
    swaps the whole column to the age — never one row at a time, a half-clock/half-age column is
    unreadable. */
 /* 44px wide: the Verlauf's own time column, to the pixel (.hist-ev .t), and the same type —
-   12.5px mono, tabular. This one is a `<button>`, so 12.5 is its floor anyway (AGENTS · the 3am
+   12.5px mono, tabular, and the log's FIRST-stamp weight and ink (`:is(.hist-ev .t, .jr-when)`
+   above, r30). This one is a `<button>`, so 12.5 is its floor anyway (AGENTS · the 3am
    tenet); the log's span joined it in hill climb r9. «HH:MM» is 37.5px (five mono glyphs at
    0.6em), so the 44 leaves the clock 6px of air before the gutter.
    ⚠️ On the ITEM's line (r11): the item text's 1.5 line (r19) and the body's 2px padding, so the
@@ -929,7 +964,7 @@ span.jr-pinned-from { color: var(--ink-dim); }
    min» and wrapped to three, which made the row three times as tall for a number. The label is
    bare now (copy · ageLabel), and this is the guard that says so. */
 .jr-when { flex: none; width: 44px; padding: 2px 0 0; border: 0; background: none; cursor: pointer;
-  text-align: left; white-space: nowrap; font: var(--fw-regular) var(--fs-1)/calc(var(--fs-2) * 1.5) var(--mono); color: var(--ink-faint);
+  text-align: left; white-space: nowrap; font-family: var(--mono); font-size: var(--fs-1); line-height: calc(var(--fs-2) * 1.5);
   font-variant-numeric: tabular-nums; }
 @media (hover: hover) {
   .jr-when:hover { color: var(--ink); }
@@ -958,8 +993,9 @@ span.jr-pinned-from { color: var(--ink-dim); }
    the way past a cap on a block that could not scroll itself; the box scrolls now, so a second
    way to see the same rows would be exactly that — a second way to see the same rows. */
 
-/* the job printed after a linked name («Widmer Céline (EL)»). Regular weight in the secondary
-   ink, under the medium name: it explains the name, it is not part of it — and every second row
-   of a busy Verlauf carries one, so it has to stay quiet. */
-.jr-link-role { font-style: normal; font-weight: var(--fw-regular); color: var(--ink-dim); }
+/* the job printed after a linked name («Widmer Céline (EL)»). Regular weight, one step smaller
+   (--fs-1) and in the faint ink, under the medium name (owner pick C4, 05.11.2026 – it was the
+   row's size in the secondary ink): it explains the name, it is not part of it — and every second
+   row of a busy Verlauf carries one, so it has to stay quiet. The brackets stay, as on paper. */
+.jr-link-role { font-style: normal; font-weight: var(--fw-regular); font-size: var(--fs-1); color: var(--ink-faint); }
 /* (.ctx-span-open — a bare blue «Geschosse angeben» word — removed 28.09.2026: no caller left) */

@@ -81,7 +81,7 @@ p.fb-prompt-q { margin: 0; font: var(--fw-bold) var(--fs-2) var(--body); color: 
 .fb-privacy { display: flex; align-items: center; gap: var(--sp-2); margin: 0;
   font: var(--fw-regular) var(--fs-1) var(--body); color: var(--ink-faint); }
 .fb-privacy svg { width: 14px; height: 14px; flex: none; }
-.fb-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+/* (`.fb-actions` went with r35, 06.11.2026: the buttons are the Sheet's own foot now) */
 
 /* install steps rendered INSIDE the Offline-Bereitschaft sheet (not behind a second modal):
    the guide's own top margin would double up against the card above it */
@@ -111,39 +111,61 @@ p.fb-prompt-q { margin: 0; font: var(--fw-bold) var(--fs-2) var(--body); color: 
      that extends its hit area outside itself steals from whatever it happens to sit next to. */
 }
 .jr-strip:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
-/* The ticks' own box, inset from the strip's ends (the inline `insetInline` comes from
-   Journal · STRIP_INSET, which the tap→time maths uses too). Ticks placed straight on the
-   strip put the first and last one ON its rounded corners, where the radius and the inset
-   hairline eat them — and those two are the start and the end of the whole Einsatz. */
+/* The ticks' own box, inset from the strip's ends by half a clock label (the inline `insetInline`
+   comes from lib/verlauf · STRIP_INSET, which the tap→time maths uses too), so a clock on the
+   first or last moment centres on its mark and no tick sits on the rounded corners. */
 .jr-strip-track { position: absolute; top: 0; bottom: 0; pointer-events: none; }
-/* ⚠️ TWO layers in the one 44px band (hill climb r2, 04.11.2026: hundreds of equal ticks read as a
-   barcode with no time on it), stacked as a ruler and centred in the band, in three levels:
-   the scale's marks (`b`, lib/verlauf · stripScale) 8 × 2px in the strong ink; the rows' marks
-   3px beside them, standing on the same baseline in a quiet ink tint and merged per 3px
-   column (lib/verlauf · stripDensity), a column of 3+ rows (`data-busy`) a step darker — so a
-   busy stretch reads as a darker patch along the floor of the ruler, never as a wall (r3 at
-   14/6px and one hairline per row still read barcode first, r6; r15 at 10/4px and --ink-28 still
-   read as one comb with the anchors, so the marks are 8 vs 3 and the rows a tint step lower,
-   r16). Then a clear 4px gap and the clocks on one baseline: the first and last moment at the
-   ends (`.jr-strip-end`), round times centred under their marks where a label fits.
-   11 + 8 + 4 + 12.5 (the label, line-height 1) leaves 8.5 under it. Nothing here is a target;
-   the strip takes the tap. */
-.jr-strip i {
-  position: absolute; top: 16px; width: 1.5px; height: 3px; margin-left: -0.75px;
-  border-radius: 1px; background: var(--ink-22);
+/* ⚠️ ONE ruler in the 44px band, centred in it (hill climb r2, 04.11.2026: hundreds of equal
+   ticks read as a barcode with no time on it; r28, Sol 2: the rows' 3px-apart ticks beside the
+   hour marks still read as a stippled band of minutes; r29, Sol 1 / Opus 1: the rows' floor and
+   the divisions, all short grey marks on one line, still read as one serrated edge). WHAT
+   happened and the SCALE stand on the two sides of one spine, top down:
+   – the EVENTS band (lib/verlauf · stripRuns): a 3px bar of the secondary ink at 30 % wherever
+     the Einsatz was active, broken where it went quiet (a lull of a few minutes is bridged), a
+     busy stretch (3+ rows per 3px column) at 70 % over it – both lighter than the round times, so
+     a busy hour never swallows its mark; density as a bar, never as ticks that could be taken for
+     a scale; 2px of air under it, so it never reads as a thicker spine;
+   – the SPINE: a 1px hairline in the quietest tint along the whole track, the ruler's edge;
+   – the round times (stripScale) 8 × 2px in the secondary ink, standing ON the spine and through
+     the events band, 3px clear above it – the one mark that crosses to the events' side;
+   – hanging UNDER the spine the divisions, in the faint ink only: `mid` (e.g. the quarter / on the
+     phone the half hour) 4px, the fine ones (e.g. five / ten minutes) 2px – a ruler's rhythm,
+     spaced so it never crowds into a comb;
+   – then the clocks on one baseline, every one centred on its mark: the round times, never
+     dropped, and the first and last moment (`.jr-strip-end`, quieter) where they keep 32px clear
+     of them. Where the last moment's clock gave way, `.jr-strip-now` caps the events band's right
+     end in the full ink.
+   9 (the hour marks' top) + 8 + 1 (spine) + 4 (mid) + 2 + 12.5 (the label, line-height 1) leaves
+   7.5 under it, the label's own descent space making up the difference. Nothing here is a
+   target; the strip takes the tap. */
+.jr-strip-track::before {
+  content: ''; position: absolute; inset-inline: 0; top: 17px; height: 1px; background: var(--ink-16);
 }
-.jr-strip i[data-busy] { background: var(--ink-45); }
-.jr-strip-major {
-  position: absolute; top: 11px; width: 2px; height: 8px; transform: translateX(-50%);
-  border-radius: 1px; background: var(--ink-dim);
+.jr-strip-run {
+  position: absolute; top: 12px; height: 3px; min-width: 1.5px;
+  border-radius: 1px; background: var(--ink-dim); opacity: .3;
 }
+.jr-strip-busy { opacity: .7; }
+.jr-strip-major, .jr-strip-now {
+  position: absolute; bottom: calc(100% - 17px); transform: translateX(-50%); border-radius: 1px 1px 0 0;
+}
+.jr-strip-div {
+  position: absolute; top: 18px; width: 1.5px; height: 2px; transform: translateX(-50%);
+  border-radius: 0 0 1px 1px; background: var(--ink-faint);
+}
+.jr-strip-mid { height: 4px; }
+.jr-strip-major { width: 2px; height: 8px; background: var(--ink-dim); }
+/* the end cap: through the events band and the spine, 2px wide like the round times, in the full ink */
+.jr-strip-now { bottom: calc(100% - 18px); width: 2px; height: 7px; border-radius: 1px; background: var(--ink); }
 .jr-strip-lbl {
-  position: absolute; top: 23px; transform: translateX(-50%); white-space: nowrap;
+  position: absolute; top: 24px; transform: translateX(-50%); white-space: nowrap;
   font: var(--fw-medium) var(--fs-1)/1 var(--mono); font-variant-numeric: tabular-nums; color: var(--ink-faint);
 }
-/* the ends sit INSIDE the track (left- and right-aligned) and in the stronger ink: they are the
-   two clocks that bracket the Einsatz */
-.jr-strip-end { transform: none; color: var(--ink-dim); }
+/* the end stamps: the hours' faint ink at the regular weight (hill climb r31, Opus 5). In the
+   stronger ink they wore more than the hour beside them and «14:08 15:00» read as one pair; they
+   are the scale's quiet brackets, the hours its reading (lib/verlauf · stripScale drops a stamp
+   closer than 32px to its neighbouring hour). */
+.jr-strip-end { font-weight: var(--fw-regular); }
 /* The row the strip — or the Wiedergabe's «im Verlauf» — just landed on. Without it a scroll
    ends somewhere with no sign of which line was meant.
    ⚠️ The SHARED ink ring (02-base.css · ui-flash-ring), not a background wash of its own. The

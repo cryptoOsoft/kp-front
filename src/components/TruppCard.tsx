@@ -342,7 +342,8 @@ function TruppPair({ t, live, sev, nested = false, onPressure, onContact }: {
  *   6 foot       Einsatzzeit · Schätzung, the whole line the Verlauf's toggle
  *
  * The link board's page (`page`) reads the same zones in another order — 1, 3, 4, 5, 6, then the
- * tiles at the page's foot (Notfall · Rückzug | Raus · Druck | Kontakt), see the return below.
+ * tiles at the page's foot ([Sicherungstrupp ·] Notfall · Rückzug | Raus · Druck | Kontakt), see
+ * the return below.
  *
  * What the tablet keeps because it has the room: every card open at once in a grid (the phone
  * opens one row at a time because a card is taller than its port), the hand-set order with ‹ ›
@@ -358,16 +359,19 @@ function TruppPair({ t, live, sev, nested = false, onPressure, onContact }: {
  * «Leitung» is exactly the knowledge that is gone after six months without practice.
  */
 export function TruppCard({
-  t, live, alarm, now, color, canEdit, intervalMin, frozen = false, focusNonce, focusScroll = true, flashSeen, onFlashed, onContact, onStatus, onStandDown, onAskExit, onAskPressure, onEdit, onQuick, onReenter, onDelete, onPlace, onShowPlan, onMove, onShowLine, hasLine, drawnLineNo, dockedAt, onCollapse, headed = false, lite = false, page = false, pageHead, onNotfall, onNotfallEnd, conflict = false,
+  t, live, alarm, now, color, canEdit, intervalMin, frozen = false, focusNonce, focusScroll = true, flashSeen, onFlashed, onContact, onStatus, onStandDown, onAskExit, onAskPressure, onEdit, onQuick, onReenter, onDelete, onPlace, onShowPlan, onMove, onShowLine, hasLine, drawnLineNo, dockedAt, onCollapse, headed = false, lite = false, page = false, pageHead, pageSafety, onNotfall, onNotfallEnd, conflict = false,
 }: {
   /** the card IS the page (the handed-over phone board, AtemschutzView · focusMode): drawn flat by
    *  the board, and a crew at the door says «Bereit» where its clock would stand (Atemschutz-Link
    *  redesign R1, 30.10.2026); its tiles stand at the page's foot, Druck | Kontakt lowest
    *  (31.10.2026, «read at the top, tap at the bottom») */
   page?: boolean
-  /** replaces the head line on such a page — the Notfall Trupp's own page wears
-   *  AtemschutzNotfall · NotfallPageHead, which also says the Notfall in words */
-  pageHead?: ReactNode
+  /** replaces the head line on such a page and places the card's crew line (`crew`) itself — the
+   *  Notfall Trupp's own page wears AtemschutzNotfall · NotfallPageHead (name, crew, both clocks) */
+  pageHead?: (crew: ReactNode) => ReactNode
+  /** the Notfall page's Sicherungstrupp act (AtemschutzNotfall · NotfallPageSafety): the first of
+   *  the page's tiles at the foot, right above «Notfall beendet» (owner pick E3, 06.11.2026) */
+  pageSafety?: ReactNode
   /** named by the double-assignment band (DoubleAssignmentBanner) — a steady amber ring */
   conflict?: boolean
   /** the held «Notfall» on a crew inside, and the held «Notfall beendet» on a crew in one (F1,
@@ -670,7 +674,7 @@ export function TruppCard({
    * raus mit 175 bar» — the finished Einsatzzeit and the pressure it came out with, which
    * unworded read as a running clock and a live reading. In the line's one word style (the
    * Schätzung's). Only out of a real run: a crew stood down at the door was never «drin».
-   * Those two joining words are `quiet` (hill climb r13, 05.11.2026): dim ink at 500, so the
+   * Those two joining words are `quiet` (hill climb r13/r27, 05.11.2026): dim ink, regular, so the
    * values read first — never the Schätzung's word, which keeps full ink and weight (T2). */
   const outWords = out && !neverDeployed
   const sockelLine: { key: string; label: string; value: string; alarm?: boolean; labelled?: boolean; quiet?: boolean; title?: string }[] = [
@@ -806,7 +810,8 @@ export function TruppCard({
    * door to the Trupp sheet the crew chip was — a button drawn as text, its 44px touch pad an
    * invisible pseudo-element (`.crewLine`). On the grid and the Tafel it stands IN the head (the
    * static head's third grid row, inside the band); on the phone's opened card, whose head is the
-   * collapse button, right under it — opening a row adds it below and moves nothing. */
+   * collapse button, right under it — opening a row adds it below and moves nothing. On the link
+   * board's Notfall page the page head places it, under the red name (`pageHead(crewLine)`). */
   const crewTxt = crewNames.map((n, i) => (
     <Fragment key={i}>{i > 0 && ' · '}<span className={s.crewName}>{n}</span></Fragment>
   ))
@@ -1079,15 +1084,17 @@ export function TruppCard({
    * ⚠️ …except the ORDER on the link board's page (`page`; owner pick «A – Tasten nach unten»,
    * 31.10.2026: «read at the top, tap at the bottom»): the head, the state words, the note, the
    * facts and the foot stand on top, and the SAME tiles at the page's foot, over the tab rail —
-   * Notfall first, then Rückzug | Raus (or whatever the state puts there), then «Druck | Kontakt»
-   * lowest, where the thumb rests. In the DOM, not by CSS `order`, so the tab order is the visual
-   * one. `.pageActs` (Atemschutz.module.css) pushes the group down with `margin-top: auto`. */
+   * Notfall first (in a Notfall: «Sicherungstrupp bestimmen / einsetzen» over «Notfall beendet»,
+   * owner pick E3, 06.11.2026), then Rückzug | Raus (or whatever the state puts there), then
+   * «Druck | Kontakt» lowest, where the thumb rests. In the DOM, not by CSS `order`, so the tab
+   * order is the visual one. `.pageActs` (Atemschutz.module.css) pushes the group down with
+   * `margin-top: auto`. */
   const pair = monitored && canEdit && inField && (
     <TruppPair t={t} live={live} sev={sev} onPressure={(id) => onAskPressure?.(id)} onContact={onContact} />
   )
   // a page has room to say the waiting state as a word where the row puts its «Im Einsatz»
   const pageAct = page ? <span className={s.pageReady}>{az.phoneSectionReady}</span> : undefined
-  const head = pageHead ?? (rowMode ? (
+  const head = pageHead ? pageHead(crewLine) : (rowMode ? (
     <button type="button" className={s.trowHead} aria-expanded="true" onClick={onCollapse}
       aria-label={`${t.name} — ${az.collapse}`}>
       <RowLine t={t} live={live} color={lite ? undefined : color} lite={lite} />
@@ -1099,23 +1106,27 @@ export function TruppCard({
       {crewLine}
     </div>
   ))
-  // the static head carries the crew line itself; the phone's collapse button and a page head may not
-  const crewBelow = (rowMode || !!pageHead) && crewLine
+  // the static head and a page head carry the crew line themselves; the phone's collapse button cannot
+  const crewBelow = rowMode && !pageHead && crewLine
   return (
     <div ref={cardRef} data-az-open={rowMode ? '' : undefined} className={cx(s.trow, s.trowCard, rowTone(t, status, sev), conflict && s.cardConflict)}>
       {head}
       {crewBelow}
       {page ? (
         <>
-          {/* the page head says the Notfall in words already («Notfall seit 12:12») */}
+          {/* the Notfall page's head and its red «seit Notfall» clock say the state already */}
           {!pageHead && stateLine}
           {noteZone}
           {facts}
           {footZone}
-          <div className={s.pageActs}>{actZone}{pair}</div>
+          {/* everything to press, at the foot: the Notfall's Sicherungstrupp act first (E3) */}
+          <div className={s.pageActs}>{pageSafety}{actZone}{pair}</div>
         </>
       ) : (
         <>
+          {/* ONE order on every card, in and out (owner 06.11.2026): the name (head), then all the
+              controls, then the facts (Auftrag, Kanal …) – the hill climb's r29 try with the facts
+              above the buttons on inside cards was reverted the same day */}
           {pair}
           {actZone}
           {stateLine}

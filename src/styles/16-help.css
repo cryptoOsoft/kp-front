@@ -4,10 +4,13 @@
    kp-rueck help page, restyled to KP Front's tokens.
    ============================================================ */
 /* <Overlay>: .help-scrim is the Base UI backdrop; .help-modal owns its own fixed centering */
-.help-scrim { position: fixed; inset: 0; z-index: var(--z-help-scrim); background: rgba(16, 24, 38, .34); backdrop-filter: blur(2px); }
+.help-scrim { position: fixed; inset: 0; z-index: var(--z-help-scrim); }   /* paint: 13-incident · «ONE modal scrim» */
 .help-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: var(--z-help);
   width: min(1040px, calc(100vw - 48px)); height: min(88dvh, 920px); display: flex; flex-direction: column;
-  background: var(--surface); border: 1px solid var(--glass-line); border-radius: var(--r-surface); box-shadow: var(--e4); overflow: hidden;
+  /* THE sheet tone, laid opaque (r35, 06.11.2026 – the Verlauf drawer's recipe, 10-journal): a page
+     you READ lets nothing through, and at night it is the sheets' #141a24, no longer a #232c3a
+     slab; no edge, --e4 is the outline. It was --surface with a --glass-line ring. */
+  background: linear-gradient(var(--glass), var(--glass)) var(--surface); border-radius: var(--r-surface); box-shadow: var(--e4); overflow: hidden;
   animation: pop .16s var(--ease); }
 .help-head { display: flex; align-items: flex-start; gap: var(--sp-3); padding: var(--sp-4) var(--sp-5); border-bottom: 1px solid var(--border); }
 .help-head-ic { width: 38px; height: 38px; flex: none; border-radius: var(--r-ctl); display: grid; place-items: center;
@@ -83,7 +86,7 @@
 
 @media (max-width: 720px) {
   .help-scrim { padding: 0; }
-  .help-modal { width: 100%; height: 100dvh; border-radius: 0; border: 0; }
+  .help-modal { width: 100%; height: 100dvh; border-radius: 0; }
   /* full-screen now — keep the header/close out of the notch and the content clear
      of the home indicator */
   .help-head { padding: calc(var(--sp-4) + env(safe-area-inset-top)) var(--sp-4) var(--sp-4); }

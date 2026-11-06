@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { appConfig } from '../config/appConfig'
 import { cx } from '../lib/cx'
 import { Icon } from '../lib/icons'
-import { IconButton } from './Button'
 import type { BuildingInfo } from '../lib/api/building'
 import { buildingChips, buildingSources, hasBuildingContent, noteLines, objectCaption, visitLine } from '../lib/buildingCard'
 import { RegisterHintBody, RegisterHintButton, RegisterSection, StationNotes } from './BuildingFacts'
@@ -39,7 +38,13 @@ export function BuildingCard({ info, onClose }: { info: BuildingInfo | null; onC
   const notes = measures.length > 0 || remarks.length > 0
   const caption = notes ? objectCaption(info) : ''
   const visit = visitLine(info)
-  const close = onClose && <IconButton label={appConfig.copy.closeDialog} className={s.close} onClick={onClose}><Icon id="close" /></IconButton>
+  // THE sheet ✕ (`.ip-x`, docs/ui-conventions · «The ✕ that closes a sheet»; r35, 06.11.2026 – it
+  // was a bare 44px IconButton with a 20px glyph, the one ✕ without the grey plate)
+  const close = onClose && (
+    <button type="button" className={cx('ip-x', s.close)} onClick={onClose} aria-label={appConfig.copy.closeDialog} title={appConfig.copy.closeDialog}>
+      <Icon id="close" />
+    </button>
+  )
   return (
     // No head row of its own (owner, 27.10.2026: an empty «Register-Hinweis ✕» row was wasted): the
     // FIRST section's heading carries the ✕ at its right end, and «Register-Hinweis» always sits on

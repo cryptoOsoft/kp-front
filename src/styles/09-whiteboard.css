@@ -148,8 +148,8 @@
    the x-height – tried first in r23 – was exactly the bold lowercase «o» of the word beside it.
    No letter is dashed, so the broken ring reads as a mark: «not set yet». Four arcs since r24, Opus
    4: r23's eight 2px dashes read as a loading spinner; four arcs read as an outline with gaps).
-   ⚠️ The Rapport eyebrow's ring wears the same 10 / four arcs / 1.5px spec (in its own --ink-faint)
-   – change them together. The sheet's dot stands before its status word, 8px (PlanFactsSheet.module.css ·
+   ⚠️ The Rapport's open mark shares the arcs but differs ON PURPOSE since r26: 12px, amber – a
+   pending task; an unset «Gebäude» is not. The sheet's dot stands before its status word, 8px (PlanFactsSheet.module.css ·
    .status gap). */
 /* translate: the row centres the box on the name's line box, whose middle stands 1px above the
    x-height middle (Sora at --fs-1, measured r23) */
@@ -668,9 +668,9 @@ textarea.wb-text-input { resize: none; overflow: hidden; display: block; font-si
 /* ── Geister-Spuren: der abgesuchte Bereich ohne seinen Marker (lib/truppTrails) ──────────────
    Grey and read-only wherever it is drawn — it is a record, not a Trupp. The dots are the same
    `.wb-trail-mark` a live trail leaves; only the label chip is new, and it is the hit target:
-   tapping it offers «Spur löschen» with the same confirm the live trail has. */
+   tapping it offers «Spur löschen» with the same confirm the live trail has. Its times are a live
+   trail's (.wb-trail-dot i / .map-trail-dot i – already the faint ink since hill climb r33). */
 .wb-ghost-trail-dot .wb-trail-mark, .map-ghost-trail .wb-trail-mark { background: var(--ink-dim); opacity: .7; }
-.wb-ghost-trail-dot i, .map-ghost-trail i { color: var(--ink-dim); }
 .wb-ghost-label { position: absolute; z-index: 6; transform: translate(-50%, -150%);
   display: inline-flex; align-items: center; gap: 4px; min-height: 24px; padding: 2px var(--sp-2);
   border: 1px dashed var(--ink-dim); border-radius: var(--r-ctl);
@@ -735,10 +735,15 @@ span.wb-ghost-label { cursor: default; }
    now, so their sizes read against the viewport rather than the board. */
 .wb-trupp-pick.ui-dialog, .wb-cal-pop.ui-dialog {
   position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: var(--z-dialog); }
-/* "Welcher Trupp?" quick picker shown when placing a team chip on the plan */
-.wb-trupp-pick { width: min(300px, calc(100vw - 32px)); max-height: 70dvh; overflow-y: auto; background: var(--surface);
+/* "Welcher Trupp?" quick picker shown when placing a team chip on the plan. THE sheet material
+   (13-incident · .ip-sheet: --glass + blur, --e4, the one corner – r35, 06.11.2026; it was opaque
+   --surface, at night a #232c3a slab beside the #141a24 sheets) and THE sheet head: the question is
+   its title, 16/800 in ink, 16 from the top and 24 from the side (the card's 12 + the head's 4/12) –
+   it was a 12.5/700 caption in --ink-dim, the one dialog without a title. */
+.wb-trupp-pick { width: min(300px, calc(100vw - 32px)); max-height: 70dvh; overflow-y: auto;
+  background: var(--glass); backdrop-filter: blur(16px);
   border-radius: var(--r-surface); box-shadow: var(--e4); padding: var(--sp-3); display: flex; flex-direction: column; gap: var(--sp-2); }
-.wb-trupp-pick-head { font-size: var(--fs-1); font-weight: var(--fw-bold); color: var(--ink-dim); padding: var(--sp-1) var(--sp-2) var(--sp-2); }
+.wb-trupp-pick-head { font: var(--sheet-title); color: var(--ink); padding: var(--sp-1) var(--sp-3) var(--sp-2); }
 .wb-trupp-opt { display: flex; align-items: center; gap: var(--sp-2); border: 1px solid var(--glass-edge); background: var(--surface-2, #fff);
   border-radius: var(--r-ctl); cursor: pointer; padding: var(--sp-3); font: var(--fw-bold) var(--fs-2) var(--body); color: var(--ink); min-height: 48px; text-align: left; }
 @media (hover: hover) {
@@ -751,9 +756,11 @@ span.wb-ghost-label { cursor: default; }
 .wb-trupp-opt i { font-style: normal; font-size: var(--fs-1); font-weight: var(--fw-medium); color: var(--ink-faint); }
 /* «AS» — the Trupp in this row is under Atemschutz. A FACT about the crew, not an alarm, so it
    wears the quiet status tone; amber and red belong to a clock running out and must never turn
-   up on a picker. Same mark, same tone, as the Trupp-Suche's row (TruppFinder.module.css). */
+   up on a picker. ONE tag look for a crew fact (r35, 06.11.2026): ink on grey, the Trupp-Suche's
+   «AS» (TruppFinder.module.css · .tag, since 29.09.2026) and the Anwesenheit's «Gast» – it was a
+   blue pill here, plain --blue on --blue-12 at 3.9:1 by day. */
 .wb-trupp-as { flex: none; font: var(--fw-heavy) var(--fs-micro) var(--body); padding: 2px var(--sp-2); border-radius: var(--r-pill);
-  background: var(--blue-12); color: var(--blue); }
+  background: var(--fill-soft); color: var(--ink-dim); }
 /* already placed on this surface: visible (so you can see WHY it is not offered) but inert —
    picking it would move the existing marker, not add a second one */
 .wb-trupp-opt.placed { opacity: var(--disabled); cursor: default; }
@@ -770,13 +777,15 @@ span.wb-ghost-label { cursor: default; }
 /* the dot's shadow is the plates' contact step (--e0): in a cluster the e1 spread ran into a fringe
    (hill climb r13, Sol 2 – ONE plate treatment for every map/plan label) */
 .wb-trail-mark { display: block; width: 9px; height: 9px; border-radius: 50%; border: 2px solid #fff; box-shadow: var(--e0); }
-/* a breadcrumb's time is a record, one step under the Trupp's name: secondary ink, medium weight
-   (hill climb r13, Opus 2 – it was full ink + e1, the loudest thing near the marker), on THE plate
-   edge every map/plan label wears (--label-plate, r16 Sol 2 – since e0 is a faint contact only, the
-   time no longer needs its own shadowless variant). Same read as the Lage's .map-trail-dot i below. */
+/* a breadcrumb's time is a record, one step under the Trupp's name (hill climb r13, Opus 2 – it was
+   full ink + e1, the loudest thing near the marker): the mono at the regular weight in the faint
+   ink, on a BARE opaque --label-bg fill – no --label-plate edge, no shadow (hill climb r33, Opus 3:
+   on the name's plate a trail read as a stack of equal plates; the name keeps the plate, the times
+   are the quieter text under it). The fill stays, so a line under «12:25» never crosses the
+   digits. Same read as the Lage's .map-trail-dot i below. */
 .wb-trail-dot i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-family: var(--mono); font-style: normal;
-  font-size: var(--fs-micro); font-weight: var(--fw-medium); color: var(--ink-dim); background: var(--label-bg); border-radius: var(--r-xs); padding: 1px var(--sp-1);
-  white-space: nowrap; box-shadow: var(--label-plate); }
+  font-size: var(--fs-micro); font-weight: var(--fw-regular); color: var(--ink-faint); background: var(--label-bg); border-radius: var(--r-xs); padding: 1px var(--sp-1);
+  white-space: nowrap; }
 /* an OUT Trupp's track: THE done dim on dots and times – like its marker (.wb-resource-pill.raus /
    .team-dot.raus) – grayscale on the colour carrier (the dot). The time's PLATE stays opaque: the
    dim sits on its ink (the inner span, MapMarkers / Whiteboard), or a line under «12:25» crossed
@@ -791,11 +800,14 @@ span.wb-ghost-label { cursor: default; }
 .map-trail-dot { position: relative; pointer-events: none; }
 /* ⚠️ held to lib/mapView · CRUMB_LABEL_STYLE (the label pass books this box before it is drawn,
    and drops the time when it would cover another label – mapView.labelCss.test.ts)
-   One step under the names (hill climb r13, Opus 2): the names' size, but medium weight and
-   secondary ink on the one --label-plate – a time is a record, the name the Trupp. */
+   A time is a record, the name the Trupp: the names wear the --label-plate (edge + contact
+   shadow), the times one step quieter (hill climb r33, Opus 3 – on the same plate at the names'
+   size a trail read as a stack of equal plates): the next step down (--fs-micro), the mono at the
+   regular weight in the faint ink, on a bare opaque --label-bg fill with a tighter 1px/4px pad –
+   no edge, no shadow. The fill is what keeps it legible over a line and both basemaps. */
 .map-trail-dot i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-family: var(--mono); font-style: normal;
-  font-size: var(--fs-1); font-weight: var(--fw-medium); line-height: 1.25; color: var(--ink-dim); background: var(--label-bg); border-radius: var(--r-xs); padding: 2px var(--sp-2);
-  white-space: nowrap; box-shadow: var(--label-plate); }
+  font-size: var(--fs-micro); font-weight: var(--fw-regular); line-height: 1.25; color: var(--ink-faint); background: var(--label-bg); border-radius: var(--r-xs); padding: 1px var(--sp-1);
+  white-space: nowrap; }
 /* a selected team marker on the map rings its pill like the plan board's selection */
 .marker.sel .wb-resource-pill { box-shadow: 0 0 0 2px var(--team), var(--e2); }
 /* resting team marker — compact team-coloured dot + name; the full pill only on selection */
@@ -1241,7 +1253,10 @@ span.wb-ghost-label { cursor: default; }
    ⚠️ A DOCK, not a popover. The board underneath stays live and un-dismissing, so a tap on a
    symbol is a tap on that symbol — not a press that the overlay swallows to close itself. */
 .wb-georef-dock { position: absolute; left: calc(var(--rail-w) + 28px); bottom: calc(16px + var(--float-h) + var(--float-gap)); z-index: 9;
-  border-radius: var(--r-surface); border: 1px solid var(--glass-line); background: var(--surface);
+  /* THE sheet tone laid opaque, no edge, --e4 – the Gebäude card's recipe beside it (BuildingFloat ·
+     .pop, owner 27.10.2026: a card of text over a drawn plan lets nothing through). r35, 06.11.2026:
+     it was --surface with a --glass-line ring, at night a #232c3a slab beside #141a24 sheets. */
+  border-radius: var(--r-surface); background: linear-gradient(var(--glass), var(--glass)) var(--surface);
   box-shadow: var(--e4); }
 @media (--phone) {
   /* ⚠️ Its height is NOT fixed — `.qActions` is a 2-column grid of 2 or 3 rows (Neu ausrichten /
@@ -1256,7 +1271,7 @@ span.wb-ghost-label { cursor: default; }
      hugs its content up to the sheet cap and pays the bottom inset itself. */
   .wb-georef-dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: var(--z-drawer);
     max-height: min(72dvh, calc(100dvh - 84px - env(safe-area-inset-top))); overflow-y: auto;
-    border-width: 1px 0 0; border-radius: var(--r-hero) var(--r-hero) 0 0;
+    border-radius: var(--r-hero) var(--r-hero) 0 0;
     padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     animation: sheetUp .22s var(--ease); }
   .wb-georef-dock > .ui-sheet-grab { margin-bottom: -4px; }

@@ -256,7 +256,7 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
         ],
       },
       {
-        id: 'verlauf', title: 'Journal et entrée', icon: 'history',
+        id: 'verlauf', title: 'Journal et entrée', icon: 'verlauf',
         blocks: [
           { kind: 'lead', text: 'Un journal partagé et continu à travers Situation et Plan – la chronique de l’intervention.' },
           { kind: 'list', items: [

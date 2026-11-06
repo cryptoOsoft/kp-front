@@ -370,7 +370,8 @@
 /* ── Passungs-Anzeige ────────────────────────────────────────────────────────────────────── */
 /* Technical language on purpose: Restfehler, Grundlinie, Drehung. The people who open this are
    asking whether the link can be trusted, and vague words cannot answer that. */
-.quality { width: min(92vw, 400px); max-width: 100%; display: grid; gap: var(--sp-3); padding: 12px; }
+/* the sheet inset, 16 / 24 – the Plan sheet's (PlanFactsSheet · .sheet), which shares this dock (r35) */
+.quality { width: min(92vw, 400px); max-width: 100%; display: grid; gap: var(--sp-3); padding: var(--sp-4) var(--sp-5); }
 .qHead { display: flex; align-items: center; gap: 8px;
   font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-faint); }
 /* the ✕ IS the global `.ip-x` (28.09.2026 — it was a 30px bare ✕ with a 15px glyph); this only

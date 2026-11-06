@@ -1,7 +1,9 @@
 /* The Plan sheet (PlanFactsSheet) – inside the Passung's dock (09-whiteboard · .wb-georef-dock):
    a card above the chip row on a tablet, the bottom sheet on a phone. Same head as the Passung
    (GeorefMode.module.css · .qHead), the rows are THE list row and THE buttons. */
-.sheet { width: min(92vw, 420px); max-width: 100%; display: grid; gap: var(--sp-2); padding: 12px; box-sizing: border-box; }
+/* the sheet inset, 16 at the top and 24 at the sides, as every sheet's head (r35, 06.11.2026: it was
+   12 all round, the ✕ 13 off the corner) – the Passung's card (.quality) keeps the same numbers */
+.sheet { width: min(92vw, 420px); max-width: 100%; display: grid; gap: var(--sp-2); padding: var(--sp-4) var(--sp-5); box-sizing: border-box; }
 .head { display: flex; align-items: center; gap: 8px;
   font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-faint); }
 .x { margin-left: auto; flex: none; }
@@ -22,9 +24,11 @@
    Passung's buttons began at the card's edge while the note stood under the title). */
 .note, .body, .actions { padding-left: var(--sp-6); /* 2px + the 18px glyph + the 12px gap */ }
 .note { margin: 0; padding-right: 2px; color: var(--ink-dim); font: var(--fw-medium) var(--fs-1)/1.45 var(--body); }
-/* the section's own action(s) – full-width --tap buttons, the Passung's recipe */
+/* the section's own action(s) – full-width --tap buttons, the Passung's recipe, at THE button's
+   14px (r35, 06.11.2026: the dock `.btn`'s 12.5 on a 44px sheet button was a third size) */
 .actions { display: grid; gap: 8px; }
-.actions :global(.btn) { width: 100%; min-height: var(--tap); display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2); }
+.actions :global(.btn) { width: 100%; min-height: var(--tap); display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  font-size: var(--fs-2); }
 .actions :global(.btn) > :global(.i) { width: 15px; height: 15px; flex: none; }
 /* the embedded Passung (GeorefQuality · embedded) gives up its card padding and width here –
    a class and a type deep, so it outranks that panel's own single-class rules whichever loads last */

@@ -56,14 +56,21 @@ button.headMain:active { background-image: linear-gradient(var(--press), var(--p
 /* the body: the two times as one pair, nothing else — von – bis as ONE centred group with a fixed
    gap. They huddled on the left (owner, 30.10.2026), then spread edge to edge read as two separate
    things a card apart (owner, 30.10.2026 round 2); centred, the dash between them joins them. */
-.times { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: center; gap: var(--sp-2) var(--sp-4); padding: var(--sp-3); }
-.sep { align-self: center; padding-top: var(--sp-4); color: var(--ink-faint); font: var(--fw-medium) var(--fs-2) var(--mono); }
+/* The dash stands ON the digits' middle, 8px from each field (r35, 06.11.2026): it was centred on
+   the whole column (label + field + day) and pushed 16px down, so it sat on the digits' baseline
+   like an underscore. Now its box IS the field's row – the label's line + the column's 4px gap
+   above, --tap tall – and the mono's en dash centres on the field's centre, where the digits'
+   middle is. (The label's line-height is set for this: `normal` has no number to add.) */
+.times { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: center; gap: var(--sp-2); padding: var(--sp-3); }
+.sep { align-self: flex-start; display: flex; align-items: center; height: var(--tap);
+  margin-top: calc(var(--fs-1) * var(--lh-1) + var(--sp-1));
+  color: var(--ink-faint); font: var(--fw-medium) var(--fs-2) var(--mono); }
 /* the day this end falls on. A CAPTION under its own field, not a chip beside the row: as a
    sibling of the fields it wrapped to its own line and orphaned, and it no longer said which end
    it dated. Over midnight both sides carry one. */
 .day { font: var(--fw-medium) var(--fs-micro) var(--mono); color: var(--ink-faint); white-space: nowrap; }
 .field { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.label { font: var(--field-label); color: var(--ink-dim); } /* the one field label (28.09.2026; was an uppercase eyebrow) */
+.label { font: var(--field-label); line-height: var(--lh-1); color: var(--ink-dim); } /* the one field label (28.09.2026; was an uppercase eyebrow) */
 .time { flex: none; }
 /* the read-only twin still uses this for «noch da» */
 .open {
@@ -119,7 +126,7 @@ button.headMain:active { background-image: linear-gradient(var(--press), var(--p
    old row produced here — times, then a state chip pushed right with the ✕ beside it, then «ab
    Beginn» alone — is gone with the row itself. */
 @media (max-width: 560px) {
-  .times { padding: var(--sp-2); gap: var(--sp-2); }
+  .times { padding: var(--sp-2); }
   .head { padding-left: var(--sp-2); }
 }
 

@@ -126,7 +126,7 @@ describe('the mini sheets', () => {
     // the Kanal chip opens the pad, the Auftrag chip the Auftrag sheet
     fireEvent.click(within(card).getByRole('button', { name: `${az.funkkanalUnit} 11` }))
     expect(screen.getByRole('dialog', { name: new RegExp(`^${az.funkkanalUnit}`) })).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: az.cancel }))
+    fireEvent.click(screen.getByRole('button', { name: appConfig.copy.closeDialog }))
     fireEvent.click(within(card).getByRole('button', { name: 'Löschen · Test' }))
     expect(screen.getByRole('dialog', { name: new RegExp(`^${az.editFieldLabels.auftrag}`) })).toBeTruthy()
   })
@@ -345,9 +345,10 @@ describe('the handed-over board on a phone (focus mode)', () => {
   })
 
   /* ── The Notfall on the link board (R1, 30.10.2026: «red and notfall is already enough») ────
-   * Its own tab: the page IS the Notfall — head «Notfall seit …», both clocks named, the
-   * Sicherungstrupp act with «Anderer ⌄» — and no banner over it. Any other tab: a red strip
-   * whose tap goes back to the Notfall's page. */
+   * Its own tab: the page IS the Notfall — the red name, both clocks named, no «Notfall seit …»
+   * eyebrow, and the Sicherungstrupp act with «Anderer ⌄» down in the page's controls, first of them
+   * (owner pick E3, 06.11.2026); its own tab is the plain open tab — and no banner over it. Any
+   * other tab: a red strip whose tap goes back to the Notfall's page. */
   it('makes the Notfall Trupp\'s page the Notfall, and leads back to it from every other tab', () => {
     vi.mocked(useIsPhone).mockReturnValue(true)
     const nf = az.notfall
@@ -362,6 +363,12 @@ describe('the handed-over board on a phone (focus mode)', () => {
     expect(screen.getByText(nf.pageContact)).toBeTruthy()
     expect(screen.getByRole('button', { name: new RegExp(nf.sitrDeploy) }).textContent).toContain('Willi Wache')
     expect(screen.getByRole('button', { name: nf.sitrOtherLabel })).toBeTruthy()
+    expect(document.querySelector(`.${s.nfPageAct}`)?.parentElement?.classList.contains(s.pageActs)).toBe(true)
+    expect(document.querySelector(`.${s.pageActs}`)!.firstElementChild!.classList.contains(s.nfPageAct)).toBe(true)
+    expect(document.querySelector(`.${s.nfPage}`)!.textContent).not.toMatch(/Notfall seit/)
+    // the crew line right under the red name, before the clocks
+    expect(document.querySelector(`.${s.nfPageName} + .${s.crewLine}`)!.textContent).toBe('Huber')
+    expect(screen.getByRole('tab', { name: /Nora Notfall/ }).classList.contains(s.tabNf)).toBe(true)
     expect(document.querySelector(`.${s.nfBanner}`)).toBeNull()
 
     fireEvent.click(screen.getByRole('tab', { name: /Ida Innen/ }))

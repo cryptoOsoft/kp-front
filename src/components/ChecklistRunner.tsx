@@ -21,7 +21,7 @@ const tickTime = (t: string) => (t.includes('T') ? formatTime(new Date(t)) : t)
 // in the Verlauf + audit trail (handled by the onTick callback in App).
 
 const actionIcon: Record<NonNullable<Item['action']>, string> = {
-  journal: 'history',
+  journal: 'verlauf',
   plan: 'doc',
   draw: 'pen',
 }
