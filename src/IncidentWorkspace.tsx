@@ -6,7 +6,7 @@
 // Rules: every mutation joins the one timeline (docs/undo.md); synced state and the record:
 // docs/sync-and-offline.md.
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react'
+import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react'
 import type { MapRef } from 'react-map-gl/maplibre'
 import './app.css'
 import { IconSprite } from './lib/icons'
@@ -180,9 +180,9 @@ import { useRecordSlices } from './workspace/useRecordSlices'
 import { useRosterRoles } from './workspace/useRosterRoles'
 import { useMediaOutbox } from './workspace/useMediaOutbox'
 import { useLifecycleElsewhere } from './workspace/useLifecycleElsewhere'
-import { useTutorial } from './lib/tutorials/useTutorial'
+import { useTutorialSession } from './lib/tutorials/session'
 import { tutorialEvent } from './lib/tutorials/bus'
-import { TutorialLayer } from './components/tutorial/TutorialLayer'
+import { TutorialRunner } from './components/tutorial/lazy'
 
 /** How long an edit has to sit still before it earns a Verlauf row. Long enough that a sentence
  *  being typed is ONE edit, short enough that reading the Verlauf a moment later already shows
@@ -2894,6 +2894,22 @@ export function IncidentWorkspace({
     />
   )
 
+  /* «Üben» – the tutorial runner (components/tutorial/TutorialRunner, its own chunk): binds a
+   * running tutorial to this Einsatz, watches the workspace, moves the steps. Mounted only while a
+   * session exists, never in a link session; in the full layout with its pill, bubble and done
+   * card, while covered without them (a run started over «Karte & Objekte» still binds there).
+   * The phone's FAB yields to the done card, so the runner says when that card stands. */
+  const tutorialSession = useTutorialSession()
+  const [tutorialEndCard, setTutorialEndCard] = useState(false)
+  const tutorialRunner = (layer: boolean) => tutorialSession && !linkScoped && (
+    <Suspense fallback={null}>
+      <TutorialRunner layer={layer} onEndCard={layer ? setTutorialEndCard : undefined} enabled
+        incident={{ id: incidentMeta.id, title: incidentMeta.title, isExercise: incidentMeta.is_exercise }}
+        entities={doc.entities} drawings={doc.drawings} trupps={trupps} journalRows={timeline.length}
+        present={presentIds.size} mode={mode} tool={tool} palette={paletteOpen} phone={isPhone} setMode={setMode} />
+    </Suspense>
+  )
+
   /* ── Covered: another surface is in front of this Einsatz ───────────────────────────────
    *
    * «Karte & Objekte» or the Objektbesuche opened over an open Einsatz (App · screen). The
@@ -2907,16 +2923,6 @@ export function IncidentWorkspace({
    * the Meldeleiste over the surface in front: overdue / Alarmdruck / Rückzug per Trupp, and the
    * Notfall. Their «Zum Trupp» brings this Einsatz back, on the Atemschutz board at that card.
    * The reminder clock keeps running too. AFTER every hook, like the link shell below. */
-  /* «Üben» – the tutorial runner (lib/tutorials/useTutorial): binds a running tutorial to this
-   * Einsatz, watches the workspace, moves the steps. A hook, so it sits here with the others,
-   * before the covered / link returns; its UI (TutorialLayer) is the full layout's only. */
-  const tutorialRun = useTutorial({
-    incident: { id: incidentMeta.id, title: incidentMeta.title, isExercise: incidentMeta.is_exercise },
-    enabled: !linkScoped,
-    entities: doc.entities, drawings: doc.drawings, trupps, journalRows: timeline.length, present: presentIds.size,
-    mode, tool, palette: paletteOpen, phone: isPhone, setMode,
-  })
-
   if (covered) {
     const goToTrupp = (id: string) => {
       onUncover?.()
@@ -2947,6 +2953,7 @@ export function IncidentWorkspace({
             onDeploySafety={(id) => setTruppStatus(id, 'aktiv')}
           />
         )}
+        {tutorialRunner(false)}
       </>
     )
   }
@@ -3346,7 +3353,7 @@ export function IncidentWorkspace({
           the composer does not unmount it, and the CSS that yields it to a tool's dock, the armed
           pill or a detail sheet lets `.rec` stay (15-mobile · «while a tool-option dock …»). */}
       {/* …and it yields to the «Üben» done card, which stands where it would (never while recording) */}
-      {isPhone && !readOnly && !linkScoped && (voice.recording || (!composerOpen && !panel && tutorialRun?.phase !== 'end')) && (
+      {isPhone && !readOnly && !linkScoped && (voice.recording || (!composerOpen && !panel && !tutorialEndCard)) && (
         <FabEntry
           recording={voice.recording}
           recStartedAt={voice.recStartedAt}
@@ -3378,7 +3385,7 @@ export function IncidentWorkspace({
 
       {/* «Üben»: the pill, the Sprechblase, the step list, the done card – over the map chrome,
           under the Meldeleiste (components/tutorial/TutorialLayer) */}
-      {tutorialRun && <TutorialLayer run={tutorialRun} />}
+      {tutorialRunner(true)}
     </div>
   )
 }

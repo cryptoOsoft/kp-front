@@ -1,5 +1,6 @@
-// The tutorial runner («Üben», 05.11.2026) – mounted ONCE in the IncidentWorkspace, before its
-// early returns, so a surface switch never unmounts it. It reads the running session
+// The tutorial runner («Üben», 05.11.2026) – called by components/tutorial/TutorialRunner, which
+// the IncidentWorkspace mounts (a lazy chunk) while a session exists, outside every surface, so a
+// surface switch never unmounts it; covering the Einsatz remounts it. It reads the running session
 // (./session), binds it to this Einsatz, watches the workspace and moves the steps:
 //
 //   start   – the Lern-Übung first where the catalogue says `uebung` (./sandbox · openLernUebung).
