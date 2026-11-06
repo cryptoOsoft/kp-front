@@ -3082,7 +3082,7 @@
           "presentation"
         ],
         "summary": "Presentation Signal",
-        "description": "Join, leave, the presenter's view, or a pointer. Ephemeral by construction – see the\nmodule docstring. 409 when the presentation it names is not the one running (ended,\ntaken over): the client drops back to «no presentation» on its next poll.",
+        "description": "Join, leave, the presenter's view, a pointer or a line. Ephemeral by construction – see the\nmodule docstring. 409 when the presentation it names is not the one running (ended,\ntaken over): the client drops back to «no presentation» on its next poll.",
         "operationId": "presentation_signal_api_incidents__incident_id__presentation_signal_post",
         "parameters": [
           {
@@ -21901,6 +21901,74 @@
         ],
         "title": "PositionOut"
       },
+      "PresentationAnchor": {
+        "properties": {
+          "path": {
+            "items": {
+              "type": "string",
+              "pattern": "^(\\d{1,4}|[a-z-]{1,24}=[A-Za-z0-9_:.\\-]{1,80})$"
+            },
+            "type": "array",
+            "maxItems": 32,
+            "title": "Path"
+          },
+          "x": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "X",
+            "default": 0
+          },
+          "y": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Y",
+            "default": 0
+          },
+          "r": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "R",
+            "default": 0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "path"
+        ],
+        "title": "PresentationAnchor",
+        "description": "A place in a scrolled surface that survives another screen size (lib/presentAnchor): the\nelement (`path` from the surface's scroller), where in it (`x`, `y`: 0..1 of its box), and the\nwhole scroll's ratio `r` for a device on which the path does not resolve."
+      },
+      "PresentationChecklist": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "tpl",
+              "entry",
+              "manual",
+              "device"
+            ],
+            "title": "Kind"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_:.\\-]{1,120}$",
+            "title": "Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "id"
+        ],
+        "title": "PresentationChecklist",
+        "description": "The open Checkliste (components/ChecklistsView · Sel)."
+      },
       "PresentationMapView": {
         "properties": {
           "lng": {
@@ -21926,6 +21994,32 @@
             "maximum": 360.0,
             "minimum": -360.0,
             "title": "Bearing"
+          },
+          "w": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 20000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "W"
+          },
+          "h": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 20000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "H"
           }
         },
         "additionalProperties": false,
@@ -21936,7 +22030,8 @@
           "zoom",
           "bearing"
         ],
-        "title": "PresentationMapView"
+        "title": "PresentationMapView",
+        "description": "The presenter's free map area (its own side panel left out): the centre, zoom, bearing and\nthe area's size in px – a follower fits that whole area into its own (components/Presentation\n· fitZoom), so a portrait phone zooms out instead of cutting it off."
       },
       "PresentationPerson": {
         "properties": {
@@ -21986,6 +22081,32 @@
             "maximum": 20.0,
             "minimum": 0.1,
             "title": "Scale"
+          },
+          "w": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 50.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "W"
+          },
+          "h": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 50.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "H"
           }
         },
         "additionalProperties": false,
@@ -21997,7 +22118,7 @@
           "scale"
         ],
         "title": "PresentationPlanView",
-        "description": "A plan/Tafel section: the centre in plan space (0..1), the storey and the zoom relative to\n«eingepasst» (1) – portable between screens of any size (components/useBoardView)."
+        "description": "A plan/Tafel section: the centre in plan space (0..1), the storey and the zoom relative to\n«eingepasst» (1) – portable between screens of any size (components/useBoardView) – and the\nvisible extent in board units (1 = the whole board), which a follower fits into its own."
       },
       "PresentationPointerAt": {
         "properties": {
@@ -22005,7 +22126,8 @@
             "type": "string",
             "enum": [
               "map",
-              "plan"
+              "plan",
+              "page"
             ],
             "title": "Surface"
           },
@@ -22097,6 +22219,16 @@
               }
             ],
             "title": "Floor"
+          },
+          "anchor": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PresentationAnchor"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -22105,7 +22237,7 @@
           "surface"
         ],
         "title": "PresentationPointerAt",
-        "description": "Where a pointer was tapped: a map position, or a point on one plan (plan space, 0..1)."
+        "description": "Where a pointer was tapped: a map position, a point on one plan (plan space, 0..1), or a\nplace on a Tafel form page (an anchor – a form reflows between screens)."
       },
       "PresentationPointerMessage": {
         "properties": {
@@ -22165,7 +22297,8 @@
               "join",
               "leave",
               "view",
-              "pointer"
+              "pointer",
+              "stroke"
             ],
             "title": "Kind"
           },
@@ -22195,6 +22328,16 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/PresentationPointerAt"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "stroke": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PresentationStroke"
               },
               {
                 "type": "null"
@@ -22296,12 +22439,16 @@
                 },
                 {
                   "$ref": "#/components/schemas/PresentationPointerMessage"
+                },
+                {
+                  "$ref": "#/components/schemas/PresentationStrokeMessage"
                 }
               ],
               "discriminator": {
                 "propertyName": "kind",
                 "mapping": {
                   "pointer": "#/components/schemas/PresentationPointerMessage",
+                  "stroke": "#/components/schemas/PresentationStrokeMessage",
                   "view": "#/components/schemas/PresentationViewMessage"
                 }
               }
@@ -22318,13 +22465,154 @@
         "title": "PresentationState",
         "description": "One poll's answer – app/presentation · snapshot."
       },
+      "PresentationStroke": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{4,40}$",
+            "title": "Id"
+          },
+          "surface": {
+            "type": "string",
+            "enum": [
+              "map",
+              "plan",
+              "page"
+            ],
+            "title": "Surface"
+          },
+          "plan_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_:.\\-]{1,120}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan Id"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_:.\\-]{1,120}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "floor": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 200.0,
+                "minimum": -20.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Floor"
+          },
+          "anchor": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PresentationAnchor"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "points": {
+            "items": {
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array",
+              "maxItems": 2,
+              "minItems": 2
+            },
+            "type": "array",
+            "maxItems": 120,
+            "minItems": 1,
+            "title": "Points"
+          },
+          "done": {
+            "type": "boolean",
+            "title": "Done",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "surface",
+          "points"
+        ],
+        "title": "PresentationStroke",
+        "description": "A line drawn with «Zeigen» – the whole of it so far (app/presentation · send_stroke).\n`points` are [lng, lat] on the Karte, [x, y] in plan space (0..1, on `floor`) on a plan, and\noffsets from `anchor` in units of the anchored element's width on a form page."
+      },
+      "PresentationStrokeMessage": {
+        "properties": {
+          "seq": {
+            "type": "integer",
+            "title": "Seq"
+          },
+          "kind": {
+            "type": "string",
+            "const": "stroke",
+            "title": "Kind"
+          },
+          "client": {
+            "type": "string",
+            "title": "Client"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "link": {
+            "type": "boolean",
+            "title": "Link"
+          },
+          "stroke": {
+            "$ref": "#/components/schemas/PresentationStroke"
+          }
+        },
+        "type": "object",
+        "required": [
+          "seq",
+          "kind",
+          "client",
+          "name",
+          "link",
+          "stroke"
+        ],
+        "title": "PresentationStrokeMessage"
+      },
       "PresentationView": {
         "properties": {
           "mode": {
             "type": "string",
             "enum": [
               "map",
-              "plans"
+              "plans",
+              "checklists",
+              "atemschutz",
+              "anwesenheit",
+              "mittel",
+              "rapport"
             ],
             "title": "Mode"
           },
@@ -22366,6 +22654,53 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/PresentationPlanView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scroll": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PresentationAnchor"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "checklist": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PresentationChecklist"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_:.\\-]{1,120}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detail"
+          },
+          "journal": {
+            "type": "boolean",
+            "title": "Journal",
+            "default": false
+          },
+          "journal_scroll": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PresentationAnchor"
               },
               {
                 "type": "null"

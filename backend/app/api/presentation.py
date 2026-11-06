@@ -16,6 +16,9 @@ authorisation, which is the part to read twice:
 · A client id is bound to the session that registered it (app/presentation · Participant.owner):
   the ids are in every poll's answer, so presence, leave, pointer and view under one are only
   taken from that session – nobody points under somebody else's name.
+· Nothing a view carries is data: surface names, ids and scroll anchors of what the presenter
+  has open. A follower opens them in its OWN copy of the Einsatz, so following can never show
+  anybody something its session could not already read.
 · A link holder's name is self-chosen, so it is bounded, stripped and flagged `link` on every
   screen, and replaced by «Gast» on the public demo (strangers must not broadcast text there).
 """
@@ -47,36 +50,78 @@ class _Strict(BaseModel):
     model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
 
 
+#: one step of an anchor path (lib/presentAnchor): a child index, or a keyed element
+#: (`data-sec=…`, `data-ev=…` – an attribute the surface already renders)
+_ANCHOR_STEP = r"^(\d{1,4}|[a-z-]{1,24}=[A-Za-z0-9_:.\-]{1,80})$"
+_ID = r"^[A-Za-z0-9_:.\-]{1,120}$"
+
+
 class PresentationMapView(_Strict):
+    """The presenter's free map area (its own side panel left out): the centre, zoom, bearing and
+    the area's size in px – a follower fits that whole area into its own (components/Presentation
+    · fitZoom), so a portrait phone zooms out instead of cutting it off."""
+
     lng: float = Field(ge=-180, le=180)
     lat: float = Field(ge=-90, le=90)
     zoom: float = Field(ge=0, le=24)
     bearing: float = Field(ge=-360, le=360)
+    w: float | None = Field(default=None, ge=1, le=20000)
+    h: float | None = Field(default=None, ge=1, le=20000)
 
 
 class PresentationPlanView(_Strict):
     """A plan/Tafel section: the centre in plan space (0..1), the storey and the zoom relative to
-    «eingepasst» (1) – portable between screens of any size (components/useBoardView)."""
+    «eingepasst» (1) – portable between screens of any size (components/useBoardView) – and the
+    visible extent in board units (1 = the whole board), which a follower fits into its own."""
 
     x: float = Field(ge=0, le=1)
     y: float = Field(ge=0, le=1)
     floor: int = Field(ge=-20, le=200)
     scale: float = Field(ge=0.1, le=20)
+    w: float | None = Field(default=None, gt=0, le=50)
+    h: float | None = Field(default=None, gt=0, le=50)
+
+
+class PresentationAnchor(_Strict):
+    """A place in a scrolled surface that survives another screen size (lib/presentAnchor): the
+    element (`path` from the surface's scroller), where in it (`x`, `y`: 0..1 of its box), and the
+    whole scroll's ratio `r` for a device on which the path does not resolve."""
+
+    path: list[Annotated[str, Field(pattern=_ANCHOR_STEP)]] = Field(max_length=32)
+    x: float = Field(default=0, ge=0, le=1)
+    y: float = Field(default=0, ge=0, le=1)
+    r: float = Field(default=0, ge=0, le=1)
+
+
+class PresentationChecklist(_Strict):
+    """The open Checkliste (components/ChecklistsView · Sel)."""
+
+    kind: Literal["tpl", "entry", "manual", "device"]
+    id: str = Field(pattern=_ID)
 
 
 class PresentationView(_Strict):
-    mode: Literal["map", "plans"]
+    mode: Literal["map", "plans", "checklists", "atemschutz", "anwesenheit", "mittel", "rapport"]
     plan_id: str | None = Field(default=None, pattern=_PLAN_ID)
     #: the Tafel page on screen (lib/tafelPages · SKIZZE or a form id)
     page: str | None = Field(default=None, pattern=_PLAN_ID)
     map: PresentationMapView | None = None
     plan: PresentationPlanView | None = None
+    #: a scrolled surface's position (a module, a Checkliste, a Tafel form page)
+    scroll: PresentationAnchor | None = None
+    checklist: PresentationChecklist | None = None
+    #: the symbol whose detail is open in the sidebar (a Karte entity or a plan object)
+    detail: str | None = Field(default=None, pattern=_ID)
+    #: the Verlauf drawer is open, and where it is scrolled to
+    journal: bool = False
+    journal_scroll: PresentationAnchor | None = None
 
 
 class PresentationPointerAt(_Strict):
-    """Where a pointer was tapped: a map position, or a point on one plan (plan space, 0..1)."""
+    """Where a pointer was tapped: a map position, a point on one plan (plan space, 0..1), or a
+    place on a Tafel form page (an anchor – a form reflows between screens)."""
 
-    surface: Literal["map", "plan"]
+    surface: Literal["map", "plan", "page"]
     lng: float | None = Field(default=None, ge=-180, le=180)
     lat: float | None = Field(default=None, ge=-90, le=90)
     plan_id: str | None = Field(default=None, pattern=_PLAN_ID)
@@ -84,6 +129,23 @@ class PresentationPointerAt(_Strict):
     x: float | None = Field(default=None, ge=0, le=1)
     y: float | None = Field(default=None, ge=0, le=1)
     floor: int | None = Field(default=None, ge=-20, le=200)
+    anchor: PresentationAnchor | None = None
+
+
+class PresentationStroke(_Strict):
+    """A line drawn with «Zeigen» – the whole of it so far (app/presentation · send_stroke).
+    `points` are [lng, lat] on the Karte, [x, y] in plan space (0..1, on `floor`) on a plan, and
+    offsets from `anchor` in units of the anchored element's width on a form page."""
+
+    id: str = Field(pattern=r"^[A-Za-z0-9_-]{4,40}$")
+    surface: Literal["map", "plan", "page"]
+    plan_id: str | None = Field(default=None, pattern=_PLAN_ID)
+    page: str | None = Field(default=None, pattern=_PLAN_ID)
+    floor: int | None = Field(default=None, ge=-20, le=200)
+    anchor: PresentationAnchor | None = None
+    points: list[tuple[float, float]] = Field(min_length=1, max_length=broker.MAX_STROKE_POINTS)
+    #: the finger is up: the line fades from now on
+    done: bool = False
 
 
 class PresentationPerson(BaseModel):
@@ -108,6 +170,15 @@ class PresentationPointerMessage(BaseModel):
     at: PresentationPointerAt
 
 
+class PresentationStrokeMessage(BaseModel):
+    seq: int
+    kind: Literal["stroke"]
+    client: str
+    name: str
+    link: bool
+    stroke: PresentationStroke
+
+
 class PresentationState(BaseModel):
     """One poll's answer – app/presentation · snapshot."""
 
@@ -118,7 +189,12 @@ class PresentationState(BaseModel):
     presenter: PresentationPerson | None = None
     participants: list[PresentationPerson] = []
     view: PresentationView | None = None
-    messages: list[Annotated[PresentationViewMessage | PresentationPointerMessage, Field(discriminator="kind")]] = []
+    messages: list[
+        Annotated[
+            PresentationViewMessage | PresentationPointerMessage | PresentationStrokeMessage,
+            Field(discriminator="kind"),
+        ]
+    ] = []
 
 
 class PresentationStart(_Strict):
@@ -129,11 +205,12 @@ class PresentationSignal(_Strict):
     #: the presentation this signal is meant for – a signal for one that has ended is dropped
     presentation: str = Field(min_length=1, max_length=32)
     client: str = Field(min_length=4, max_length=64)
-    kind: Literal["join", "leave", "view", "pointer"]
+    kind: Literal["join", "leave", "view", "pointer", "stroke"]
     #: a link holder's own name; ignored for a logged-in user (the account's name is used)
     name: str | None = Field(default=None, max_length=60)
     view: PresentationView | None = None
     at: PresentationPointerAt | None = None
+    stroke: PresentationStroke | None = None
 
 
 async def _is_open(db: AsyncSession, incident_id: uuid.UUID) -> bool:
@@ -259,7 +336,7 @@ async def presentation_signal(
     user: CurrentUser,
     db: AsyncSession = Depends(get_db),
 ) -> Response:
-    """Join, leave, the presenter's view, or a pointer. Ephemeral by construction – see the
+    """Join, leave, the presenter's view, a pointer or a line. Ephemeral by construction – see the
     module docstring. 409 when the presentation it names is not the one running (ended,
     taken over): the client drops back to «no presentation» on its next poll."""
     cid = _client(body.client)
@@ -287,6 +364,11 @@ async def presentation_signal(
         # session never presents, so its view is refused even if it guessed the id.
         if body.view is None or is_link_session(user) or not broker.send_view(p, cid, owner, body.view.model_dump()):
             raise HTTPException(status_code=403, detail={"code": "not_presenter"})
+    elif body.kind == "stroke":
+        if body.stroke is None or not _stroke_complete(body.stroke):
+            raise HTTPException(status_code=422, detail="stroke")
+        if not broker.send_stroke(p, cid, owner, body.stroke.model_dump(exclude_none=True)):
+            raise HTTPException(status_code=409, detail={"code": "not_joined"})
     else:
         if body.at is None or not _pointer_complete(body.at):
             raise HTTPException(status_code=422, detail="at")
@@ -302,4 +384,25 @@ def _owner(user: User) -> str:
 def _pointer_complete(at: PresentationPointerAt) -> bool:
     if at.surface == "map":
         return at.lng is not None and at.lat is not None
+    if at.surface == "page":
+        return at.plan_id is not None and at.page is not None and at.anchor is not None
     return at.plan_id is not None and at.x is not None and at.y is not None
+
+
+#: how far a form page's line may reach from its anchor, in anchor widths
+_PAGE_REACH = 40.0
+
+
+def _stroke_complete(st: PresentationStroke) -> bool:
+    """Every point in range for its surface, and the surface named completely."""
+    if st.surface == "map":
+        return all(-180 <= a <= 180 and -90 <= b <= 90 for a, b in st.points)
+    if st.plan_id is None:
+        return False
+    if st.surface == "page":
+        return (
+            st.page is not None
+            and st.anchor is not None
+            and all(abs(a) <= _PAGE_REACH and abs(b) <= _PAGE_REACH for a, b in st.points)
+        )
+    return all(0 <= a <= 1 and 0 <= b <= 1 for a, b in st.points)

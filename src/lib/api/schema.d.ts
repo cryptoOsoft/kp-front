@@ -966,7 +966,7 @@ export interface paths {
         put?: never;
         /**
          * Presentation Signal
-         * @description Join, leave, the presenter's view, or a pointer. Ephemeral by construction – see the
+         * @description Join, leave, the presenter's view, a pointer or a line. Ephemeral by construction – see the
          *     module docstring. 409 when the presentation it names is not the one running (ended,
          *     taken over): the client drops back to «no presentation» on its next poll.
          */
@@ -6696,7 +6696,50 @@ export interface components {
              */
             ts: string;
         };
-        /** PresentationMapView */
+        /**
+         * PresentationAnchor
+         * @description A place in a scrolled surface that survives another screen size (lib/presentAnchor): the
+         *     element (`path` from the surface's scroller), where in it (`x`, `y`: 0..1 of its box), and the
+         *     whole scroll's ratio `r` for a device on which the path does not resolve.
+         */
+        PresentationAnchor: {
+            /** Path */
+            path: string[];
+            /**
+             * X
+             * @default 0
+             */
+            x?: number;
+            /**
+             * Y
+             * @default 0
+             */
+            y?: number;
+            /**
+             * R
+             * @default 0
+             */
+            r?: number;
+        };
+        /**
+         * PresentationChecklist
+         * @description The open Checkliste (components/ChecklistsView · Sel).
+         */
+        PresentationChecklist: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "tpl" | "entry" | "manual" | "device";
+            /** Id */
+            id: string;
+        };
+        /**
+         * PresentationMapView
+         * @description The presenter's free map area (its own side panel left out): the centre, zoom, bearing and
+         *     the area's size in px – a follower fits that whole area into its own (components/Presentation
+         *     · fitZoom), so a portrait phone zooms out instead of cutting it off.
+         */
         PresentationMapView: {
             /** Lng */
             lng: number;
@@ -6706,6 +6749,10 @@ export interface components {
             zoom: number;
             /** Bearing */
             bearing: number;
+            /** W */
+            w?: number | null;
+            /** H */
+            h?: number | null;
         };
         /** PresentationPerson */
         PresentationPerson: {
@@ -6722,7 +6769,8 @@ export interface components {
         /**
          * PresentationPlanView
          * @description A plan/Tafel section: the centre in plan space (0..1), the storey and the zoom relative to
-         *     «eingepasst» (1) – portable between screens of any size (components/useBoardView).
+         *     «eingepasst» (1) – portable between screens of any size (components/useBoardView) – and the
+         *     visible extent in board units (1 = the whole board), which a follower fits into its own.
          */
         PresentationPlanView: {
             /** X */
@@ -6733,17 +6781,22 @@ export interface components {
             floor: number;
             /** Scale */
             scale: number;
+            /** W */
+            w?: number | null;
+            /** H */
+            h?: number | null;
         };
         /**
          * PresentationPointerAt
-         * @description Where a pointer was tapped: a map position, or a point on one plan (plan space, 0..1).
+         * @description Where a pointer was tapped: a map position, a point on one plan (plan space, 0..1), or a
+         *     place on a Tafel form page (an anchor – a form reflows between screens).
          */
         PresentationPointerAt: {
             /**
              * Surface
              * @enum {string}
              */
-            surface: "map" | "plan";
+            surface: "map" | "plan" | "page";
             /** Lng */
             lng?: number | null;
             /** Lat */
@@ -6758,6 +6811,7 @@ export interface components {
             y?: number | null;
             /** Floor */
             floor?: number | null;
+            anchor?: components["schemas"]["PresentationAnchor"] | null;
         };
         /** PresentationPointerMessage */
         PresentationPointerMessage: {
@@ -6786,11 +6840,12 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "join" | "leave" | "view" | "pointer";
+            kind: "join" | "leave" | "view" | "pointer" | "stroke";
             /** Name */
             name?: string | null;
             view?: components["schemas"]["PresentationView"] | null;
             at?: components["schemas"]["PresentationPointerAt"] | null;
+            stroke?: components["schemas"]["PresentationStroke"] | null;
         };
         /** PresentationStart */
         PresentationStart: {
@@ -6824,7 +6879,56 @@ export interface components {
              * Messages
              * @default []
              */
-            messages?: (components["schemas"]["PresentationViewMessage"] | components["schemas"]["PresentationPointerMessage"])[];
+            messages?: (components["schemas"]["PresentationViewMessage"] | components["schemas"]["PresentationPointerMessage"] | components["schemas"]["PresentationStrokeMessage"])[];
+        };
+        /**
+         * PresentationStroke
+         * @description A line drawn with «Zeigen» – the whole of it so far (app/presentation · send_stroke).
+         *     `points` are [lng, lat] on the Karte, [x, y] in plan space (0..1, on `floor`) on a plan, and
+         *     offsets from `anchor` in units of the anchored element's width on a form page.
+         */
+        PresentationStroke: {
+            /** Id */
+            id: string;
+            /**
+             * Surface
+             * @enum {string}
+             */
+            surface: "map" | "plan" | "page";
+            /** Plan Id */
+            plan_id?: string | null;
+            /** Page */
+            page?: string | null;
+            /** Floor */
+            floor?: number | null;
+            anchor?: components["schemas"]["PresentationAnchor"] | null;
+            /** Points */
+            points: [
+                number,
+                number
+            ][];
+            /**
+             * Done
+             * @default false
+             */
+            done?: boolean;
+        };
+        /** PresentationStrokeMessage */
+        PresentationStrokeMessage: {
+            /** Seq */
+            seq: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "stroke";
+            /** Client */
+            client: string;
+            /** Name */
+            name: string;
+            /** Link */
+            link: boolean;
+            stroke: components["schemas"]["PresentationStroke"];
         };
         /** PresentationView */
         PresentationView: {
@@ -6832,13 +6936,23 @@ export interface components {
              * Mode
              * @enum {string}
              */
-            mode: "map" | "plans";
+            mode: "map" | "plans" | "checklists" | "atemschutz" | "anwesenheit" | "mittel" | "rapport";
             /** Plan Id */
             plan_id?: string | null;
             /** Page */
             page?: string | null;
             map?: components["schemas"]["PresentationMapView"] | null;
             plan?: components["schemas"]["PresentationPlanView"] | null;
+            scroll?: components["schemas"]["PresentationAnchor"] | null;
+            checklist?: components["schemas"]["PresentationChecklist"] | null;
+            /** Detail */
+            detail?: string | null;
+            /**
+             * Journal
+             * @default false
+             */
+            journal?: boolean;
+            journal_scroll?: components["schemas"]["PresentationAnchor"] | null;
         };
         /** PresentationViewMessage */
         PresentationViewMessage: {
