@@ -209,6 +209,9 @@
    family's 8px is the floor a tile keeps inside the card — 6px read as a chip, not a tile */
 .ip-card .ip-card-acts .ip-card-act { padding: 0 8px; }
 .ip-card-act > span:not(.ip-badge) { white-space: nowrap; }
+/* …and no glyphs there: tried back in on a 390px phone (hill climb r36), the three tiles with
+   icon + word measured 340px in a 330px row – Abschliessen 10px past the card's padding, since a
+   tile never shrinks under its word. The words carry the row; the laptop keeps its icons. */
 @media (max-width: 479px) {
   .ip-card .ip-card-acts .ip-card-act { font-size: var(--fs-1); }
   .ip-card-act svg { display: none; }
@@ -283,15 +286,17 @@
 /* incident row — pure switch target (no destructive actions in this menu; closing another
    incident lives in «Alle Einsätze» / the Rapport). The leading FIXED-WIDTH column carries the
    laufende Zeit, so the list scans down one edge: how long has THAT one been going. */
-.ip-menu-row { display: flex; align-items: flex-start; gap: 8px; width: 100%; min-width: 0;
+/* the title in the menu rows' own 500 ink (hill climb r36: at 700 the other Einsätze out-shouted
+   every other row of a menu whose rows are 500 – the card above already names THIS one loudly).
+   `baseline`: the age's smaller type stands on the title's first line, also in a two-line row. */
+.ip-menu-row { display: flex; align-items: baseline; gap: 8px; width: 100%; min-width: 0;
   text-align: left; padding: 8px 12px; min-height: 44px; border: none; background: none;
-  border-radius: var(--r-ctl); cursor: pointer; color: var(--ink); font: var(--fw-bold) var(--fs-2) var(--body); }
-/* a read-out, so --ink-dim (29.09.2026): every row here is a running Einsatz, and a green age on
-   each of them made green the menu's decoration — the card's «✓ Gespeichert» is its one green.
-   The 1px nudges the smaller type onto the same baseline as the title beside it (align-items is
-   flex-start, for the two-line rows). */
-.ip-menu-when { flex: none; width: 62px; padding-top: 1px; font: var(--fw-medium) var(--fs-micro) var(--body);
-  font-variant-numeric: tabular-nums; color: var(--ink-dim); }
+  border-radius: var(--r-ctl); cursor: pointer; color: var(--ink); font: var(--fw-medium) var(--fs-2) var(--body); }
+/* a read-out, so quiet (29.09.2026: a green age on each row made green the menu's decoration —
+   the card's «✓ Gespeichert» is its one green): the mono in --ink-faint, as the menus' other
+   read-out figures (the Einsatzuhr's values, .tb-uhr-val) – r36, it was the body font in --ink-dim. */
+.ip-menu-when { flex: none; width: 62px; font: var(--fw-medium) var(--fs-micro) var(--mono);
+  font-variant-numeric: tabular-nums; color: var(--ink-faint); }
 @media (hover: hover) {
   .ip-menu-row:hover, .ip-menu-act:hover { background: var(--blue-8); }
 }
@@ -1897,6 +1902,16 @@ select.cv-input { appearance: none; -webkit-appearance: none;
    no such band, so the desktop is unchanged. */
 .ui-menu-pos[data-side="bottom"] { --menu-room: calc(var(--available-height, 70dvh) - env(safe-area-inset-bottom)); }
 .ui-menu-pos[data-side="top"] { --menu-room: calc(var(--available-height, 70dvh) - env(safe-area-inset-top)); }
+/* …and on a PHONE page the Rapport's «PDF ▾» Abschnitte (`.rp-pdf-menu`, ReportPreflight) open
+   DOWN over the bottom stack (the Rapport strip over the nav bar): measured to the screen edge they
+   ran behind both bars, the last row cut and no end to the menu in sight (hill climb r36). So that menu ends 12px above the
+   topmost bar (15-mobile · --float-bars, the stack's height incl. the strip) and scrolls inside
+   itself, its shell padding and rounded foot in view. `+ 10px` hands back the Menu's
+   `collisionPadding`, which `--available-height` already took off the screen's bottom. */
+@media (--phone) {
+  .ui-menu-pos[data-side="bottom"]:has(> .rp-pdf-menu) {
+    --menu-room: calc(var(--available-height, 70dvh) + 10px - var(--float-bars, 0px) - 12px - env(safe-area-inset-bottom)); }
+}
 /* EVERY menu fits the screen and scrolls inside itself (05.10.2026, owner's iPhone: the Rapport's
    «PDF ▾» Abschnitte ran off the bottom). `--menu-room` is what the positioner measured between
    the trigger and the viewport edge on the side it chose, less `collisionPadding` and the safe
@@ -1910,8 +1925,13 @@ select.cv-input { appearance: none; -webkit-appearance: none;
   padding: 8px 12px 4px;
   font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-faint);
 }
-.ui-menu-check { flex: none; display: grid; place-items: center; width: 17px; height: 17px;
-  border-radius: 4px; border: 1.5px solid var(--border-strong, var(--border)); }
+/* The menu's checkbox – every pick-several row (Verlauf · Filter, the Rapport's Abschnitte). 20px,
+   a 1.5px --ink-faint frame and the SHAPE of the app's checkbox (TickRow's 24px box, --r-xs = 8px)
+   at this size: 6px. The token itself on 20px left 4px of straight edge and the box read as a
+   radio ring. Hill climb r36: at 17px on a --border hairline (it read an undefined
+   --border-strong) an unticked box all but vanished beside the Verlauf's 24px kind discs. */
+.ui-menu-check { flex: none; display: grid; place-items: center; width: 20px; height: 20px;
+  border-radius: 6px; border: 1.5px solid var(--ink-faint); }
 .ui-menu-check svg { width: 12px; height: 12px; fill: none; stroke: var(--surface); stroke-width: 3;
   stroke-linecap: round; stroke-linejoin: round; opacity: 0; }
 [data-checked] > .ui-menu-check { background: var(--blue); border-color: var(--blue); }

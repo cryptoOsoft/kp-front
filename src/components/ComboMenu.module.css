@@ -35,6 +35,14 @@
 
 /* (the Dienstgrad chip on a roster row is RankBadge, RankBadge.module.css) */
 
-/* the option's name cell: it takes the slack and ellipses, so the marks around it (chip, dot,
-   «Gast», the soft note) keep their room on a narrow field */
+/* the option's name cell: it takes the slack and ellipses, so the marks before it (chip, dot,
+   «Gast») keep their room on a narrow field */
 .name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* …and with a soft note after it («AS», «schon: Einsatzleiter», a long Funktion) the NAME is what
+   is read, so the note gives way first (hill climb r36: «Graf …» was cut while «Wasser eingetroffen
+   erledigt Wasser» kept its width). The name keeps its own width up to 60% of the row; the note
+   takes what is left, right-aligned, and ellipsises. Two classes, so it outranks either skin's
+   one-class `flex: none` on the note (`.comboHint`, `.combo-opt-status`). */
+.name:not(:last-child) { flex: 0 0 auto; max-width: 60%; }
+.name:not(:last-child) + * { flex: 0 1 auto; min-width: 0; margin-left: auto;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
