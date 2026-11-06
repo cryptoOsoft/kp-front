@@ -606,11 +606,16 @@
    that prints the same clock (`data-same`, Journal) regular in the faint one – each row keeps its
    stamp, the eye lands on where the minute changes. By WEIGHT as well as ink (r29, Opus 2): the
    two inks alone sit too close to tell apart (both have to clear 4.5:1 on the drawer). Bold, not
-   600 – 600 is no step on the weight scale (01-tokens). */
-.hist-ev .t { width: 44px; padding-top: var(--jr-lead); font: var(--fw-bold) var(--fs-1)/calc(var(--fs-2) * var(--lh-2)) var(--mono);
-  color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+   600 – 600 is no step on the weight scale (01-tokens).
+   ⚠️ The Pendenzen clock (.jr-when) wears the FIRST step, from this one rule (hill climb r30, Opus
+   2): every Pendenz stamp is its own time, the age a Gruppenführer scans, and in the regular faint
+   ink it read as a «repeat» – quieter than the log's first stamps on the same axis. Each clock keeps
+   its own face and line (the `font-*` longhands, never the shorthand, which would reset the weight). */
+.hist-ev .t { width: 44px; padding-top: var(--jr-lead); font-family: var(--mono); font-size: var(--fs-1);
+  line-height: calc(var(--fs-2) * var(--lh-2)); font-variant-numeric: tabular-nums; }
+:is(.hist-ev .t, .jr-when) { font-weight: var(--fw-bold); color: var(--ink-dim); }
 .hist-ev .t[data-same] { font-weight: var(--fw-regular); color: var(--ink-faint); }
-/* timeline node + connector. 24px with a 12px glyph and the --border hairline (owner pick A6,
+/* timeline node + connector. 24px with a 12px glyph and a hairline ring (owner pick A6,
    05.11.2026: round 11 had grown it to 28/16, and the size was never what told two rows apart —
    the kind colour carries the difference). A ring, not a bare fill, since r11 (at --border-soft
    a people glyph read as a pale smudge on the white drawer by day). Centred in its 28px band
@@ -619,11 +624,18 @@
    wear INK as their kind colour, the same three steps as the tinted kinds (fill · ring · glyph,
    cf. --blue-12 / --blue-22 / --blue-strong): hill climb r24, Opus 5 – a --surface-2 disc with
    a --border hairline and an --ink-dim glyph was white on the white drawer and all but vanished
-   by day. Same base in the legend and the filter menu (10-journal). */
+   by day. ONE paint for the row, the legend and the filter menu (10-journal sizes those two).
+   ⚠️ The glyph's STROKE is the disc's, not the icon set's 1.8 (hill climb r30, Opus 4): 1.8 is drawn
+   for a 22px glyph, and at 12px it is 0.9px of ink – anti-aliased to a light-grey smudge however
+   dark the ink (measured r29: the glyph WAS full --ink, nothing dimmed it). 2.6 is 1.3px, the stem
+   of the sentence beside it, on every kind alike so the tinted discs keep matching the neutral
+   ones. The neutral ring is --ink-28 (was 16), a step a reader can see on the white drawer; the
+   tinted kinds keep their own rings (10-journal · .jr-ic-*). */
 .hist-ev .ic { position: relative; width: var(--jr-disc); height: var(--jr-disc); justify-self: center;
-  margin-top: calc((var(--jr-band) - var(--jr-disc)) / 2); border-radius: 50%; background: var(--ink-8);
-  border: 1px solid var(--ink-16); color: var(--ink); font-size: var(--fs-2); display: grid; place-items: center; flex: none; }
-.hist-ev .ic > .i { width: 12px; height: 12px; }
+  margin-top: calc((var(--jr-band) - var(--jr-disc)) / 2); font-size: var(--fs-2); display: grid; place-items: center; flex: none; }
+:is(.hist-ev, .jr-legend, .jr-filter-menu) .ic { border-radius: 50%; background: var(--ink-8);
+  border: 1px solid var(--ink-28); color: var(--ink); }
+:is(.hist-ev, .jr-legend, .jr-filter-menu) .ic > .i { width: 12px; height: 12px; stroke-width: 2.6; }
 /* ⚠️ Each row draws its OWN HALF of the connector — top edge → node, node → bottom edge — and
    the row clips them (overflow above). The old line was a fixed 16px stub hanging off the node,
    which reached the next node only on a single-line row: an audio row carries «Durchhören» and
@@ -922,7 +934,8 @@ span.jr-pinned-text::after { display: none; }
    swaps the whole column to the age — never one row at a time, a half-clock/half-age column is
    unreadable. */
 /* 44px wide: the Verlauf's own time column, to the pixel (.hist-ev .t), and the same type —
-   12.5px mono, tabular. This one is a `<button>`, so 12.5 is its floor anyway (AGENTS · the 3am
+   12.5px mono, tabular, and the log's FIRST-stamp weight and ink (`:is(.hist-ev .t, .jr-when)`
+   above, r30). This one is a `<button>`, so 12.5 is its floor anyway (AGENTS · the 3am
    tenet); the log's span joined it in hill climb r9. «HH:MM» is 37.5px (five mono glyphs at
    0.6em), so the 44 leaves the clock 6px of air before the gutter.
    ⚠️ On the ITEM's line (r11): the item text's 1.5 line (r19) and the body's 2px padding, so the
@@ -931,7 +944,7 @@ span.jr-pinned-text::after { display: none; }
    min» and wrapped to three, which made the row three times as tall for a number. The label is
    bare now (copy · ageLabel), and this is the guard that says so. */
 .jr-when { flex: none; width: 44px; padding: 2px 0 0; border: 0; background: none; cursor: pointer;
-  text-align: left; white-space: nowrap; font: var(--fw-regular) var(--fs-1)/calc(var(--fs-2) * 1.5) var(--mono); color: var(--ink-faint);
+  text-align: left; white-space: nowrap; font-family: var(--mono); font-size: var(--fs-1); line-height: calc(var(--fs-2) * 1.5);
   font-variant-numeric: tabular-nums; }
 @media (hover: hover) {
   .jr-when:hover { color: var(--ink); }
