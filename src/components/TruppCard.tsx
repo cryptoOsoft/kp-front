@@ -1101,6 +1101,11 @@ export function TruppCard({
   ))
   // the static head carries the crew line itself; the phone's collapse button and a page head may not
   const crewBelow = (rowMode || !!pageHead) && crewLine
+  // an INSIDE card on the board says what the crew is doing (Auftrag, Kanal) right under its head,
+  // before the buttons (owner pick 06.11.2026, hill climb r29 – «who is inside, doing what» was
+  // ~150px down, under three rows of buttons). The out cards already read content before their
+  // tile; the phone's expanded row keeps its order.
+  const factsFirst = !!inField && !rowMode
   return (
     <div ref={cardRef} data-az-open={rowMode ? '' : undefined} className={cx(s.trow, s.trowCard, rowTone(t, status, sev), conflict && s.cardConflict)}>
       {head}
@@ -1116,11 +1121,12 @@ export function TruppCard({
         </>
       ) : (
         <>
+          {factsFirst && facts}
           {pair}
           {actZone}
           {stateLine}
           {noteZone}
-          {facts}
+          {!factsFirst && facts}
           {footZone}
         </>
       )}

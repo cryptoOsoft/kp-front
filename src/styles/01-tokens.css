@@ -406,8 +406,10 @@
   /* e0 a contact shadow only – a small label plate on the map/plan (hill climb r8, 04.11.2026: with
      e1's 5px spread, touching plates ran their shadows into dark seams between them). Halved in
      r16 (Sol 2, raised the third time: at .2 a pile of plates still wore a dark fringe) – the
-     plate's 1px --label-plate edge separates it, the shadow only says «it rests on the map». */
-  --e0: 0 1px 2px rgba(15, 22, 34, .1);
+     plate's 1px --label-plate edge separates it, the shadow only says «it rests on the map».
+     .075 since r29 (Sol 2, a quarter less): where several name / time plates sat together their
+     lower edges still built a dark seam. Night keeps its own e0 below. */
+  --e0: 0 1px 2px rgba(15, 22, 34, .075);
   --e1: 0 1px 2px rgba(15, 22, 34, .3), 0 2px 5px rgba(30, 45, 70, .2);
   --e2: 0 4px 10px rgba(30, 45, 70, .2);
   /* e3/e4 tightened 04.11.2026 (hill climb, «broad grey halos»): the chrome that floats on every
