@@ -155,12 +155,13 @@ export function useMapDrawing(deps: MapDrawingDeps) {
   // Absperrkreis / Gefahrenradius: a dragged circle becomes a real (undoable, synced,
   // journaled) circle Drawing — centre in coords[0], radius in metres. Drops into Select
   // with the new circle active so its radius is tweakable in the DrawEditor right away.
-  const createCircle = (center: LngLat, radiusM: number) => {
+  const createCircle = (center: LngLat, radiusM: number): string => {
     const id = newId('d')
     const drawing: Drawing = { id, kind: 'circle', coords: [center], radiusM, color: appConfig.drawing.circleColor, dashed: true, width: appConfig.drawing.circleLineWidth, fillOpacity: appConfig.drawing.circleFillOpacity }
     commit((d) => ({ ...d, drawings: [...d.drawings, drawing] }))
     log('circle', fillTemplate(appConfig.copy.log.shapeDrawn, { name: drawingLogName(drawing) }), 'symbol', undefined, undefined, { subjectId: id }); emit('draw.add', { id, kind: 'circle', drawing })
     setTool('select'); setSelectedDrawingId(id); setSelectedDrawIds([]); setSelectedEntityIds([]); setSelectedId(null)
+    return id
   }
   // (the preset row is gone — 09.09., «das ganze Stil-Ding»: a line's decorations are assembled
   // from the raw controls in the editor, and lib/lineStyle · lineStyleName still NAMES the

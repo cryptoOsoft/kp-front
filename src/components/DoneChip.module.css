@@ -1,0 +1,13 @@
+/* The done state of a one-time action (DoneChip.tsx). As tall as the button it stands in for
+   (--tap), so the row does not jump; the house chip's type and corner (Chip.module.css), in the
+   green a WORD sits on (01-tokens · --green-strong on its tint) rather than a fill: it is a fact,
+   not a control. */
+.done {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-1);
+  box-sizing: border-box; min-height: var(--tap); padding: 0 var(--sp-3);
+  border-radius: var(--r-sm);
+  background: color-mix(in srgb, var(--green) 14%, transparent); color: var(--green-strong);
+  font: var(--fw-bold) var(--fs-1)/var(--lh-1) var(--body);
+  cursor: default; user-select: none;
+}
+.done svg { width: 16px; height: 16px; flex: none; }

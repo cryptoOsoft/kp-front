@@ -185,6 +185,9 @@ export const editorsCopy = {
     // an ICON-ONLY 44px button (the Absperrkreis tool's own ⊙), so this is its accessible name
     // and the hold-tooltip — it says what appears, where «Übernehmen» only said that something did
     ergAdopt: 'Absperrkreis übernehmen',
+    ergAdopted: 'Absperrkreis gesetzt',
+    ergAdoptedShort: 'gesetzt',
+    ergAdoptedToast: 'Absperrkreis {r} gesetzt',
     ergRingsLabel: 'Radius auf der Karte',
     ergRingsOff: 'Aus',
     ergRingsSmall: 'Klein',

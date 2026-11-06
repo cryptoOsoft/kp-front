@@ -571,6 +571,10 @@ export interface TimelineEvent {
      *  op would have been taken for «not done» and reopened a closed item there. The reducer
      *  (lib/reminders · foldPendenzen) applies it and keeps it out of the item's thread. */
     edit?: { text?: string; assignee?: string }
+    /** `created` by «wieder in …» on a done row: the item it re-raises (lib/reminders ·
+     *  openReRaises). While it is open, that done row shows ✓ «↻ in 30 min gesetzt» instead of
+     *  its chips (05.11.2026: a double tap raised two). Absent on every other `created`. */
+    again?: string
   }
   /**
    * A record divergence and its answer — the same append-only lifecycle the `reminder` above

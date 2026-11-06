@@ -11,7 +11,7 @@ import { fillTemplate, fmtFileSize, formatTime, hhmm, pad2, stripUnprintable, fo
 import { toast } from '../lib/ui'
 import { ApiError } from '../lib/api'
 import { forgetLocalThumb, mintLocalThumb, thumbUrl } from '../lib/mediaUrl'
-import { forgetPhotoGeo, rememberPhotoGeo } from '../lib/photoGeo'
+import { forgetPhotoGeo, photoGeoSettled, rememberPhotoGeo } from '../lib/photoGeo'
 import {
   MAX_AUDIO_UPLOAD_MB,
   MAX_FILE_UPLOAD_MB,
@@ -355,6 +355,9 @@ export function JournalComposer({ onSubmit, onClose, incidentStartAt, uploadAudi
   // stepper or explicitly confirms — the row lands at this time in the Verlauf
   const [startConfirmed, setStartConfirmed] = useState(false)
   const [uploading, setUploading] = useState(false)
+  // a picture picked a moment ago is still having its position read (lib/photoGeo): «Erfassen»
+  // waits for it, BUSY – it used to stay pressable for those up to 1.5 s and file the row twice
+  const [locating, setLocating] = useState(false)
   const [clipPlaying, setClipPlaying] = useState(false)
   const clipAudio = useRef<HTMLAudioElement | null>(null)
   // recorded clip and imported memo are exclusive, so one preview player serves both
@@ -631,14 +634,23 @@ export function JournalComposer({ onSubmit, onClose, incidentStartAt, uploadAudi
     ? startConfirmed && importStartAt != null && !uploading
     : text.trim().length > 0 || clip != null || photos.length > 0 || files.length > 0
   const submit = () => {
-    if (!canSend || uploading) return
+    if (!canSend || uploading || locating) return
     if (imported) { void submitImported(); return } // …which clears the draft once the upload lands
     if (files.length) { void submitWithFiles(); return } // …ditto, once the Beilagen land
     submitRow([])
   }
   /** the ordinary save — staged Beilagen have already been uploaded when this runs, so the row
    *  is created with server URLs and nothing here can fail. */
-  const submitRow = (attached: { url: string; name: string }[]) => {
+  const submitRow = (attached: { url: string; name: string }[], geoSettled = false) => {
+    // a one-time action's busy state (docs/ui-conventions.md · One-time actions): the press is
+    // taken at once and the button cannot be pressed again until the row is filed (the wait ends
+    // at PHOTO_GEO_WAIT_MS at the latest – a row without its position beats no row)
+    const geoWait = geoSettled ? null : photoGeoSettled(photos)
+    if (geoWait) {
+      setLocating(true)
+      void geoWait.then(() => { if (!alive.current) return; setLocating(false); submitRow(attached, true) })
+      return
+    }
     clearDraft(draftKey); clearDraft(restKey) // filed — the next open starts empty
     onSubmit({
       text: text.trim(), audioUrl: clip?.url, secs: clip?.secs, photoUrls: photos.length ? photos : undefined,
@@ -1202,9 +1214,9 @@ export function JournalComposer({ onSubmit, onClose, incidentStartAt, uploadAudi
             the entry, not the act of saving it, and «Erfassen» is the one thing on this sheet
             that must never share a row with anything else. */}
         <div className="jc-foot">
-          <Button variant="primary" block disabled={!canSend || uploading} onClick={submit}
-            icon={uploading ? <ShellLoader /> : <Icon id="check" />}>
-            {uploading ? C.audioUploading : C.send}
+          <Button variant="primary" block disabled={!canSend || uploading || locating} onClick={submit}
+            icon={uploading || locating ? <ShellLoader /> : <Icon id="check" />}>
+            {uploading ? C.audioUploading : locating ? C.photoLocating : C.send}
           </Button>
         </div>
       {/* «Uhrzeit …» — the one answer that is not a row in a menu. It opens THE time picker

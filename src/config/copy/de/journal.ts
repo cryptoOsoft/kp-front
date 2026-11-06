@@ -80,6 +80,7 @@ export const journalCopy = {
     audioImportedNote: 'Externe Audioaufnahme ({duration})',
     audioDiscardImport: 'Audiodatei verwerfen',
     audioUploading: 'Wird hochgeladen …',
+    photoLocating: 'Position wird gelesen …',
     audioOffline: 'Audio-Upload benötigt eine Verbindung. Datei später erneut auswählen.',
     audioTooLarge: 'Audiodatei ist zu gross. Maximum: {max} MB.',
     audioUnsupported: 'Dieses Audioformat wird nicht unterstützt.',
@@ -287,6 +288,9 @@ export const journalCopy = {
     // «wieder in …» auf der Erledigt-Zeile — legt eine NEUE Wiedervorlage mit gleichem Text an
     againChip: '{mins} min',
     againTitle: 'In {mins} Minuten wieder daran erinnern',
+    againSet: '↻ in {mins} min gesetzt',
+    againToast: 'Wiedervorlage in {mins} min gesetzt',
+    againWithdrawn: 'Wiedervorlage zurückgenommen: {text}',
     // ── Legende ───────────────────────────────────────────────────────────────────────────
     // The Verlauf row's 26px disc carries the Bereich (it replaced a chip that printed the same
     // word the sentence already carried). A glyph has to be LEARNED, so the drawer's head keeps

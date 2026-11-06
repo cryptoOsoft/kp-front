@@ -152,6 +152,24 @@ reopens, while the head's subtitle says when («Schadenlage · erledigt 10:57»)
   (or leads the label), the button is `disabled` + `aria-busy` until the file is out, and a sheet
   that offers the download stays open until then (Zeitplan). A phone that hides the button's
   word (Tafel «Drucken») is why the label alone is not enough. Instant local exports need none.
+- **One-time actions acknowledge in place, and never twice** (owner, 05.11.2026, after «Pumpen
+  als Symbole setzen» dropped a set per tap). A button that CREATES something – a shift, an
+  Absperrkreis, a Wiedervorlage, a Verlauf row – must not make a second one from a double tap.
+  Three states, in this order of preference:
+  - **busy** while the act is still under way: `disabled` + `ShellLoader` + the verb-ing word in
+    the button («Position wird gelesen …», JournalComposer) – the press is taken at once;
+  - **done** once it stands: the button gives way to `<DoneChip>` (`components/DoneChip`, ✓ and
+    the result in words, a status, not a control). Read it off the DATA wherever the data can say
+    it – the circle exists (`lib/ergAdopt`), the re-raised Pendenz is open (`lib/reminders ·
+    openReRaises`) – so it holds after a reselect and on every device. Only where a second one is
+    legitimate and indistinguishable (two shifts for one person) latch it instead, for
+    `ONE_SHOT_HOLD_MS` (`lib/useOneShot`, `TimeBlockSheet · addedLabel`);
+  - **the way back is the action's `undoToast` «Rückgängig»**, never a second press of the same
+    button – where the act is undoable (records are append-only: a re-raised Pendenz is taken back
+    with a counter-row, «Wiedervorlage zurückgenommen»).
+  A STATE is a switch, not a button (the Leitung's «Pumpen auf Karte»): a second tap of «An»
+  changes nothing by construction. Tools meant for repeated placement (the palette, «Mehrere
+  platzieren») are not one-time actions.
 
 ## Overlays
 
