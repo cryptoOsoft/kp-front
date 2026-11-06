@@ -174,7 +174,7 @@ needs no new infrastructure on the proxy, the service worker or the tests.
 
 ## Who may do what
 
-| | start · end | poll | join · leave · pointer | view |
+| | start · end | poll | join · leave · pointer · line | view |
 | --- | --- | --- | --- | --- |
 | editor | ✓ | ✓ | ✓ | the presenter's own client only |
 | `el`, viewer account | – | ✓ | ✓ | – |

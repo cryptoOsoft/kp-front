@@ -76,7 +76,7 @@ wording unchanged.
   may also reach the Präsentationsmodus' `GET …/presentation` and `POST …/presentation/signal`
   (owner pick: a view-link holder follows and points). A link session may poll and point, NEVER
   present. Neither
-  touches a row: a signal joins or leaves the in-memory room or leaves a pointer that fades in
+  touches a row: a signal joins or leaves the in-memory room or leaves a pointer or a line that fades in
   seconds. The handler refuses a link session's `view` (only an editor's start makes a presenter),
   a link holder's self-chosen name is bounded and shown with «· Link», and starting/ending
   (`POST`/`DELETE …/presentation`, `CurrentEditor`) is on no list ([`presentation.md`](presentation.md);
