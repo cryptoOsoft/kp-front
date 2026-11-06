@@ -103,7 +103,8 @@ export const isNachtrag = (e: TimelineEvent, closedAt?: string | null): boolean 
 }
 
 export interface DayGroup {
-  /** localized date label for the separator — null for today's rows (no separator) */
+  /** localized date label for the separator — null for today's rows of a one-day Verlauf
+   *  (no separator) */
   label: string | null
   events: TimelineEvent[]
 }
@@ -111,9 +112,20 @@ export interface DayGroup {
 const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
 
 /** Group a newest-first Verlauf into calendar-day runs. Rows without `at` (old data)
- *  stick to the running group rather than fragmenting the list. */
+ *  stick to the running group rather than fragmenting the list.
+ *  ⚠️ Once the Verlauf spans MORE THAN ONE calendar day, every run carries its date — today's
+ *  too (staging review 06.11.2026, S5). Today's run used to be bare, so on an Einsatz that had
+ *  crossed midnight the rows on screen read «00:40» with no date anywhere, and the first separator
+ *  stood a page further down. A one-day Verlauf keeps today's run bare: there the date is the one
+ *  thing everybody knows. */
 export function groupByDay(events: readonly TimelineEvent[], now: Date = new Date()): DayGroup[] {
   const todayKey = dayKey(now)
+  const days = new Set<string>()
+  for (const e of events) {
+    const d = e.at ? new Date(e.at) : null
+    if (d && !Number.isNaN(d.getTime())) days.add(dayKey(d))
+  }
+  const multiDay = days.size > 1
   const groups: DayGroup[] = []
   let currentKey: string | undefined
   for (const e of events) {
@@ -123,7 +135,7 @@ export function groupByDay(events: readonly TimelineEvent[], now: Date = new Dat
       currentKey = k
       groups.push({
         label:
-          k === todayKey
+          k === todayKey && !multiDay
             ? null
             : (d ?? now).toLocaleDateString(formatLocale(), {
                 weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric',
@@ -134,6 +146,14 @@ export function groupByDay(events: readonly TimelineEvent[], now: Date = new Dat
     groups[groups.length - 1].events.push(e)
   }
   return groups
+}
+
+/** «20.09.» when `at` fell on another calendar day than `now`, else null — the date a bare clock
+ *  needs beside it once an Einsatz has crossed midnight (the Verlauf's Pendenzen column and its
+ *  detail sheet, staging review 06.11.2026 S5). */
+export function otherDay(at: Date, now: Date): string | null {
+  if (Number.isNaN(at.getTime()) || dayKey(at) === dayKey(now)) return null
+  return at.toLocaleDateString(formatLocale(), { day: '2-digit', month: '2-digit' })
 }
 
 /** Every picture on a row, old shape and new: rows written before 2026-08-06 carry a single

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { groupByDay, isHandWritten, rowGlyph, isNachtrag, rowText, rowTime, rowPhotos, rowTarget, liveTargets, swapUrl, repeatRuns } from './verlauf'
+import { groupByDay, otherDay, isHandWritten, rowGlyph, isNachtrag, rowText, rowTime, rowPhotos, rowTarget, liveTargets, swapUrl, repeatRuns } from './verlauf'
 import type { BoardAnno, TimelineEvent } from '../types'
 
 const row = (id: string, at?: string): TimelineEvent =>
@@ -15,21 +15,35 @@ describe('groupByDay', () => {
     expect(g[0].events.map((e) => e.id)).toEqual(['b', 'a'])
   })
 
-  it('separates calendar days and labels the older ones', () => {
+  // S5 (staging review 06.11.2026): across midnight, today's rows carry their date too
+  it('separates calendar days and labels every one of them, today included, once it spans days', () => {
     const g = groupByDay(
-      [row('new', '2026-07-02T10:00:00'), row('mid', '2026-07-01T22:00:00'), row('old', '2026-06-10T08:00:00')],
+      [row('new', '2026-07-02T00:40:00'), row('mid', '2026-07-01T22:00:00'), row('old', '2026-06-10T08:00:00')],
       NOW,
     )
     expect(g).toHaveLength(3)
-    expect(g[0].label).toBeNull() // today
-    expect(g[1].label).toMatch(/01\.07\.2026|07\/01\/2026|2026/)
-    expect(g[2].label).toMatch(/10\.06\.2026|06\/10\/2026|2026/)
+    expect(g[0].label).toMatch(/02\.07\.2026/)
+    expect(g[1].label).toMatch(/01\.07\.2026/)
+    expect(g[2].label).toMatch(/10\.06\.2026/)
+  })
+
+  it('labels a one-day Verlauf that is not today', () => {
+    const g = groupByDay([row('b', '2026-06-30T14:00:00'), row('a', '2026-06-30T09:00:00')], NOW)
+    expect(g.map((x) => x.label)).toEqual([expect.stringMatching(/30\.06\.2026/)])
   })
 
   it('rows without `at` (old data) stick to the running group instead of fragmenting', () => {
     const g = groupByDay([row('a', '2026-07-02T10:00:00'), row('legacy'), row('b', '2026-07-02T08:00:00')], NOW)
     expect(g).toHaveLength(1)
     expect(g[0].events.map((e) => e.id)).toEqual(['a', 'legacy', 'b'])
+  })
+})
+
+describe('otherDay', () => {
+  it('is the short date for a moment on another calendar day, nothing for today', () => {
+    expect(otherDay(new Date('2026-07-01T23:50:00'), NOW)).toBe('01.07.')
+    expect(otherDay(new Date('2026-07-02T00:10:00'), NOW)).toBeNull()
+    expect(otherDay(new Date('nope'), NOW)).toBeNull()
   })
 })
 

@@ -12,7 +12,7 @@ import { openPhoto } from '../lib/ui'
 import { appConfig } from '../config/appConfig'
 import { dueClock, fillTemplate, fmtDuration, formatTime } from '../lib/format'
 import { thumbUrl } from '../lib/mediaUrl'
-import { ART_DISC, groupByDay, isHandWritten, isNachtrag, repeatRuns, rowPhotos, rowTarget, rowText, type ArtTone, type LiveTargets } from '../lib/verlauf'
+import { ART_DISC, groupByDay, isHandWritten, otherDay, isNachtrag, repeatRuns, rowPhotos, rowTarget, rowText, type ArtTone, type LiveTargets } from '../lib/verlauf'
 import { journalDisc, withoutAreaPrefix } from '../lib/report'
 import { journalQuery, matchesJournalQuery } from '../lib/journalSearch'
 import { journalCategories, journalFacets, matchesJournalCategories, showsPinnedPendenzen, type JournalCategoryKind } from '../lib/journalFilter'
@@ -24,6 +24,11 @@ function rowClock(iso: string): string {
   const d = new Date(iso)
   return Number.isNaN(d.getTime()) ? '–' : formatTime(d)
 }
+
+/** …and the day it fell on, when that is not today (lib/verlauf · otherDay): an Einsatz that
+ *  crossed midnight raised half its Pendenzen «yesterday», and a bare «23:43» above «00:40»
+ *  read as the newer one (staging review 06.11.2026, S5). */
+const rowDay = (iso: string, nowMs: number) => otherDay(new Date(iso), new Date(nowMs))
 
 /** «vor 54 min» / «vor 3 h» — the other half of the time column, one tap away. */
 function ageLabel(iso: string, nowMs: number, C: typeof appConfig.copy.journal): string {
@@ -738,13 +743,15 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
               // first) already answers it positionally; tapping swaps the column to the age for
               // the times the clock stops answering it. Überfällig stays the banner's business.
               const dueLater = r.dueAt && Date.parse(r.dueAt) > now
+              // …and on another day than today, the day under the clock (rowDay)
+              const raisedDay = rowDay(r.createdAt, now)
               return (
                 <div key={r.id} className={`jr-pinned-row ${r.urgent ? 'urgent' : ''}`}>
                   <button
                     type="button" className="jr-when"
                     title={C.ageToggle} aria-label={C.ageToggle}
                     onClick={() => setShowAge((v) => !v)}
-                  >{showAge ? ageLabel(r.createdAt, now, C) : rowClock(r.createdAt)}</button>
+                  >{showAge ? ageLabel(r.createdAt, now, C) : <>{rowClock(r.createdAt)}{raisedDay && <small>{raisedDay}</small>}</>}</button>
                   {/* ⚠️ The ring sits in the VERLAUF'S ICON SLOT, before the text, not out at the
                       right margin. Two things come of it: the item's text starts on exactly the
                       same axis as every line in the log below, so the block reads as the same
@@ -778,7 +785,7 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
                         as a thread — and showing one of three looked like the whole story. */}
                     {r.notes.map((n) => (
                       <span className="jr-pinned-note" key={n.rowId}>
-                        <b>{rowClock(n.at)}</b>{n.text}
+                        <b>{[rowDay(n.at, now), rowClock(n.at)].filter(Boolean).join(' ')}</b>{n.text}
                       </span>
                     ))}
                   </div>
@@ -862,9 +869,10 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
           // or the Bereich (Tafel, Lage …) — the filter's two groups (sweep E.5) — · who wrote it.
           // The time is the only place in the app that prints SECONDS: the list shows HH:MM, so «why
           // is this line above that one» has no answer anywhere else (the Verlauf sorts on the full
-          // stamp — lib/journalStore · chronological).
+          // stamp — lib/journalStore · chronological). …with the day in front when it is not today
+          // (rowDay, S5): a sheet over a multi-day Verlauf otherwise answered «wann» with a clock.
           const meta = [
-            e.at ? formatTime(new Date(e.at), true) : null,
+            e.at ? [rowDay(e.at, now), formatTime(new Date(e.at), true)].filter(Boolean).join(' ') : null,
             disc?.label,
             byHand ? C.detailSourceManual : C.detailSourceSystem,
           ].filter(Boolean).join(' · ')
@@ -890,7 +898,7 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
             ...(e.correctedAt
               ? [{
                   k: C.detailCorrected,
-                  v: formatTime(new Date(e.correctedAt), true),
+                  v: [rowDay(e.correctedAt, now), formatTime(new Date(e.correctedAt), true)].filter(Boolean).join(' '),
                   ...(e.textOriginal ? { sub: fillTemplate(C.detailCorrectedFirst, { text: withoutAreaPrefix(e.textOriginal) || e.textOriginal }) } : {}),
                 }]
               : []),
