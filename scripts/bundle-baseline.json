@@ -3,28 +3,28 @@
   "budgetPercent": 5,
   "chunks": {
     "entry": {
-      "gzip": 111258,
-      "raw": 347442
+      "gzip": 112571,
+      "raw": 351015
     },
     "App": {
-      "gzip": 282307,
-      "raw": 922727
+      "gzip": 290932,
+      "raw": 950420
     },
     "maplibre": {
-      "gzip": 287680,
-      "raw": 1076715
+      "gzip": 287638,
+      "raw": 1076650
     },
     "maplibreWorker": {
-      "gzip": 144845,
-      "raw": 508167
+      "gzip": 144839,
+      "raw": 508147
     },
     "pdfWorker": {
-      "gzip": 368877,
-      "raw": 1197100
+      "gzip": 368873,
+      "raw": 1197066
     },
     "css": {
-      "gzip": 72456,
-      "raw": 447087
+      "gzip": 77822,
+      "raw": 473479
     }
   }
 }
