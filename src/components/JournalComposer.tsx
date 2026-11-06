@@ -758,8 +758,10 @@ export function JournalComposer({ onSubmit, onClose, incidentStartAt, uploadAudi
   return (
     // <Overlay> (Base UI) owns focus-trap + scroll-lock + backdrop-close; its pointerdown-based
     // outside-press already ignores the opening tap, so the old Android `armed` delay is gone.
-    // dismissEscape=false: the composer holds unsaved text — Esc must not discard it (parity with
-    // the old surface, which never closed on Esc). The keyboard inset lifts the phone bottom sheet.
+    // Escape CLOSES it, like every other sheet (staging review 06.11.2026, S6). It used to be vetoed
+    // (`dismissEscape={false}`) so Esc could not discard unsaved text — but the draft outlives the
+    // sheet (draftKeep, above), so a close loses nothing, and an open dropdown or time wheel still
+    // takes the first Escape alone (popoverGuard). The keyboard inset lifts the phone bottom sheet.
     // `--jc-kb` carries the measured keyboard height into CSS as well as the phone sheet's
     // marginBottom: on a TABLET the card is top-anchored, so a bottom margin does nothing —
     // the height has to be capped against the keyboard instead (see 10-journal.css).
@@ -768,7 +770,7 @@ export function JournalComposer({ onSubmit, onClose, incidentStartAt, uploadAudi
     // `is-compact` is the rung below that and asks a different question — not «is a keyboard up»
     // but «does the card still fit», measured (see lib/composerFit · 10-journal.css).
     <Overlay open onClose={onClose} className={`journal-composer ${kbInset > 0 ? 'is-kb' : ''}${compact ? ' is-compact' : ''}`} backdropClassName="modal-backdrop"
-      ariaLabel={C.composerTitle} dismissEscape={false} initialFocus={textRef} grab
+      ariaLabel={C.composerTitle} initialFocus={textRef} grab
       // the lift is the keyboard LESS iOS's pan (keyboardMargin · --vv-foot, 30.09.2026), the cap
       // (--jc-kb) the whole keyboard — so the sheet stands on the keys and never outgrows the band
       style={{ marginBottom: kbInset > 0 ? keyboardMargin(kbInset) : 0, '--jc-kb': `${kbInset}px` } as React.CSSProperties}

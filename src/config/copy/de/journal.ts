@@ -31,6 +31,8 @@ export const journalCopy = {
     open: 'Verlauf',
     add: 'Eintrag',
     addHint: 'Tippen für Eintrag, halten und auf Sprachnotiz oder Foto schieben',
+    // der Tooltip von Verlauf und Eintrag oben, mit ihrer Taste (lib/hotkeys · PANEL_KEY)
+    keyTitle: '{label} – Taste {key}',
     title: 'Verlauf',
     empty: 'Noch keine Ereignisse erfasst.',
     surfaceMap: 'Karte',

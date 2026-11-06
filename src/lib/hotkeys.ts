@@ -34,8 +34,9 @@
 // keyHints, default ON) is on AND the device has hover and a fine pointer – a touch-only device
 // has no keyboard to read them for. They used to appear only while ⌘/Ctrl/Alt was held, and only
 // on the left rail; a hint that is hidden until you already know the shortcut teaches nothing.
-// Both badge sources are the SAME tables the keyboard decodes (SURFACE_KEY, TOOL_KEY), so a
-// badge cannot name a letter that does nothing.
+// The top bar's Verlauf and Eintrag wear theirs too (PANEL_KEY · J, E; staging review 06.11.2026,
+// S6: «listed like the sidebar tools»). Every badge source is a table the keyboard decodes
+// (SURFACE_KEY, TOOL_KEY, PANEL_KEY), so a badge cannot name a letter that does nothing.
 
 export type ToolCmd =
   | 'select' | 'lasso' | 'symbol' | 'line' | 'area' | 'circle' | 'note' | 'team' | 'measure'
@@ -93,9 +94,13 @@ export function railToolKey(id: string): string | undefined {
 const TOOL_KEYS: Record<string, ToolCmd> = Object.fromEntries(
   (Object.entries(TOOL_KEY) as [ToolCmd, string][]).map(([t, k]) => [k.toLowerCase(), t]),
 ) as Record<string, ToolCmd>
-const PANEL_KEYS: Record<string, PanelCmd> = {
-  j: 'journal', e: 'composer', b: 'layers',
-}
+/** the letter of each bare-letter panel – the single source the top bar's Verlauf / Eintrag hints
+ *  and the keyboard (PANEL_KEYS below) both read. Einstellungen (⌘ ,) and Hilfe (?) are not
+ *  bare letters and live in resolveHotkey. */
+export const PANEL_KEY = { journal: 'J', composer: 'E', layers: 'B' } as const satisfies Partial<Record<PanelCmd, string>>
+const PANEL_KEYS: Record<string, PanelCmd> = Object.fromEntries(
+  Object.entries(PANEL_KEY).map(([p, k]) => [k.toLowerCase(), p]),
+) as Record<string, PanelCmd>
 // (no `r: 'north'` anymore — see the header: the compass is the north control, R is the Rapport)
 const VIEW_KEYS: Record<string, ViewCmd> = {
   g: 'locate', x: 'coord',

@@ -4,6 +4,7 @@ import { StrictMode } from 'react'
 import { act, render, screen, cleanup, fireEvent, waitFor, within } from '@testing-library/react'
 import { JournalComposer, type JournalDraft } from './JournalComposer'
 import { clearAllDrafts } from '../lib/draftKeep'
+import { resetPopoverGuard } from '../lib/overlays/popoverGuard'
 
 afterEach(() => { cleanup(); clearAllDrafts(); vi.unstubAllGlobals() })
 
@@ -475,6 +476,19 @@ describe('JournalComposer · the half-written draft', () => {
     setup()
     type('Halb geschriebener Satz')
     fireEvent.click(closeX())
+    cleanup()
+    setup()
+    expect((screen.getByRole('textbox') as HTMLTextAreaElement).value).toBe('Halb geschriebener Satz')
+  })
+
+  // Escape closes it like every other sheet (staging review 06.11.2026, S6) – the draft is kept
+  it('Escape closes, and the draft is handed back', () => {
+    resetPopoverGuard() // the menu the test before closed still holds the guard's 350 ms tail
+    const onClose = vi.fn()
+    setup({ onClose })
+    type('Halb geschriebener Satz')
+    fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Escape' })
+    expect(onClose).toHaveBeenCalledTimes(1)
     cleanup()
     setup()
     expect((screen.getByRole('textbox') as HTMLTextAreaElement).value).toBe('Halb geschriebener Satz')

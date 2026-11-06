@@ -24,6 +24,7 @@ export const journalCopy: Localizable<Pick<Copy, 'journal' | 'errors'>> = {
     open: 'Journal',
     add: 'Entrée',
     addHint: 'Toucher pour une entrée – maintenir, puis glisser sur mémo vocal ou photo',
+    keyTitle: '{label} – touche {key}',
     title: 'Journal',
     empty: 'Aucun événement enregistré',
     surfaceMap: 'Carte',

@@ -67,7 +67,7 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
       {
         id: 'tastatur', title: 'Scorciatoie da tastiera', icon: 'type', only: 'keyboard',
         blocks: [
-          { kind: 'lead', text: 'Con una tastiera si raggiunge tutto senza mouse. Le scorciatoie non agiscono mentre si scrive in un campo di testo. Dove un’area della barra di sinistra ha un tasto, il tasto è stampato sopra.' },
+          { kind: 'lead', text: 'Con una tastiera si raggiunge tutto senza mouse. Le scorciatoie non agiscono mentre si scrive in un campo di testo. Dove un’area di una delle due barre, o «Diario» e «Voce» in alto, ha un tasto, il tasto è stampato sopra.' },
           { kind: 'sub', text: 'Cambiare area' },
           { kind: 'list', items: [
             'I numeri aprono il modulo di piano con quel numero – quali esistono dipende dai moduli del corpo: [[1]] modulo 1, [[2]] o [[3]] il modulo «2/3», [[4]] modulo 4 …',
