@@ -300,6 +300,8 @@ describe('pendenzLedger + corrections from the Tafel page', () => {
   it('marks an item typed on the page', () => {
     const tl = [row('r1', 'Pendenz von der Tafel', { op: 'created', id: 'c', text: 'Gemeinde informieren', origin: 'tafel' })]
     expect(deriveReminders(tl)[0].origin).toBe('tafel')
+  })
+})
 
 // «wieder in …» is a one-time action (05.11.2026: a double tap raised two): its done state is read
 // off the record – the item a re-raise points back at (`again`), while that re-raise is open
