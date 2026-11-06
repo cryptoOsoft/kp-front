@@ -146,6 +146,12 @@ the same rows:
   the toast «Pendenz erledigt: … · Rückgängig» (and ↶) appends **«Pendenz wieder offen: …»** /
   «Erinnerung wieder offen: …» (`reminder.op: 'reopened'`) beside the done row, which stays;
   ↷ appends a fresh done row. The toast drops its ↶ entry, so the act is never taken back twice.
+- **«↻ wieder in 30 / 60 min»** on a done row appends a fresh Wiedervorlage («Erinnerung gesetzt
+  für …», `useJournalWriters · reRaisePendenz`) that names the item it re-raises
+  (`reminder.again`); while it is open the done row shows ✓ «↻ in 30 min gesetzt» instead of the
+  chips (05.11.2026, a double tap raised two). Its toast «Wiedervorlage in 30 min gesetzt ·
+  Rückgängig» appends **«Wiedervorlage zurückgenommen: …»** (`reminder.op: 'done'`, icon ↶) –
+  append-only, the created row stays.
 - The **Atemschutz alarm row** reads the same fold that plays the sound and writes nothing
   new – the alarm's Verlauf row is created once per cycle as before (see above).
 - **Swiping away (✕), take-over navigation, «Zum Trupp»** write nothing – view, not

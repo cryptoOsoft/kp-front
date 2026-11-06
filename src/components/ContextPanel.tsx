@@ -173,6 +173,8 @@ export interface ContextPanelProps {
    *  Absperrkreis drawing around this symbol — editable, printable, synced — instead of the
    *  derived preview ring. Karte-only, like the rings. */
   onAdoptRadius?: (radiusM: number) => void
+  /** the radii already adopted around this symbol (lib/ergAdopt) – their row shows ✓ instead */
+  ergAdopted?: readonly number[]
   /** secondary rotation (the composite Grosslüfter's fan/airflow). Absent on every other
    *  symbol; when wired AND the symbol's preset lists 'rotation2', the rotation control
    *  splits into a Fahrzeug (body) + Lüfter (fan) pair. */
@@ -309,7 +311,7 @@ function LinkBtn({ onClick, text }: { onClick: () => void; text: string }) {
   )
 }
 
-export function ContextPanel({ entity, svg, onClose, onCenter, onOriginal, originalLabel, onTitle, onTitleLive, onFields, onNotes, onFloorFrom, onFloorTo, onSpread, onCount, onRotate, onErgRings, ergCoord, onAdoptRadius, onRotate2, onCaption, captionDefault = 'auto', onAirflow, controls, titleOptions, fieldOptions, rosterRank, protectedKeys, onDelete, onDone, onStopSharing, readOnly, allowDelete = false, hasOverride, onPinGps, onResetGps, driver, origin, personStatus, fieldHints, connectedLines = [], onFocusLine, dockedToLabel, onUndock, dockedTeams = [], onNoteSize, autoFocusNote = false, onNotePlain, onColor }: ContextPanelProps) {
+export function ContextPanel({ entity, svg, onClose, onCenter, onOriginal, originalLabel, onTitle, onTitleLive, onFields, onNotes, onFloorFrom, onFloorTo, onSpread, onCount, onRotate, onErgRings, ergCoord, onAdoptRadius, ergAdopted, onRotate2, onCaption, captionDefault = 'auto', onAirflow, controls, titleOptions, fieldOptions, rosterRank, protectedKeys, onDelete, onDone, onStopSharing, readOnly, allowDelete = false, hasOverride, onPinGps, onResetGps, driver, origin, personStatus, fieldHints, connectedLines = [], onFocusLine, dockedToLabel, onUndock, dockedTeams = [], onNoteSize, autoFocusNote = false, onNotePlain, onColor }: ContextPanelProps) {
   // read per-render (not module-load) so the resolved locale is applied — see config/copy
   const C = appConfig.copy.contextPanel
   const N = appConfig.copy.notes
@@ -1114,6 +1116,7 @@ const GRENZE_GLYPH = { left: 'grenze-v', right: 'grenze-v', up: 'grenze-up', dow
               onRingMode={readOnly ? undefined : onErgRings}
               ergCoord={ergCoord}
               onAdoptRadius={onAdoptRadius}
+              adoptedRadii={ergAdopted}
             />
           )}
 

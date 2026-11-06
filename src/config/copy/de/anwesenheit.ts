@@ -306,6 +306,7 @@ export const anwesenheitCopy = {
     actualNone: 'Noch nicht anwesend gewesen.',
     plannedNone: 'Noch keine Verfügbarkeit erfasst.',
     addShift: 'Schicht erstellen',
+    shiftAdded: 'Schicht erstellt',
     stillHere: 'noch da',
     // Head of the time card: what this row IS. Not a switch – an Anwesenheit is running or has
     // ended, and the list decides that, not this sheet.

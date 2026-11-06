@@ -52,6 +52,8 @@ export function PersonShiftSheet({ person, shifts, blocks, canEdit, startedAt, c
       note={Z.sheetHint}
       addLabel={canEdit ? Z.addShift : undefined}
       onAdd={canEdit ? () => onAdd(person) : undefined}
+      // one shift per tap, with a ✓ in the button's place for a moment (lib/useOneShot)
+      addedLabel={Z.shiftAdded}
       onClose={onClose}
       labels={timeBlockLabels(Z.remove)}
       days={planDays}

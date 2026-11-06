@@ -10,7 +10,10 @@ import { ShapeEditor } from '../components/ShapeEditor'
 import { appConfig } from '../config/appConfig'
 import { connectedLineLabel } from '../lib/connectedLines'
 import { fillTemplate, formatSymbolName, formatTime } from '../lib/format'
-import { polygonAreaM2, bboxSizeM, pathLengthM, haversineM } from '../lib/geo'
+import { polygonAreaM2, bboxSizeM, pathLengthM, haversineM, fmtDistance } from '../lib/geo'
+import { undoToast } from '../lib/ui'
+import { recordKey } from '../lib/undoKeys'
+import { ergAdoptedRadii } from '../lib/ergAdopt'
 import { type GpsEnd, hasTraced, freshBefore, gpsLineName, fmtAway, onSiteAnchor, onSiteKnown } from '../lib/gpsReturn'
 import { wandBlock, wandBlockHint } from '../lib/grundriss'
 import { lineLabel } from '../lib/lineDecor'
@@ -48,7 +51,7 @@ export interface MapDetailPanelsProps {
   emit: (op_type: string, payload?: Record<string, unknown>, opts?: { observed?: string }) => void
   patchEntity: (id: string, patch: Partial<Entity>) => void
   linkRosterFields: (prev: Entity, fields: Record<string, string>, opts?: { force?: boolean }) => void
-  createCircle: (center: LngLat, radiusM: number) => void
+  createCircle: (center: LngLat, radiusM: number) => string
   doc: Doc
   undockTeam: (entityId: string) => void
   effTrupps: Trupp[]
@@ -236,10 +239,18 @@ export function MapDetailPanels({
           // the symbol — createCircle selects it, so the operator lands on the editable cordon.
           // The derived preview rings go quiet for this placard: the real circle replaces them,
           // and two red rings at the same radius would read as a rendering bug.
+          // A one-time action (docs/ui-conventions.md · One-time actions): the row's done state is
+          // read off the Karte (lib/ergAdopt), and the toast takes the circle back with the rings.
           onAdoptRadius={selected.kind === 'symbol' && !selected.live && !tacticalLocked ? (radiusM) => {
-            createCircle(selected.coord, radiusM)
-            patchEntity(selected.id, { ergRings: 'off' })
+            const placard = selected, rings = selected.ergRings
+            const id = createCircle(placard.coord, radiusM)
+            patchEntity(placard.id, { ergRings: 'off' })
+            undoToast(fillTemplate(appConfig.copy.contextPanel.ergAdoptedToast, { r: fmtDistance(radiusM) }), () => {
+              void deleteDrawing(id)
+              patchEntity(placard.id, { ergRings: rings })
+            }, [recordKey('objects', id), recordKey('objects', placard.id)])
           } : undefined}
+          ergAdopted={selected.kind === 'symbol' ? ergAdoptedRadii(doc.drawings, selected.coord) : undefined}
           // Angedockte Gefahrentafel (lib/docking): name the host, offer the release — the drop
           // gesture that made the bond draws nothing, so this row is where it becomes visible.
           dockedToLabel={selected.dockedTo ? doc.entities.find((e) => e.id === selected.dockedTo)?.label || appConfig.copy.entities.fallbackObjectName : undefined}
