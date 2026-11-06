@@ -70,7 +70,17 @@ wording unchanged.
   `POST /api/diag/client-error` (24.09.2026), even with a dead session (liveness-exempt). The
   route needs no session and is throttled per source in its own handler. Without it, a crash on
   a responder's phone got a 403 and never reached the log. Its read half, `GET /api/diag/export`,
-  stays off every list. A refusal logs its reason server-side (`kpfront.linkscope`) and never
+  stays off every list. ⚠️ The view link – and with it every other link kind, the alarm, terminal and
+  Atemschutz links (the view list must stay a narrowing of the alarm list, which the Atemschutz
+  list widens; lead's call 05.11.2026: they see the Einsatz already, and pointing is ephemeral) –
+  may also reach the Präsentationsmodus' `GET …/presentation` and `POST …/presentation/signal`
+  (owner pick: a view-link holder follows and points). A link session may poll and point, NEVER
+  present. Neither
+  touches a row: a signal joins or leaves the in-memory room or leaves a pointer that fades in
+  seconds. The handler refuses a link session's `view` (only an editor's start makes a presenter),
+  a link holder's self-chosen name is bounded and shown with «· Link», and starting/ending
+  (`POST`/`DELETE …/presentation`, `CurrentEditor`) is on no list ([`presentation.md`](presentation.md);
+  `backend/tests/test_presentation.py` proves the link still writes nothing else). A refusal logs its reason server-side (`kpfront.linkscope`) and never
   sends it to the holder. Never widen the full workspace PUT
   to a link session. **A link is the literal page and touches nothing on the device** (02.09.):
   its cookie has to be site-wide (an `<img>` carries no header), so the PAGE says which session

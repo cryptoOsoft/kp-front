@@ -22,6 +22,21 @@ export const SKIZZE = 'skizze'
  */
 const memory = new Map<string, string>()
 const idbKey = (incidentId: string) => `kp-front-tafel-page:${incidentId}`
+/** every mounted `useTafelPage`, so a page set from outside the Whiteboard (`setTafelPage`: the
+ *  Präsentationsmodus following the presenter's page, the Verlauf's «von der Tafel» opening the
+ *  «Aufträge / Pendenzen» page) shows at once */
+const listeners = new Set<(key: string) => void>()
+
+/** Put this device on `page` of the Tafel – what the page strip does, from elsewhere. */
+export function setTafelPage(incidentId: string, page: string) {
+  memory.set(incidentId, page)
+  void idbSet(idbKey(incidentId), page)
+  for (const l of listeners) l(incidentId)
+}
+
+/** The page this device picked on the Tafel, or null when it never picked one (it then sees the
+ *  hook's fallback – see `useTafelPage`). */
+export const pickedTafelPage = (incidentId: string): string | null => memory.get(incidentId) ?? null
 
 export function useTafelPage(incidentId: string | undefined, fallback: string = SKIZZE): [string, (page: string) => void] {
   const key = incidentId ?? ''
@@ -41,28 +56,17 @@ export function useTafelPage(incidentId: string | undefined, fallback: string = 
     }).catch(() => {})
     return () => { live = false }
   }, [key])
-  // …and a page asked for from outside the Tafel (showTafelPage) while it is mounted
+  // …and a page set from outside the Tafel (setTafelPage) while it is mounted
   useEffect(() => {
-    const on = (k: string, p: string) => { if (k === key) setPageState(p) }
-    listeners.add(on)
-    return () => { listeners.delete(on) }
+    const hear = (k: string) => { if (k === key) setPageState(memory.get(k) ?? null) }
+    listeners.add(hear)
+    return () => { listeners.delete(hear) }
   }, [key])
   const setPage = useCallback((p: string) => {
-    memory.set(key, p)
-    setPageState(p)
-    if (key) void idbSet(idbKey(key), p)
+    if (key) setTafelPage(key, p)
+    else { memory.set(key, p); setPageState(p) }
   }, [key])
   return [page ?? fallback, setPage]
-}
-
-const listeners = new Set<(key: string, page: string) => void>()
-
-/** Make `page` the one this device shows on the Einsatz's Tafel — from outside the Whiteboard (the
- *  Verlauf's «von der Tafel» opens the «Aufträge / Pendenzen» page). The caller opens the Tafel. */
-export function showTafelPage(incidentId: string, page: string): void {
-  memory.set(incidentId, page)
-  void idbSet(idbKey(incidentId), page)
-  for (const on of listeners) on(incidentId, page)
 }
 
 /** test seam */

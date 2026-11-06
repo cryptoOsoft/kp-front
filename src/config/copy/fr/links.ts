@@ -4,7 +4,7 @@
 import type { Copy, Localizable } from '../index'
 
 type Keys =
-  | 'incidentLink' | 'standingLink' | 'sharePosition' | 'livePosition'
+  | 'incidentLink' | 'standingLink' | 'sharePosition' | 'livePosition' | 'presentation'
 
 export const linksCopy: Localizable<Pick<Copy, Keys>> = {
   incidentLink: {
@@ -88,5 +88,34 @@ export const linksCopy: Localizable<Pick<Copy, Keys>> = {
     chipNow: '{d} · maintenant',
     atScene: 'Sur les lieux',
     tapHint: 'Afficher sur la carte',
+  },
+  presentation: {
+    title: 'Présenter',
+    lede: 'Quiconque a ce lien ou l’intervention ouverte suit ta carte. Tous peuvent montrer, rien n’est enregistré.',
+    start: 'Démarrer',
+    runningMine: 'Tu présentes.',
+    runningOther: '{name} présente.',
+    takeOver: 'Reprendre',
+    needsServer: 'Nécessite une connexion au serveur.',
+    youPresent: 'Tu présentes',
+    followersNone: 'personne ne suit encore',
+    followersOne: '1 suit',
+    followersMany: '{n} suivent',
+    presents: '{name} présente',
+    follow: 'Suivre',
+    following: 'Tu suis',
+    zeigen: 'Montrer',
+    end: 'Terminer',
+    leave: 'Ne plus suivre',
+    followAgain: 'Suivre à nouveau',
+    hint: 'Montrer est actif – un tap pose un point, déplacer avec deux doigts',
+    link: 'Lien',
+    me: 'Moi',
+    askName: 'Ton nom pour les autres',
+    namePlaceholder: 'Prénom Nom',
+    pill: 'Présentation',
+    startFailed: 'Présentation non démarrée – nécessite une connexion au serveur.',
+    endFailed: 'Présentation non terminée – réessayer.',
+    full: 'Présentation complète – trop de participants via un lien. Réessayer «Suivre» plus tard.',
   },
 }

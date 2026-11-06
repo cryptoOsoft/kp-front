@@ -17,7 +17,7 @@ import { newId, newRowId } from '../lib/ids'
 import { createdRow, editRow, isPendenzenPage, tafelDoneWords, type PageRow, type PendenzDraft, type PendenzenPort } from '../lib/pendenzenPage'
 import { pendenzLedger, type PendenzItem } from '../lib/reminders'
 import { serverNowIso } from '../lib/serverClock'
-import { showTafelPage } from '../lib/tafelPages'
+import { setTafelPage } from '../lib/tafelPages'
 import type { UndoTimeline } from '../lib/undoTimeline'
 import type { useReminders } from '../lib/useReminders'
 import type { BoardDoc, TimelineEvent } from '../types'
@@ -108,7 +108,7 @@ export function useTafelPendenzen(src: TafelPendenzenSources): { tafel: TafelPag
   const openPage = () => {
     const s = latest.current
     const page = findForms(s.board[TAFEL_ID] ?? []).find((a) => isPendenzenPage(a.form))
-    if (page) showTafelPage(s.incidentId, page.id)
+    if (page) setTafelPage(s.incidentId, page.id)
     s.showPlan(TAFEL_ID)
   }
   return { tafel: withPort, openPage }

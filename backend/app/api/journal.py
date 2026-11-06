@@ -166,7 +166,15 @@ async def append_system_row(
     db: AsyncSession, incident_id: uuid.UUID, *, icon: str, text: str, lifecycle: str | None = None
 ) -> None:
     """Server-authored boundary row (Einsatz abgeschlossen / wiedereröffnet). `t` stays empty —
-    clients localise the display time from `at` (the server clock is UTC)."""
+    clients localise the display time from `at` (the server clock is UTC).
+
+    A close ends the Einsatz's Präsentation first (app/presentation · end_for_close), so its
+    «beendet» row stands before the close row – every close path writes this row, so this is
+    the one place that catches them all."""
+    if lifecycle == "closed":
+        from .. import presentation
+
+        await presentation.end_for_close(db, incident_id)
     at = datetime.now(UTC).isoformat()
     row: dict = {"id": f"sys{uuid.uuid4().hex[:12]}", "t": "", "at": at, "icon": icon, "text": text}
     # `lifecycle` ("closed" | "reopened") names the boundary for the clients, which must not parse

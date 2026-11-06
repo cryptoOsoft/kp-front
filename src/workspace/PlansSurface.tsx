@@ -31,6 +31,7 @@ import type { useGebaeudeActions } from './useGebaeudeActions'
 import type { WorkspaceMode } from './types'
 import type { useMapActions } from './useMapActions'
 import type { usePlanStacks } from './usePlanStacks'
+import type { BoardPresentation } from './usePresentation'
 import type { useRosterRoles } from './useRosterRoles'
 
 export interface PlansSurfaceProps {
@@ -78,7 +79,9 @@ export interface PlansSurfaceProps {
   emit: (op_type: string, payload?: Record<string, unknown>, opts?: { observed?: string }) => void
   /** the Plan's per-document undo stacks and the handles the Whiteboard reports up (workspace/usePlanStacks) */
   planStacks: ReturnType<typeof usePlanStacks>
-  planFocus: { x: number; y: number; floor: number; annoId?: string; twinEntityId?: string; flash?: boolean; nonce: number } | null
+  planFocus: { x: number; y: number; floor: number; annoId?: string; twinEntityId?: string; flash?: boolean; scale?: number; nonce: number } | null
+  /** the Präsentationsmodus on the Plan (workspace/usePresentation · board) */
+  presentation?: BoardPresentation
   effTrupps: Trupp[]
   truppCounterNames: (exceptId?: string) => (string | undefined)[]
   teamNameTaken: (id: string, label: string) => boolean
@@ -101,7 +104,7 @@ export function PlansSurface({
   setPickerOpen, symbolScale, symbolCaptions, mapSuppressedCaptions, readingsChip, georefFits, mapActions,
   replayBoard, replayBuilding, store, trails, deleteGhostTrail, armTrailDrop, building, gebaeude, logPlan,
   roster, addRecent, user, emit, planStacks, planFocus, effTrupps, truppCounterNames, teamNameTaken,
-  azAlarm, truppActions, newTruppFromMarker, showTrupp, planScale, setPlanScale, tafel, truppFinder,
+  azAlarm, truppActions, newTruppFromMarker, showTrupp, planScale, setPlanScale, tafel, truppFinder, presentation,
 }: PlansSurfaceProps) {
   const { activeObjectName, activeObjectAddress, activeObjectNearby } = objectPlans
   const { activeLinkedPlan, floorPack, planLive, planPhotos } = georefFits
@@ -212,6 +215,7 @@ export function PlansSurface({
           fitRef={planStacks.planFit}
           keysRef={planStacks.planKeys}
           focus={planFocus}
+          presentation={presentation}
           trupps={effTrupps}
           // the Karte's markers, the other plans' chips, the ghost trails and every Trupp ever
           // registered (its `trupps` prop leaves the removed ones out), for the one Trupp counter

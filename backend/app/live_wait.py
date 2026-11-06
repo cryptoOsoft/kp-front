@@ -46,7 +46,7 @@ from .transaction_hooks import after_commit
 #: the browser must see our 304/empty page rather than time out on its own (lib/api.ts).
 LONG_POLL_TIMEOUT_S = 20.0
 
-#: A thing to follow: ("workspace" | "journal", incident id).
+#: A thing to follow: ("workspace" | "journal" | "presentation", incident id).
 Topic = tuple[str, uuid.UUID]
 
 #: topic → the events of the requests currently parked on it. One entry per parked request;
@@ -61,6 +61,12 @@ def workspace_topic(incident_id: uuid.UUID) -> Topic:
 
 def journal_topic(incident_id: uuid.UUID) -> Topic:
     return ("journal", incident_id)
+
+
+def presentation_topic(incident_id: uuid.UUID) -> Topic:
+    """The Präsentationsmodus (app/presentation): its state is in memory, so its writers
+    `notify` directly – there is no commit to wait for."""
+    return ("presentation", incident_id)
 
 
 def notify(topic: Topic) -> None:

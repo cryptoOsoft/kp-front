@@ -98,6 +98,12 @@ They earn the exception because of what they cannot do: each touches exactly one
 row — the caller's own self-reported position — mutates no incident state, appends to no
 record, spawns no job and makes no outbound call. Nothing they write survives the Einsatz.
 
+The Präsentationsmodus signal (``POST …/presentation/signal``, 05.11.2026) is on the alarm AND
+the view list, and it is not a write in this sense at all: it touches no row. It joins the
+in-memory room of app/presentation or leaves a pointer that fades in seconds; the handler
+refuses a link session's ``view`` (only an editor presents), and starting or ending a
+presentation is on no list.
+
 The matching ``GET`` is deliberately absent, and that asymmetry is the privacy model, not an
 oversight: a phone holding a link may *send* its position and may read *nobody's*. Whoever
 tapped the alarm link does not thereby get a live map of where their colleagues are; that
@@ -344,6 +350,10 @@ LINK_ALLOWED: frozenset[tuple[str, str]] = frozenset(
         # out. The GET on the same path is NOT here and must not be added.
         ("POST", "/api/incidents/{incident_id}/positions"),
         ("DELETE", "/api/incidents/{incident_id}/positions/{person_id}"),
+        # The Präsentationsmodus: follow and point, never present – the same two routes as the
+        # view link below (which must stay a narrowing of this list); the reasoning is there.
+        ("GET", "/api/incidents/{incident_id}/presentation"),
+        ("POST", "/api/incidents/{incident_id}/presentation/signal"),
         # station reference data — the map is useless without it. Narrowed per request to what
         # THIS Einsatz points at (`_link_param_allowed`), and the register list `/api/objects`
         # is not here at all: a link is never a door onto the station's object register (RBAC
@@ -421,7 +431,8 @@ ATEMSCHUTZ_LINK_ALLOWED: frozenset[tuple[str, str]] = frozenset(
 #:   /api/admin/login                — the admin door has no business on a forwarded page
 #:   …/positions POST + DELETE       — the alarm link's one write. Whoever is reading a
 #:                                     finished Rapport is not on the Einsatz; this link
-#:                                     writes NOTHING
+#:                                     writes NOTHING to the record (its presentation signal,
+#:                                     below, lands in memory only and fades)
 #:   …/{incident_id}/state           — no caller in the app at all
 #:
 #: Three entries stay but are narrowed per request by ``_link_param_allowed`` (for every link
@@ -477,6 +488,14 @@ VIEW_LINK_ALLOWED: frozenset[tuple[str, str]] = frozenset(
         ("GET", "/api/reference/{dataset_id}/tiles/{v}/{page}/{z}/{x}/{y}"),
         ("GET", "/api/objects/{object_id}"),
         ("GET", "/api/personnel"),
+        # The Präsentationsmodus (05.11.2026, owner pick: the view link joins and may point). The
+        # only POST on this list besides the session exchange, the login and the crash sink, and
+        # it writes nothing: a signal joins/leaves the in-memory room or leaves a pointer that
+        # fades in seconds (app/presentation – never the workspace, the Verlauf, the audit chain
+        # or any table). The handler refuses a link's `view` (only an editor's start makes a
+        # presenter), and starting/ending (`POST`/`DELETE …/presentation`) stays off this list.
+        ("GET", "/api/incidents/{incident_id}/presentation"),
+        ("POST", "/api/incidents/{incident_id}/presentation/signal"),
     }
 )
 

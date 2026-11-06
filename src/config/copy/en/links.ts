@@ -4,7 +4,7 @@
 import type { Copy, Localizable } from '../index'
 
 type Keys =
-  | 'incidentLink' | 'standingLink' | 'sharePosition' | 'livePosition'
+  | 'incidentLink' | 'standingLink' | 'sharePosition' | 'livePosition' | 'presentation'
 
 export const linksCopy: Localizable<Pick<Copy, Keys>> = {
   incidentLink: {
@@ -89,5 +89,34 @@ export const linksCopy: Localizable<Pick<Copy, Keys>> = {
     chipNow: '{d} · now',
     atScene: 'At the incident',
     tapHint: 'Show on the map',
+  },
+  presentation: {
+    title: 'Present',
+    lede: 'Everyone with this link or the incident open follows your map. Everyone can point, nothing is saved.',
+    start: 'Start',
+    runningMine: 'You are presenting.',
+    runningOther: '{name} is presenting.',
+    takeOver: 'Take over',
+    needsServer: 'Needs a connection to the server.',
+    youPresent: 'You are presenting',
+    followersNone: 'nobody following yet',
+    followersOne: '1 following',
+    followersMany: '{n} following',
+    presents: '{name} is presenting',
+    follow: 'Follow',
+    following: 'Following',
+    zeigen: 'Point',
+    end: 'End',
+    leave: 'Stop following',
+    followAgain: 'Follow again',
+    hint: 'Pointing is on – a tap sets a point, pan with two fingers',
+    link: 'Link',
+    me: 'Me',
+    askName: 'Your name for the others',
+    namePlaceholder: 'First and last name',
+    pill: 'Presentation',
+    startFailed: 'Presentation not started – needs a connection to the server.',
+    endFailed: 'Presentation not ended – try again.',
+    full: 'Presentation full – too many people joined through a link. Try «Follow» again later.',
   },
 }

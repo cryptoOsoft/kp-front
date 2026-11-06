@@ -184,6 +184,8 @@ import { useLifecycleElsewhere } from './workspace/useLifecycleElsewhere'
 import { useTutorialSession } from './lib/tutorials/session'
 import { tutorialEvent } from './lib/tutorials/bus'
 import { TutorialRunner } from './components/tutorial/lazy'
+import { PresentationContext, usePresentation } from './workspace/usePresentation'
+import { MapRings, PresentationPill } from './components/Presentation'
 
 /** How long an edit has to sit still before it earns a Verlauf row. Long enough that a sentence
  *  being typed is ONE edit, short enough that reading the Verlauf a moment later already shows
@@ -1212,7 +1214,12 @@ export function IncidentWorkspace({
   const composerOpenedAt = useRef<string | null>(null)
   useEffect(() => { if (composerOpen) composerOpenedAt.current = new Date().toISOString() }, [composerOpen])
   // a Verlauf row can ask the plan to revisit a point; nonce makes each request distinct
-  const [planFocus, setPlanFocus] = useState<{ x: number; y: number; floor: number; annoId?: string; twinEntityId?: string; flash?: boolean; nonce: number } | null>(null)
+  const [planFocus, setPlanFocus] = useState<{ x: number; y: number; floor: number; annoId?: string; twinEntityId?: string; flash?: boolean; scale?: number; nonce: number } | null>(null)
+  // the Präsentationsmodus (workspace/usePresentation): follow / present / point, never stored
+  const presentation = usePresentation({
+    incidentId: incidentMeta.id, enabled: running && !replayActive && !asLink, canPresent: canShareLink, isLink: linkScoped,
+    mode, setMode, activePlanId, setActivePlanId, mapRef, setPlanFocus,
+  })
   // «zeigen» on the Lage: the drawing gets an outline for a couple of seconds and is NOT selected
   // (see MapView · flashDrawingId). Cleared on a timer — pointing is a gesture, not a state.
   const [flashDrawingId, setFlashDrawingId] = useState<string | null>(null)
@@ -3234,6 +3241,7 @@ export function IncidentWorkspace({
         azAlarm, truppActions, newTruppFromMarker, showTrupp, planScale, setPlanScale, tafel: tafelPendenzen.tafel,
         truppFinder: { open: () => setFindTruppOpen(true), disabled: placed.length === 0 },
         readingsChip: replayActive ? null : <ReadingsChip points={readingPoints} compact={isPhone} onGo={goToReading} />,
+        presentation: presentation.board,
       }} />
 
       {pickerOpen && (
@@ -3336,6 +3344,7 @@ export function IncidentWorkspace({
           }}
         />
       )}
+      <PresentationContext.Provider value={canShareLink ? presentation : null}>
       <WorkspaceSheets {...{
         helpOpen, setHelpOpen, shareLink, incidentMeta, setShareLink, setAtemschutzLinkOn, installGuideOpen,
         setInstallGuideOpen, offlineReadyOpen, setOfflineReadyOpen, offlineProbeUrls, sym, backendPlans,
@@ -3346,6 +3355,9 @@ export function IncidentWorkspace({
         setKeepScreenOn, linkScoped, setFeedbackParent, setFeedbackOpen, share, setShareParent, setSharePick,
         feedbackParent, canWriteRecord, photoPosition, setPhotoPosition, role: user?.role,
       }} />
+      </PresentationContext.Provider>
+      <PresentationPill p={presentation} />
+      <MapRings mapRef={mapRef} rings={presentation.mapRings} presenter={presentation.state?.presenter?.client ?? null} />
 
       {/* phone field-capture: a editor can't draw tactical symbols on a phone, but can
           always add a journal entry / photo / voice memo from the field — tap to compose,

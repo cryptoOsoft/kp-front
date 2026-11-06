@@ -128,6 +128,9 @@ import type { ProblemSource, TickWrite } from '../lib/problemLink'
 import { isDrawnBoardKind } from '../lib/workspace'
 import { labelText, type BoardTemplate } from '../lib/boardTemplate'
 import { SKIZZE, TAFEL_ID, useTafelPage } from '../lib/tafelPages'
+import { useUserMoved, useZeigen } from '../lib/useZeigen'
+import type { BoardPresentation } from '../workspace/usePresentation'
+import { BoardRings } from './Presentation'
 import { isDemoMode } from '../lib/deploymentConfig'
 import { BUNDLED_TEMPLATES, warmBoardTemplates } from '../lib/boardTemplates'
 import type { MiniKarteProps } from './MiniKarte'
@@ -241,11 +244,15 @@ interface Props {
   keysRef?: React.MutableRefObject<{ pickTool: (tool: string) => void; zoom: (f: number) => void; duplicate: () => void } | null>
   /** a Verlauf row asked to revisit a plan point — center + select on arrival. */
   /** `flash` shows the anno (a few-second outline) instead of selecting it — see the focus effect */
-  focus: { x: number; y: number; floor: number; annoId?: string; twinEntityId?: string; flash?: boolean; nonce: number } | null
-  /** report the current plan-view centre (tile-local). Optional and currently unused: it existed
-   *  for the composer's «an der Planmitte anheften», which went away on 14.08. — the Wiedergabe
-   *  answers «wie sah es da aus» by scrubbing the whole picture instead of storing a point. */
+  /** `scale` (the Präsentationsmodus following a presenter) also sets the zoom, «eingepasst» = 1 */
+  focus: { x: number; y: number; floor: number; annoId?: string; twinEntityId?: string; flash?: boolean; scale?: number; nonce: number } | null
+  /** report the current plan-view centre (tile-local) and zoom. The composer's «an der Planmitte
+   *  anheften» it was born for went away on 14.08.; the Präsentationsmodus reads it now (through
+   *  `presentation.onView`). */
   onView?: (c: { x: number; y: number; floor: number }) => void
+  /** the Präsentationsmodus on this sheet (workspace/usePresentation · BoardPresentation): the
+   *  rings to draw, «Zeigen»'s tap catcher, and the follower's «panned by hand» signal */
+  presentation?: BoardPresentation
   /** currently monitored Atemschutz Trupps — offered when placing a team chip on the plan. */
   trupps?: Trupp[]
   /** every chip and marker name standing on ANY surface of this Einsatz — the Karte and every
@@ -387,7 +394,7 @@ export interface PlanLogExtra {
 // timestamp updates each time they are moved. All annotation coordinates are
 // normalized 0..1 in plan-image space so they stick across zoom/pan.
 
-export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, captionMode = 'off', mapSuppressedCaptions, onChange: onChangeAll, building, floorPack, onSelectBuilding, onBuildingFace, onReorient, onAddFloor, onRemoveFloor, readOnly: readOnlyProp = false, sym, rosterNames = [], rosterRank, onRosterField, personStatus, fieldHints, onRecent, log, authorName, onStepLabel, emit = () => {}, historyRef, hist, setHist, onCheckpoint, views, fitRef, keysRef, focus, onView, trupps = [], placedTeamNames, teamNameTaken, onLinkTrupp, onShowTrupp, truppFinder, ghostTrails = [], onGhostTrail, onTrailDrop, onTeamTrupp, onTeamNewTrupp, onLinkLineTrupp, onLineAttached, onLineDetached, onLineRenumber, truppSeverities, objectName, objectAddress, objectNearby, buildingInfo, readingsChip, incidentId, incidentAddress, incidentPos, onObjectSwitch, planScale = {}, onCalibrate, live = [], photos = [], onPlanLiveMove, onStepEnd, slimTools: slimToolsProp = false, linkViewer = false, railLabels, tafel }: Props) {
+export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, captionMode = 'off', mapSuppressedCaptions, onChange: onChangeAll, building, floorPack, onSelectBuilding, onBuildingFace, onReorient, onAddFloor, onRemoveFloor, readOnly: readOnlyProp = false, sym, rosterNames = [], rosterRank, onRosterField, personStatus, fieldHints, onRecent, log, authorName, onStepLabel, emit = () => {}, historyRef, hist, setHist, onCheckpoint, views, fitRef, keysRef, focus, onView, trupps = [], placedTeamNames, teamNameTaken, onLinkTrupp, onShowTrupp, truppFinder, ghostTrails = [], onGhostTrail, onTrailDrop, onTeamTrupp, onTeamNewTrupp, onLinkLineTrupp, onLineAttached, onLineDetached, onLineRenumber, truppSeverities, objectName, objectAddress, objectNearby, buildingInfo, readingsChip, incidentId, incidentAddress, incidentPos, onObjectSwitch, planScale = {}, onCalibrate, live = [], photos = [], onPlanLiveMove, onStepEnd, slimTools: slimToolsProp = false, linkViewer = false, railLabels, tafel, presentation }: Props) {
   // ⚠️ RIDERS: what lives on a sheet but is not drawn ON it — the Tafel's pages (kind `form`,
   // lib/boardForm) and any board object this build does not understand (lib/workspace ·
   // isPassengerAnno). Nothing positional may see them: every drawing path below reads `annos` —
@@ -570,7 +577,7 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
   const maxScale = stack
     ? (stackDensity ? paperMaxScale(stackDensity, 1, MAX_SCALE_STACK) : MAX_SCALE_STACK)
     : Math.max(MAX_SCALE, paperScale ?? 0)
-  const { scale, pos, scaleRef, posRef, applyView, zoomTo, zoom } = useBoardView(canvasRef, canvasEl, viewMemory, maxScale, vShift)
+  const { scale, pos, scaleRef, posRef, applyView, zoomTo, zoom, clamp: clampScale } = useBoardView(canvasRef, canvasEl, viewMemory, maxScale, vShift)
 
   const osm = active.osm
   /** every storey the building HAS, top-to-bottom – what the eye toggles list, what the document
@@ -1466,8 +1473,20 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
     const s = scaleRef.current, w = fit.w * s, h = fit.h * s
     const nx = clamp01((w / 2 - pos.x) / w), ny = clamp01((h / 2 - pos.y) / h)
     const floor = stack ? floorAt(ny) : 0
-    onView?.({ x: nx, y: stack ? localY(ny, floor) : ny, floor })
+    const c = { x: nx, y: stack ? localY(ny, floor) : ny, floor }
+    onView?.(c)
+    presentation?.onView({ ...c, scale: s })
   }, [pos, scale, fit.w, fit.h, activeId, stack, N]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // «Zeigen» (Präsentationsmodus): a one-finger tap is a pointer in plan space, nothing else; a
+  // follower's pan by hand detaches it (lib/useZeigen)
+  useZeigen(canvasEl, !!presentation?.pointing, (cx, cy) => {
+    const n = toNorm(cx, cy)
+    if (!n) return
+    const ny = clamp01(n[1]), floor = stack ? floorAt(ny) : 0
+    presentation?.onPoint({ x: clamp01(n[0]), y: stack ? clamp01(localY(ny, floor)) : ny, floor })
+  }, { handOver: true })
+  useUserMoved(canvasEl, !!presentation?.onUserMove, () => presentation?.onUserMove?.())
 
   // a Verlauf row asked to revisit a plan point. Apply once per request (tracked
   // by nonce); if it arrives mid mode-switch before the stage is measured, the
@@ -1487,7 +1506,7 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
     // id, so «zeigen» finds it through `focus.annoId` like anything else the sheet draws.
     // Selection mounts its panel as state settles. Measure on the next frame so an explicit
     // “show” centres in the space that remains visible, not under the newly opened panel.
-    requestAnimationFrame(() => centerOnPoint(focus.x, focus.y, focus.floor))
+    requestAnimationFrame(() => centerOnPoint(focus.x, focus.y, focus.floor, focus.scale == null ? undefined : clampScale(focus.scale)))
     appliedFocus.current = focus.nonce
   }, [focus, fit.w, fit.h]) // eslint-disable-line react-hooks/exhaustive-deps
   // the outline fades out on its own — it is a pointing gesture, not a state
@@ -2199,6 +2218,8 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
             // what it draws is not where the sheet's objects are yet (`previewAnnos`).
             style={{ width: sW || undefined, height: sH || undefined, transform: `translate(-50%, -50%) translate(${pos.x + (side.l - side.r) / 2}px, ${pos.y + vShift}px)`, pointerEvents: previewing ? 'none' : undefined }}
           >
+            {/* the Präsentationsmodus' fading rings, in plan space (z above every anno) */}
+            {presentation && <BoardRings rings={presentation.rings} presenter={presentation.presenter} mapY={mapY} size={{ w: sW, h: sH }} />}
             {stack && building ? (
               <>
               {/* what is folded away, as a strip where the storey belongs – «+2 · 2. OG
