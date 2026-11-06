@@ -770,8 +770,8 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
             {/* …and on it, as one ruler: the rows' events band (stripRuns) above a spine, the
                 divisions hanging under it, the round times as the tall marks standing on it, every
                 round time labelled and centred, and the
-                first and last moment's clocks at the ends where they do not collide with one of
-                those (stripScale – the stamp gives way, never an hour). Where the END stamp gave
+                first and last moment's clocks at the ends where they keep clear of one of those
+                (stripScale – the stamp gives way, never an hour). Where the END stamp gave
                 way, a short ink tick caps the right end: the latest moment, the «now» of the strip. */}
             <div className="jr-strip-track" style={{ insetInline: STRIP_INSET }} aria-hidden>
               {band?.runs.map((r) => <i key={r.from} className="jr-strip-run" style={{ left: `${r.from * 100}%`, width: `${(r.to - r.from) * 100}%` }} />)}

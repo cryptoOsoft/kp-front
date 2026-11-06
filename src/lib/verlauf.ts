@@ -318,8 +318,13 @@ export interface StripMinor { frac: number; mid?: true }
 const STRIP_STEPS = [5, 10, 15, 30, 60, 120, 180, 360, 720, 1440]
 /** …and the finer ones only a division may use */
 const STRIP_DIVS = [1, 5, 10, 15, 30, 60, 120, 180, 360, 720]
-/** A «HH:MM» label at 12.5px mono is ~38px; this is that plus its breathing room. */
-const STRIP_LABEL_PX = 46
+/** A «HH:MM» clock at 12.5px mono is 40px wide (measured)… */
+const STRIP_CLOCK_PX = 40
+/** …a label's slot is that plus its breathing room… */
+const STRIP_LABEL_PX = STRIP_CLOCK_PX + 6
+/** …and an end stamp keeps this much air from its neighbouring hour's clock: closer, the two
+ *  read as one run of digits («14:08 15:00», hill climb r31, Opus 5). */
+const STRIP_STAMP_AIR_PX = 32
 /** The closest a `mid` division / a fine division may stand to the next one, px. */
 const STRIP_MID_PX = 24
 const STRIP_FINE_PX = 8
@@ -342,8 +347,10 @@ const onGrid = (d: Date, m: number) => (m < 60 ? d.getMinutes() % m === 0 : d.ge
  * well – is centred on its own moment.
  * ⚠️ A mark's clock is never dropped for a stamp – the STAMP gives way (`start` / `end` undefined):
  * «14:08 · 16:00 · 17:00» with 15:00 swallowed read as one hour from the start to 16:00 (hill
- * climb r27, Opus 3). A mark only goes unlabelled when it would print over the previous mark's
- * clock, which the step's spacing rules out except on a track too narrow for any step.
+ * climb r27, Opus 3) – and it gives way not only on a collision but whenever less than
+ * `STRIP_STAMP_AIR_PX` of air would stand between it and the nearest clock (r31, Opus 5). A mark
+ * only goes unlabelled when it would print over the previous mark's clock, which the step's
+ * spacing rules out except on a track too narrow for any step.
  * The divisions (r28, Sol 2): `mid` the step's widest division ≥ `STRIP_MID_PX` apart, the fine
  * ones the widest of ITS divisions ≥ `STRIP_FINE_PX` apart – a 5-hour Einsatz on a phone gets
  * half hours and ten minutes, on a tablet quarter hours and five minutes; none where they would
@@ -358,8 +365,9 @@ export function stripScale(from: number, to: number, trackPx: number): { start?:
     ?? STRIP_STEPS[STRIP_STEPS.length - 1]
   const marks: StripMark[] = []
   const half = STRIP_LABEL_PX / 2
-  // the labelled clocks' extent along the track, px: the stamps test against these
-  let firstLeft = Infinity
+  // the first labelled clock's centre and the last one's right edge along the track, px: the
+  // stamps test against these (and each clock against the previous one's right edge)
+  let firstAt = Infinity
   let lastRight = -Infinity
   // walk local wall-clock time from the hour before `from`, so DST and odd offsets stay on the clock
   const d = new Date(from)
@@ -370,13 +378,15 @@ export function stripScale(from: number, to: number, trackPx: number): { start?:
       const frac = (t - from) / span
       const left = frac * trackPx - half
       if (trackPx > 0 && left >= lastRight) {
-        firstLeft = Math.min(firstLeft, left)
+        firstAt = Math.min(firstAt, left + half)
         lastRight = left + STRIP_LABEL_PX
         marks.push({ frac, label: formatTime(d) })
       } else marks.push({ frac })
     }
     d.setMinutes(d.getMinutes() + Math.min(step, 60))
   }
+  // an end stamp's centre to the neighbouring clock's centre: one clock wide, plus the air
+  const stampRoom = STRIP_CLOCK_PX + STRIP_STAMP_AIR_PX
   const minor: StripMinor[] = []
   const pxPerMin = trackPx > 0 ? trackPx / (span / 60_000) : 0
   const divOf = (whole: number, px: number) => STRIP_DIVS.find((m) => m < whole && whole % m === 0 && m * pxPerMin >= px)
@@ -394,9 +404,10 @@ export function stripScale(from: number, to: number, trackPx: number): { start?:
     }
   }
   return {
-    // a stamp is centred on its end of the track, so it clears the clocks by half a label
-    start: firstLeft >= half ? formatTime(new Date(from)) : undefined,
-    end: lastRight <= trackPx - half ? formatTime(new Date(to)) : undefined,
+    // a stamp is centred on its end of the track: it stays only with STRIP_STAMP_AIR_PX of air
+    // between its printed clock and the nearest hour's
+    start: firstAt >= stampRoom ? formatTime(new Date(from)) : undefined,
+    end: lastRight - half <= trackPx - stampRoom ? formatTime(new Date(to)) : undefined,
     marks,
     minor,
   }
