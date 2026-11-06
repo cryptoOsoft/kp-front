@@ -406,9 +406,9 @@
    kept through the hill climb (04.11.2026). In the tile family the one primary action is the
    filled tile («+ Trupp» in the head, `.newBtn`; «Anmelden» in the form), never a green band — in
    the app's one primary fill (`--btn-primary`, dimmed at night), at the primary's 800 (on the
-   tablet / desktop grid an out card's tile is 44px at 700 – «The grid's card, denser»). Not a quieter
-   mid slate (hill climb r7 tried it): at night it read as a DISABLED button – on the one action
-   the card exists to offer. */
+   tablet / desktop grid an out card's tile is a 40px plate at 700, 36px on a mouse – «The grid's
+   card, denser»). Not a quieter mid slate (hill climb r7 tried it): at night it read as a DISABLED
+   button – on the one action the card exists to offer. */
 .actEnter, .actReenter { color: var(--on-btn-primary); background: var(--btn-primary); box-shadow: none; font-weight: var(--fw-heavy); }
 @media (hover: hover) {
   .actEnter:hover, .actReenter:hover { background: var(--btn-primary-hover); }
@@ -1795,8 +1795,11 @@ button.crewLine { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .grid .trowHeadStatic .trowClock { display: contents; }
 .grid .trowHeadStatic .trowId { grid-column: 1; grid-row: 2; }
 .grid .trowHeadStatic .trowClockLine { grid-column: 2; grid-row: 2; }
+/* …and 2px lower in its reserved row since hill climb r31 (Opus 6, 06.11.2026): 4px from its caps to
+   the digits, so caption and time read as one unit; 12px over its cap line. Every grid card, out
+   ones too, so the captions of one grid row stay on one line. The name row does not move. */
 .grid .trowHeadStatic .trowSub { display: block; grid-column: 1 / -1; grid-row: 1; justify-self: end; align-self: start;
-  line-height: 1; }
+  line-height: 1; margin-top: 2px; }
 .grid .trowHeadStatic .trowSub:empty { display: none; }
 /* a card without the band: its first tile 5px under the crew line's box (8 under its glyphs), not
    the zone's 8 (r18, above) */
@@ -1868,8 +1871,8 @@ button.crewLine { cursor: pointer; -webkit-tap-highlight-color: transparent; }
    800 tiles made the card a wall of controls): no edge, a faint ink fill, the one corner, 500/12.5
    ink, no colour. The tiles above stay the framed buttons.
    A COMPACT field since hill climb r2 (04.11.2026: the 36px chips were the card's tallest rows):
-   28px drawn — a 20px line, 4px above and below — 8px to the tiles over it and to the foot under
-   it. Rows 8px apart on every device (owner pick A2, 05.11.2026 — they were 16 on touch). On touch
+   28px drawn — a 20px line, 4px above and below — 8px to the tiles over it, 12 to the foot under
+   it (r31). Rows 8px apart on every device (owner pick A2, 05.11.2026 — they were 16 on touch). On touch
    the 44px tap floor is an invisible 8px pad above and below each chip (a pseudo-element: it grows
    the hit area, not the drawn chip, 8 + 28 + 8 = 44); between two rows the pads overlap the 8px gap
    invisibly, the later row's on top. The crew is no chip since A3 (`.crewLine`).
@@ -1885,13 +1888,16 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
 @media (pointer: coarse) { button.fact::before { content: ''; position: absolute; inset: calc(-1 * var(--sp-2)) -3px; } }
 /* ⚠️ Two chip rows 8px apart cannot both own 44px inside 8px of air above and below (8 + 28 + 8 +
    28 + 8 = 80 < 88). On the grid the rows are known — the Auftrag & co., then `.factsEnd` (Kanal +
-   Ausrüstung) — so on touch the strip stands 16px under the tiles and the FIRST row's pad reaches
-   up into that extra 8px: row 1 owns 16 + 28, row 2 (later in the DOM, painted over the gap) owns
-   8 + 28 + 8 — 44 each, the drawn gap still 8. (A first row that itself wraps in two lines gets the
-   tall pad on both; the field data has not produced one.) */
+   Ausrüstung) — so on touch the strip stands 12px under the tiles and 12px over the foot (hill
+   climb r31, 06.11.2026: 16 under the tiles and 8 over the hairline made the chips read as the
+   foot's), the row gap is split 4 | 4, and each row's pad reaches into its 12: row 1 owns 12 + 28 +
+   4, row 2 (`.factsEnd`) 4 + 28 + 12 — 44 each, the drawn gap still 8, the card no taller. A lone
+   row owns 44 the same way. (A first row that itself wraps in two lines reaches 4px into its own
+   chips above; the field data has not produced one.) */
 @media (pointer: coarse) {
-  .grid .facts { margin-top: var(--sp-4); }
-  .grid .facts > button.fact::before { top: calc(-1 * var(--sp-4)); }
+  .grid .facts { margin-top: var(--sp-3); }
+  .grid .facts > button.fact::before { top: calc(-1 * var(--sp-3)); bottom: calc(-1 * var(--sp-1)); }
+  .grid .factsEnd > button.fact::before { top: calc(-1 * var(--sp-1)); bottom: calc(-1 * var(--sp-3)); }
 }
 /* «Kanal 11» (+ the Ausrüstung after it) — the facts' LAST row on the grid (hill climb r8,
    04.11.2026: it shared the Auftrag's row on one card and stood alone on the next, so the same
@@ -1916,9 +1922,11 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
 /* the ⋯, the last chip: square, the glyph in the dim ink */
 .kennQuiet { color: var(--ink-dim); }
 .kennCrit { color: var(--red-strong); }
-/* the Verlauf keeps its full-bleed foot (hairline + wash), flush with the frame's bottom edge; 8px
-   above it, the facts' touch pad (`.fact`) reaches it and no further */
-.trowCard .vfoot { margin: var(--sp-2) calc(-1 * var(--sp-3)) calc(-1 * var(--sp-3)); }
+/* the Verlauf keeps its full-bleed foot (hairline + wash), flush with the frame's bottom edge; 12px
+   above it (hill climb r31, Opus 2, 06.11.2026 – at 8 the last chip row read as part of the foot,
+   on the grid's touch card 16px under the tiles but 8 over the hairline). The facts' 8px touch pad
+   (`.fact`) reaches 8 of it; the 4 under the pad nobody owns. */
+.trowCard .vfoot { margin: var(--sp-3) calc(-1 * var(--sp-3)) calc(-1 * var(--sp-3)); }
 .trowCard .vfoot:empty { margin: 0; }
 .trowCard .metaLine, .trowCard .zonePanel, .trowCard .logList { padding-left: var(--sp-3); padding-right: var(--sp-3); }
 .trowCard .vrow { padding-left: var(--sp-3); }
@@ -1937,21 +1945,31 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
    27.09.2026); only its height and weight give. And its WIDTH (hill climb r26, Sol 2 / Opus 2):
    sized by its word, 16px each side, on the card's content edge (the row's start) – three
    card-wide ink slabs side by side still outweighed the live clocks. The phone keeps its
-   full-width tile (not on the grid). */
+   full-width tile (not on the grid).
+   Lighter still (hill climb r31, Opus 1, 06.11.2026): the flag at the head tiles' 16px glyph (not the
+   card tiles' 18), and on touch a 40px PLATE in the old 44px slot – 2px of margin over and under
+   it, and an invisible 2px pad (`::before`) over each margin, so the hit area is the 44px it was
+   (the fact chips' trick, owner pick A2). Nothing around it moves. A mouse keeps its 36px. */
 .grid .trowCard :is(.actRueckzug, .actContinue, .actExit, .actNotfall, .actNotfallEnd) { min-height: var(--tap); }
 .grid .trowCard .actReenter { min-height: var(--tap); font-weight: var(--fw-bold); justify-self: start; padding: 0 var(--sp-4); }
-/* A mouse (24px floor): every tile at 36px and the foot line (Verlauf ⌄ and ⋯) at 32px (hill climb
+.grid .trowCard .actReenter :global(.i) { width: 16px; height: 16px; }
+@media (pointer: coarse) {
+  .grid .trowCard .actReenter { position: relative; min-height: calc(var(--tap) - 4px); margin-block: 2px; }
+  .grid .trowCard .actReenter::before { content: ''; position: absolute; inset: -2px 0; }
+}
+/* A mouse (24px floor): every tile at 36px and the foot line (Verlauf ⌄ and ⋯) 28px tall (hill climb
    r13, 05.11.2026 — 40/36 before, and on the 1536×864 laptop the second row's feet stood under the
-   panel's edge). Type, gaps and the card order stay; only the plates give. */
+   panel's edge; 32 until r31, whose 4px more air over the foot came off the foot line, so the
+   laptop's two rows still fit). Type, gaps and the card order stay; only the plates give. */
 @media (hover: hover) and (pointer: fine) {
   .grid .trowCard :is(.trowPressBtn, .trowKontakt, .actBtn) { min-height: 36px; }
-  .grid .trowCard .vrow { min-height: 32px; }
-  .grid .trowCard .footMore { width: 32px; height: 32px; }
+  .grid .trowCard .vrow { min-height: 28px; }
+  .grid .trowCard .footMore { width: 32px; height: 28px; }
 }
 /* Touch: the foot line DRAWN 36px, its 44px owned by an invisible 8px pad BELOW the card (hill climb
    r17, 05.11.2026 – on the 1180×820 iPad the second row's foot stood on the panel's edge, 1px of
    bottom inset against the 16 on top). The chips over the foot cannot give: two 28px rows 8px apart
-   own 44 each only with the strip's 16px over them (`.grid .facts`) and the foot's 8px margin under
+   own 44 each only with the strip's 12px over them (`.grid .facts`) and the foot's 12px margin under
    them – every pixel between the last tile and the foot's hairline is a chip's. Under the card is
    air nobody owns: the 8px row gap, or the board's bottom inset. 8px per row, so the iPad's grid
    ends 17px over the panel's edge. For the pad to stand outside the frame the grid card does not
