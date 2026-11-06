@@ -102,21 +102,29 @@
    a fine pointer – a touch-only device has no keyboard to read it for. No modifier-held reveal any
    more: a hint hidden until you already know the shortcut taught nothing. The phone's folded bar
    never wears them (its tiles are doors to groups, and a bar you touch needs no letter).
-   Placement follows the tile's shape, because the badge must never sit on its glyph or its word:
-     · icon-only (default): the tile's bottom-right corner, small enough to leave the 22px glyph clear
-       (the alarm/count dot owns the top-right);
-     · words under the glyph (`.labelled`): the TOP-LEFT corner – the word occupies the bottom half
-       of the tile, the glyph only the middle of the top half, and the alarm / count / open dots
-       all hang off the right;
-     · expanded (word beside the glyph): vertically centred at the tile's far end – the left rail's
-       right end, the right rail's left end – the free side of the row. */
-.rail-key { display: none; position: absolute; right: 3px; bottom: 3px; min-width: 16px; height: 16px;
-  box-sizing: border-box; padding: 0 4px; font-family: var(--mono); font-size: var(--fs-micro); font-weight: var(--fw-bold);
-  line-height: 14px; text-align: center; border-radius: var(--r-xs); border: 1px solid var(--border);
-  background: var(--fill-soft); color: var(--ink-faint); pointer-events: none; }
-:is(.nav-item, .vrail-tool).on .rail-key { border-color: color-mix(in srgb, var(--on-accent-ink) 45%, transparent);
-  color: var(--on-accent-ink); background: transparent; }
-.rail.labelled:not(.expanded):not(.dragging) .rail-key { top: 3px; bottom: auto; right: auto; left: 4px; }
-.rail.expanded:not(.dragging) .rail-key { top: 50%; bottom: auto; margin-top: -8px; right: 10px; }
+   ONE PLACE on a tile, with the words under the glyph or without them (staging review 06.11.2026,
+   S1 + S3, owner: the letters «look different with and without a label», and in the hover state
+   the corner one sat «more top than left»): the TOP-LEFT corner, its INK the same 6px from the
+   tile's top and left edges. Measured on the ink, not the box: `text-box: trim-both cap
+   alphabetic` makes the box the capital's height, so `top` IS the ink's top; a stem letter's
+   (K · P · L …) ≈ 1px left side bearing is taken off `left`, and the round and diagonal ones
+   (C · S · V) sit that pixel further out – their optical overshoot, as measured on the rendered
+   ink (Sora 11/500). At 6/6 the ink's corner stands 3.5px inside the tile's 12px
+   curve (12 − 6·√2), so a hovered or armed tile's fill frames it evenly. The glyph keeps the
+   tile's centre (the rail's one icon axis); the alarm / count / open dots all hang off the right.
+     · expanded (word beside the glyph): vertically centred at the row's free end – the left rail's
+       right end, the right rail's left end – where a menu prints its shortcut; there the corner
+       would stand alone, far from the glyph it names.
+   A bare letter, no keycap (the 04.11.2026 hill-climb look): a framed chip in the corner was a
+   second small object on top of the glyph that has to be recognised at a glance, and at the
+   corner it covered the Auswahl arrow's tip. The body face at 11/500, not the mono, whose narrow
+   caps rendered thin at this size. On the armed ink tile it takes the tile's own text colour,
+   muted, so it recedes there as it does on the resting tiles. */
+.rail-key { display: none; position: absolute; top: 6px; left: 5px;
+  font-family: var(--body); font-size: var(--fs-micro); font-weight: var(--fw-medium);
+  line-height: 1; text-box: trim-both cap alphabetic;
+  color: var(--ink-faint); pointer-events: none; }
+:is(.nav-item, .vrail-tool).on .rail-key { color: color-mix(in srgb, var(--on-accent-ink) 70%, transparent); }
+.rail.expanded:not(.dragging) .rail-key { top: 50%; translate: 0 -50%; left: auto; right: 10px; }
 .vrail.expanded:not(.dragging) .rail-key { right: auto; left: 10px; }
 @media (hover: hover) and (pointer: fine) { .rail:not(.folded) .rail-key { display: block; } }
