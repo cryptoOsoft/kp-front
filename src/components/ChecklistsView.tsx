@@ -1,7 +1,8 @@
 import { LoadingStatus } from './ShellLoader'
 import { useEffect, useMemo, useState } from 'react'
 import { Icon } from '../lib/icons'
-import type { ChecklistState, ChecklistTemplate, Item, TemplateState, Tick } from '../lib/checklists'
+import type { ChecklistState, ChecklistTemplate, Item, TemplateState } from '../lib/checklists'
+import type { FormTrend } from '../lib/boardForm'
 import { allEntries, warmTemplates, matchEntries, searchEntries, templateProgress } from '../lib/checklists'
 import { chapterOf, isTickable, manualGroups } from '../lib/checklists'
 import { ChecklistRunner } from './ChecklistRunner'
@@ -56,7 +57,7 @@ export function ChecklistsView({
   checklists: ChecklistState
   canTick: boolean
   /** a `problems` list's Tendenz under a ticked item (lib/useChecklistActions · setTrend) */
-  onTrend?: (template: ChecklistTemplate, item: Item, trend: Tick['trend']) => void
+  onTrend?: (template: ChecklistTemplate, item: Item, trend: FormTrend | undefined) => void
   /** a page showing the Einsatz's problems is on the Tafel (lib/problemLink · hasProblems) */
   problemsOnTafel?: boolean
   /** the Einsatz title (its Stichwort) – the «Passend» group's Stichworte are matched on it */

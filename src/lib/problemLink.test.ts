@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { dropRow, formAnno, newFormPage, putLine, putRow, tableRows, boxLines, moveRow, type FormAnno } from './boardForm'
+import { dropRow, formAnno, newFormPage, putLine, putRow, tableRows, boxLines, moveRow, type FormAnno, type FormTrend } from './boardForm'
 import type { BoardTemplate, TableSection } from './boardTemplate'
 import type { ChecklistTemplate } from './checklists'
 import { problemRegister, problemView, splitProblemEdit, type ProblemSource } from './problemLink'
@@ -23,12 +23,13 @@ const checklist: ChecklistTemplate = {
   phases: [{ id: 'front', title: 'Front', area: 'front', items: [{ id: 'f1', text: 'Energieträger' }, { id: 'f2', text: 'Brand' }] }],
 }
 const page = (id: string, at: string): FormAnno => ({ ...formAnno(newFormPage(tpl, tpl.pages.find((p) => p.id === id)!, {}, at)), id })
-const source = (ticks: Record<string, { t: string; trend?: 'up' | 'same' | 'down' }>): ProblemSource => ({ templates: [checklist], checklists: { pe: { ticks } } })
+const source = (ticks: Record<string, { t: string }>, trends: Record<string, FormTrend> = {}): ProblemSource => ({ templates: [checklist], checklists: { pe: { ticks, trends } } })
 const table = (d: FormAnno['form']) => d.page.sections[0] as TableSection
 
 describe('problemLink – one list behind the checklist, the quad and the table', () => {
   it('a tick made while no page is on the Tafel stands on both pages once they are added', () => {
-    const src = source({ f1: { t: '2026-11-05T14:14:00Z', trend: 'same' } })
+    const src = source({ f1: { t: '2026-11-05T14:14:00Z' } }, { f1: 'same', f2: 'up' })
+    // f2's Tendenz outlived its un-tick: no problem until it is ticked again
     expect(problemRegister([], src).map((p) => p.text)).toEqual(['Energieträger'])
     const ef = page('ef', '1'), pt = page('pt', '2')
     const efView = problemView(ef, [ef, pt], src)

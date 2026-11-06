@@ -1,5 +1,6 @@
 import { useRef, type Dispatch, type SetStateAction } from 'react'
-import type { ChecklistState, ChecklistTemplate, Item, Tick } from './checklists'
+import type { ChecklistState, ChecklistTemplate, Item } from './checklists'
+import type { FormTrend } from './boardForm'
 import type { TickWrite } from './problemLink'
 import type { TimelineEvent } from '../types'
 import { appConfig } from '../config/appConfig'
@@ -90,9 +91,9 @@ export function useChecklistActions({ canTick, checklists, setChecklists, author
     }
     emit('checklist.tick', { template: template.id, item: item.id, checked: checking, milestone: !!item.milestone })
   }
-  /** A problem's Tendenz on a `problems` checklist (the ➚ = ➘ under a ticked item). `undefined`
+  /** A problem's Tendenz on a `problems` checklist (the ➚ = ➘ beside a ticked item). `undefined`
    *  clears it. Silent in the Verlauf, like every non-milestone tick (docs/verlauf-coverage.md). */
-  const setTrend = (template: ChecklistTemplate, item: Item, trend: Tick['trend']) => {
+  const setTrend = (template: ChecklistTemplate, item: Item, trend: FormTrend | undefined) => {
     if (!canTick || !checklists[template.id]?.ticks[item.id]) return
     applyTickWrites([{ tpl: template.id, item: item.id, trend: trend ?? null }])
   }
@@ -100,7 +101,8 @@ export function useChecklistActions({ canTick, checklists, setChecklists, author
    * The Tafel's writes into the ticks (lib/problemLink · splitProblemEdit): a problem's Tendenz set
    * on a page, a checklist problem deleted there (un-ticked). ONE slice write, so the act joins the
    * undo timeline as one step – grouped with the page write by the caller. Only ever an existing
-   * tick: a problem typed on the Tafel never becomes one.
+   * tick: a problem typed on the Tafel never becomes one. A Tendenz lives beside the ticks
+   * (`TemplateState.trends`), so an un-tick – here or by a tap – leaves it for the re-tick.
    */
   const applyTickWrites = (writes: readonly TickWrite[]) => {
     if (!canTick || !writes.length) return
@@ -109,14 +111,13 @@ export function useChecklistActions({ canTick, checklists, setChecklists, author
       for (const w of writes) {
         const prev = out[w.tpl]
         if (!prev?.ticks[w.item]) continue
-        const ticks = { ...prev.ticks }
-        if ('untick' in w) delete ticks[w.item]
-        else {
-          const { trend: _old, ...tick } = ticks[w.item]
-          void _old
-          ticks[w.item] = w.trend ? { ...tick, trend: w.trend } : tick
+        if ('untick' in w) {
+          const { [w.item]: _gone, ...ticks } = prev.ticks
+          out = { ...out, [w.tpl]: { ...prev, ticks } }
+          continue
         }
-        out = { ...out, [w.tpl]: { ...prev, ticks } }
+        const { [w.item]: _old, ...trends } = prev.trends ?? {}
+        out = { ...out, [w.tpl]: { ...prev, trends: w.trend ? { ...trends, [w.item]: w.trend } : trends } }
       }
       return out
     })

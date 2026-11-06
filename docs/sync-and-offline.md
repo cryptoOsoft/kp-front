@@ -137,7 +137,8 @@ the module they concern (`lib/connectivity`, `lib/eventScope`, `lib/jsonEqual`,
   a field), the later edit (`t`, server clock) winning a true clash and writing a Verlauf row.
   The Checklisten merge **per tick** (`mergeWorkspace · mergeChecklists`, 05.11.2026): two
   devices ticking different items of one list both keep their tick (it was per list, and one
-  was lost); an un-tick beats a concurrent Tendenz on the same item. The Tafel's problems are
+  was lost). A problem's Tendenz sits beside the ticks (`trends`, merged per item too), so an
+  un-tick and a concurrent Tendenz on the same item both stand. The Tafel's problems are
   derived from both, never copied (`lib/problemLink`) – so they need no merge of their own.
 - **IDs are prefixed timestamps, not UUIDs** – `newId(prefix)` from `src/lib/ids.ts`
   (`<prefix><ms>-<seq><rand>`) for EVERY record the app mints and syncs — Verlauf rows
