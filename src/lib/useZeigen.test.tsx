@@ -37,18 +37,37 @@ describe('«Zeigen» on a surface', () => {
     canvas.dispatchEvent(pointer('pointerup', 1, 103, 52))
     canvas.dispatchEvent(touch('touchend', 0))
     canvas.dispatchEvent(pointer('click', 1, 103, 52))
-    expect(onTap).toHaveBeenCalledWith(103, 52)
+    expect(onTap).toHaveBeenCalledWith(103, 52, canvas)
     expect(heard).toEqual([])
   })
 
-  it('a drag is no tap', () => {
-    const { el, canvas } = surface()
+  it('a drag is no tap – it draws a line from where the finger went down', () => {
+    const { el, canvas, heard } = surface()
     const onTap = vi.fn()
-    renderHook(() => useZeigen(el, true, onTap))
+    const line: string[] = []
+    const onDraw = { start: (x: number) => line.push(`start ${x}`), move: (x: number) => line.push(`move ${x}`), end: () => line.push('end') }
+    renderHook(() => useZeigen(el, true, onTap, { onDraw }))
+    canvas.dispatchEvent(pointer('pointerdown', 1, 100))
+    canvas.dispatchEvent(pointer('pointermove', 1, 105)) // within the slop: nothing drawn yet
+    canvas.dispatchEvent(pointer('pointermove', 1, 140))
+    canvas.dispatchEvent(pointer('pointermove', 1, 160))
+    canvas.dispatchEvent(pointer('pointerup', 1, 160))
+    expect(line).toEqual(['start 100', 'move 140', 'move 160', 'end'])
+    expect(onTap).not.toHaveBeenCalled()
+    expect(heard).toEqual([])
+  })
+
+  it('a second finger mid-line ends the line and pans', () => {
+    const { el, canvas } = surface()
+    const line: string[] = []
+    const onDraw = { start: () => line.push('start'), move: () => line.push('move'), end: () => line.push('end') }
+    renderHook(() => useZeigen(el, true, vi.fn(), { onDraw, handOver: true }))
     canvas.dispatchEvent(pointer('pointerdown', 1, 100))
     canvas.dispatchEvent(pointer('pointermove', 1, 140))
-    canvas.dispatchEvent(pointer('pointerup', 1, 140))
-    expect(onTap).not.toHaveBeenCalled()
+    canvas.dispatchEvent(pointer('pointerdown', 2, 300))
+    canvas.dispatchEvent(pointer('pointermove', 1, 150))
+    canvas.dispatchEvent(pointer('pointerup', 1, 150))
+    expect(line).toEqual(['start', 'move', 'end'])
   })
 
   it('lets a second finger through to the surface, to the end of the gesture', () => {

@@ -6,7 +6,8 @@ An editor taps «Präsentieren · Starten» in the «Einsatz teilen» sheet. Eve
 the Einsatz – logged-in users and holders of the «Einsatz · lesen» view link – sees a pill
 «<Name> präsentiert · Folgen». A follower mirrors the presenter's surface and section (the
 presenter's `view` messages), and everyone joined may point: a tap with «Zeigen» on leaves a
-named ring on every joined screen that fades after a few seconds (`pointer` messages).
+named ring on every joined screen that fades after a few seconds (`pointer` messages), a
+press-and-drag a line that fades the same way (`stroke` messages, sent as it grows).
 
 NOTHING HERE IS RECORD
 ----------------------
@@ -67,7 +68,7 @@ MESSAGES_KEPT = 64
 MAX_PARTICIPANTS = 200
 #: Per-client floors between two messages of a kind. The client throttles too (lib/presentation);
 #: this is the server's own bound on what one device can make every other device download.
-MIN_INTERVAL_S = {"view": 0.1, "pointer": 0.12, "join": 1.0}
+MIN_INTERVAL_S = {"view": 0.1, "pointer": 0.12, "stroke": 0.15, "join": 1.0}
 #: ⚠️ LINK SESSIONS TOGETHER get a capped share of the room (adversarial review 06.11.2026). A
 #: link is forwarded, and its holder chooses its client ids, so a per-client limit bounds
 #: nothing: 64 made-up ids filled the room for the FU's own followers, three ate the room's
@@ -80,8 +81,18 @@ LINK_POINTERS_PER_S = 5
 LINK_CHANGES_PER_S = 4
 #: A pointer older than this is not handed out any more: it has faded on every screen (the
 #: client's RING_MS is 4 s), and a tab coming back from the background must not draw the
-#: minute it missed as fresh rings.
+#: minute it missed as fresh rings. A stroke counts from its last update.
 POINTER_TTL_S = 4.0
+#: ⚠️ STROKES (lines drawn with «Zeigen», 06.11.2026) do not go into `messages`: a line is sent
+#: as it grows – the WHOLE line so far, every ≤ 250 ms (lib/presentation · STROKE_MS), so a
+#: follower that missed an update still gets all of it – and its updates would flush the 64-slot
+#: buffer the views and rings share. They live in their own small buffer instead, ONE entry per
+#: line (an update replaces it): at most STROKES_KEPT lines, MAX_STROKE_POINTS points each (the
+#: client simplifies to fit; api/presentation refuses more), so a poll's answer stays bounded in
+#: bytes, not just in messages. The link share has its own budget here too.
+STROKES_KEPT = 12
+MAX_STROKE_POINTS = 120
+LINK_STROKES_PER_S = 8
 
 _CLIENT_ID = re.compile(r"^[A-Za-z0-9_-]{4,64}$")
 
@@ -120,11 +131,14 @@ class Presentation:
     view: dict | None = None
     participants: dict[str, Participant] = field(default_factory=dict)
     messages: deque[dict] = field(default_factory=lambda: deque(maxlen=MESSAGES_KEPT))
+    #: (client, stroke id) → the line's newest update, oldest first (STROKES_KEPT)
+    strokes: dict[tuple[str, str], dict] = field(default_factory=dict)
     #: (client, kind) → when it last sent one; pruned with the client (`forget`)
     last_sent: dict[tuple[str, str], float] = field(default_factory=dict)
     #: the link share's recent pointers and room changes (one-second windows)
     link_pointers: deque[float] = field(default_factory=deque)
     link_changes: deque[float] = field(default_factory=deque)
+    link_strokes: deque[float] = field(default_factory=deque)
 
     def forget(self, client: str) -> None:
         """A follower left (or timed out): drop it and its throttle stamps."""
@@ -342,6 +356,33 @@ def send_pointer(p: Presentation, client: str, owner: str, at: dict) -> bool:
     return True
 
 
+def send_stroke(p: Presentation, client: str, owner: str, stroke: dict) -> bool:
+    """A line drawn with «Zeigen», the whole of it so far. Like a pointer: only from somebody
+    joined, from its own session; beyond the per-client floor or the link share's budget the
+    update is dropped (the next one carries every point anyway). It replaces the line's previous
+    update in the stroke buffer, so a line costs one entry however long it is drawn."""
+    who = p.member(client, owner)
+    if who is None:
+        return False
+    if _throttled(p, client, "stroke") or (who.link and not _within(p.link_strokes, LINK_STROKES_PER_S)):
+        return True
+    key = (client, stroke["id"])
+    p.strokes.pop(key, None)
+    p.strokes[key] = {
+        "kind": "stroke",
+        "client": client,
+        "name": who.name,
+        "link": who.link,
+        "stroke": stroke,
+        "seq": p.seq + 1,
+        "_t": _now(),
+    }
+    while len(p.strokes) > STROKES_KEPT:
+        del p.strokes[next(iter(p.strokes))]
+    p.bump()
+    return True
+
+
 def news_for(p: Presentation | None, known_id: str, since: int) -> bool:
     """Does a poll that knows presentation `known_id` ('' = none) at `since` have anything new?
     False → it parks."""
@@ -358,11 +399,14 @@ def snapshot(p: Presentation | None, known_id: str, since: int) -> dict:
     if p is None:
         return {"active": False, "seq": 0}
     now = _now()
-    fresh = [
-        {k: v for k, v in m.items() if k != "_t"}
-        for m in p.messages
-        if p.id == known_id and m["seq"] > since and (m["kind"] != "pointer" or now - m["_t"] < POINTER_TTL_S)
-    ]
+    fresh = sorted(
+        (
+            {k: v for k, v in m.items() if k != "_t"}
+            for m in [*p.messages, *p.strokes.values()]
+            if p.id == known_id and m["seq"] > since and (m["kind"] == "view" or now - m["_t"] < POINTER_TTL_S)
+        ),
+        key=lambda m: m["seq"],
+    )
     return {
         "active": True,
         "id": p.id,

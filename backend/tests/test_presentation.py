@@ -7,7 +7,9 @@ Contract under test:
   presenter goes quiet – observed by the next poll of anybody;
 - a parked poll wakes on a signal and carries the pointer/view to every joined device;
 - only the presenter's client moves the room; a pointer needs a joined client;
-- the «Einsatz · lesen» view link may follow and point – and still writes nothing else.
+- the «Einsatz · lesen» view link may follow and point – and still writes nothing else;
+- a line drawn with «Zeigen» travels whole, one buffer entry per line, bounded in points, lines
+  and (for the link share) updates a second – and never pushes the views and rings out.
 """
 
 import asyncio
@@ -223,6 +225,107 @@ async def test_only_the_presenter_moves_the_room_and_only_the_joined_point(clien
     bad = {"surface": "map", "lng": 700, "lat": 47.5}
     assert (await _signal(second, inc, pid, FOLLOWER, "pointer", at=bad)).status_code == 422
     assert (await _signal(second, inc, pid, FOLLOWER, "pointer", at={"surface": "plan"})).status_code == 422
+
+
+# --- lines (review 06.11.2026, S7a) -------------------------------------------------------
+
+
+def _line(sid: str = "st1730800000-01", n: int = 3, **extra) -> dict:
+    return {"id": sid, "surface": "map", "points": [[7.55 + i * 1e-4, 47.51] for i in range(n)], **extra}
+
+
+async def test_a_line_travels_whole_and_each_update_replaces_the_last(client, second, editor, viewer):
+    await _login(client, editor)
+    await _login(second, viewer)
+    inc = await _incident(client)
+    pid = (await _start(client, inc))["id"]
+    await _signal(second, inc, pid, FOLLOWER, "join")
+    url = f"/api/incidents/{inc}/presentation?client={FOLLOWER}&known={pid}"
+    since = (await second.get(url)).json()["seq"]
+
+    assert (await _signal(client, inc, pid, PRESENTER, "stroke", stroke=_line(n=3))).status_code == 204
+    broker.current(uuid.UUID(inc)).last_sent.clear()  # past the per-client floor
+    assert (await _signal(client, inc, pid, PRESENTER, "stroke", stroke=_line(n=5, done=True))).status_code == 204
+
+    got = (await second.get(f"{url}&since={since}")).json()["messages"]
+    assert [(m["kind"], m["name"], len(m["stroke"]["points"]), m["stroke"]["done"]) for m in got] == [
+        ("stroke", "Cmd", 5, True)
+    ]
+    # a follower that already had the first update hears the second as news
+    assert (await second.get(f"{url}&since={got[0]['seq'] - 1}")).json()["messages"][0]["stroke"]["done"] is True
+
+
+async def test_a_line_is_bounded_and_needs_a_joined_client(client, second, editor, viewer):
+    await _login(client, editor)
+    await _login(second, viewer)
+    inc = await _incident(client)
+    pid = (await _start(client, inc))["id"]
+    assert (await _signal(second, inc, pid, FOLLOWER, "stroke", stroke=_line())).status_code == 409
+    await _signal(second, inc, pid, FOLLOWER, "join")
+    too_long = _line(n=broker.MAX_STROKE_POINTS + 1)
+    off_plan = {"id": "st1", "surface": "plan", "plan_id": "tafel", "points": [[0.5, 1.4]]}
+    off_map = {"id": "st12", "surface": "map", "points": [[700, 47.5]]}
+    no_anchor = {"id": "st123", "surface": "page", "plan_id": "tafel", "page": "ef", "points": [[0.1, 0.2]]}
+    for bad in (too_long, off_plan, off_map, no_anchor, {**_line(), "points": []}):
+        assert (await _signal(second, inc, pid, FOLLOWER, "stroke", stroke=bad)).status_code == 422, bad
+    page = {**no_anchor, "id": "st1234", "anchor": {"path": ["data-sec=front", "2"], "x": 0.3, "y": 0.5}}
+    assert (await _signal(second, inc, pid, FOLLOWER, "stroke", stroke=page)).status_code == 204
+
+
+def test_lines_have_their_own_buffer_and_never_push_out_views_or_rings(monkeypatch):
+    p, t = _room(monkeypatch)
+    broker.send_view(p, PRESENTER, "user:fu", {"mode": "map"})
+    broker.send_pointer(p, PRESENTER, "user:fu", {"surface": "map", "lng": 7.5, "lat": 47.5})
+    for i in range(broker.MESSAGES_KEPT * 2):
+        t["now"] += 0.2
+        broker.send_stroke(p, PRESENTER, "user:fu", _line(f"st{i:06d}"))
+    assert [m["kind"] for m in p.messages] == ["view", "pointer"]
+    assert len(p.strokes) == broker.STROKES_KEPT
+    # the newest lines are the ones kept
+    assert next(reversed(p.strokes))[1] == f"st{broker.MESSAGES_KEPT * 2 - 1:06d}"
+
+
+def test_link_lines_have_their_own_budget(monkeypatch):
+    p, t = _room(monkeypatch)
+    for i in range(4):
+        t["now"] += 1
+        broker.join(p, client=f"lk{i:04d}", name=f"L{i}", link=True, owner=f"link:view:{i}")
+    t["now"] += 5
+    seq = p.seq
+    # four link devices drawing as fast as the per-client floor lets them, for one second
+    presenter = 0
+    for _ in range(6):
+        t["now"] += 0.16
+        for i in range(4):
+            broker.send_stroke(p, f"lk{i:04d}", f"link:view:{i}", _line(f"lk{i}line"))
+        before = p.seq
+        broker.send_stroke(p, PRESENTER, "user:fu", _line("fuline"))
+        presenter += p.seq - before
+    assert p.seq - seq - presenter <= broker.LINK_STROKES_PER_S + 1  # one window plus its edge
+    assert presenter == 6  # the presenter loses none to the links
+
+
+async def test_a_view_names_what_is_open_and_nothing_else(client, editor):
+    await _login(client, editor)
+    inc = await _incident(client)
+    pid = (await _start(client, inc))["id"]
+    anchor = {"path": ["0", "data-ev=e1730800000000-01abc"], "y": 0.25, "r": 0.4}
+    view = {
+        "mode": "checklists",
+        "checklist": {"kind": "tpl", "id": "fu"},
+        "scroll": anchor,
+        "detail": "ent1730800000000-01",
+        "journal": True,
+        "journal_scroll": anchor,
+    }
+    assert (await _signal(client, inc, pid, PRESENTER, "view", view=view)).status_code == 204
+    for bad in (
+        {**view, "mode": "admin"},
+        {**view, "scroll": {"path": ["<script>"]}},
+        {**view, "scroll": {"path": ["1"] * 33}},
+        {**view, "text": "anything"},
+    ):
+        assert (await _signal(client, inc, pid, PRESENTER, "view", view=bad)).status_code == 422, bad
 
 
 # --- the view link --------------------------------------------------------------------------

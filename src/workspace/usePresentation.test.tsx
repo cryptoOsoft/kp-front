@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, renderHook, waitFor } from '@testing-library/react'
+import { checklistPick } from '../lib/checklistPick'
 import { resetPresentationMarkers, setPresentationMarker } from '../lib/presentationMarker'
 
 const api = vi.hoisted(() => ({
@@ -50,6 +51,43 @@ describe('the presentation follow runs only while one is presented', () => {
     const asked = api.pollPresentation.mock.calls.length
     await act(async () => { await new Promise((r) => setTimeout(r, 600)) })
     expect(api.pollPresentation.mock.calls.length).toBe(asked)
+    h.unmount()
+  })
+})
+
+describe('a follower follows more than the map', () => {
+  afterEach(() => { resetPresentationMarkers(); vi.clearAllMocks() })
+
+  it('opens the presenter\'s Checkliste and Verlauf, and draws the presenter\'s line', async () => {
+    const view = {
+      mode: 'checklists', plan_id: null, page: null, map: null, plan: null, scroll: null, detail: null,
+      checklist: { kind: 'tpl', id: 'fu' }, journal: true, journal_scroll: null,
+    }
+    const line = { id: 'st1', surface: 'map', plan_id: null, page: null, floor: null, anchor: null, points: [[7.5, 47.5], [7.51, 47.5]], done: false }
+    let round = 0
+    api.pollPresentation.mockImplementation(async () => {
+      round += 1
+      if (round === 1) return running
+      await new Promise((r) => setTimeout(r, 50))
+      return { ...running, seq: 2 + round, view, messages: [
+        { seq: 2 + round, kind: 'view', view },
+        { seq: 2 + round, kind: 'stroke', client: 'pc-other', name: 'Bastian', link: false, stroke: line },
+      ] }
+    })
+    const setMode = vi.fn()
+    const setJournalOpen = vi.fn()
+    const h = renderHook(() => usePresentation({
+      incidentId: 'inc-2', enabled: true, canPresent: false, isLink: false, mode: 'map', setMode,
+      activePlanId: 'tafel', setActivePlanId: () => {}, mapRef: { current: null }, setPlanFocus: () => {},
+      journalOpen: false, setJournalOpen,
+    }))
+    act(() => setPresentationMarker('inc-2', 'p1'))
+    await waitFor(() => expect(h.result.current.follow.kind).toBe('invited'), { timeout: 1000 })
+    act(() => h.result.current.followNow())
+    await waitFor(() => expect(setMode).toHaveBeenCalledWith('checklists'), { timeout: 8000 })
+    expect(checklistPick('inc-2')).toEqual({ kind: 'tpl', id: 'fu' })
+    expect(setJournalOpen).toHaveBeenCalledWith(true)
+    await waitFor(() => expect(h.result.current.mapStrokes.map((x) => x.line.points.length)).toEqual([2]))
     h.unmount()
   })
 })

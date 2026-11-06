@@ -14,7 +14,7 @@ const state: PresentationState = {
 
 function pill(kind: Follow['kind'], over: Partial<Presentation> = {}) {
   const p = {
-    available: true, canStart: false, follow: { kind, id: 'p1' }, state, zeigen: false, mapRings: [], board: undefined,
+    available: true, canStart: false, follow: { kind, id: 'p1' }, state, zeigen: false, mapRings: [], mapStrokes: [], marks: 0, board: undefined,
     isLink: false, start: vi.fn(), end: vi.fn(), followNow: vi.fn(), leave: vi.fn(), toggleZeigen: vi.fn(), ...over,
   } satisfies Presentation
   render(<PresentationPill p={p} />)

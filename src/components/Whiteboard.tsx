@@ -130,7 +130,8 @@ import { labelText, type BoardTemplate } from '../lib/boardTemplate'
 import { SKIZZE, TAFEL_ID, useTafelPage } from '../lib/tafelPages'
 import { useUserMoved, useZeigen } from '../lib/useZeigen'
 import type { BoardPresentation } from '../workspace/usePresentation'
-import { BoardRings } from './Presentation'
+import { BoardRings, PageMarks } from './Presentation'
+import { fitScale } from '../lib/presentation'
 import { isDemoMode } from '../lib/deploymentConfig'
 import { BUNDLED_TEMPLATES, warmBoardTemplates } from '../lib/boardTemplates'
 import type { MiniKarteProps } from './MiniKarte'
@@ -244,8 +245,9 @@ interface Props {
   keysRef?: React.MutableRefObject<{ pickTool: (tool: string) => void; zoom: (f: number) => void; duplicate: () => void } | null>
   /** a Verlauf row asked to revisit a plan point — center + select on arrival. */
   /** `flash` shows the anno (a few-second outline) instead of selecting it — see the focus effect */
-  /** `scale` (the Präsentationsmodus following a presenter) also sets the zoom, «eingepasst» = 1 */
-  focus: { x: number; y: number; floor: number; annoId?: string; twinEntityId?: string; flash?: boolean; scale?: number; nonce: number } | null
+  /** `scale` (the Präsentationsmodus following a presenter) also sets the zoom, «eingepasst» = 1;
+   *  `span` (its visible extent, board units) instead fits that whole extent into this screen */
+  focus: { x: number; y: number; floor: number; annoId?: string; twinEntityId?: string; flash?: boolean; scale?: number; span?: { w: number; h: number }; nonce: number } | null
   /** report the current plan-view centre (tile-local) and zoom. The composer's «an der Planmitte
    *  anheften» it was born for went away on 14.08.; the Präsentationsmodus reads it now (through
    *  `presentation.onView`). */
@@ -1475,18 +1477,51 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
     const floor = stack ? floorAt(ny) : 0
     const c = { x: nx, y: stack ? localY(ny, floor) : ny, floor }
     onView?.(c)
-    presentation?.onView({ ...c, scale: s })
+    if (!presentation) return
+    // the Präsentationsmodus sends the centre of the FREE area (no rail, no open panel) and its
+    // extent in board units, which a follower fits into its own (lib/presentation · fitScale)
+    const canvas = canvasRef.current?.getBoundingClientRect()
+    const work = canvas ? planWorkRect(canvas, document.querySelector('.ctx')) : null
+    const mid = work && toNorm((work.minX + work.maxX) / 2, (work.minY + work.maxY) / 2)
+    if (!work || !mid) { presentation.onView({ ...c, scale: s, w: null, h: null }); return }
+    const my = clamp01(mid[1]), mf = stack ? floorAt(my) : 0
+    presentation.onView({
+      x: clamp01(mid[0]), y: stack ? clamp01(localY(my, mf)) : my, floor: mf, scale: s,
+      w: Math.min(50, Math.max(1e-3, (work.maxX - work.minX) / w)), h: Math.min(50, Math.max(1e-3, (work.maxY - work.minY) / h)),
+    })
   }, [pos, scale, fit.w, fit.h, activeId, stack, N]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // «Zeigen» (Präsentationsmodus): a one-finger tap is a pointer in plan space, nothing else; a
-  // follower's pan by hand detaches it (lib/useZeigen)
-  useZeigen(canvasEl, !!presentation?.pointing, (cx, cy) => {
+  // «Zeigen» (Präsentationsmodus): a one-finger tap is a pointer in plan space, a drag a line,
+  // nothing else; a follower's pan by hand detaches it (lib/useZeigen)
+  const planPoint = (cx: number, cy: number, onFloor?: number) => {
     const n = toNorm(cx, cy)
-    if (!n) return
-    const ny = clamp01(n[1]), floor = stack ? floorAt(ny) : 0
-    presentation?.onPoint({ x: clamp01(n[0]), y: stack ? clamp01(localY(ny, floor)) : ny, floor })
-  }, { handOver: true })
+    if (!n) return null
+    const ny = clamp01(n[1]), floor = onFloor ?? (stack ? floorAt(ny) : 0)
+    return { x: clamp01(n[0]), y: stack ? clamp01(localY(ny, floor)) : ny, floor }
+  }
+  const lineFloor = useRef(0)
+  useZeigen(canvasEl, !!presentation?.pointing, (cx, cy) => {
+    const at = planPoint(cx, cy)
+    if (at) presentation?.onPoint(at)
+  }, {
+    handOver: true,
+    onDraw: {
+      start: (cx, cy) => { const at = planPoint(cx, cy); if (at) { lineFloor.current = at.floor; presentation?.draw.start(at) } },
+      move: (cx, cy) => { const at = planPoint(cx, cy, lineFloor.current); if (at) presentation?.draw.add([at.x, at.y]) },
+      end: () => presentation?.draw.end(),
+    },
+  })
   useUserMoved(canvasEl, !!presentation?.onUserMove, () => presentation?.onUserMove?.())
+  // the detail open here goes to the presenter's followers; a follower opens the presenter's (once
+  // per request – adjusted while rendering, React's way for state that follows a prop)
+  const reportSel = presentation?.onSelect
+  useEffect(() => { reportSel?.(selId) }, [selId, reportSel])
+  const [selectSeen, setSelectSeen] = useState<number | null>(null)
+  const wantSel = presentation?.select
+  if (wantSel && wantSel.nonce !== selectSeen) {
+    setSelectSeen(wantSel.nonce)
+    if (wantSel.id !== selId) setSelId(wantSel.id && annos.some((a) => a.id === wantSel.id) ? wantSel.id : null)
+  }
 
   // a Verlauf row asked to revisit a plan point. Apply once per request (tracked
   // by nonce); if it arrives mid mode-switch before the stage is measured, the
@@ -1506,7 +1541,14 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
     // id, so «zeigen» finds it through `focus.annoId` like anything else the sheet draws.
     // Selection mounts its panel as state settles. Measure on the next frame so an explicit
     // “show” centres in the space that remains visible, not under the newly opened panel.
-    requestAnimationFrame(() => centerOnPoint(focus.x, focus.y, focus.floor, focus.scale == null ? undefined : clampScale(focus.scale)))
+    requestAnimationFrame(() => {
+      // a follower fits the presenter's whole extent into its own free area (owner pick 06.11.)
+      const canvas = canvasRef.current?.getBoundingClientRect()
+      const work = focus.span && canvas ? planWorkRect(canvas, document.querySelector('.ctx')) : null
+      const fitted = work && focus.span ? fitScale(focus.span, { w: work.maxX - work.minX, h: work.maxY - work.minY }, fit) : null
+      const at = fitted ?? focus.scale
+      centerOnPoint(focus.x, focus.y, focus.floor, at == null ? undefined : clampScale(at))
+    })
     appliedFocus.current = focus.nonce
   }, [focus, fit.w, fit.h]) // eslint-disable-line react-hooks/exhaustive-deps
   // the outline fades out on its own — it is a pointing gesture, not a state
@@ -2136,6 +2178,8 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
       <div className="whiteboard wb-tafel-page">
         {/* the strip in the row a plan's «which place» chips stand in (owner, before the release) */}
         <div className="wb-botleft">{strip}</div>
+        {/* the Präsentationsmodus' rings and lines on the page, and «Zeigen» on it */}
+        {presentation && <PageMarks key={`marks-${formPage.id}`} p={presentation} top={topRes} />}
         <TafelFormPage key={formPage.id} pageKey={formPage.id} title={titles.get(formPage.id)} data={viewOf(formPage)} readOnly={readOnly} isPhone={isPhone}
           onChange={(next, act) => editPage(formPage.id, next, act)} onRemove={() => void removePage(formPage.id)}
           // typed over another device's value for the same cell: the later stands, the Verlauf says so
@@ -2185,6 +2229,8 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
       <div className="wb-stage" ref={stageRef}>
         <div
           ref={setCanvas}
+          // the Präsentationsmodus' edge arrows measure what is visible against this
+          data-present-host=""
           className={`wb-canvas tool-${tool} ${pending || pendingShape ? 'placing' : ''}`}
           // capture-phase bookkeeping FIRST — it sees the fingers a chip's own handler
           // swallows, which is what makes the two-finger gesture work on a busy board.
@@ -2219,7 +2265,7 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
             style={{ width: sW || undefined, height: sH || undefined, transform: `translate(-50%, -50%) translate(${pos.x + (side.l - side.r) / 2}px, ${pos.y + vShift}px)`, pointerEvents: previewing ? 'none' : undefined }}
           >
             {/* the Präsentationsmodus' fading rings, in plan space (z above every anno) */}
-            {presentation && <BoardRings rings={presentation.rings} presenter={presentation.presenter} mapY={mapY} size={{ w: sW, h: sH }} />}
+            {presentation && <BoardRings rings={presentation.rings} strokes={presentation.strokes} presenter={presentation.presenter} mapY={mapY} size={{ w: sW, h: sH }} />}
             {stack && building ? (
               <>
               {/* what is folded away, as a strip where the storey belongs – «+2 · 2. OG

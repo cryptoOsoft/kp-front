@@ -843,12 +843,15 @@ textarea.note-pill-input { resize: none; overflow: hidden; display: block; line-
 
 /* ── the Präsentationsmodus (components/Presentation, mock 8B, 05.11.2026; docs/presentation.md) ──
    The pill stands bottom centre, in the floating family of the armed-tool pill (09-whiteboard):
-   the same glass, --tap high controls. Over an armed tool's pill it moves one row up; on a phone
-   it stands on the floating baseline (--float-bottom) and over the Eintrag-FAB's row. The colour
-   is the presenter's (--present): the avatar, «Zeigen» on, the «Wieder folgen» chip. */
-.present-row { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); z-index: var(--z-map-util);
+   the same glass, --tap high controls. On a tablet or laptop it rises past whatever overlaps it
+   sideways in its row – an armed tool's pill, the selection bar, the bottom-left chips
+   («Messungen», Gebäude, the page strip) – by the measured `--present-lift`
+   (components/Presentation · usePillLift; owner's laptop 06.11.2026). On a phone it stands on the
+   floating baseline (--float-bottom) and over the Eintrag-FAB's row, and the phone's chip row
+   rises above IT (lib/floatRow · OBSTACLE_SEL). The colour is the presenter's (--present): the
+   avatar, «Zeigen» on, the «Wieder folgen» chip. */
+.present-row { position: fixed; left: 50%; bottom: calc(28px + var(--present-lift, 0px)); transform: translateX(-50%); z-index: var(--z-map-util);
   display: flex; flex-direction: column; align-items: center; gap: var(--sp-2); max-width: calc(100vw - 32px); pointer-events: none; }
-.app:has(.armed-pill-row) .present-row { bottom: calc(28px + var(--tap) + var(--sp-3)); }
 .present-pill { pointer-events: auto; display: flex; align-items: center; gap: var(--sp-2); min-width: 0; max-width: 100%;
   padding: var(--sp-1) var(--sp-1) var(--sp-1) var(--sp-3); border-radius: var(--r-bar);
   background: var(--float-bg); backdrop-filter: var(--float-blur); box-shadow: var(--float-edge); color: var(--ink); }
@@ -885,8 +888,10 @@ textarea.note-pill-input { resize: none; overflow: hidden; display: block; line-
   box-shadow: inset 0 0 0 1.5px var(--present); }
 .present-end, .present-follow, .present-x { flex: none; min-height: var(--tap); }
 .present-x { width: var(--tap); padding: 0; justify-content: center; }
-.present-ask { display: flex; align-items: center; gap: var(--sp-2); }
-.present-name { width: 180px; height: var(--tap); padding: 0 var(--sp-3); border: 1px solid var(--border); border-radius: var(--r-xs);
+/* a link holder's name, once: the question over the field, «Folgen» beside the field */
+.present-ask { display: flex; align-items: flex-end; gap: var(--sp-2); min-width: 0; padding: var(--sp-1) 0; }
+.present-ask-field { flex: 1 1 auto; gap: var(--sp-1); }
+.present-name { width: 220px; max-width: 100%; height: var(--tap); padding: 0 var(--sp-3); border: 1px solid var(--border); border-radius: var(--r-xs);
   background: var(--surface); color: var(--ink); font: var(--fw-regular) var(--fs-3) var(--body); }
 /* the follow chip a panned follower's pill turns into: one tap jumps back */
 .present-again { pointer-events: auto; display: inline-flex; align-items: center; gap: var(--sp-2); height: var(--tap-lg);
@@ -900,7 +905,9 @@ textarea.note-pill-input { resize: none; overflow: hidden; display: block; line-
 /* the rings: a named circle that fades (lib/presentation · RING_MS = 4 s; this animation is it) */
 .present-rings { position: absolute; inset: 0; pointer-events: none; z-index: 20; overflow: visible; }
 .present-ring { position: absolute; width: 0; height: 0; animation: present-ring-life 4s ease-out forwards; }
-.present-ring::before { content: ''; position: absolute; left: -22px; top: -22px; width: 44px; height: 44px; border-radius: 50%;
+/* ⚠️ border-box: the global `* { box-sizing }` does not reach a pseudo-element, and a content-box
+   44px circle with a 3px border is 50px from the same top-left – 3px off the tap (staging 06.11.) */
+.present-ring::before { content: ''; position: absolute; left: -22px; top: -22px; width: 44px; height: 44px; border-radius: 50%; box-sizing: border-box;
   border: 3px solid var(--tone); background: color-mix(in srgb, var(--tone) 14%, transparent); }
 .present-ring-dot { position: absolute; left: -6px; top: -6px; width: 12px; height: 12px; border-radius: 50%; background: var(--tone);
   box-shadow: 0 0 0 2px var(--surface); }
@@ -915,9 +922,34 @@ textarea.note-pill-input { resize: none; overflow: hidden; display: block; line-
   70% { opacity: 1; }
   100% { opacity: 0; }
 }
+/* the lines («Zeigen»: press and drag): the person's colour on a light halo; a finished line fades
+   like a ring (the hook takes it off at RING_MS). On a plan the SVG spans the board in 0..1 units
+   (`viewBox`, non-scaling strokes); on the Karte and a form page it is the layer in px. */
+.present-line { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.present-line path { fill: none; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.present-line-halo { stroke: var(--surface); stroke-width: 8px; opacity: .85; }
+.present-line-ink { stroke: var(--tone); stroke-width: 4px; }
+.present-line[data-done], .present-line-tip[data-done] { animation: present-line-fade 4s ease-out forwards; }
+.present-line-tip { position: absolute; width: 10px; height: 10px; transform: translate(-50%, -50%); border-radius: 50%; background: var(--tone);
+  box-shadow: 0 0 0 2px var(--surface); }
+@keyframes present-line-fade { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
+/* a form page's layer: the page's visible band, clipping what is scrolled away (an edge arrow
+   stands for it) */
+.present-page-marks { overflow: hidden; }
 /* reduced motion: the global rule (03-map.css) would end the life at once and `forwards` would hold
    it invisible – the ring stands still instead, and the hook takes it off at RING_MS */
-@media (prefers-reduced-motion: reduce) { .present-ring { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { .present-ring, .present-line, .present-line-tip { animation: none !important; } }
+
+/* the edge arrows: a ring or a line outside what this screen shows (owner pick 06.11.2026, «Fit +
+   edge arrows»), at the edge in the direction of it, with the name on the inside */
+.present-arrows { position: fixed; inset: 0; pointer-events: none; z-index: var(--z-map-util); }
+.present-arrow { position: absolute; width: 0; height: 0; }
+.present-arrow-head { position: absolute; left: -16px; top: -16px; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%;
+  background: var(--tone); color: var(--on-accent-ink); box-shadow: 0 0 0 2px var(--surface), var(--e2); }
+.present-arrow-head .i { width: 18px; height: 18px; }
+.present-arrow-name { position: absolute; top: -12px; left: 22px; padding: 2px var(--sp-2); border-radius: var(--r-pill); background: var(--tone);
+  color: var(--on-accent-ink); font-size: var(--fs-1); font-weight: var(--fw-bold); white-space: nowrap; box-shadow: var(--e1); }
+.present-arrow[data-side='left'] .present-arrow-name { left: auto; right: 22px; }
 
 /* «Präsentieren» in «Einsatz teilen», under the read link (ShareIncident · PresentCard) */
 .present-card { display: flex; align-items: center; gap: var(--sp-3); width: 100%; padding: var(--sp-3) var(--sp-4);
@@ -928,7 +960,16 @@ textarea.note-pill-input { resize: none; overflow: hidden; display: block; line-
 .present-card-text b { color: var(--ink); font-size: var(--fs-3); font-weight: var(--fw-bold); }
 .present-card .ip-btn { flex: none; }
 
-.app.phone-tools .present-row { bottom: var(--float-bottom); max-width: calc(100vw - 16px); }
-.app.phone-tools:has(.fab-entry) .present-row { bottom: calc(var(--float-bottom) + var(--float-h) + var(--float-gap)); }
-.app.phone-tools:has(.armed-pill-row) .present-row { bottom: calc(var(--float-bottom) + var(--tap) + var(--sp-2)); }
-.app.phone-tools .present-name { width: 140px; }
+/* a phone, on every surface: on the floating baseline (the bars', --float-bottom) – never over
+   the nav bar of a module surface – and over the Eintrag-FAB's row or an armed tool's pill. The
+   name card takes the row's width (`data-asking`), the field the part «Folgen» leaves – «Vorname
+   Name» in Sora 16px must fit a 390px phone (owner's iPhone, 06.11.2026) */
+@media (--phone) {
+  .present-row { bottom: var(--float-bottom); max-width: calc(100vw - 16px); }
+  .app:has(.fab-entry) .present-row { bottom: calc(var(--float-bottom) + var(--float-h) + var(--float-gap)); }
+  .app.phone-tools:has(.armed-pill-row) .present-row { bottom: calc(var(--float-bottom) + var(--tap) + var(--sp-2)); }
+  .present-row[data-asking] { left: var(--sp-2); right: var(--sp-2); transform: none; max-width: none; align-items: stretch; }
+  .present-row[data-asking] .present-pill { padding-right: var(--sp-2); }
+  .present-row[data-asking] .present-ask { width: 100%; }
+  .present-row[data-asking] .present-name { width: 100%; }
+}

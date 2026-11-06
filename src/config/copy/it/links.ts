@@ -91,7 +91,7 @@ export const linksCopy: Localizable<Pick<Copy, Keys>> = {
   },
   presentation: {
     title: 'Presentare',
-    lede: 'Chi ha questo link o l’intervento aperto segue la tua carta. Tutti possono indicare, nulla viene salvato.',
+    lede: 'Chi ha questo link o l’intervento aperto segue il tuo schermo. Tutti possono indicare, nulla viene salvato.',
     start: 'Avvia',
     runningMine: 'Stai presentando.',
     runningOther: '{name} sta presentando.',
@@ -108,7 +108,7 @@ export const linksCopy: Localizable<Pick<Copy, Keys>> = {
     end: 'Termina',
     leave: 'Non seguire più',
     followAgain: 'Segui di nuovo',
-    hint: 'Indicare è attivo – un tocco mette un punto, sposta con due dita',
+    hint: 'Indicare è attivo – un tocco mette un punto, trascinare traccia una linea, sposta con due dita',
     link: 'Link',
     me: 'Io',
     askName: 'Il tuo nome per gli altri',
