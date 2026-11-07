@@ -27,6 +27,38 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
         ],
       },
       {
+        id: 'karte-objekte', title: 'Carte & objets – sans intervention', icon: 'pin',
+        blocks: [
+          { kind: 'lead', text: 'Sans intervention ouverte, KP Front arrive ici : la carte du corps avec tous ses objets, pour consulter et préparer. Ce n’est pas une intervention – mesurer, marquer et consulter se fait sur cet appareil seulement, et rien n’en est enregistré.' },
+          { kind: 'sub', text: 'Recherche et objets' },
+          { kind: 'list', items: [
+            'Le champ en haut cherche des **adresses et des objets**. Un résultat ouvre ses informations : dangers, hydrants à proximité et les **plans d’objet**.',
+            'Chaque objet est entouré sur la carte avec ses bâtiments et porte son nom ; le toucher l’ouvre. Toucher un autre bâtiment montre ce que le registre en sait.',
+            'Les plans de l’objet choisi se trouvent dans la barre de gauche et s’ouvrent dans le même lecteur de plans qu’en intervention – en lecture seule. Le bouton en bas à gauche ramène à l’objet.',
+          ], only: 'wide' },
+          { kind: 'list', items: [
+            'La recherche en haut à droite trouve des **adresses et des objets**. Un résultat ouvre ses informations : dangers, hydrants à proximité et les **plans d’objet**.',
+            'Chaque objet est entouré sur la carte avec ses bâtiments et porte son nom ; le toucher l’ouvre. Toucher un autre bâtiment montre ce que le registre en sait.',
+            'Les plans sont des lignes dans les informations de l’objet et s’ouvrent dans le même lecteur de plans qu’en intervention – en lecture seule. «Retour» en bas ramène à la carte.',
+          ], only: 'phone' },
+          { kind: 'list', items: [
+            '**Visite d’objet** et **Signaler** dans les informations lancent la saisie, là où le corps l’a mise en place.',
+          ] },
+          { kind: 'sub', text: 'Outils' },
+          { kind: 'list', items: [
+            '**Poser un point** – un point avec son adresse et ses coordonnées (LV95 + WGS84) à copier. Un appui long sur la carte libre en pose un aussi.',
+            '**Mesurer** – distance ou surface.',
+            '**Matières dangereuses** – saisir le numéro UN : les indications ADR/ERG et les distances en cercles autour du point choisi.',
+            '**Couches** – conduites, hydrants, radar météo et les données de la station ; un réglage propre, indépendant de toute intervention.',
+            '**Checklist** – les checklists et guides d’appareils du corps à lire, avec leur propre recherche.',
+          ] },
+          { kind: 'list', only: 'keyboard', items: [
+            'Au clavier : tous les raccourcis de cette vue sous **Raccourcis clavier** › «Carte & objets».',
+          ] },
+          { kind: 'note', text: 'Quand une intervention est en cours, elle figure dans la barre en haut – en rouge, en orange pour un exercice – et un toucher l’ouvre. Une alarme est affichée, mais jamais ouverte d’elle-même.' },
+        ],
+      },
+      {
         id: 'navigation', title: 'Navigation et interface', icon: 'cursor',
         blocks: [
           { kind: 'lead', text: 'Trois zones fixes : la barre des espaces à gauche, la barre d’intervention en haut, la barre d’outils à droite.', only: 'wide' },
@@ -40,7 +72,6 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
           { kind: 'sub', text: 'Barre de gauche', only: 'wide' },
           { kind: 'list', items: [
             'Change d’espace de travail : **Carte** (Situation), les **Plans** (modules/bâtiments), **Checklist**, **ARI**.',
-            'En mode Situation, **Couches** et le sélecteur de **Carte** sont épinglés en bas – toujours visibles.',
             'Tirer le bord droit de la barre la déplie avec les libellés ou la replie.',
           ], only: 'wide' },
           { kind: 'sub', text: 'Barre d’intervention (haut)' },
@@ -60,33 +91,41 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
           ] },
           { kind: 'sub', text: 'Barre d’outils (droite)', only: 'wide' },
           { kind: 'list', items: [
-            'Les outils de dessin et de placement ; épinglée en bas, la navigation de carte (zoom, ajuster, coordonnées).',
+            'Les outils de dessin et de placement.',
+            'En dessous, dans le coin en bas à droite, la **barre d’affichage** – toujours visible, même quand les outils défilent : sur la carte **Couches** et **Vues** (la boussole), sur le plan **Ajuster** et la flèche du nord ; avec une souris aussi **−** et **+**.',
           ], only: 'wide' },
         ],
       },
       {
         id: 'tastatur', title: 'Raccourcis clavier', icon: 'type', only: 'keyboard',
         blocks: [
-          { kind: 'lead', text: 'Avec un clavier, tout est accessible sans souris. Les raccourcis restent sans effet pendant la saisie dans un champ de texte. Lorsqu’une zone de l’une des deux barres, ou «Journal» et «Entrée» en haut, possède une touche, celle-ci est inscrite dessus.' },
-          { kind: 'sub', text: 'Changer de zone' },
+          { kind: 'lead', text: 'Au clavier, tout est accessible sans souris. Les raccourcis ne font rien pendant la saisie dans un champ, ni derrière une fenêtre ouverte. Quand une case a une touche, sa lettre y est inscrite – dans les deux barres, dans la barre d’affichage en bas à droite et sur «Journal» et «Entrée» en haut.' },
+          { kind: 'sub', text: 'Changer d’espace' },
           { kind: 'list', items: [
-            'Les chiffres ouvrent le module de plan portant ce numéro – ceux qui existent dépendent des modules du corps : [[1]] module 1, [[2]] ou [[3]] le module « 2/3 », [[4]] module 4 …',
-            '[[K]] Carte · [[C]] Checklist · [[A]] Binômes (A comme Atemschutz) · [[P]] Présence · [[M]] Matériel · [[R]] Rapport – chaque touche est la première lettre du mot ALLEMAND, car c’est à elle que le raccourci est lié.',
-            '[[⌘]] [[[]] / [[⌘]] [[]]] parcourt toutes les zones une à une (y compris Environs et Bâtiment, qui n’ont pas de numéro).',
+            'Les chiffres ouvrent le module de plan portant ce numéro – lesquels existent dépend des modules de ce corps : [[1]] module 1, [[2]] ou [[3]] le module «2/3», [[4]] module 4 …',
+            '[[K]] Carte · [[C]] Checklist · [[A]] Binômes (A comme Atemschutz) · [[P]] Présence · [[M]] Matériel · [[R]] Rapport – chaque fois la première lettre du mot ALLEMAND, car c’est à lui que la touche est liée.',
+            '[[⌘]] [[[]] / [[⌘]] [[]]] parcourt tous les espaces un à un (y compris Environs et Bâtiment, qui n’ont pas de numéro).',
           ] },
-          { kind: 'sub', text: 'Outils (identiques en Situation et en Plan)' },
+          { kind: 'sub', text: 'Outils (identiques en Situation et Plan)' },
           { kind: 'list', items: [
-            '[[V]] Sélection · [[W]] Sélection multiple · [[S]] Symbole · [[L]] Ligne · [[F]] Surface · [[U]] Périmètre · [[N]] Note · [[T]] Binôme · [[D]] Mesurer (carte seulement).',
+            '[[V]] Sélection · [[W]] Sélection multiple · [[S]] Symbole · [[L]] Ligne · [[F]] Surface · [[U]] Périmètre · [[N]] Note · [[T]] Binôme · [[D]] Mesurer.',
           ] },
           { kind: 'sub', text: 'Édition' },
           { kind: 'list', items: [
-            '[[⌘]] [[Z]] Annuler · [[⌘]] [[⇧]] [[Z]] Rétablir · [[⌘]] [[D]] Dupliquer.',
-            '[[Esc]] ferme dans l’ordre : outil → panneau ouvert → sélection. [[⌫]] supprime la sélection.',
+            '[[⌘]] [[Z]] Annuler · [[⌘]] [[⇧]] [[Z]] Rétablir · [[⌘]] [[D]] Dupliquer · [[⌫]] supprime la sélection.',
+            '[[Esc]] revient d’un niveau par pression jusqu’à ce que la carte soit libre : un symbole en cours de pose → relevé de coordonnées → Couches / Vues → l’outil → le panneau de note → la sélection. Dans un champ, [[Esc]] ne fait que quitter le champ ; il ferme l’**Entrée** et garde son texte pour la prochaine fois.',
           ] },
           { kind: 'sub', text: 'Affichage et panneaux' },
           { kind: 'list', items: [
-            '[[+]] / [[−]] Zoom · [[0]] Ajuster · [[G]] Ma position · [[X]] Format des coordonnées. « Vers le nord » n’a pas de touche – c’est le rôle de la boussole, toujours visible et qui tourne avec la carte.',
+            '[[+]] / [[−]] Zoom · [[0]] Ajuster · [[G]] Ma position · [[X]] Format des coordonnées. «Vers le nord» n’a pas de touche – c’est le rôle de la boussole, toujours visible et qui tourne avec la carte.',
             '[[J]] Journal · [[E]] Entrée · [[B]] Couches · [[⌘]] [[,]] Réglages · [[?]] cette aide.',
+            'Sur le **tableau**, [[Pg↑]] / [[Pg↓]] feuillettent ses pages.',
+          ] },
+          { kind: 'sub', text: 'Carte & objets (sans intervention)' },
+          { kind: 'list', items: [
+            'Les mêmes touches là où la même chose existe : [[K]] Carte · [[C]] Checklist · les chiffres les modules de l’objet choisi · [[D]] Mesurer · [[B]] Couches · [[G]] Ma position · [[0]] Ajuster · [[+]] / [[−]] Zoom · [[⌘]] [[,]] Réglages · [[?]] cette aide.',
+            'En plus, ce qui n’existe qu’ici : [[P]] Poser un point (P comme Punkt) · [[U]] Matières dangereuses (U comme numéro UN) · [[/]] ou [[⌘]] [[K]] la recherche.',
+            '[[Esc]] revient pas à pas vers la carte : recherche → Vues → outil → plan ouvert → sélection.',
           ] },
         ],
       },
@@ -96,7 +135,7 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
           { kind: 'lead', text: 'La carte tactique par-dessus le fond de carte réel (zone d’intervention et environs).' },
           { kind: 'list', items: [
             '**Fond de carte** (en haut du panneau des couches) change le fond : Carto, OpenStreetMap ou satellite.',
-            '**Agrandir/Réduire**, **Ajuster** et **Relever les coordonnées** en bas de la barre de droite. Lors du relevé, toucher la carte pour fixer un point (LV95 + WGS84) ; la boussole se réoriente au nord.',
+            '**Vues** – la boussole en bas à droite – propose **Vers le nord**, **Ajuster**, **Ma position**, **Relever les coordonnées** et les vues enregistrées ; avec une souris, **−** et **+** se trouvent à côté. Lors du relevé, toucher la carte pour fixer un point (LV95 + WGS84).',
             '**Vent** affiché en continu (direction + température) pour que la direction de propagation soit immédiatement visible.',
             '**Véhicules** apparaissent en direct par GPS (nom + orientation), votre propre position sous forme de point bleu discret.',
             '**Info bâtiment** en bas à gauche indique les dangers du bâtiment sur le lieu d’intervention (⚠ gaz · PV) et ouvre sa fiche : dangers, **Mesures immédiates** et Remarques en haut, les données des registres en dessous. À la première ouverture de l’intervention sur cet appareil, la fiche s’ouvre d’elle-même pour être lue – la carte reste utilisable. ✕ la ferme ; ensuite, la puce la rouvre. Un autre lieu ou objet avec du contenu l’affiche une nouvelle fois.',

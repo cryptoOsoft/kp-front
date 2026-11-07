@@ -176,8 +176,9 @@ const mount = (over: Partial<KarteAppProps> = {}) => {
     badge: 0,
     render: (close: () => void) => <button type="button" onClick={() => { launcherRow(); close() }}>Manueller Einsatz</button>,
   }
-  render(<KarteApp einsaetze={einsaetze} onOpenVisits={onOpenVisits} running={[]} onOpenIncident={vi.fn()} {...over} />)
-  return { onOpenVisits, launcherRow }
+  const onSettings = vi.fn(), onHelp = vi.fn()
+  render(<KarteApp einsaetze={einsaetze} onOpenVisits={onOpenVisits} running={[]} onOpenIncident={vi.fn()} onSettings={onSettings} onHelp={onHelp} {...over} />)
+  return { onOpenVisits, launcherRow, onSettings, onHelp }
 }
 
 describe('KarteApp', () => {
@@ -784,24 +785,97 @@ describe('KarteApp', () => {
     expect(screen.getByRole('button', { name: 'Suchen' })).toBeTruthy()
   })
 
-  it('keeps the tablet navigation collapsible with saved toolbar labels enabled', async () => {
+  // «Beschriftung» reaches every bar here as in an Einsatz (owner, 07.11.2026) – and the left
+  // rail keeps its chevron with the words on (the regression of 20.10.2026 was losing it)
+  it('with saved toolbar labels: words on every bar, and the left rail still expands and collapses', async () => {
     const prefs = loadPrefs()
     savePrefs({ ...prefs, railLabels: 'short', railLabelsChosen: true })
     try {
       mount()
       const rail = screen.getByRole('navigation', { name: 'Karte & Objekte' })
-      expect(rail.classList.contains('labelled')).toBe(false)
-      expect(document.documentElement.style.getPropertyValue('--rail-w')).toBe('60px')
+      expect(rail.classList.contains('labelled')).toBe(true)
+      expect(document.querySelector('aside.tool-rail.labelled')).toBeTruthy()
+      expect(document.querySelector('.view-bar.labelled')).toBeTruthy()
+      expect(document.documentElement.style.getPropertyValue('--rail-w')).toBe('92px')
       fireEvent.click(within(rail).getByRole('button', { name: 'Ausklappen' }))
       expect(rail.classList.contains('expanded')).toBe(true)
       expect(document.documentElement.style.getPropertyValue('--rail-w')).toBe('216px')
       fireEvent.click(within(rail).getByRole('button', { name: 'Einklappen' }))
       expect(rail.classList.contains('expanded')).toBe(false)
-      expect(document.documentElement.style.getPropertyValue('--rail-w')).toBe('60px')
+      expect(document.documentElement.style.getPropertyValue('--rail-w')).toBe('92px')
       await act(async () => {})
     } finally {
       savePrefs(prefs)
     }
+  })
+
+  it('without them: glyphs only on every bar, the view bar too', async () => {
+    const prefs = loadPrefs()
+    savePrefs({ ...prefs, railLabels: 'off', railLabelsChosen: true })
+    try {
+      mount()
+      expect(document.querySelector('.labelled')).toBeNull()
+      expect(document.querySelector('.view-bar')).toBeTruthy()
+      await act(async () => {})
+    } finally {
+      savePrefs(prefs)
+    }
+  })
+
+  // the viewer's keyboard (lib/karte/hotkeys): the Einsatz's keys where they mean the same, and
+  // its own P · U · / for what the Einsatz has no surface for
+  describe('the keyboard', () => {
+    const key = (k: string, mod: KeyboardEventInit = {}) => act(() => { window.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true, ...mod })) })
+    const pressed = (name: string) => screen.getByRole('button', { name }).getAttribute('aria-pressed')
+
+    it('D arms Messen, Escape puts it away; P and U arm Punkt setzen and Gefahrgut', async () => {
+      mount()
+      await act(async () => {})
+      key('d')
+      expect(pressed(appConfig.copy.karte.tools.measure)).toBe('true')
+      key('Escape')
+      expect(pressed(appConfig.copy.karte.tools.measure)).toBe('false')
+      key('p')
+      expect(pressed(appConfig.copy.karte.tools.pin)).toBe('true')
+      key('u')
+      expect(pressed(appConfig.copy.karte.tools.erg)).toBe('true')
+    })
+
+    it('C opens the Checkliste and K goes back; / focuses the bar\'s search field', async () => {
+      mount()
+      await act(async () => {})
+      key('c')
+      expect(document.querySelector('[data-karte-library-surface]')).toBeTruthy()
+      key('k')
+      expect(document.querySelector('[data-karte-library-surface]')).toBeNull()
+      key('/')
+      expect(document.activeElement).toBe(screen.getByPlaceholderText('Adresse oder Objekt suchen …', PLAIN))
+    })
+
+    it('⌘, and ? hand over to App\'s Einstellungen and Hilfe – and nothing reaches the viewer while App holds the keys', async () => {
+      const { onSettings, onHelp } = mount()
+      await act(async () => {})
+      key(',', { metaKey: true })
+      key('?')
+      expect(onSettings).toHaveBeenCalledTimes(1)
+      expect(onHelp).toHaveBeenCalledTimes(1)
+      cleanup()
+      const off = mount({ keysOff: true })
+      await act(async () => {})
+      key('?')
+      key('d')
+      expect(off.onHelp).not.toHaveBeenCalled()
+      expect(pressed(appConfig.copy.karte.tools.measure)).toBe('false')
+    })
+
+    it('a key typed into the search is text, not a shortcut', async () => {
+      mount()
+      await act(async () => {})
+      const field = screen.getByPlaceholderText('Adresse oder Objekt suchen …', PLAIN)
+      field.focus()
+      key('d')
+      expect(pressed(appConfig.copy.karte.tools.measure)).toBe('false')
+    })
   })
 
   it('on a tablet: the rail always holds Karte and Checkliste, the plans hang under them; the bar searches the library', async () => {
@@ -880,7 +954,11 @@ describe('KarteApp', () => {
     expect(p.annos).toEqual([])
     expect(p.plans.map((d) => d.imageUrl)).toEqual(['/api/reference/plan%3Aschloss%3Amodul1?v=1'])
     // no door to anything stored under an Einsatz: none of these is handed in
-    for (const k of ['incidentId', 'onCalibrate', 'onObjectSwitch', 'onReorient', 'onPlanLiveMove', 'onLinkTrupp', 'onTeamTrupp', 'tafel', 'historyRef', 'keysRef']) expect(p[k]).toBeUndefined()
+    for (const k of ['incidentId', 'onCalibrate', 'onObjectSwitch', 'onReorient', 'onPlanLiveMove', 'onLinkTrupp', 'onTeamTrupp', 'tafel', 'historyRef']) expect(p[k]).toBeUndefined()
+    // the keyboard's handles are handed (0 Einpassen, + − zoom – useKarteKeys), and the viewer
+    // reaches only those two: a tool or a duplicate is never asked for (lib/karte/hotkeys has none)
+    expect(p.fitRef).toBeTruthy()
+    expect(p.keysRef).toBeTruthy()
     // …and what it must be handed writes nothing
     const keys = () => [Object.keys(localStorage).sort(), Object.keys(sessionStorage).sort()]
     const stored = keys()

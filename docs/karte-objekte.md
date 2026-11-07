@@ -192,7 +192,8 @@ tap does to the others) and the markup; each concern is a hook beside it — `us
 object colours, the aligned plan, Ebenen's rows), `useKarteOffline`, `useKarteOutlines`,
 `useKarteTools`, `useKarteSession` (the address, the kept view), `useKarteMenu`, `useKarteSearch`,
 `useKarteCamera` (framing, the way back, the compass), `useKartePlace` (register, addresses,
-visits, hydrants), `useKartePointer` (hover and hold), `useKarteOverlays`, `useKarteTags`. The pure
+visits, hydrants), `useKartePointer` (hover and hold), `useKarteOverlays`, `useKarteTags`,
+`useKarteKeys` (the keyboard, below). The pure
 rules are `lib/karte/*` — `selection` (what a point hits), `overlays` (what the map draws),
 `camera`, `places`, `labels` and the rest.
 
@@ -213,6 +214,19 @@ What it reuses, so nothing forks:
 
 The rules that are easy to break:
 
+- **The keyboard is the Einsatz's where the two have the same thing** (owner, 07.11.2026:
+  «the keyboard shortcuts … also in the peacetime mode»). `lib/karte/hotkeys · resolveKarteHotkey`
+  decodes on top of `lib/hotkeys · resolveHotkey`, so K Karte · C Checkliste · 1–9 the selected
+  object's module · D Messen · B Ebenen · G Mein Standort · 0 Einpassen · + − zoom (the map, or the
+  open plan through the reader's `fitRef` / `keysRef`) · ⌘ , Einstellungen · ? Hilfe mean the same
+  in both. Only what the Einsatz has no surface for is the viewer's own: **P** Punkt setzen, **U**
+  Gefahrgut (UN number), **/** and **⌘ K** the search; every other Einsatz key decodes to nothing
+  here and is never claimed. Escape peels one layer back towards the plain map: search → compass
+  menu → armed tool → open plan → selection. The letters stand on the tiles from the same tables
+  (`KARTE_TOOL_KEY` through ToolRail's `toolKey`, `SURFACE_KEY` on Karte · Checkliste,
+  `PANEL_KEY` on Ebenen). ⚠️ Nothing reaches the viewer while one of App's sheets is over it
+  (`keysOff`: Einstellungen, Hilfe, Rückmeldung, the demo welcome …), nor with its own menu or
+  «Auf diesem Gerät» open, nor from inside a dialog or a field.
 - **Own state, never an Einsatz's.** No workspace, no saved drawing, no plan binding, no journal
   row. Measurements, the Gefahrgut rings and a dropped pin are component state; only the Ebenen and
   the view (`KarteView`: frame, selected object, open plan or the Checkliste, in sessionStorage) are kept —
@@ -812,9 +826,12 @@ device Anleitungen to read in peace time — the Einsatz tab's word and glyph
   hairline as before. It is the Einsatz's NavRail in behaviour (owner, review round 5: «we can't
   expand the left toolbar so people might not know what it actually is»): the «Ausklappen» chevron
   on top and the grip widen it to 216px with the words beside the glyphs, open per mount like the
-  Einsatz's. It always keeps the chevron and grip, including when «Beschriftung» is enabled in
-  Einstellungen (restored 2026-10-20): the toolbar preference must not replace this collapsible
-  navigation with words under the glyphs. It publishes `--rail-w` through
+  Einsatz's. «Beschriftung» (Einstellungen) puts the word under each glyph, as on every other bar
+  of the viewer and the Einsatz (owner, 07.11.2026 – the view bar's words beside unlabelled
+  rails read as a fault) – and ⚠️ unlike the Einsatz's NavRail the chevron and grip STAY with the
+  words on (`.rail-keeps-exp`; losing them was the regression fixed on 20.10.2026), so `labels` is
+  not handed to `useRail`, which collapses a labelled rail. The right `ToolRail`, its view bar,
+  the plan reader's rail and the phone bar read the same preference. It publishes `--rail-w` through
   `lib/useRail`, which the object panel, the plan reader, the floor list and this surface sit beside. On the Checkliste the right `ToolRail` is gone (as on a plan) and the bar's
   field searches the library; the map's own search words are kept for the way back.
 - **Remembered** like the plan: `KarteView.surface = 'checkliste'` (`lib/karte/session`), back

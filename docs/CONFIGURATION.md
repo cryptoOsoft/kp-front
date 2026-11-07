@@ -86,8 +86,9 @@ unchanged):
 
 - **A setting lives in one of three places – pick by who owns it, not by what is easiest to
   reach.** (1) *Device preference* – theme (day/night/auto), symbol scale, rail words, shortcut
-  letters («Tastenkürzel anzeigen», `keyHints`, default ON – the letter on both rails and on
-  the top bar's Verlauf / Eintrag, `.rail-key`, shown only with hover + a fine pointer; letters from `lib/hotkeys`), offline
+  letters («Tastenkürzel anzeigen», `keyHints`, default ON – the letter on both rails, the view
+  bar and the top bar's Verlauf / Eintrag, `.rail-key`, shown only with hover + a fine pointer;
+  letters from `lib/hotkeys`, on «Karte & Objekte» from `lib/karte/hotkeys`), offline
   radius, screen wake: cookie via `src/lib/prefs.ts`, not synced, surfaced in the **Einstellungen
   sheet** (`src/components/panels/SettingsSheet.tsx`), which since 28.08. carries device prefs
   plus per-device utilities and **nothing else**. (2) *Station doctrine* – Funkkontakt-Intervall,
