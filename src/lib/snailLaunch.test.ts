@@ -161,6 +161,25 @@ describe('snail launch', () => {
     expect(beneath.animations.map(a => a.currentTime)).toEqual([300, 300, 300])
   })
 
+  it('lets no loader mounted before the cover\'s first frame fix the clock: the entrance still runs in full', async () => {
+    const { animation, finish } = boot()
+    animation.startTime = null // the cover has not rendered its first frame yet
+    const { waitForSnailArrival, continueSnailAnimation } = await import('./snailLaunch')
+    const beneath = reactSvg()
+    continueSnailAnimation(beneath.svg) // React mounts beneath the still-pending cover
+    expect(beneath.animations.map(a => a.currentTime)).toEqual([0, 0, 0])
+    await vi.advanceTimersByTimeAsync(80)
+    animation.startTime = performance.now() // …its first frame comes 80 ms later
+    let arrived = false
+    const waiting = waitForSnailArrival().then(() => { arrived = true })
+    await vi.advanceTimersByTimeAsync(600)
+    expect(arrived).toBe(false)
+    await vi.advanceTimersByTimeAsync(30)
+    finish()
+    await waiting
+    expect(arrived).toBe(true)
+  })
+
   describe('liftBootCover', () => {
     function app() {
       const root = document.createElement('div')

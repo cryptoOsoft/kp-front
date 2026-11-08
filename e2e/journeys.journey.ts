@@ -142,8 +142,8 @@ test('cold start: kiosk login → the Einsatz on the Karte', async ({ page, base
   const reqs = j.net.since(from)
   recordNetwork(j.r, '', reqs)
   // opening an Einsatz should not have to write it: every save here is one per device per open
-  // (the building outlines are a read that happens to be a POST)
-  j.r.set('writes', reqs.filter((x) => x.kind === 'api' && x.method !== 'GET' && !/^\/api\/(auth|overpass)\//.test(x.path)).length, 'count')
+  // (the building outlines are a read that happens to be a POST; /api/diag is the launch timing line)
+  j.r.set('writes', reqs.filter((x) => x.kind === 'api' && x.method !== 'GET' && !/^\/api\/(auth|overpass|diag)\//.test(x.path)).length, 'count')
   const held = await retained(j.cdp)
   j.r.set('heap_mb', held.heapMb, 'mb')
   j.r.set('dom_nodes', held.nodes, 'count')

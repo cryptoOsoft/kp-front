@@ -63,8 +63,11 @@ function elapsed(svg: Element, settle = true) {
     if (typeof clock?.startTime === 'number') start = clock.startTime
     else start = performance.now() - (typeof clock?.currentTime === 'number' ? clock.currentTime : 0)
     start -= offset
-    // A pending animation gets its start time with a coming frame: settle only when asked.
-    if (settle || typeof clock?.startTime === 'number') startedAt = start
+    // A pending animation gets its start time with a coming frame: settle only when asked – and
+    // never on behalf of ANOTHER loader. React mounts beneath the cover, possibly before the
+    // cover's first frame; settling then fixed the zero at React's mount, ahead of the cover's
+    // real start, and the cover lifted ~60 ms short of its entrance (WebKit CI 08.11.2026).
+    if ((settle && source === svg) || typeof clock?.startTime === 'number') startedAt = start
   }
   return Math.max(0, performance.now() - start)
 }
