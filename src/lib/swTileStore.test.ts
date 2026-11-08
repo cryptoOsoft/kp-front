@@ -146,6 +146,18 @@ describe('sw-tile-store', () => {
     expect(await w.get(MAP(1))).toBe('net-1')
   })
 
+  it('a legacy copy past its age, or of unknown age, is fetched again online and answers offline', async () => {
+    const old = new Date(Date.now() - 31 * 24 * 3600 * 1000).toUTCString()
+    for (const legacyDate of [old, '']) {
+      await clearTiles()
+      const w = worker({ legacy: { 'map-tiles': [MAP(1)] }, legacyDate })
+      expect(await w.get(MAP(1))).toBe('net-1')
+      const offline = worker({ legacy: { 'map-tiles': [MAP(2)] }, legacyDate })
+      offline.goOffline()
+      expect(await offline.get(MAP(2))).toBe(`old ${MAP(2)}`)
+    }
+  })
+
   it('a plan read before a denial is not stored after it', async () => {
     let release!: () => void
     const w = worker()

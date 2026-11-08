@@ -102,13 +102,17 @@ async function kpTrimTiles(kind) {
   })
 }
 
+/** When a legacy cache's copy was stored: its `Date`, or 0 – of unknown age, so it counts as old
+ *  (fetched again online, still answering offline) rather than fresh. */
+const kpKeptAt = (response) => Date.parse(response.headers.get('date') ?? '') || 0
+
 /** The record of a 200 response, or null: opaque responses cannot be read into a Blob and stay
- *  network-only. A copy `kept` in a legacy cache keeps its age – its `Date` – so the move does
- *  not make an old tile fresh again. */
+ *  network-only. A copy `kept` in a legacy cache keeps its age, so the move does not make an old
+ *  tile fresh again. */
 async function kpTileRecord(url, response, kept = false) {
   if (!response || response.status !== 200 || response.type === 'opaque') return null
   const body = await response.blob()
-  const at = (kept && Date.parse(response.headers.get('date') ?? '')) || Date.now()
+  const at = kept ? kpKeptAt(response) : Date.now()
   return { url, at, type: response.headers.get('content-type') ?? body.type, body }
 }
 
@@ -155,7 +159,7 @@ async function kpReadTile(event, url, kind, epoch) {
   if (!legacy) return null
   // moved on read, so the page's probes (lib/tileStore) see it before the migration gets there
   event.waitUntil(kpWriteTile(url, kind, legacy.clone(), epoch, true).catch(() => {}))
-  return { response: legacy, expired: false }
+  return { response: legacy, expired: Date.now() - kpKeptAt(legacy) > KP_TILE_KINDS[kind].maxAge }
 }
 
 async function kpFetchTile(event, kind, epoch) {
