@@ -3,7 +3,8 @@
     "title": "KP Front – Digital incident command for fire brigades",
     "description": "KP Front is the digital command post at the scene: map, plans, teams, log and report – offline-capable and open source.",
     "ogTitle": "KP Front – Digital incident command for fire brigades",
-    "ogDescription": "The digital command post at the scene: map, plans, teams, log and report – offline-capable and open source."
+    "ogDescription": "The digital command post at the scene: map, plans, teams, log and report – offline-capable and open source.",
+    "imageAlt": "KP Front with a digital situation map and tactical symbols for incident command."
   },
   "schema": {
     "description": "Digital incident command and situation map for fire brigades – with swisstopo maps, tactical symbols to FKS conventions, SCBA monitoring and a running incident log.",
@@ -11,6 +12,7 @@
       "Situation map on swisstopo maps with tactical symbols to FKS conventions",
       "SCBA monitoring with pressure, turnaround time, contact clock and alarms",
       "Building and object plans as a whiteboard for drawing and measuring",
+      "Water relay: pressure along the hose line with automatic pump placement",
       "Incident log that is only added to and never rewritten",
       "Shift planning for long incidents, with a coverage view",
       "Incident report as a PDF, pre-filled from the incident data",
@@ -236,6 +238,7 @@
           "Sectors, cordons, areas and freehand drawing",
           "Hose lines with FKS annotations, each assigned to a team",
           "Measuring distance and area, to scale on the plan as well",
+          "<strong>Water relay</strong>: pressure along a hose line from the height profile, hose diameter and flow – the calculation places the pumps itself, and can put them straight on the map",
           "Layers: hydrants, utility cadastre, cantonal map services",
           "<strong>Hazardous materials reference</strong>: UN numbers, substance information and guidance on isolation and protective distances, available directly during the incident",
           "Weather and wind information to support the situation assessment, plus the MeteoSwiss precipitation radar as a layer",
@@ -364,7 +367,7 @@
       },
       {
         "q": "How do we start?",
-        "a": "With the <a href=\"https://demo.kp-front.ch\" target=\"_blank\" rel=\"noopener\">demo</a>,\n          no sign-up – Musterdorf is already on fire, and all visitors share the same incident\n          (it restarts at midnight and at noon). Then try it at an exercise. If it fits, the\n          <a href=\"https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md\" target=\"_blank\" rel=\"noopener\">setup guide</a> leads to your own installation."
+        "a": "With the <a href=\"https://demo.kp-front.ch\" target=\"_blank\" rel=\"noopener\">demo</a>,\n          no sign-up – Musterdorf is already on fire, and all visitors share the same incident\n          (it resets every day at 00:00 in the Europe/Zurich time zone). Then try it at an exercise. If it fits, the\n          <a href=\"https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md\" target=\"_blank\" rel=\"noopener\">setup guide</a> leads to your own installation."
       }
     ]
   },

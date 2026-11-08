@@ -176,6 +176,7 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
             '**Perimetro di sicurezza** – trascina dal centro al bordo per impostare il raggio in metri (riempimento regolabile).',
             '**Nota** – testo libero direttamente sulla carta.',
             '**Misura** – distanza (distanza + profilo altimetrico) o superficie (area + perimetro). Trascina i punti per spostarli, tocca la linea per inserire punti intermedi, clic destro per rimuovere un punto.',
+            '**Trasporto d’acqua** – sotto il profilo altimetrico di una distanza o in una condotta: scegliere Ø della manichetta, portata, fonte (idrante, stagno, pompa) e pressione d’entrata; il grafico mostra la pressione lungo la condotta, **Tutte le pompe automatiche** posiziona le pompe. **Mettere sulla carta come condotta** conserva il calcolo, **Pompe sulla mappa** le disegna come simboli.',
           ] },
           { kind: 'sub', text: 'Preimpostazioni dei simboli' },
           { kind: 'lead', text: 'Ogni simbolo porta solo i comandi sensati: **Rotazione** per i segni orientati (frecce, scale, pareti), **Quantità** dove più elementi contano, **Piano** o un **intervallo di piani** (es. scala/ascensore), **Propagazione** per le situazioni di danno – più i campi di immissione adatti (es. nome, sostanza, stato).' },

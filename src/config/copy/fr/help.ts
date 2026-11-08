@@ -176,6 +176,7 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
             '**Périmètre de sécurité** – glisser du centre vers le bord fixe le rayon en mètres (remplissage réglable).',
             '**Note** – texte libre directement sur la carte.',
             '**Mesurer** – distance (longueur + profil altimétrique) ou surface (aire + périmètre). Tirer les points pour déplacer, toucher la ligne pour insérer des points intermédiaires, clic droit pour supprimer un point.',
+            '**Transport d’eau** – sous le profil altimétrique d’une distance ou dans une conduite : choisir le Ø du tuyau, le débit, la source (hydrante, étang, pompe) et la pression d’entrée ; le graphique montre la pression le long de la conduite, **Toutes les pompes automatiques** place les pompes. **Mettre sur la carte comme conduite** garde le calcul, **Pompes sur la carte** les dessine comme symboles.',
           ] },
           { kind: 'sub', text: 'Préréglages des symboles' },
           { kind: 'lead', text: 'Chaque symbole n’apporte que les réglages utiles : **Rotation** pour les symboles orientés (flèches, échelles, parois), **Nombre** quand plusieurs comptent, **Étage** ou une **plage d’étages** (p. ex. escalier/ascenseur), **Propagation** pour les sinistres – plus les champs de saisie adaptés (p. ex. nom, substance, statut).' },

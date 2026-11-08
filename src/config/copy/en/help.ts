@@ -178,6 +178,7 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
             '**Cordon** – drag from the centre to the edge to set the radius in metres (fill adjustable).',
             '**Note** – free text directly on the map.',
             '**Measure** – distance (length + elevation profile) or area (area + perimeter). Drag points to move, tap the line to insert intermediate points, right-click to remove a point.',
+            '**Water relay** – below a distance’s elevation profile or in a hose line: choose hose Ø, flow, source (hydrant, pond, pump) and inlet pressure; the chart shows the pressure along the line, **All pumps automatic** places the pumps. **Put on the map as a line** keeps the calculation, **Pumps on map** draws them as symbols.',
           ] },
           { kind: 'sub', text: 'Symbol presets' },
           { kind: 'lead', text: 'Each symbol brings only the controls that make sense: **Rotation** for directional symbols (arrows, ladders, walls), **Count** where several matter, **Storey** or a **storey range** (e.g. stairs/lift), **Spread** for damage situations – plus matching input fields (e.g. name, substance, status).' },
