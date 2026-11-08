@@ -324,7 +324,8 @@ export async function openPlanTilesProbe(): Promise<((p: Pick<StationPlan, 'id' 
     if (!source) return null
     try {
       const url = tileManifestUrl(source)
-      const body = await readTile(url) ?? await (await caches.match(url, { cacheName: LEGACY_TILE_CACHES.manifest }).catch(() => undefined))?.blob()
+      // the legacy copy FIRST, as in storedTiles: a manifest moved in between is then in the store
+      const body = await (await caches.match(url, { cacheName: LEGACY_TILE_CACHES.manifest }).catch(() => undefined))?.blob() ?? await readTile(url)
       if (!body) return null
       const m = JSON.parse(await body.text()) as TileManifest
       if (!m.pages?.length || !(m.tileSize > 0)) return null
