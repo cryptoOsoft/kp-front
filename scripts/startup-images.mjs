@@ -7,21 +7,16 @@
 //
 // The gradient is READ from index.html's inline boot CSS (`--app-bg`, day and night), so the
 // image cannot drift from the splash it hands over to. Plain Node (zlib PNG), no image library.
-// iOS matches an image only on the exact device size, hence one per screen and orientation.
+// iOS matches an image only on the exact device size, hence one per screen.
 import { constants, deflateSync } from 'node:zlib'
 
-/** CSS px (portrait) and pixel ratio of the screens we ship an image for. Phones portrait only;
- *  iPads (the KP tablets) both orientations. */
-export const SCREENS = {
-  phone: [
-    [375, 667, 2], [414, 736, 3], [375, 812, 3], [414, 896, 2], [414, 896, 3], [390, 844, 3],
-    [428, 926, 3], [393, 852, 3], [430, 932, 3], [402, 874, 3], [440, 956, 3], [420, 912, 3],
-  ],
-  tablet: [
-    [768, 1024, 2], [810, 1080, 2], [834, 1112, 2], [820, 1180, 2], [834, 1194, 2], [834, 1210, 2],
-    [744, 1133, 2], [1024, 1366, 2], [1032, 1376, 2],
-  ],
-}
+/** CSS px (portrait) and pixel ratio of the iPhone screens we ship an image for, portrait only.
+ *  No iPads yet (owner pick 08.11.2026): each image is a `<link>` in <head>, and the 36 an iPad
+ *  set needs (9 screens × 2 orientations × 2 schemes) broke the cold-start DOM-node gate. */
+export const SCREENS = [
+  [375, 667, 2], [414, 736, 3], [375, 812, 3], [414, 896, 2], [414, 896, 3], [390, 844, 3],
+  [428, 926, 3], [393, 852, 3], [430, 932, 3], [402, 874, 3], [440, 956, 3], [420, 912, 3],
+]
 
 /** `{ day, night }` colour stops of index.html's `--app-bg: radial-gradient(120% 90% at 50% -10%, …)`. */
 export function splashGradients(html) {
@@ -109,13 +104,9 @@ export function gradientPngs(w, h, schemes) {
 
 /** Every screen to emit images for: pixel size, and per scheme its file and `<link media>`. */
 export function startupImages() {
-  const out = []
-  const add = ([w, h, dpr], orientation) => {
-    const [pw, ph] = orientation === 'portrait' ? [w * dpr, h * dpr] : [h * dpr, w * dpr]
-    const media = (scheme) => `(device-width: ${w}px) and (device-height: ${h}px) and (-webkit-device-pixel-ratio: ${dpr}) and (orientation: ${orientation}) and (prefers-color-scheme: ${scheme === 'night' ? 'dark' : 'light'})`
-    out.push({ w: pw, h: ph, files: Object.fromEntries(['day', 'night'].map((s) => [s, { file: `startup/${pw}x${ph}-${s}.png`, media: media(s) }])) })
-  }
-  for (const s of SCREENS.phone) add(s, 'portrait')
-  for (const s of SCREENS.tablet) { add(s, 'portrait'); add(s, 'landscape') }
-  return out
+  return SCREENS.map(([w, h, dpr]) => {
+    const media = (scheme) => `(device-width: ${w}px) and (device-height: ${h}px) and (-webkit-device-pixel-ratio: ${dpr}) and (orientation: portrait) and (prefers-color-scheme: ${scheme === 'night' ? 'dark' : 'light'})`
+    const files = Object.fromEntries(['day', 'night'].map((s) => [s, { file: `startup/${w * dpr}x${h * dpr}-${s}.png`, media: media(s) }]))
+    return { w: w * dpr, h: h * dpr, files }
+  })
 }

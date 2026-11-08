@@ -107,11 +107,13 @@ function iosStartupImages(): Plugin {
   return {
     name: 'kp-ios-startup-images',
     apply: 'build',
+    // one run of tags without whitespace between them: Vite's tag injection puts a text node
+    // before each, and the cold-start journey's DOM-node gate counts those too
     transformIndexHtml(html, context) {
       if (context.filename !== resolve('index.html')) return html
-      return screens.flatMap(({ files }) => Object.values(files)).map(({ file, media }) => (
-        { tag: 'link', attrs: { rel: 'apple-touch-startup-image', media, href: `/${file}` }, injectTo: 'head' as const }
-      ))
+      const links = screens.flatMap(({ files }) => Object.values(files))
+        .map(({ file, media }) => `<link rel="apple-touch-startup-image" media="${media}" href="/${file}">`).join('')
+      return html.replace('</head>', `${links}</head>`)
     },
     generateBundle() {
       const gradients = splashGradients(readFileSync(resolve('index.html'), 'utf-8'))
