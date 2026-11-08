@@ -1,3 +1,5 @@
+// FIRST import: its evaluation is the «bundle starts» moment of the launch's timing line
+import { markBoot, reportBoot } from './lib/bootTiming'
 import { StrictMode, Suspense, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
 import { initServiceWorker } from './lib/swUpdate'
@@ -25,6 +27,8 @@ import { ensureUnHazard } from './lib/unHazard'
 import { whenIdle } from './lib/idle'
 import { purgeStaleTiles } from './lib/tilePurge'
 import { waitForSnailArrival } from './lib/snailLaunch'
+import { apiBeacon } from './lib/api'
+import { GIT_SHA } from './lib/buildInfo'
 
 // zoom applies only to the map/plan, not the UI chrome (app feel, not a web page)
 lockChromeZoom()
@@ -136,6 +140,7 @@ void (async () => {
     // wait, the outer bound is only there for a cache read that never answers (see above).
     const cfg = await withBudget(bootDeploymentConfig(BOOT_BUDGET_MS, applyDeploymentBranding), BOOT_BUDGET_MS + 1_000, {})
     applyDeploymentBranding(cfg)
+    markBoot('cfg')
     // station plan calibration (public, offline-cached) — so plans measure out of the box (#3)
     void loadStationPlanScales()
     // …and re-read it whenever this device comes back to the foreground. The document holds
@@ -180,9 +185,14 @@ void (async () => {
   // /terminal is the enrolled Stations-Terminal — a standing link session without a token in
   // the address (its credential is a device cookie), routed through the same link chunk.
   const isLink = window.location.pathname.startsWith('/l/') || window.location.pathname === '/terminal'
+  // The launch's timing line (lib/bootTiming) – the field app only: a link page's session may not
+  // post outside its allow-list, and the poster and /admin are not what anyone launches at 3am.
+  if (fieldRoute && !isLink) reportBoot((body) => apiBeacon('/api/diag/boot', body), GIT_SHA)
+  markBoot('boot')
   // Finish the static cover's 630 ms arrival before replacing it, even on a warm launch.
   // React Splash continues the same clock; a long boot has already finished this entrance.
   await waitForSnailArrival()
+  markBoot('root')
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       {/* Root boundary: login, landing list, overlays, and the admin app used to sit

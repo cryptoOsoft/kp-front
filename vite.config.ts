@@ -16,6 +16,7 @@ import { defineConfig, loadEnv, type Plugin, type Rollup } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA, type VitePWAOptions } from 'vite-plugin-pwa'
 import { resolveCustomMedia } from './src/lib/breakpoints.ts'
+import { gradientPngs, splashGradients, startupImages } from './scripts/startup-images.mjs'
 
 type RuntimeCache = NonNullable<NonNullable<VitePWAOptions['workbox']>['runtimeCaching']>[number]
 type RuntimePlugin = NonNullable<NonNullable<RuntimeCache['options']>['plugins']>[number]
@@ -69,6 +70,32 @@ function inlineSnailLoader(): Plugin {
       if (!html.includes(marker)) throw new Error('Boot splash is missing the snail loader marker')
       const artwork = readFileSync(new URL('./public/firefighter-snail-loader.svg', import.meta.url), 'utf-8')
       return html.replace(marker, `<div class="snail-loader" aria-hidden="true">${artwork}</div>`)
+    },
+  }
+}
+
+// iOS launch images: the splash background instead of black while iOS starts the installed app
+// (scripts/startup-images.mjs has the why). Build only, emitted as plain files outside the
+// precache (no png in globPatterns) – iOS fetches the one matching its screen itself.
+function iosStartupImages(): Plugin {
+  const screens = startupImages()
+  return {
+    name: 'kp-ios-startup-images',
+    apply: 'build',
+    // one run of tags without whitespace between them: Vite's tag injection puts a text node
+    // before each, and the cold-start journey's DOM-node gate counts those too
+    transformIndexHtml(html, context) {
+      if (context.filename !== resolve('index.html')) return html
+      const links = screens.flatMap(({ files }) => Object.values(files))
+        .map(({ file, media }) => `<link rel="apple-touch-startup-image" media="${media}" href="/${file}">`).join('')
+      return html.replace('</head>', `${links}</head>`)
+    },
+    generateBundle() {
+      const gradients = splashGradients(readFileSync(resolve('index.html'), 'utf-8'))
+      for (const { w, h, files } of screens) {
+        const pngs = gradientPngs(w, h, gradients)
+        for (const [scheme, { file }] of Object.entries(files)) this.emitFile({ type: 'asset', fileName: file, source: pngs[scheme] })
+      }
     },
   }
 }
@@ -245,6 +272,7 @@ export default defineConfig(({ mode }) => {
     css: { postcss: { plugins: [customMedia()] } },
     plugins: [
       inlineSnailLoader(),
+      iosStartupImages(),
       buildStampMeta(),
       customMediaResolved(),
       react(),

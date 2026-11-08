@@ -13,6 +13,10 @@ operator what happened.
   and the upstream queue is capped per hour, on top of the client's own budget. Reachable
   from every kind of Einsatz-Link session too (auth/incident_link, 24.09.2026): the 403 a
   link page got here on 23.09. is why that phone's crash never reached the log.
+* ``POST /boot`` — one line per app launch with the phone's own boot timings (lib/bootTiming),
+  added 08.11.2026 for the «black screen for 5 s on the iPhone» launch: only the device can say
+  where its launch goes. Same contract as the sink: unauthenticated (the login screen is a
+  launch too), throttled per source, bounded fields, log only — nothing is stored or forwarded.
 * ``GET /export`` — the bundle an operator downloads and attaches to a mail or a GitHub
   issue. Any logged-in user, no consent involved: it hands them their own instance's
   sanitised error traces so a Rückmeldung can say more than "es ist abgestürzt". Nothing is
@@ -113,6 +117,42 @@ class ClientError(BaseModel):
     repeat: int | None = Field(default=None, ge=1, le=10_000_000)
     since: str | None = Field(default=None, max_length=40)
     last: str | None = Field(default=None, max_length=40)
+
+
+class BootTiming(BaseModel):
+    """One launch: milliseconds since navigation start per boot milestone (lib/bootTiming)."""
+
+    marks: dict[str, int] = Field(default_factory=dict, max_length=24)
+    # PerformanceNavigationTiming.type: navigate | reload | back_forward | prerender
+    nav: str = Field(default="?", max_length=16)
+    build: str | None = Field(default=None, max_length=120)
+    standalone: bool = False
+
+
+boot_limiter = CaptureLimiter(lambda: (float(CLIENT_ERROR_BURST), CLIENT_ERROR_PER_MINUTE / 60.0))
+logger_boot = logging.getLogger("kpfront.boot")
+
+
+@router.post("/boot", status_code=204)
+async def report_boot(payload: BootTiming, request: Request) -> None:
+    """Log one launch's timings at INFO as ``boot-timing build=… nav=… app=1 ws=… fcp=… ua=…``."""
+    wait = boot_limiter.check(client_ip(request))
+    if wait:
+        raise HTTPException(status_code=429, detail="Zu viele Startberichte", headers={"Retry-After": str(wait)})
+    # names are the client's, so they go through the same flattening as every other field
+    marks = " ".join(f"{_one_line(name, 16)}={max(-1, min(ms, 600_000))}" for name, ms in payload.marks.items())
+    try:  # noqa: SIM105 — same as the sink: a diagnostics route must never raise
+        logger_boot.info(
+            "boot-timing build=%s srv=%s nav=%s app=%d %s ua=%s",
+            _one_line(payload.build, 120) or "?",
+            settings.version,
+            _one_line(payload.nav, 16),
+            payload.standalone,
+            marks,
+            _one_line(request.headers.get("user-agent", "?"), 300),
+        )
+    except Exception:  # noqa: BLE001, S110
+        pass
 
 
 async def _queued_last_hour(db: AsyncSession) -> int:

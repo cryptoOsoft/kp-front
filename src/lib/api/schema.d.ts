@@ -3690,6 +3690,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/diag/boot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Report Boot
+         * @description Log one launch's timings at INFO as ``boot-timing build=… nav=… app=1 ws=… fcp=… ua=…``.
+         */
+        post: operations["report_boot_api_diag_boot_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/diag/client-error": {
         parameters: {
             query?: never;
@@ -4707,6 +4727,28 @@ export interface components {
         Body_zeitplan_print_api_incidents__incident_id__zeitplan_print_post: {
             /** Payload */
             payload: string;
+        };
+        /**
+         * BootTiming
+         * @description One launch: milliseconds since navigation start per boot milestone (lib/bootTiming).
+         */
+        BootTiming: {
+            /** Marks */
+            marks?: {
+                [key: string]: number;
+            };
+            /**
+             * Nav
+             * @default ?
+             */
+            nav?: string;
+            /** Build */
+            build?: string | null;
+            /**
+             * Standalone
+             * @default false
+             */
+            standalone?: boolean;
         };
         /**
          * BuildingFloorFlatsOut
@@ -14610,6 +14652,37 @@ export interface operations {
                         [key: string]: unknown;
                     };
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    report_boot_api_diag_boot_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BootTiming"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

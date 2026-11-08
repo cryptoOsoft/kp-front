@@ -12519,6 +12519,41 @@
         }
       }
     },
+    "/api/diag/boot": {
+      "post": {
+        "tags": [
+          "diag"
+        ],
+        "summary": "Report Boot",
+        "description": "Log one launch's timings at INFO as ``boot-timing build=… nav=… app=1 ws=… fcp=… ua=…``.",
+        "operationId": "report_boot_api_diag_boot_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BootTiming"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/diag/client-error": {
       "post": {
         "tags": [
@@ -16151,6 +16186,44 @@
           "payload"
         ],
         "title": "Body_zeitplan_print_api_incidents__incident_id__zeitplan_print_post"
+      },
+      "BootTiming": {
+        "properties": {
+          "marks": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "maxProperties": 24,
+            "title": "Marks"
+          },
+          "nav": {
+            "type": "string",
+            "maxLength": 16,
+            "title": "Nav",
+            "default": "?"
+          },
+          "build": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Build"
+          },
+          "standalone": {
+            "type": "boolean",
+            "title": "Standalone",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "BootTiming",
+        "description": "One launch: milliseconds since navigation start per boot milestone (lib/bootTiming)."
       },
       "BuildingFloorFlatsOut": {
         "properties": {
