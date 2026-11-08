@@ -3,8 +3,11 @@
 /* never the one that gives way: a hazard is glyph + WORD, so on a phone's one-line plan row the
    Objekt chip beside it truncates its name instead (09-whiteboard · .wb-botleft) */
 .anchor { position: relative; display: inline-flex; flex: none; max-width: 100%; }
-/* a hazard: the warn glyph in amber AND the words — the tone is never the only carrier */
+/* a hazard: the 16px warn glyph AND the words after the dot in --amber-strong, the words at 800 –
+   the tone is never the only carrier, and the plate and its edge stay the family's neutral glass
+   (no fill: a known hazard is a fact, not an alarm). */
 .hazard svg:first-child { color: var(--amber-strong); }
+.words { color: var(--amber-strong); font-weight: var(--fw-heavy); }
 .measures { display: inline-flex; align-items: center; gap: var(--sp-1); padding-left: var(--sp-2);
   border-left: 1px solid var(--glass-line); color: var(--ink-dim); }
 .measures svg { width: 14px; height: 14px; }
@@ -18,7 +21,9 @@
      why it's transparent» – the plan's lines read through the card). --float-bg is 90 % by day and
      only reads as solid where the backdrop blur runs; on the iPad over a plan it did not, and a
      card of text over a drawn sheet cannot be 10 % plan. Same tint, nothing behind it. */
-  background: linear-gradient(var(--float-bg), var(--float-bg)), var(--surface); box-shadow: var(--float-edge); }
+  background: linear-gradient(var(--float-bg), var(--float-bg)), var(--surface);
+  /* the sheets' outline, --e4 – no inset --glass-line ring (r35, 06.11.2026: the sheets draw none) */
+  box-shadow: var(--e4); }
 @media (--phone) {
   /* the bars' width, in THE message lane (15-mobile · --msg-lane-bottom): one gap above the
      highest thing in the stack – the floating row at rest, the armed tool's pill while a tool is

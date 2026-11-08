@@ -64,7 +64,7 @@ export const helpCopy = {
           ] },
           { kind: 'sub', text: 'Linke Leiste', only: 'wide' },
           { kind: 'list', items: [
-            'Mit Tastatur und Maus steht an den Feldern der linken und der rechten Leiste, die ein Tastaturkürzel haben, der Buchstabe dazu (abschaltbar in den **Einstellungen**: «Tastenkürzel anzeigen»). Alle Kürzel stehen unter **Tastaturkürzel**.',
+            'Mit Tastatur und Maus steht an den Feldern der linken und der rechten Leiste, die ein Tastaturkürzel haben, der Buchstabe dazu – ebenso an «Verlauf» und «Eintrag» oben (abschaltbar in den **Einstellungen**: «Tastenkürzel anzeigen»). Alle Kürzel stehen unter **Tastaturkürzel**.',
             'Im Kartenbereich sind **Ebenen** und der **Karten**-Umschalter unten angeheftet – immer sichtbar.',
             'Am rechten Rand der Leiste ziehen klappt sie mit Beschriftungen auf bzw. wieder zu.',
           ], only: 'wide' },
@@ -92,7 +92,7 @@ export const helpCopy = {
       {
         id: 'tastatur', title: 'Tastaturkürzel', icon: 'type', only: 'keyboard',
         blocks: [
-          { kind: 'lead', text: 'Wer mit Tastatur arbeitet, erreicht alles ohne Maus. Kürzel wirken nicht, während in einem Textfeld getippt wird. Wo ein Feld in der linken Leiste eine Taste hat, steht sie darauf.' },
+          { kind: 'lead', text: 'Wer mit Tastatur arbeitet, erreicht alles ohne Maus. Kürzel wirken nicht, während in einem Textfeld getippt wird. Hat ein Feld in einer der beiden Leisten eine Taste, steht sie darauf – ebenso an «Verlauf» und «Eintrag» oben.' },
           { kind: 'sub', text: 'Bereiche wechseln' },
           { kind: 'list', items: [
             'Zahlen öffnen das Plan-Modul mit dieser Nummer – welche es gibt, richtet sich nach den Modulen dieser Wehr: [[1]] Modul 1, [[2]] oder [[3]] das Modul «2/3», [[4]] Modul 4 …',
@@ -285,7 +285,7 @@ export const helpCopy = {
         ],
       },
       {
-        id: 'verlauf', title: 'Verlauf & Eintrag', icon: 'history',
+        id: 'verlauf', title: 'Verlauf & Eintrag', icon: 'verlauf',
         blocks: [
           { kind: 'lead', text: 'Ein gemeinsames, fortlaufendes Protokoll über Karte und Plan – der Verlauf des Einsatzes.' },
           { kind: 'list', items: [
@@ -296,7 +296,7 @@ export const helpCopy = {
             'Wesentliche Aktionen (Symbol gesetzt, Zeichnung erstellt/entfernt …) landen automatisch im Verlauf.',
             '**Rückgängig/Wiederherstellen** gilt für Karte, Plan – und für die **Anwesenheit**: dort nimmt es den letzten Tipp zurück (am Telefon stehen die beiden Pfeile in der Kopfzeile der Anwesenheit).',
             'Ein Verlaufseintrag mit Ort springt beim Antippen zurück auf die Stelle in Karte oder Plan; Fotos und Sprachnotizen lassen sich direkt im Verlauf öffnen/abspielen.',
-            'Ein **Vertipper** lässt sich korrigieren: der **Stift** in der Zeile steht auf allem, was jemand selber getippt hat – nicht auf dem, was die App über eine Aktion geschrieben hat («Trupp 2 eingerückt»). Die Zeile trägt danach **korrigiert HH:MM**; der ursprüngliche Wortlaut bleibt im Protokoll und in der Prüfkette.',
+            'Ein **Vertipper** lässt sich korrigieren: der **Stift** in der Zeile steht auf allem, was jemand selber getippt hat – nicht auf dem, was die App über eine Aktion geschrieben hat («Trupp 2 eingerückt»). Die Zeile trägt danach **Korrigiert HH:MM**; der ursprüngliche Wortlaut bleibt im Protokoll und in der Prüfkette.',
             '**Wiedergabe starten** spielt Karte und Plan zu einem früheren Zeitpunkt ab (Zeitschieber; Bearbeiten ist dabei gesperrt).',
           ] },
           { kind: 'sub', text: 'Pendenzen' },

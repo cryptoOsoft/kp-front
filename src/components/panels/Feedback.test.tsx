@@ -142,7 +142,7 @@ describe('FeedbackSheet', () => {
   it('starts the cooldown when closed without reporting', () => {
     const onClose = vi.fn()
     render(<FeedbackSheet trouble={trouble} onClose={onClose} />)
-    fireEvent.click(screen.getByText(cp.close))
+    fireEvent.click(screen.getByText(cp.cancel))
     expect(onClose).toHaveBeenCalled()
     expect(readTrouble().askedAt).toBeTypeOf('number')
   })
@@ -236,7 +236,7 @@ describe('FeedbackSheet — the draft', () => {
   it('keeps what was typed when the sheet is closed without reporting', () => {
     render(<FeedbackSheet trouble={trouble} onClose={() => {}} />)
     fireEvent.change(document.querySelector('.fb-input')!, { target: { value: 'halber Satz' } })
-    fireEvent.click(screen.getByText(cp.close))
+    fireEvent.click(screen.getByText(cp.cancel))
     expect(readDraft()).toBe('halber Satz')
   })
 

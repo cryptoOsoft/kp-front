@@ -1,0 +1,59 @@
+{
+  "id": "musterdorf-problemerfassung",
+  "kind": "action",
+  "problems": true,
+  "title": "Problemerfassung",
+  "subtitle": "Woran denken? Front · Ordnung · Sanität · Spezielles",
+  "version": 1,
+  "source": "KP Front Demo",
+  "phases": [
+    {
+      "id": "front",
+      "title": "Front",
+      "area": "front",
+      "note": "Nur Probleme, keine Lösungen. Haken = ist ein Problem; es steht dann auf der Tafel.",
+      "items": [
+        { "id": "front-1", "text": "Explosionsgefahr" },
+        { "id": "front-2", "text": "Toxische Gefahr (ABC)" },
+        { "id": "front-3", "text": "Energieträger" },
+        { "id": "front-4", "text": "Brand / Feuer / Rauch" },
+        { "id": "front-5", "text": "Bausubstanz / Struktur" },
+        { "id": "front-6", "text": "Personenbelegung" },
+        { "id": "front-7", "text": "Löschwasserversorgung" }
+      ]
+    },
+    {
+      "id": "ordnung",
+      "title": "Ordnung",
+      "area": "ordnung",
+      "items": [
+        { "id": "ordnung-1", "text": "Gefahrenzonen / Sperrzone" },
+        { "id": "ordnung-2", "text": "Zufahrten / Rettungsachsen" },
+        { "id": "ordnung-3", "text": "Warteraum" },
+        { "id": "ordnung-4", "text": "Schaulustige" },
+        { "id": "ordnung-5", "text": "Räumungen / Evakuationen" }
+      ]
+    },
+    {
+      "id": "sanitaet",
+      "title": "Sanität",
+      "area": "sanitaet",
+      "items": [
+        { "id": "sanitaet-1", "text": "Rettungen" },
+        { "id": "sanitaet-2", "text": "Patientensammelstelle" },
+        { "id": "sanitaet-3", "text": "Betreuung (inkl. Angehörige)" }
+      ]
+    },
+    {
+      "id": "spezielles",
+      "title": "Spezielles",
+      "area": "spezial",
+      "items": [
+        { "id": "spezielles-1", "text": "Wetter / Wind" },
+        { "id": "spezielles-2", "text": "Tiere" },
+        { "id": "spezielles-3", "text": "Medien / Information" },
+        { "id": "spezielles-4", "text": "Umwelt / Gewässer" }
+      ]
+    }
+  ]
+}

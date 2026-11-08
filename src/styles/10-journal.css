@@ -26,6 +26,10 @@
    rest of `.tb-actions` lines up on. Nudged back onto that line here rather than in the shared
    symbol, which other callers (the undo toast, the Rückgängig-Uhr) draw against their own box. */
 .tb-act-history .i { transform: translateY(-1.5px); }
+/* ↶ ↷ are ONE pair (TopBar · .tb-history, hill climb r20, Opus 8): 4px apart, the bar's 8px either
+   side of the pair. Two 44px hit areas at the bar's 8px read as two loose slots between the
+   Einsatzuhr and «Verlauf». The phone's bar keeps its own spacing (15-mobile · display: contents). */
+.tb-history { display: flex; align-items: center; gap: var(--sp-1); flex: none; }
 .tb-act.icon { padding: var(--sp-2); min-width: 42px; background: transparent; }
 @media (hover: hover) {
   /* --hover-strong, not --fill-soft: a filled act already wears --fill-soft, so the old hover
@@ -37,7 +41,7 @@
 @media (hover: hover) {
   .tb-act:disabled:hover { background: transparent; color: var(--ink-dim); }
 }
-.tb-act.on { background: var(--ink-fill); color: var(--on-accent-ink); }
+.tb-act.on { background: var(--here-fill); color: var(--on-here); }
 /* Atemschutz alarm chip — conditional (only rendered while a Trupp is fällig/überfällig).
    A compact chip, not a banner, so it's an ambient cue rather than an interruption.
    ⚠️ Not a pill (24.09.2026): it sits in the bar's padding like .tb-act beside it, so it takes
@@ -86,7 +90,7 @@
 .topbar.fit-3 .tb-einsatzuhr { display: none; }
 .topbar.fit-4 .tb-act-redo { display: none; }
 .topbar.fit-5 { gap: var(--sp-1); padding-inline: var(--bar-pad); }
-.topbar.fit-5 .tb-actions { gap: 0; }
+.topbar.fit-5 :is(.tb-actions, .tb-history) { gap: 0; }
 .topbar.fit-5 :is(.tb-az, .ip-switch-btn) { padding-inline: var(--sp-2); }
 .topbar.fit-6 .tb-act:not(.tb-act-add) span:not(.tb-rem-count) { display: none; }
 .topbar.fit-6 .tb-act:not(.tb-act-add) { padding: 8px; }
@@ -96,8 +100,17 @@
 .topbar.fit-9:has(.ip-switch-btn > .ip-badge-exercise) .ip-switch-glyph { display: none; }
 /* «Eintrag» gives its word LAST (29.09.2026, sweep K2): its glyph is the journal pen now, not a
    «+» that the rail's «+ Symbol» beside it also wears, so a bare glyph still says what it is */
-.topbar.fit-11 .tb-act-add .tb-act-label { display: none; }
+.topbar.fit-11 .tb-act-add :is(.tb-act-label, .tb-key) { display: none; }
 .topbar.fit-11 .tb-act-add { min-width: var(--tap); padding-inline: 8px; }
+/* ── Verlauf (J) and Eintrag (E) wear their shortcut letter (TopBar · keyHint, S6 06.11.2026):
+   the rails' `.rail-key` – same face, size and colour (04b-rail.css), the same pref and the same
+   hover + fine-pointer gate – but IN THE ROW after the word, where a menu prints its shortcut: a
+   corner of a 42px-tall button is its glyph's. It leaves with the word – Verlauf's at fit-6
+   (`span` above), Eintrag's at fit-11 – and while the Eintrag is an ✕ or recording. */
+.tb-act .tb-key { position: relative; top: auto; left: auto; z-index: 1; }
+.tb-act-add.cancelling .tb-key { display: none; }
+.tb-act.on .tb-key { color: color-mix(in srgb, var(--on-accent-ink) 70%, transparent); }
+@media (hover: hover) and (pointer: fine) { .tb-act .tb-key { display: block; } }
 /* every chip in the bar is at least a tap wide, its glyph and its number together */
 .topbar .tb-az { min-width: var(--tap); justify-content: center; }
 .topbar .tb-az > .i { flex: none; }
@@ -182,7 +195,8 @@
 .tb-weather-wrap { position: relative; display: inline-flex; align-self: stretch; }
 /* position + z-index now come from the Base UI Popover Positioner (src/lib/overlays/Popover.tsx);
    the popup itself is static within it. */
-.tb-weather-pop { width: 280px;
+/* 284 = the content's 248 (as at 280 − 2×16 before r35) + the shell's two 18px insets: nothing in it re-flows */
+.tb-weather-pop { width: 284px;
   /* landscape phones: the pop is taller than the leftover viewport below the bar —
      cap it and scroll instead of pushing the MeteoSchweiz link off-screen */
   max-height: calc(100dvh - 90px - env(safe-area-inset-top)); overflow-y: auto; overscroll-behavior: contain;
@@ -191,8 +205,12 @@
      different colors (at least in dark mode)». It was `--surface`, the raised BUTTON fill, a
      visibly lighter slate than the bar at night, with a heavier shadow of its own. */
   background: var(--glass); backdrop-filter: blur(14px) saturate(1.4); border: 1px solid var(--glass-line);
-  border-radius: var(--r-ctl); box-shadow: var(--e4);
-  padding: 16px; animation: popIn .15s var(--ease); font-variant-numeric: tabular-nums; }
+  /* THE popover shell, the Einsatzuhr menu's beside it (18-audio · .tb-uhr-menu): --r-bar over the
+     even --bar-pad (r35, 06.11.2026 – it was --r-ctl over 16px). What it holds is READ, not tapped
+     row by row, so it stands one inset further in – a menu row's text inset (--sp-3), the one
+     inset every popover's facts take (13-incident · .rp-control) – nothing in it re-laid out. */
+  border-radius: var(--r-bar); box-shadow: var(--e4);
+  padding: calc(var(--bar-pad) + var(--sp-3)); animation: popIn .15s var(--ease); font-variant-numeric: tabular-nums; }
 /* centred header: condition glyph, label, big temperature */
 .wx-pop-head { display: flex; flex-direction: column; align-items: center; gap: 4px; padding-bottom: var(--sp-3); margin-bottom: 12px; border-bottom: 1px solid var(--border); }
 .wx-pop-cond { display: grid; place-items: center; color: var(--ink); }
@@ -212,19 +230,14 @@
 }
 .wx-pop-link:active { background-image: linear-gradient(var(--press), var(--press)); }
 .wx-pop-link svg { width: 16px; height: 16px; }
-/* The bar's Eintrag wears the FAB's material (29.09.2026, sweep K2/E9): the floating family's
-   glass with its inset edge, ink glyph and word — the same door as the phone's FAB, one recipe.
-   It was a --blue slab, and blue now means «chosen» (--sel): a permanently blue tile read as a
-   lit, armed tool, not an action. Its glyph is the journal pen (lib/icons · EntryGlyph), never
-   «+», which is Hinzufügen only. */
-.tb-act-add { position: relative; background: var(--float-bg); box-shadow: var(--float-edge); color: var(--ink);
-  touch-action: none; user-select: none; min-width: 96px; }
+/* The bar's Eintrag is FLAT, the bar's own `.tb-act` like «Verlauf» beside it (owner pick C11,
+   05.11.2026): it wore the FAB's floating glass with its inset edge and shadow (29.09.2026, sweep
+   K2/E9), the one raised object inside a bar whose other buttons all sit in it. Same size and hit
+   area as before (the 96px floor keeps the label and the hold ring from crowding). It was a --blue
+   slab before that, and blue means «chosen» (--sel). Its glyph is the journal pen (lib/icons ·
+   EntryGlyph), never «+», which is Hinzufügen only. */
+.tb-act-add { position: relative; touch-action: none; user-select: none; min-width: 96px; }
 .tb-act-add .i { width: 16px; height: 16px; }
-@media (hover: hover) {
-  /* the wash over its glass – brightness(1.05) lifted the dark glass at night but did nothing to
-     the white one by day (20.10.2026) */
-  .tb-act-add:hover { background: var(--float-bg); background-image: linear-gradient(var(--hover), var(--hover)); color: var(--ink); }
-}
 /* ⚠️ Names the LABEL, not every span. It used to read `.tb-act-add span`, which at (0,1,1)
    also out-specified the charging cue's own `.tb-hold { position: absolute }` (0,1,0) — so on
    every press the cue stopped being absolute, became an in-flow flex item, and animated its
@@ -304,7 +317,8 @@
 /* each target is its OWN surface, not a segment of a shared bar — two destinations, not one
    control. Sized off the button: same height, same radius, same right edge, and the container
    takes the button's width as a floor, so the three read as one column rather than as two
-   oversized cards that happen to be nearby. */
+   oversized cards that happen to be nearby. (42 with a mouse; --tap under a finger, like the
+   button – 20-touch-floors.) */
 .hold-target { pointer-events: auto; cursor: pointer; display: flex; align-items: center; gap: 8px;
   padding: var(--sp-2) var(--sp-3); min-height: 42px;
   background: var(--surface); border: 1px solid var(--glass-line); border-radius: var(--r-sm);
@@ -324,28 +338,53 @@
 .tb-stop { position: relative; z-index: 1; width: 11px; height: 11px; border-radius: 2px; background: var(--on-accent-ink); flex: none; }
 
 /* slide-over drawer — right edge, full height, opens over either surface */
-/* the Verlauf drawer docks INBOARD of the right tool rail (right:16 + width:88 + 8px
-   gap = 112px) so the rail and its pinned zoom/fit footer stay visible + interactive.
+/* the Verlauf drawer docks INBOARD of the right tool rail (right:16 + the compact rail + the
+   16px gap = 92px) so the rail and its pinned zoom/fit footer stay visible + interactive.
    The scrim stops at the same edge, leaving the rail strip un-covered (and un-dimmed)
    so its buttons stay live; click-away-to-close still works over the rest of the map.
    The phone block (below) resets both to a full-width bottom sheet. */
 /* full-width scrim so the right tool rail is also blocked while the Verlauf drawer is open
    (the drawer sits at z61, above this) */
+/* ⚠️ its OWN paint, not THE modal scrim (13-incident · «ONE modal scrim»): a plain dim WITHOUT blur,
+   so the map beside the drawer stays sharp – the Verlauf is read against it, and this look is an
+   approved landing state (owner, checkpoint 1, 05.11.2026; r35 tried the sheets' .32 + blur and
+   took it back) */
 .journal-scrim { position: fixed; inset: 0; z-index: var(--z-popover); background: rgba(12, 18, 28, .48); }
 /* ⚠️ 620px and closer to the rail, up from 440 at right:112px. The Verlauf now carries the
    Pendenzen block as well as the log, and both are lines of prose: an item's text plus its
    Meldungen ellipsised after a handful of words. The 112px gutter was ~30px more than the rail
    needs (`.tool-rail` sits at right:16px and `--vrail-w` is 60–64px compact), so the panel sat
-   adrift in the middle of the map with air on the side it is anchored to. 84px clears the compact
-   rail with a hair of daylight; `max-width` keeps it honest on a narrow window, and below the
-   mobile breakpoint it becomes a bottom sheet anyway.
+   adrift in the middle of the map with air on the side it is anchored to. 92px clears the compact
+   rail by the 16px system gap (hill climb r17, 05.11.2026: 84 left 8px to the rail and the 12px
+   foot stood off the 16 the rails and panels keep to the viewport — so 612 wide, 16 to the foot);
+   `max-width` keeps 16px on the left of a narrow window, and below the mobile breakpoint it
+   becomes a bottom sheet anyway.
    ⚠️ The WIDE rail (--vrail-w 212) overlaps this — as it always did, and deliberately: it is a
    transient state you drag open and let go of, and it renders above (z-index 30 vs the drawer's
-   61 puts the drawer on top, so nothing is lost behind it). */
-.journal-drawer { position: fixed; top: 88px; right: 84px; bottom: 12px; width: 620px; max-width: calc(100vw - 96px); z-index: var(--z-drawer);
-  display: flex; flex-direction: column; background: var(--glass); backdrop-filter: blur(14px) saturate(1.4);
-  border: 1px solid var(--glass-line); border-radius: var(--r-surface); box-shadow: var(--e4); padding: var(--sp-3);
+   61 puts the drawer on top, so nothing is lost behind it).
+   ⚠️ OPAQUE glass (hill climb r11, 04.11.2026): the sheets' material (docs/ui-conventions ·
+   «Two materials», 29.09.2026) laid over --surface, so it keeps the glass's own tone in both
+   themes but lets nothing through. Translucent, the map's selected rail tiles showed as grey
+   blocks behind the clock column, and a busy Lage would do the same behind the log's prose — a
+   sheet you READ, unlike the floating chips and menus that keep the see-through glass. Scoped to
+   the Verlauf drawer (tablet, laptop and the phone's bottom sheet); no blur, nothing to blur.
+   No edge (r35, 06.11.2026): the sheets draw none, --e4 is the outline – the 1px --glass-line
+   ring was the last thing telling this panel apart from them.
+   ⚠️ 16px at the foot, 12 elsewhere (hill climb r20, 05.11.2026): the log's scrollport ends
+   here, so a row half under the fold is cut on that line — at 12 the cut ran 13px above the
+   border, exactly where the 12px corner stops curving, and the sliced row read as broken against
+   the radius. 16 sets the cut in a padded band of its own. (The phone's sheet is flush with the
+   screen and pays its inset on the list instead, 15-mobile.) */
+.journal-drawer { position: fixed; top: 88px; right: 92px; bottom: 16px; width: 612px; max-width: calc(100vw - 108px); z-index: var(--z-drawer);
+  display: flex; flex-direction: column; background: linear-gradient(var(--glass), var(--glass)) var(--surface);
+  border-radius: var(--r-surface); box-shadow: var(--e4); padding: var(--sp-3) var(--sp-3) var(--sp-4);
   animation: drawerIn .18s var(--ease); }
+/* on a tablet or laptop its foot stands above the view bar (07-toolrail · .view-bar), which it
+   would otherwise cover: the drawer's 620px run over the bar's whole width. Not with the keyboard
+   up (`.is-kb`): the drawer then stands on the keys, which cover the bar anyway. */
+@media (--not-phone) {
+  :root:has(.view-bar) .journal-drawer:not(.is-kb) { bottom: var(--view-bar-reserve); }
+}
 @keyframes drawerIn { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
 /* keyboard up (the Verlauf search) on a tablet: the Overlay stands the foot on the keys
    (keyboardLift · --vv-foot) and the top follows iOS's pan, so the drawer is the visible band less
@@ -355,8 +394,19 @@
   .journal-drawer.is-kb { top: calc(88px + var(--vv-pan, 0px)); }
 }
 .journal-head { display: flex; align-items: center; gap: 8px; padding: 4px 4px var(--sp-2); }
-.journal-title { display: flex; align-items: center; gap: 8px; font-size: var(--fs-2); font-weight: var(--fw-bold); color: var(--ink); }
-.journal-title .i { width: 17px; height: 17px; }
+/* the drawer's title is THE sheet title, `--sheet-title` 16/800 (hill climb r35, 06.11.2026: it was
+   `--fs-4` 19/700 since r2 – the one overlay title in another cut; the 800 is what keeps «Verlauf»
+   above its own ▶ in weight, the job the 19px had). The same on a phone.
+   ⚠️ The count is its own piece (`.journal-count`, r6): a caption in the secondary ink at the
+   floor size, on the title's baseline — at the title's 700 «Verlauf · 322» read as one word
+   jammed against the first button. The group may shrink (the word ellipsises, the count never)
+   but never into the buttons. */
+.journal-title { display: flex; align-items: baseline; gap: var(--sp-1); min-width: 0; white-space: nowrap;
+  font: var(--sheet-title); line-height: var(--lh-3); color: var(--ink); }
+.journal-title .i { width: 18px; height: 18px; flex: none; align-self: center; margin-right: var(--sp-1); }
+.journal-title-txt { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.journal-count { flex: none; font: var(--fw-medium) var(--fs-1)/var(--lh-1) var(--body);
+  font-variant-numeric: tabular-nums; color: var(--ink-dim); }
 .jr-delivery { padding: var(--sp-3); margin-block: 4px 12px; border-radius: var(--r-ctl); background: color-mix(in srgb, var(--amber) 16%, var(--glass)); color: var(--ink); }
 .jr-delivery-danger { background: color-mix(in srgb, var(--red) 14%, var(--glass)); }
 .jr-delivery strong { font-size: var(--fs-2); }
@@ -365,17 +415,11 @@
 /* ⚠️ ONE size for every button of this head, and it is the app's --tap (30.10.2026, owner: «increase
    the size of the touch targets/buttons to match the size we have otherwise»). It was 36 to the eye
    over a 44 pad – the ✕'s house size (13-incident.css · «ONE size for the ✕») – so the Verlauf read
-   smaller than every surface of 44px buttons around it. ⓘ, lens, funnel, ▶ and ✕ are all 44 now. */
-.journal-replay { position: relative; margin-left: auto; display: inline-flex; align-items: center; gap: var(--sp-2);
-  height: var(--tap); min-width: var(--tap); justify-content: center; padding: 0 var(--sp-3); border: none; border-radius: var(--r-sm); cursor: pointer;
-  background: var(--btn-primary); color: var(--on-btn-primary); font-family: var(--body); font-weight: var(--fw-bold); font-size: var(--fs-1); }
-/* the normal primary, not amber (sweep B7, 07.10.2026): amber means «needs attention» everywhere
-   else («4 offen», Kontakt fällig), and a play button is not asking for any */
-@media (hover: hover) {
-  .journal-replay:hover { background: var(--btn-primary-hover); }
-}
-.journal-replay:active:not(:disabled) { background-image: linear-gradient(var(--press), var(--press)); }
-.journal-replay .i { width: 15px; height: 15px; }
+   smaller than every surface of 44px buttons around it. ⓘ, lens, funnel, ▶ and ✕ are all 44 now.
+   ▶ is THE button's framed secondary (<Button>, `.ip-btn`, 44px) — placement only here. It was the
+   filled primary until the hill climb (r2, 04.11.2026): playing back the past became the
+   strongest thing in a view whose job is what is still open. */
+.journal-replay { margin-left: auto; flex: none; }
 /* with the replay button taking the auto margin, the × just trails it */
 .journal-replay + .journal-x { margin-left: 0; }
 .journal-x { margin-left: auto; width: 28px; height: 28px; border-radius: var(--r-sm); border: none; cursor: pointer;
@@ -386,9 +430,22 @@
 }
 .journal-x:active:not(:disabled) { background-image: linear-gradient(var(--press), var(--press)); }
 .journal-x .i { width: 14px; height: 14px; }
-/* …and the head's ✕ and ⓘ are --tap like the rest of the head (see .journal-replay): beside 44px
-   neighbours a 36px ✕ is the «stray badge» the search row's ✕ was (below). Glyphs stay 18px. */
-.journal-head .journal-x, .journal-head .ui-info { width: var(--tap); height: var(--tap); }
+/* …and the head's ⓘ is --tap like the rest of the head (see .journal-replay). The ✕ is THE sheet ✕
+   (hill climb r35, 06.11.2026): the 36px --ink-8 plate with its 44px pad, as on every other sheet –
+   it was a 44px copy of ▶'s frame since r13, the one ✕ in the app that looked like an action.
+   Centred on the head row; 16px from the edge, the title's own inset. */
+.journal-head .ui-info { width: var(--tap); height: var(--tap); }
+/* ⓘ · lens · funnel are UTILITIES, and rest as the quiet icon button does (components/Button ·
+   IconButton `quiet`: no fill, `--ink-8` under a hover or a keyboard focus) — hill climb r9: three
+   filled squares in a row out-weighed the title and ▶ beside them, worst across the phone's full
+   head. Their ON looks stay as they were (legend/search open = the blue wash, a filter set = the
+   `--sel` fill, below), so «on» now reads against nothing instead of against a grey chip. ▶ and
+   the ✕ share one frame (above). */
+.journal-head .ui-info:not(.on) { background: none; }   /* the lens and funnel rest bare in their own rule */
+.journal-head .ui-info:not(.on):focus-visible, .journal-legend-btn:not(.on, .jr-filter-on):focus-visible { background: var(--ink-8); }
+@media (hover: hover) {
+  .journal-head .ui-info:not(.on):hover, .journal-legend-btn:not(.on, .jr-filter-on):hover { background: var(--ink-8); color: var(--ink); }
+}
 
 /* ── the icon legend ──
    The disc carries the Bereich, and a glyph has to be learned. This is the answer to that, and
@@ -398,13 +455,9 @@
    read, not to the drawer's controls. */
 .journal-legend-btn { flex: none; position: relative; width: var(--tap); height: var(--tap); border-radius: var(--r-sm);
   border: none; cursor: pointer; display: grid; place-items: center;
-  /* the ✕'s own fill and ink (see .journal-x): on `--surface-2` — white at .6 over a white glass
-     drawer — the chip vanished and only its 18px glyph stayed, so ⓘ and the lens read smaller
-     than the ✕ they are the size of (22.09.2026) */
-  background: var(--ink-8); color: var(--ink-dim); }
-@media (hover: hover) {
-  .journal-legend-btn:hover { background: var(--ink-12); color: var(--ink); }
-}
+  /* the ✕'s ink (see .journal-x); at rest no fill since hill climb r9 (the head's utilities,
+     above) — it wore the ✕'s `--ink-8` chip from 22.09.2026 */
+  background: none; color: var(--ink-dim); }
 .journal-legend-btn:active:not(:disabled) { background-image: linear-gradient(var(--press), var(--press)); }
 /* OPEN (the lens's search) is the one «open» look, the InfoToggle's blue wash (29.09.2026 — it
    was the ink «where you are» pill); the ⓘ beside it IS the InfoToggle (`.ui-info`) */
@@ -412,7 +465,7 @@
 .journal-legend-btn .i { width: 18px; height: 18px; }
 
 /* ── the search ──
-   The lens is a second .journal-legend-btn beside the ⓘ (same 44px chip). Tapped, the
+   The lens is a second .journal-legend-btn beside the ⓘ (same 44px button). Tapped, the
    field REPLACES the head row (mock verlauf-02, 14.09.): the title, ⓘ and Replay go, the field
    takes their width, and the ✕ that closes the search stands where the drawer's ✕ stood — one
    place for «back out of this», whichever «this» is. No space is lost while nothing is searched. */
@@ -423,10 +476,10 @@
 .journal-search { flex: 1; }
 /* the live «2 von 42» — read at a glance, never wrapped */
 .journal-search-count { flex: none; font: var(--fw-bold) var(--fs-1) var(--body); color: var(--ink-faint); white-space: nowrap; font-variant-numeric: tabular-nums; }
-/* ⚠️ …and beside the 44px field it is 44px too (20.09.2026): at its 28px it hung beside the pill
-   like a stray badge. Same fix, same reason as the Palette's search row (07-toolrail.css). */
-.journal-search + .journal-x { width: var(--tap); height: var(--tap); margin-left: 0; }
-.journal-search + .journal-x .i { width: 16px; height: 16px; }
+/* …and beside the field it is THE sheet ✕, 36px over its 44px pad, centred on the field (r35,
+   06.11.2026 – it was 44 «beside a 44px field» since 20.09.2026; at its old 28px it hung like a stray
+   badge, at the house 36 it is the same ✕ as the head's and the Palette's). */
+.journal-search + .journal-x { margin-left: 0; }
 /* (the search's ✕ used to be «on» – a dark filled square, the way the open legend button is on.
    Beside a grey field it read as the one black thing on the sheet; it is the ordinary grey close
    button now, and the field it closes is what says a mode is active. 20.09.2026) */
@@ -435,11 +488,9 @@
 .jr-legend-item { display: flex; align-items: center; gap: 8px; min-width: 0;
   font: var(--fw-medium) var(--fs-1) var(--body); color: var(--ink-dim); }
 /* the discs here are the row's discs, at the row's size — a legend drawn smaller than the thing
-   it explains is a second shape to recognise */
-:is(.jr-legend, .jr-filter-menu) .ic { width: 26px; height: 26px; border-radius: 50%; flex: none;
-  display: grid; place-items: center; background: var(--surface-2);
-  border: 1px solid var(--border-soft); color: var(--ink-dim); }
-:is(.jr-legend, .jr-filter-menu) .ic .i { width: 14px; height: 14px; }
+   it explains is a second shape to recognise – and in the row's paint and glyph stroke, the
+   hue-less Bereiche in ink (06-contextpanel · `:is(.hist-ev, .jr-legend, .jr-filter-menu) .ic`) */
+:is(.jr-legend, .jr-filter-menu) .ic { width: 24px; height: 24px; flex: none; display: grid; place-items: center; }
 :is(.jr-legend, .jr-filter-menu) .ic.jr-ic-map { background: var(--blue-12);
   border-color: var(--blue-22); color: var(--blue-strong); }
 :is(.jr-legend, .jr-filter-menu) .ic.jr-ic-plan { background: var(--green-16);
@@ -447,7 +498,7 @@
 :is(.jr-legend, .jr-filter-menu) .ic.jr-ic-ring { background: none; border-color: transparent; }
 
 /* ── the filter (feat 37 · option B, 23.09.2026) ──
-   A third .journal-legend-btn beside the lens (same 44px chip). While any category is
+   A third .journal-legend-btn beside the lens (same 44px button). While any category is
    ticked it wears the CHOICE fill (`--sel`, 29.09.2026 — the Anwesenheit's filter buttons do
    the same): it was the ink «where you are» pill plus a blue dot, two channels for one bit and
    the wrong role. Nothing is printed on it, so it measures the same filtered or not. */
@@ -466,8 +517,13 @@
 .jr-filter-row { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--sp-3); }
 .jr-filter-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .jr-filter-count { flex: none; font: var(--fw-bold) var(--fs-1) var(--body); color: var(--ink-faint); font-variant-numeric: tabular-nums; }
-/* «Alle zeigen» is the way OUT, not one more category — the word in the action blue */
+/* «Alle zeigen» is the way OUT, not one more category — the word in the action blue, full strength.
+   While nothing is filtered there is no way out to take (the row is disabled, Journal · filterItems):
+   then it is the quiet ink instead of the dimmed blue (r35, 06.11.2026 – a pale blue word read as a
+   broken link, not as «nothing to undo»), and its count stays as it was. */
 .jr-filter-reset .jr-filter-label { color: var(--blue-strong); font-weight: var(--fw-bold); }
+.jr-filter-item[data-disabled]:has(> .jr-filter-reset) { opacity: 1; }
+.jr-filter-item[data-disabled] > .jr-filter-reset .jr-filter-label { color: var(--ink-faint); }
 /* the one-line «Gefiltert: … · Alle zeigen» under the head, where the timeline strip stands
    otherwise (it is hidden while a filter is on, as during a search) */
 .jr-filter-strip { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; padding: 0 4px 8px;
@@ -487,20 +543,43 @@
    above. The button keeps its `aria-label` (Journal.tsx), so nothing is lost but the letters. */
 @media (--phone) {
   .journal-replay span { display: none; }
-  .journal-replay { padding: 0 8px; }
+  /* …and word-less it is an icon action like ⓘ · lens · funnel beside it, so it rests BARE as they
+     do (hill climb r18, Opus 7: a framed ▶ among bare glyphs was two chromes for one kind of
+     button). The 44px box and the transparent edge keep its hit area and geometry; the ✕ keeps
+     its frame (settled r13). Tablet and laptop keep «▶ Wiedergabe starten» framed. Its glyph is the
+     outlined circle-play (icons · #play-circle, r23 Sol 1), the ⓘ's ring at the ⓘ's 18px and ink –
+     the bare filled ▶ was the smallest mark in the row. */
+  .journal-head .journal-replay { width: var(--tap); padding: 0;
+    background: none; border-color: transparent; color: var(--ink-dim); }
+  .journal-head .journal-replay svg { width: 18px; height: 18px; }
+  @media (hover: hover) { .journal-head .journal-replay:hover { background: var(--ink-8); color: var(--ink); } }
+  .journal-head .journal-replay:focus-visible { background: var(--ink-8); }
+  /* (the title is the tablet's 16/800 with its 18px glyph since r35 – the step down it took here
+     at 19px is gone with the 19px; the glyph stays 8px off the word, hill climb r28, Opus 6) */
+  /* the head's 4px gap plus this = the 8px that keeps the title group off the ⓘ (r6) */
+  .journal-head .journal-title { margin-right: var(--sp-1); }
   /* …and since the funnel joined it the head is SIX items: at 360px a real Einsatz's
      «Verlauf · 312» ran 1px past the edge and the ✕ was squeezed to 34px (measured 24.09.2026).
      The gaps close up to 6px — the room a four-digit count needs — and no chip may shrink: the
      ✕ is the house 36px everywhere, and a squeezed target is the one thing a head cannot lose. */
   .journal-head { gap: var(--sp-1); }
   .journal-replay, .journal-x { flex: none; }
+  /* …and the title's glyph (r28) costs 28px the head did not have at 390px: the four BARE glyph
+     buttons (ⓘ · lens · funnel · ▶) close up to touching 44px pads – their glyphs keep 26px of air
+     between them – and the head drops its right padding, the ✕ still inside the strip's edge. So
+     «Verlauf · 322» stands whole at 390px with room for a fourth digit. Narrower phones (375, 360)
+     have no such room: there the glyph gives way, never the word.
+     The ✕ is 36 to the eye since r35 (8px less than r13's framed 44), so the head keeps its 4px
+     right padding again: the ✕ stands 16 from the sheet's edge, the title's inset on the left. */
+  .journal-head > :is(.ui-info, .journal-legend-btn) { margin-right: calc(-1 * var(--sp-1)); }
+  @media (max-width: 389px) { .journal-title .i { display: none; } }
   /* …and the trailing group closes up, so the sentence keeps its share on the rows that carry
      more than one control (a photo row's thumbnails, an audio row's jump and play). */
   .jr-trail { gap: var(--sp-2); }
 }
 
 /* ── Verlauf row: the classification column ────────────────────────────────────────────────
-   The 26px disc IS the Bereich (`.hist-ev .ic` sizes it in 06-contextpanel.css; the grid that
+   The 24px disc IS the Bereich (`.hist-ev .ic` sizes it in 06-contextpanel.css; the grid that
    places it is there too). There used to be a chip printing the same word in front of the
    sentence — and on a Pendenz a second chip printing «Pendenz» beside a text that already read
    «Pendenz erledigt: …». Both are gone, together with the Nachtrag/korrigiert/«6×» chips, which
@@ -559,11 +638,12 @@
    and find it again» is not how an Auftrag gets closed at 3am. */
 .hist-ev button.ic.jr-ic-tick { padding: 0; font: inherit; -webkit-appearance: none; appearance: none;
   cursor: pointer; }
-/* ⚠️ The button STAYS 26 × 26. The disc is the anchor for the timeline connector drawn above and
-   below it (`.hist-ev .ic::before/::after` in 06-contextpanel.css), so growing the element for a
-   gloved finger would tear a gap in the line. The TARGET grows instead, on a pseudo-element that
-   is out of the ring's grid flow: 44 × 44 (23.09.2026, was 30 × 42), i.e. 9px into each 10px
-   column gutter and the row's height, and a miss lands on the row itself. The same trade the
+/* ⚠️ The button STAYS the disc's 24 × 24 (26 until r11, 28 in r11). The disc is the anchor for
+   the timeline connector drawn above and below it (`.hist-ev .ic::before/::after` in 06-contextpanel.css), so
+   growing the element for a gloved finger would tear a gap in the line. The TARGET grows instead,
+   on a pseudo-element that is out of the ring's grid flow: 44 × 44 (23.09.2026, was 30 × 42), i.e.
+   8px out to each side – the 8px column gutters, up to the plain time span and the sentence's
+   first glyph – and the row's height, and a miss lands on the row itself. The same trade the
    pinned block's ring makes, and for the same reason. */
 .jr-ic-tick .jr-ring::before { content: ""; position: absolute; inset: -12px; border-radius: var(--r-sm); }
 /* ⚠️ No fill on hover — `--hover` is a neutral wash and the row already takes it. The RING
@@ -582,19 +662,22 @@
 .jr-ic-tick:active .jr-ring { color: var(--green); border-color: var(--green); }
 .jr-ic-tick:active .jr-ring .i { opacity: 1; }
 /* ── the footnotes, under the sentence (`.jr-meta`) ──
-   «Nachtrag» · «korrigiert HH:MM» · «6×». Facts ABOUT the row, in the register of a footnote:
+   «Nachtrag» · «Korrigiert HH:MM» · «Insgesamt 6×». Facts ABOUT the row, in the register of a footnote:
    they were chips in front of the text, where they pushed it off its axis and read as warnings.
    Only «Nachtrag» keeps a colour — a line appended after the Einsatzende is the one of the three
    with legal weight. */
-/* ⚠️ `flex-wrap: wrap`, not `nowrap` (05.09. fix): two footnotes on one row («insgesamt 2×» +
+/* ⚠️ `flex-wrap: wrap`, not `nowrap` (05.09. fix): two footnotes on one row («Insgesamt 2×» +
    «Atemschutz-Link») used to force this whole group onto one unbreakable line, which is what
    made `.jr-trail`'s `fit-content(50%)` cap toothless — the badges just overflowed it sideways
    into the sentence column. Individual badges stay `white-space: nowrap` (a footnote word never
    splits mid-token); it is the GROUP that now stacks them instead. */
+/* ⚠️ SENTENCE CASE in the secondary ink at regular weight (hill climb C13, 05.11.2026, owner): it
+   was the eyebrow type – bold, tracked, uppercase – and «INSGESAMT 4×» inside a row read as a
+   section head standing in the middle of the log. The copy carries the capital («Insgesamt {n}×»). */
 .jr-foot { flex: none; display: inline-flex; flex-wrap: wrap; align-items: baseline;
   gap: var(--sp-1) var(--sp-2);
-  font: var(--fw-bold) var(--fs-micro)/1.3 var(--body); letter-spacing: .04em; text-transform: uppercase;
-  color: var(--ink-faint); }
+  font: var(--fw-regular) var(--fs-micro)/1.3 var(--body);
+  color: var(--ink-dim); }
 .jr-foot > * { white-space: nowrap; }
 .jr-foot-nachtrag { color: var(--red-strong); font-weight: var(--fw-bold); }
 .jr-foot-rep { font-variant-numeric: tabular-nums; }
@@ -621,26 +704,38 @@
    with nothing between them. */
 .jr-note-on i { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-style: normal; }
 .jr-note-on::after { content: "›"; flex: none; color: var(--ink-faint); font-weight: var(--fw-regular); }
-/* «wieder in …» on a done row — small amber pills that CREATE a follow-up. Quiet on purpose: a
+/* «wieder in …» on a done row — small pills that CREATE a follow-up. Quiet on purpose: a
    closed Pendenz is a fact first, an offer second. ≥28px tap height inside a text row via padding
    (the row itself adds the rest). Framed, not dashed (27.09.2026, slim sweep · mockup 5): the dash
    said «this creates something», but a dashed edge in this app means «missing / hidden /
-   placeholder», and an offer is an ordinary action — the amber text and a faint amber tint carry
-   what kind of action it is. */
+   placeholder», and an offer is an ordinary action.
+   ⚠️ NEUTRAL, not amber (hill climb r11, 04.11.2026): amber is the colour of an OPEN Pendenz (the
+   block, the open ring), and amber chips under a finished item made the done row read as still
+   open. The framed --surface / --glass-edge recipe of the small framed buttons, in the secondary
+   ink; the ↻ and the minutes say what it does. */
 .jr-again { display: inline-flex; gap: var(--sp-1); flex: none; }
-.jr-again-btn { border: 1px solid color-mix(in srgb, var(--amber-strong) 45%, transparent);
-  background: var(--amber-8); border-radius: var(--r-pill, 999px); padding: var(--sp-1) var(--sp-2); cursor: pointer;
-  font: var(--fw-medium) var(--fs-1) var(--body); color: var(--amber-strong); white-space: nowrap; }   /* 12.5px: the interactive-text floor (was 11.5, UI sweep 07.10.2026); --tap under a finger: 20-touch-floors */
+.jr-again-btn { border: 1px solid var(--glass-edge);
+  background: var(--surface); border-radius: var(--r-pill, 999px); padding: var(--sp-1) var(--sp-2); cursor: pointer;
+  font: var(--fw-medium) var(--fs-1) var(--body); color: var(--ink-dim); white-space: nowrap; }   /* 12.5px: the interactive-text floor (was 11.5, UI sweep 07.10.2026); --tap under a finger: 20-touch-floors */
 @media (hover: hover) {
-  .jr-again-btn:hover { background: color-mix(in srgb, var(--amber-strong) 10%, transparent); }
+  .jr-again-btn:hover { background: var(--hover-strong); color: var(--ink); }
 }
 
 /* The sentence. Its cell (`.jr-main`) owns grid track 3 (06-contextpanel · .hist-ev), so there
    is nothing left to take space from it and no `flex` left to defend. `overflow-wrap: anywhere`
    stays: an unbroken 40-letter street name has to break somewhere, and that is what it is for —
    an ordinary word never needs it, now that the trail beside it holds controls only (#12). */
-.jr-main { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
-.jr-text { min-width: 0; max-width: 100%; line-height: 1.3; overflow-wrap: anywhere; }
+/* ⚠️ The lead (06-contextpanel · .hist-ev · --jr-lead) above, paid back below: the first line is
+   centred on the disc, and a row is no taller than it was when everything was centred (r11). */
+.jr-main { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+  padding-top: var(--jr-lead); margin-bottom: calc(-1 * var(--jr-lead)); }
+/* …except over a sub-line (transcript, subtitles, correction): paid back there, the sentence's
+   last line would run into the line below it */
+.hist-ev:has(> .jr-subs, > .jr-transcript) > .jr-main { margin-bottom: 0; }
+/* ⚠️ Regular weight and --lh-2 (≈20px) (hill climb r3, 04.11.2026): the row's prose is the quiet
+   layer under its marks (.jr-link below) — at the row's medium, with every name heavier on top, a
+   wrapped crew line on a phone was one dark block with nothing in it to find. */
+.jr-text { min-width: 0; max-width: 100%; font-weight: var(--fw-regular); line-height: var(--lh-2); overflow-wrap: anywhere; }
 /* the facts ABOUT the row, under its sentence (27.10.2026, sweep #12): the footnotes, then the
    missing-transcript / upload chips, then a done Pendenz's «wieder in» pills. Left-aligned on the
    sentence's axis, wrapping as a group. */
@@ -671,11 +766,15 @@
 .journal-composer { position: fixed; left: 50%; top: 11vh; transform: translateX(-50%); z-index: var(--z-dialog);
   width: min(460px, 92vw); overflow-y: auto; overscroll-behavior: contain;
   max-height: min(calc(88dvh - 11vh), calc(100dvh - 11vh - 12px - var(--jc-kb, 0px)));
-  /* no backdrop-filter: --surface is opaque in BOTH themes (#fff / #232c3a), so the blur painted
-     nothing — it only made the compositor re-blur the map behind the card on every frame of the
-     open animation, which is the other half of the desktop jank. Same for .sym-modal/.confirm-card. */
-  background: var(--surface);
-  border: 1px solid var(--glass-line); border-radius: var(--r-hero); box-shadow: var(--e4); padding: 16px;
+  /* THE sheet material (13-incident · .ip-sheet, hill climb r35, 06.11.2026): --glass + its blur,
+     no edge, --e4. It was opaque --surface (#fff / #232c3a) with a --glass-line edge and NO blur –
+     at night a lighter slate than every sheet beside it. (The blur was dropped once as half of a
+     desktop open-animation jank; the other half was the `transform` keyframe, fixed by `pop`'s
+     bare `scale` – 07-toolrail – and every .ip-sheet opens with this same blur.)
+     16px all round, not the sheets' 24: this card's rows are dense (the Art strip, the media
+     strip) and on a phone 24 a side squeezes them – so its ✕ stands 16 from the edge too. */
+  background: var(--glass); backdrop-filter: blur(16px);
+  border-radius: var(--r-hero); box-shadow: var(--e4); padding: 16px;
   /* ⚠️ ONE gap on this whole sheet, sideways and downwards alike: 8px. It was 12 between the
      banks and 8 inside them, which is why «Anheften» sat closer to the media row than that row
      sat to ART. One number means there is no second one to get wrong, and the tighter of the
@@ -817,8 +916,18 @@
 }
 
 /* …and in the Verlauf, where there is real text: every mention — vehicle, partner, Trupp, person,
-   material, group — is bold INK, one look for «one of the Einsatz's own words» (29.09.2026) */
-.jr-link { font-weight: var(--fw-bold); color: var(--ink); }
+   material, group — is MEDIUM (500) INK, one look for «one of the Einsatz's own words» (29.09.2026,
+   owner pick A – no kind gets a look of its own). The prose around them is regular since the hill
+   climb (r3, 04.11.2026), so the marked words stand off the sentence; medium rather than bold since
+   05.11.2026 (owner pick A5): on a crew row that is nothing but names, bold made the row one heavy
+   block — 500 against 400 is still findable and reads lighter. The printed journal keeps its bold
+   (lib/journalLinks · the Rapport has no other emphasis to spend). */
+.jr-link { font-weight: var(--fw-medium); color: var(--ink); }
+/* a name and its role suffix wrap as ONE piece (hill climb r13, 05.11.2026): «Weber Nina» at a
+   line's end left «(AS)» alone on the next. An inline-block moves to the next line whole when it
+   does not fit, so the row still wraps between people and in the prose; capped at the line, a
+   name longer than the line wraps inside itself instead of running out of the drawer. */
+.jr-link-unit { display: inline-block; max-width: 100%; overflow-wrap: break-word; }
 /* the address in the Verlauf: a real <a>, so it carries the underline that says «this opens»
    rather than a colour that only says «this is a thing» */
 a.jr-link-url { color: var(--blue); text-decoration: underline; text-underline-offset: 2px;
@@ -930,14 +1039,25 @@ a.jr-link-url { color: var(--blue); text-decoration: underline; text-underline-o
    measured 1.53:1 on the dark fill — the icon and «Verlauf» all but disappeared, in exactly the
    state this rule exists for (open Pendenzen, drawer open, 3am). `.tb-act.on` above uses the right
    token; this one is simply matching it. */
-.tb-act.has-rem.on { color: var(--on-accent-ink); background: var(--ink-fill); }
+.tb-act.has-rem.on { color: var(--on-here); background: var(--here-fill); }
+/* ⚠️ NIGHT: the ink pill lifted through the scrim (05.11.2026, hill climb r13). `.on` only exists
+   while the drawer is open, i.e. always UNDER `.journal-scrim` (rgba(12,18,28,.48), which covers
+   the bar too). By day the dark pill survives the veil; at night --ink-fill on the dark glass came
+   out a flat #1c2431 on #111720 — the open state read weaker than the amber closed one, the reverse
+   of the day. Mixed toward its own ink just enough that, seen through the scrim, it lands near where
+   the rails' unveiled night pill (01-tokens · --here-fill, 2.3:1 on the bar) stands – ~2:1 under the
+   veil: the same ink pill, as strong as by day. */
+:root[data-theme="night"] .tb-act.on { background: color-mix(in srgb, var(--here-fill), var(--on-here) 24%); color: var(--on-here); }
 
 /* open-reminders count badge on the Verlauf button */
 .tb-rem-count { z-index: 2; }
-/* the ONE count badge (05-navrail · .nav-count, 28.09.2026): 16px, 11/800, --r-xs; amber = open */
-.tb-rem-count { position: absolute; top: -5px; right: -5px; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box;
+/* the ONE count badge (05-navrail · .nav-count, 28.09.2026): 16px, 11/800, --r-xs; amber = open.
+   ⚠️ Inside the bar's plate (05.11.2026, hill climb r13): at -5px it stood 2px under the bar's top
+   edge, where the bar's corner seemed to clip it; at -1px it sits 6px in, and a 2px ring in the
+   bar's own glass cuts it off the button's corner instead of the bar's edge (day and night). */
+.tb-rem-count { position: absolute; top: -1px; right: -1px; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box;
   border-radius: var(--r-xs); background: var(--amber); color: var(--on-amber); line-height: 16px; text-align: center;
-  font: var(--fw-heavy) var(--fs-micro) var(--body); }
+  font: var(--fw-heavy) var(--fs-micro) var(--body); box-shadow: 0 0 0 2px var(--glass); }
 
 /* ⚠️ TOMBSTONE, 23.08. — the whole banner layer that stood here is gone.
    Removed: `.reminder-banner` + 9 `rb-*` rules (the due Wiedervorlage, a 440px card at z-45 that
@@ -961,9 +1081,12 @@ a.jr-link-url { color: var(--blue); text-decoration: underline; text-underline-o
 .ig-intro { margin: 0 0 var(--sp-2); font-size: var(--fs-2); font-weight: var(--fw-bold); color: var(--ink); }
 .ig-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-3); counter-reset: ig; }
 .ig-steps li { display: flex; align-items: center; gap: var(--sp-3); counter-increment: ig; }
-.ig-steps li::before { content: counter(ig); flex: none; width: 26px; height: 26px; display: grid; place-items: center;
-  border-radius: 50%; background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent);
-  font: var(--fw-bold) var(--fs-2) var(--mono); }
+/* the step number is a RING, not a disc (settled, karte-review7 #4 – a disc reads as a button; the
+   Anleitungen' `.mn-num` idiom), in ink: it was a red-tinted disc, and red is the alarm colour (r36,
+   06.11.2026). Drawn with an inset shadow, so the 1.5px line costs no layout. */
+.ig-steps li::before { content: counter(ig); flex: none; width: 22px; height: 22px; display: grid; place-items: center;
+  border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--ink-faint); color: var(--ink);
+  font: var(--fw-bold) var(--fs-1) var(--body); font-variant-numeric: tabular-nums; }
 .ig-step-text { font-size: var(--fs-2); line-height: 1.4; color: var(--ink); }
 .ig-step-text .i { width: 16px; height: 16px; vertical-align: -3px; margin: 0 2px; color: var(--accent); }
 .ig-note { margin: var(--sp-3) 0 0; font-size: var(--fs-1); color: var(--ink-dim); }

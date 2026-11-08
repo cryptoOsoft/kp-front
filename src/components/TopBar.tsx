@@ -10,6 +10,8 @@ import { appConfig } from '../config/appConfig'
 import { CLOCK_ICON, useEinsatzuhr } from '../lib/einsatzuhr'
 import { EinsatzuhrMenu } from './Einsatzuhr'
 import { useIsPhone } from '../lib/useIsPhone'
+import { useKeyHints } from '../lib/useDevicePrefs'
+import { PANEL_KEY } from '../lib/hotkeys'
 import { useHoldEntry } from '../lib/useHoldEntry'
 import { useLiveBearing } from '../lib/liveBearing'
 import { HoldChargeRing, HoldTargets } from './HoldTargets'
@@ -103,7 +105,7 @@ interface Props {
   showHistory?: boolean
   /** phone-only surface controls folded into the bar: a primary view action (locate →
    *  centre on incident on the map; fit → fit-to-view on the plan). Null on desktop,
-   *  where these live in the rail footer. */
+   *  where these live in the tool rail's view bar. */
   mapNav?: { action: { icon: string; label: string; onClick: () => void } } | null
   /** map weather reading, rendered as a readout next to "Eintrag" (replaces the floating
    *  corner badge). Null off the map / while loading. */
@@ -165,6 +167,14 @@ export function TopBar({ incident, startedAt, endedAt, recording, recStartedAt, 
   const uhr = useEinsatzuhr(startedAt, endedAt, now)
   const clockText = uhr.text
 
+  // Verlauf (J) and Eintrag (E) wear their letter like the rails' tiles do (staging review
+  // 06.11.2026, S6): the same `.rail-key` badge, the same device pref «Tastenkürzel anzeigen»
+  // (lib/prefs · keyHints), and in CSS only with a mouse and keyboard (10-journal.css · .tb-key).
+  // Not on a phone, whose bar is icons only. The tooltip names the key either way.
+  const [keyHints] = useKeyHints()
+  const keyHint = (k: string) => (keyHints && !isPhone ? <span className="rail-key tb-key" aria-hidden>{k}</span> : null)
+  const keyTitle = (label: string, key: string) => fillTemplate(appConfig.copy.journal.keyTitle, { label, key })
+
   // Eintrag gesture (shared with the mobile FAB so they behave identically). The hook runs
   // unconditionally — hooks can't be skipped — but with the button unrendered nothing ever
   // reaches these handlers, so the no-op fallbacks are only there to satisfy the signature.
@@ -216,14 +226,17 @@ export function TopBar({ incident, startedAt, endedAt, recording, recStartedAt, 
           <button className="tb-act icon" title={mapNav.action.label} aria-label={mapNav.action.label} onClick={mapNav.action.onClick}><Icon id={mapNav.action.icon} /></button>
         )}
         {showHistory && (
-          <>
+          // ONE pair (hill climb r20, Opus 8): ↶ ↷ stand 4px apart inside the bar's 8px, so the bar
+          // reads title → time → log → weather instead of two loose 52px slots (10-journal ·
+          // .tb-history; a phone keeps its own spacing, 15-mobile)
+          <span className="tb-history">
             {/* tb-act-history: a name the stylesheet can aim at. On a phone with an
                 überfällig chip in the bar these two are what steps aside — see app.css. Positional
                 selectors would have picked the wrong buttons, because the mapNav action ahead of
                 them is a .tb-act.icon too and comes and goes with the surface. */}
             <button className="tb-act icon tb-act-history" title={undoWord} aria-label={undoWord} disabled={!canUndo} onClick={onUndo} {...tut('top.undo')}><Icon id="undo" /></button>
             <button className="tb-act icon tb-act-history tb-act-redo" title={redoWord} aria-label={redoWord} disabled={!canRedo} onClick={onRedo} {...tut('top.redo')}><Icon id="redo" /></button>
-          </>
+          </span>
         )}
         {/* ⚠️ `has-rem` tints the BUTTON, not just its corner. The count badge alone is 17px of amber
             hanging off a 44px icon — and on a phone the next thing in the bar is the Atemschutz
@@ -232,8 +245,8 @@ export function TopBar({ incident, startedAt, endedAt, recording, recStartedAt, 
             and the number rides along (see .tb-act.has-rem). */}
         <button className={`tb-act ${journalOpen ? 'on' : ''} ${reminderCount > 0 ? 'has-rem' : ''}`} aria-pressed={journalOpen} onClick={onToggleJournal} {...tut('top.verlauf')}
           aria-label={reminderCount > 0 ? appConfig.copy.journal.openCount.replace('{n}', String(reminderCount)) : appConfig.copy.journal.open}
-          title={reminderCount > 0 ? appConfig.copy.journal.openCount.replace('{n}', String(reminderCount)) : appConfig.copy.journal.open}>
-          <Icon id="history" /><span>{appConfig.copy.journal.open}</span>
+          title={keyTitle(reminderCount > 0 ? appConfig.copy.journal.openCount.replace('{n}', String(reminderCount)) : appConfig.copy.journal.open, PANEL_KEY.journal)}>
+          <Icon id="verlauf" /><span>{appConfig.copy.journal.open}</span>{keyHint(PANEL_KEY.journal)}
           {reminderCount > 0 && <span className="tb-rem-count" aria-label={appConfig.copy.journal.openCount.replace('{n}', String(reminderCount))}>{reminderCount}</span>}
         </button>
         {onAddEntry && (
@@ -241,7 +254,7 @@ export function TopBar({ incident, startedAt, endedAt, recording, recStartedAt, 
             className={`tb-act tb-act-add ${recording ? 'rec' : ''} ${latched ? 'cancelling' : ''}`}
             // held at its measured width while it is an ✕, so dropping the label cannot resize it
             style={latched && anchor ? { width: anchor.width } : undefined}
-            title={recording ? appConfig.copy.journal.recordStop : appConfig.copy.journal.addHint}
+            title={recording ? appConfig.copy.journal.recordStop : keyTitle(appConfig.copy.journal.addHint, PANEL_KEY.composer)}
             data-hold-target="cancel"
             {...handlers}
           >
@@ -261,6 +274,7 @@ export function TopBar({ incident, startedAt, endedAt, recording, recStartedAt, 
                   {pressing && pressedSince != null && <HoldChargeRing since={pressedSince} />}
                 </span>
                 <span className="tb-act-label">{appConfig.copy.journal.add}</span>
+                {keyHint(PANEL_KEY.composer)}
               </>}
           </button>
         )}

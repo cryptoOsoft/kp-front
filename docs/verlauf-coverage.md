@@ -25,7 +25,10 @@ legally on the record, but invisible to anyone reading the Verlauf.
 On top of that there is a third, small source: the server writes lifecycle rows itself
 (`backend/app/api/journal.py` · `append_system_row`) – incident closed, reopened,
 Nachalarm, automatic archival (untouched, stale, and an Übung idle for `alarms.exerciseAutoCloseHours`:
-«Automatisch abgeschlossen (Übung)»).
+«Automatisch abgeschlossen (Übung)») – and, since 05.11.2026, «Präsentation gestartet / beendet
+(<Name>)» from the Präsentationsmodus (`backend/app/presentation.py`, derived `syspr…` ids). Those
+two rows are ALL the Verlauf learns of a presentation: its pointers and views are never recorded
+([`presentation.md`](presentation.md)).
 
 ## What the server observes (since 24.09.2026)
 
@@ -124,6 +127,7 @@ the clock. Sound and system notification deliberately do **not** hang off it.
 |---|---|
 | Zeitplan / shifts | `src/lib/useShiftActions.ts` · `useShiftActions` (doc comment): *«attendance is a RECORD … a plan is not, and logging each nudge of a chip would bury the operational journal under bookkeeping»* |
 | Checklists | only milestones create a row (`src/lib/useChecklistActions.ts` · `milestoneRow`): «☑ …» on a tick, and since 23.09.2026 the appended correction «Meilenstein zurückgenommen: …» (↶ glyph, Bereich «Checkliste») on an un-tick – by tap and by ↶ alike (`describeStep`), one row per step, ☑ again on a re-tick or ↷ |
+| Problemerfassung (a `problems` checklist ↔ the Tafel, 05.11.2026) | a problem is ticked, given a Tendenz, written in a box or a row, or deleted by the bin – none of it writes a row: a problem tick is not a milestone (the doctrine above), a Tafel cell never wrote one (only a page added or removed does), and the problem stands on the Tafel and in the printed Rapport's Tafel pages anyway. Audit only: `checklist.tick` (`from: 'tafel'` for an un-tick by the bin), `checklist.trend`, `board.edit` with the cells. A ↶ / ↷ of such a step writes the usual «… rückgängig gemacht» |
 | Editing drawings (color, style, geometry) | operator action, not an event – see the doctrine note below |
 
 The doctrine lives in the AdFU workflow description: *«Der Verlauf ist keine automatische
@@ -145,10 +149,31 @@ the same rows:
   the toast «Pendenz erledigt: … · Rückgängig» (and ↶) appends **«Pendenz wieder offen: …»** /
   «Erinnerung wieder offen: …» (`reminder.op: 'reopened'`) beside the done row, which stays;
   ↷ appends a fresh done row. The toast drops its ↶ entry, so the act is never taken back twice.
+- **«↻ wieder in 30 / 60 min»** on a done row appends a fresh Wiedervorlage («Erinnerung gesetzt
+  für …», `useJournalWriters · reRaisePendenz`) that names the item it re-raises
+  (`reminder.again`); while it is open the done row shows ✓ «↻ in 30 min gesetzt» instead of the
+  chips (05.11.2026, a double tap raised two). Its toast «Wiedervorlage in 30 min gesetzt ·
+  Rückgängig» appends **«Wiedervorlage zurückgenommen: …»** (`reminder.op: 'done'`, icon ↶) –
+  append-only, the created row stays.
 - The **Atemschutz alarm row** reads the same fold that plays the sound and writes nothing
   new – the alarm's Verlauf row is created once per cycle as before (see above).
 - **Swiping away (✕), take-over navigation, «Zum Trupp»** write nothing – view, not
   content. Taking over an alarm itself writes through its existing path.
+
+## The Tafel's «Aufträge / Pendenzen» page (05.11.2026) writes Verlauf rows, never page values
+
+The page is a view on the Pendenzen and Erinnerungen (`lib/pendenzenPage`,
+[`board-templates.md`](board-templates.md#the-aufträge--pendenzen-page)), so each act on it is a
+row here, on the Tafel's sheet (`surface: 'plan'`, `planId: 'tafel'`), with its audit event:
+
+- a row typed on the page → **«Pendenz von der Tafel (Aufträge / Pendenzen): … · Wer: …»**, a
+  `created` row with `origin: 'tafel'` (`reminder.create`). The Pendenzen block marks the item
+  «von der Tafel».
+- Was / Wer / Prio. changed → **«Auf der Tafel geändert (…): Wer: …»**, a `note` row carrying
+  `edit` (+ `urgent`) (`reminder.note`). It is a correction, not a Meldung: the item's thread does
+  not list it. ↶ appends the correction back.
+- Erledigt ticked / un-ticked → **«Erledigt auf der Tafel: …» / «Auf der Tafel wieder offen: …»**,
+  the same `done` / `reopened` rows (and confirm-with-undo) as the ring here.
 
 ## Drawings: creating, naming and deleting are on the record – arranging is not
 
@@ -175,9 +200,13 @@ is split per surface into `src/config/copy/de/<surface>.ts` since 2026-10-09):
 - **A Leitung's Schlauch writes, its Wassertransport does not** (04.11.2026): «Schlauch: 110 mm»
   / «Schlauch auf 2× 75 geändert» (`lib/drawingEdit`) – what was laid. The relay assumptions
   (`Drawing.relay`: Wasser, Start, a pump moved or set by hand) are planning, tweaked tap by
-  tap; they are undoable prop edits in `draw.edit` and write no row. Its «Pumpen als Symbole
-  setzen» does: ONE row for all of them («3 Pumpen als Symbol gesetzt», `useMapActions ·
-  placePumpSymbols`), one undo step, an `entity.add` per Motorspritze.
+  tap; they are undoable prop edits in `draw.edit` and write no row – a pump dragged along the
+  line on the map included (a pin). Its switch «Pumpen auf Karte» (`relay.showPumps`, 05.11.2026)
+  does: it puts the calculated Motorspritzen on the Karte and the printed Kroki or takes them off
+  («Leitung 1: Pumpen auf der Karte» / «… Pumpen von der Karte genommen», `lib/drawingEdit`), one
+  undo step per flip. The pumps themselves are derived (`lib/linePumps`), never entities, so they
+  write nothing of their own. (It replaced «Pumpen als Symbole setzen», 04.–05.11.2026, whose
+  «{n} Pumpen als Symbol gesetzt» rows and ordinary Motorspritzen stay in those Einsätze.)
 
 **Two exceptions, and each is a row: a GPS-coupled Leitung loses a drive** (since 24.09.2026,
 `src/lib/gpsReturn.ts`, `useMapDrawing · revertGpsFollow` / `releaseGpsOnSite`). A Leitung end

@@ -15,7 +15,7 @@ questions, and what the record keeps (`components/AtemschutzView`; the card and 
   with words, one `PressureSheet`. The tablet grid and the Tafel are NOT this board, except where
   a rule below says «every board» — their CARD is (see «The opened card …»). The rules:
   - *The opened card is the row grown downwards* (owner, staging 26.09.2026): the same frame and
-    tone, the same line (`RowLine`: dot · name · clock) and the same «Druck 240 bar | Kontakt» pair
+    tone, the same line (`RowLine`: ring · name · clock) and the same «Druck 240 bar | Kontakt» pair
     (`TruppPair`) in the same place, collapsed or open, in every tier — opening only ADDS the
     Kennzeile (the tier in words where there is one; the ⋯ at its end), the note,
     Rückzug / Raus, the Sockel line and the Verlauf. No band, no second Kontakt, no Druck row. The
@@ -26,8 +26,8 @@ questions, and what the record keeps (`components/AtemschutzView`; the card and 
     pick B — as the facts' last chip it wrapped onto a 44px row of its own). What differs is only
     what the board has room for: on the grid every card stands open (the line is not a toggle, no
     chevron), the hand-set order keeps its ‹ › in the ⋯, and a card on a board without state heads
-    (grid, Tafel — `headed` false) says «Bereit» in its state line, which on the phone is the
-    section head. The state line never says what the card's colour already says (29.09.2026,
+    (the «Wie gesetzt» / «Name» grid, Tafel — `headed` false) says «Bereit» in its state line,
+    which on the phone and the grouped grid is the section head. The state line never says what the card's colour already says (29.09.2026,
     owner: «drop the überfällig – if the card is red it's pretty obvious»; «the draussen subtitle
     is probably not even required»): fällig / überfällig live on for a screen reader only
     (`.sr-only`), and an out Trupp's card carries no «Draussen» — it keeps the words colour cannot
@@ -66,9 +66,18 @@ questions, and what the record keeps (`components/AtemschutzView`; the card and 
     status word («Rückzug»). `flex: none` – a long name ellipsises before the badge or the clock
     is squeezed. It is not a tier: the side line stays amber only for «Fällig». A Notfall page
     draws its own head (`pageHead`) and so not this badge.
-  - *Crew names are never cut* (31.10.2026, owner): the crew chip wraps BETWEEN people only – each
-    name is a nowrap span, the « · » is the break – and grows by a line each time; no ellipsis,
-    the 36px floor stays (`.factCrew` / `.crewName`). The other chips keep their ellipsis.
+  - *The crew is a line under the name, not a chip* (owner pick A3, 05.11.2026): the members after
+    the leader (the Trupp's `name` IS its leader — `truppHeadName`), plain 14px ink,
+    «Widmer Lukas · Wyss Urs» (`TruppCard · crewLine`). On the grid and the Tafel it is the static
+    head's last row (inside the band); on the phone's opened card it stands under the collapse
+    head, so opening a row moves nothing; the closed phone row never shows it. Still the Trupp
+    sheet's door: a button drawn as text, 28px with an invisible 8px touch pad above and below.
+    The chips are Auftrag / Ziel, the jumps, Kanal and Ausrüstung only.
+  - *Crew names are never cut* (31.10.2026, owner): the crew line wraps BETWEEN people only – each
+    name is a nowrap span, the « · » is the break – and grows by a line each time; no ellipsis
+    (`.crewName`). The chips keep their ellipsis.
+  - *Truppfarbe as a ring* (owner pick C5, 05.11.2026): the identity mark before the name is a
+    hollow ring in the Trupp's colour, not a filled disc — a red disc read as an alarm.
   - *A Trupps section head* (Drin · Sicherungstrupp · Bereit · Draussen, and the grid's
     Atemschutz / Weitere Trupps) is the eyebrow and the count badge — no hairline rule to the
     edge (29.09.2026); the boundary is the air above the head — ONE number, 26px (`.sectSecond`),
@@ -76,6 +85,78 @@ questions, and what the record keeps (`components/AtemschutzView`; the card and 
     Sicherungstrupp zone included (`.phoneBoard > * + :is(.sect, .safetyZone)`, 30.09.2026:
     Sicherungstrupp and Draussen sat flush on the card above). A head keeps 12px to its first
     card. Never give a section its own top/bottom margins.
+  - *The wide grid wears the phone's state heads where its order already reads that way* (hill
+    climb r1, 04.11.2026): under «Dringlichkeit» and «Auftrag» the grid stands as Drin · Bereit ·
+    Draussen (then Weitere Trupps), each section in the order's own sequence and with the same
+    24px air (`.stateBoard`). «Wie gesetzt» stays one slot-keeping grid (a card never jumps when
+    its Trupp comes out — 17.08., 23.10.2026) and «Name» an alphabet. No Sicherungstrupp section
+    on the grid: a standing «Sichern» crew is a Bereit card with its Auftrag chip.
+  - *Quiet facts, one loud action per card* (04.11.2026): the fact chips are quiet fields (no edge,
+    `--ink-5` fill, 500) that still open their sheets; the tiles and the head's tiles are 700, 800 is
+    kept for Kontakt and the filled primaries. «Wieder in den Einsatz» stays the out card's one
+    filled tile (owner, 27.09.2026).
+  - *The grid's card names its clock and is denser* (hill climb r2, 04.11.2026): on the tablet /
+    desktop grid the caption the link board's page wears names the clock («SEIT LETZTEM
+    KONTAKT», «DRAUSSEN SEIT», «EINSATZZEIT», «ANGEMELDET UM») on a row of its own across the head,
+    so it never squeezes the name; under the grouped orders' «Draussen» head the break clock goes
+    unnamed (`RowLine · headed`). No separate state word by the name. The phone row and its opened
+    card keep the caption hidden (owner 24.09.2026: «drop the blabla, just the time» — its section
+    heads say it). Fact chips are compact fields everywhere (28px drawn, 8px pad above/below on
+    touch so a chip owns 44px), rows 8px apart on every device since owner pick A2 (05.11.2026).
+    Two rows 8px apart cannot both own 44px in 8px of air, so on the grid on touch the strip stands
+    16px under the tiles and the first row's pad reaches 16px up; the second row (`.factsEnd`) owns
+    the gap. On the grid, touch keeps «Druck | Kontakt» and the filled tile at 48px and sets
+    Rückzug | Raus and Notfall at 44px; a mouse gets 36px tiles and a 32px foot line (r13 — 40/36
+    left the 1536×864 laptop's second row with its feet under the panel's edge).
+    Since owner pick A1/C7 (05.11.2026) the caption is 11px caps with its tracking nearly closed
+    and stands ABOVE the time («Draussen seit 4:25:20», `RowLine` draws it first), on one line,
+    its cap line 10px under the card's edge and 6px over the digits' cap height (r18 – at r13's
+    ~3px the clock block looked jammed into the band's corner; the room came out of the 24px clock
+    row, the crew line's top pad, the band's foot and, on a card without the band, the air over its
+    first tile, so both iPad rows still fit). The «KON TAKT» gaps in the harness's laptop shots
+    are headless Chromium's full hinting at DPR 1 (whole-pixel glyphs), not the copy or the tracking – `--font-render-hinting=none` sets it evenly; «Kanal 11»
+    (with the Ausrüstung after it) always opens the facts' last row on the grid (`.factsEnd`), so
+    it stands in the same place on every card.
+  - *Inside reads louder than outside* (hill climb r3, 04.11.2026): on the grid a crew inside with
+    a calm clock (`rowTone` → `.trowIn`) wears a green head band behind its name and contact
+    clock, closed by a 3px green rule along its foot (r5); fällig / überfällig wear the same band
+    in their tone since 05.11.2026 (owner: «warnings must show there too») — amber wash + amber
+    rule, red wash + red rule. A fällig clock is `--amber-strong` on every board (plain amber was
+    2.2–2.4:1 by day on the washes), überfällig `--red-strong` as before. Since r18 the three bands
+    wash at 22 % by day and 16 % at night (12 % read as the board's quietest block beside the out
+    cards' filled tiles), and the calm band's clock is `--green-strong` like its two siblings.
+    An out card sinks: its surface is mixed toward the canvas (it was mixed toward the ink, which
+    lit it at night), its name AND its crew line are the dim ink (r13: an ink crew under a dim name
+    read louder than the Trupp) and its clock the quiet 16px. Since r15 its fact chips and its
+    foot's values wear the same dim ink (the phone row's out tone; `--done-opacity` would take the
+    text under AA) – only «Wieder in den Einsatz» stays at full strength, so it reads as the card's
+    one action. Since r17 the grid's out head sinks one step further: the name at 700 (dim ink),
+    the crew in the faint ink of the «Draussen seit» caption, the clock dim 16/700; the phone's
+    Draussen row (name and time) keeps its 800. Slots never move.
+    Since r11 the grid card's 5px left edge is drawn only for a tone that means something (amber
+    fällig, red überfällig, blue angemeldet, green Sicherungstrupp); a calm inside card, an out
+    card and a work squad have just the 1px card border — the phone rows too since owner pick C2
+    (05.11.2026). An out card's foot words its finished values: «drin 29:00 min · raus mit 175
+    bar» (owner pick C18; not on a crew stood down at the door) — the joining words «drin» /
+    «raus mit» in the dim ink at 500, so the values read first (r13); the inside card's «Schätzung ≈»
+    keeps full ink and weight.
+  - *The tablet grid shows every foot* (hill climb r4, 04.11.2026): on the 1180×820 iPad the second
+    row's foot (duration, Schätzung) met the panel's bottom edge. The space came out of air, never a
+    target: the caption row above the digits is reserved on every grid card, so names still line
+    up across a row. Tiles, chips and their pads keep their heights on touch.
+    Since r16 (05.11.2026) the board starts 16px under the page head on every board (it was 6px on
+    touch, 8 on a mouse – tight under the head's rule beside the 22px sides). The room on the iPad
+    came from the touch grid's card gap (8px, 12 on a mouse) and its crew line (an 18px line in a
+    22px box; 20px since r18, with an invisible pad so it still owns 44px); a mouse has a 26px crew
+    box (28 until r18) and ends the board 13px under the last row, so the 1536×864 laptop does not
+    scroll. The board's scroller reserves a classic scrollbar's gutter on both edges
+    (`scrollbar-gutter: stable both-edges`), so its visible left and right insets are equal; an
+    overlay scrollbar (iPad, phone) reserves none.
+    Since r17 the iPad's grid also ends 17px over the panel's edge (it stood on it): on touch the
+    grid card's foot line is drawn 36px and owns its 44px through an invisible 8px pad under the
+    card (the row gap or the board's bottom inset – air nobody owns; the chips over the foot have
+    no pixel to give). The touch grid card therefore does not clip; its head band and its foot's
+    wash round their own outer corners, and an opened Verlauf keeps the line at 44px.
 
 ## The Atemschutz-Link board (the handed-over phone board, `lite && compact`)
 
@@ -94,7 +175,7 @@ good but we don't need the triangle thing. red and notfall is already enough»):
 - *No card*: the open Trupp is a flat PAGE — no frame, tint or edge; the tier is on its tab and in
   its clock's colour — and the page scrolls (`.focusCard` is the port; sweep #21 found the card
   clipped). Every page opens with the NAME at 32px (`--fs-6`) and the clock at 40px with what it counts
-  under it («SEIT LETZTEM KONTAKT»); a crew at the door says «Bereit» there (`TruppCard · page`).
+  above it («SEIT LETZTEM KONTAKT»); a crew at the door says «Bereit» there (`TruppCard · page`).
 - *Read at the top, tap at the bottom* (31.10.2026, owner pick «A – Tasten nach unten»: the page
   was top-heavy, the lower half empty where the thumb is): the head, the state words, the note,
   the chips and the foot line («0:21 min · Schätzung ≈ 298 bar ⌄ ⋯») stand on top; the SAME
@@ -178,8 +259,10 @@ good but we don't need the triangle thing. red and notfall is already enough»):
   cleared on a re-park): «Zur Tafel» (focused) / «Als «nicht eingesetzt» schliessen». Not while
   a crew is still inside, and the stand-down runs only after the FINAL «Abschliessen», re-checked
   against the Trupps as they stand then — a crew sent in meanwhile never gets an Austritt.
-  Crews still INSIDE are the Abschluss's own FIRST question, by name («2 Trupps sind noch drin:
-  Trupp 1 (…), Trupp 2 (…).»), «Zur Tafel» focused, closing anyway the quiet answer — and after
+  Crews still INSIDE are the Abschluss's own FIRST question, by name – «2 Trupps sind noch drin:»
+  and one line per Trupp, «**Trupp 1** – Muster Leo / Graf Eva» (owner pick mock 4, 06.11.2026) –
+  «Abbrechen» + «Trotzdem abschliessen» on one row, «Zur Tafel» focused and full width under them
+  on every device (a narrow phone stacks the three, «Zur Tafel» last) — and after
   the Abschluss the app lands on HOME (useIncidentLifecycle · completeRapport, 05.10.2026; home is «Karte &
   Objekte» since 16.10.2026), never opens another: the closed Einsatz is forgotten on the device
   and `prefs.landedAt` keeps a cold start at home too, until one is opened by hand or a NEWER alarm arrives (pickBootIncident).
@@ -204,7 +287,9 @@ good but we don't need the triangle thing. red and notfall is already enough»):
   12px to the clock; the number stays in the TruppFinder and the Verlauf. The handed-over phone board opens on the most
   urgent crew inside; the Eintrag FAB floats over the phone Trupps page (27.10.2026) and the list
   ends above it with the shared `--fab-safe` foot (28.10.2026); an opened card's foot row keeps the
-  FAB's column free while it stands under the circle (`data-az-fab-foot`).
+  FAB's column free while it stands under the circle (`data-az-fab-foot`). The rows' name/clock
+  line keeps NO reserve since owner pick A4/C10 (05.11.2026; it did from hill climb r5): clock and
+  chevron stand at the row's right edge, the FAB floats over them and scrolling uncovers them.
 
 - *The Eingangsdruck is guarded, once* (item 2, every width): locked in «Bearbeiten» once the
   Trupp is raus (pointing at the exit's Restdruck); below `doctrine.entryPressureMin` (default

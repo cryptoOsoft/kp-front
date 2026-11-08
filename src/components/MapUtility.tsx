@@ -35,7 +35,7 @@ export function MapUtility({
 }: Props) {
   const c = appConfig.copy.nav
   // (Day/night toggle moved to the incident dropdown menu — see IncidentSwitcher. The
-  // coordinate toggle is a row in the compass menu, matching the rail footer.)
+  // coordinate toggle is a row in the compass menu, matching the view bar's compass.)
   return (
     <div className={s.toputil}>
       <MapViewsButton api={views} bearing={bearing} readOnly={readOnly} variant="util" btnClassName={s['tu-btn']} activeClassName={s.on} glyphClassName={s.compass} open={viewsOpen} onOpenChange={onViewsOpenChange} coordsOn={coordsOn} onToggleCoords={onToggleCoords} />

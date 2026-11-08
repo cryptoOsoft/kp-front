@@ -655,6 +655,25 @@ async def test_partner_organisations_land_in_their_two_homes(client, station):
     assert after["fleet"]["partner"]["feuerwehr"] == []
 
 
+async def test_herkunft_rows_are_the_one_vehicle_origin_list(client, station):
+    # 05.11.2026: Kategorie «Herkunft» is fleet.origins — not a fleet.partner.* bucket — and it
+    # comes back out under the same word, so the round trip changes nothing
+    rows = [
+        ["Rapport", "Polizei BL"],
+        ["Herkunft", "Stützpunkt"],
+        ["Herkunft", "Zivilschutz"],
+        ["Feuerwehr", "FW Nachbardorf"],
+    ]
+    assert (
+        await client.post("/api/station-workbook/import", files=upload(make_xlsx({SHEET_PARTNER: rows})))
+    ).status_code == 200
+    after = await stored(station)
+    assert after["fleet"]["origins"] == ["Stützpunkt", "Zivilschutz"]
+    assert "herkunft" not in after["fleet"]["partner"]
+    exported = sheets_of(await export(client))[SHEET_PARTNER]
+    assert [r for r in exported if r[0] == "Herkunft"] == [["Herkunft", "Stützpunkt"], ["Herkunft", "Zivilschutz"]]
+
+
 async def test_symbol_options_regroup_from_one_row_per_option(client, station):
     data = make_xlsx(
         {

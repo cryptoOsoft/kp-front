@@ -360,6 +360,23 @@ def _lifecycle_headers(lc: IncidentLifecycle) -> dict[str, str]:
     return headers
 
 
+#: The Präsentationsmodus marker on every workspace read, the 304 included: the running
+#: presentation's id, or «none». It is how a device learns that one runs WITHOUT a loop of its
+#: own – the presentation follow (api/presentation) runs only while this says one does, so an
+#: Einsatz nobody presents costs no request (perf journey `idle`, 06.11.2026). A start or an end
+#: wakes the parked workspace polls (app/presentation · `_wake`), so a follower hears it at once.
+PRESENTATION_HEADER = "X-Presentation"
+
+
+async def _presentation_marker(db: AsyncSession, incident_id: uuid.UUID, is_open: bool) -> str:
+    """The marker – after the lazy watchdog, so a presenter gone quiet reads as «none» (and its
+    «beendet» row is written) even while nobody runs the presentation follow."""
+    from .. import presentation
+
+    p = await presentation.expire(db, incident_id, is_open=is_open)
+    return p.id if p is not None else "none"
+
+
 @router.get("/{incident_id}/workspace", response_model=WorkspaceOut)
 async def get_workspace(
     incident_id: uuid.UUID,
@@ -369,6 +386,7 @@ async def get_workspace(
     wait: bool = False,
     open_: bool | None = Query(default=None, alias="open"),
     writer: str | None = None,
+    presentation: str | None = Query(default=None, max_length=32),
     db: AsyncSession = Depends(get_db),
 ):
     """The workspace blob, or a 304 when the caller's `since` revision is still current.
@@ -384,6 +402,10 @@ async def get_workspace(
     between the device's last answer and this request would otherwise wait out the whole timeout
     (the wake fires only for followers already parked). Absent (an older client) → parks as
     before.
+
+    `presentation` is the Präsentationsmodus marker the caller holds (`PRESENTATION_HEADER`), the
+    same way: a poll whose marker is no longer true is answered at once. A device that knows
+    none sends «none», the common case, so it parks as usual.
 
     `wait=1` (only meaningful together with `since`) makes that 304 a LONG POLL: instead of
     answering «unchanged» right away and being asked again two seconds later, the request parks
@@ -402,32 +424,35 @@ async def get_workspace(
         # and this follower would sit out the whole timeout with the new blob already in the DB.
         async with live_wait.subscribe(live_wait.workspace_topic(incident_id)) as changes:
             state = await _live_state(db, incident_id)
+            marker = await _presentation_marker(db, incident_id, state.lifecycle.is_open)
             if latch:
                 await _latch_editor_opened(db, incident_id)
             # ⚠️ A follower of a CLOSED Einsatz parks too. Answering it at once would spin every
             # device showing the closed Einsatz in a tight loop (the client goes straight into the
             # next round after an answer); the ones parked at the moment of the close are woken by
             # `patch_incident`, and a later poll hears it on its first answer.
-            if since == state.rev and wait and (open_ is None or open_ == state.lifecycle.is_open):
+            believed = (open_ is None or open_ == state.lifecycle.is_open) and presentation in (None, marker)
+            if since == state.rev and wait and believed:
                 # Commit BEFORE parking. It persists the latch above and — the load-bearing half —
                 # hands the pooled DB connection back: a dozen followers asleep on a checked-out
                 # connection would drain the pool and stall every write in the station.
                 await db.commit()
                 if await changes.wait():
                     state = await _live_state(db, incident_id)
+                    marker = await _presentation_marker(db, incident_id, state.lifecycle.is_open)
+        unchanged = {**_lifecycle_headers(state.lifecycle), PRESENTATION_HEADER: marker}
         if since == state.rev:
-            return Response(status_code=status.HTTP_304_NOT_MODIFIED, headers=_lifecycle_headers(state.lifecycle))
+            return Response(status_code=status.HTTP_304_NOT_MODIFIED, headers=unchanged)
         if live_wait.only_own_writes(incident_id, live_wait.writer_id(writer), since, state.rev):
-            headers = {**_lifecycle_headers(state.lifecycle), WORKSPACE_REV_HEADER: str(state.rev)}
-            return Response(status_code=status.HTTP_304_NOT_MODIFIED, headers=headers)
+            return Response(
+                status_code=status.HTTP_304_NOT_MODIFIED, headers={**unchanged, WORKSPACE_REV_HEADER: str(state.rev)}
+            )
     inc = await get_incident_or_404(db, incident_id)
     if latch and since is None:
         await _latch_editor_opened(db, incident_id)
-    response.headers.update(
-        _lifecycle_headers(
-            await resolved_lifecycle(db, incident_id, IncidentLifecycle(inc.is_archived, inc.status, inc.closed_at))
-        )
-    )
+    lifecycle = await resolved_lifecycle(db, incident_id, IncidentLifecycle(inc.is_archived, inc.status, inc.closed_at))
+    response.headers.update(_lifecycle_headers(lifecycle))
+    response.headers[PRESENTATION_HEADER] = await _presentation_marker(db, incident_id, lifecycle.is_open)
     return WorkspaceOut(workspace=inc.map_workspace_json, workspace_rev=inc.workspace_rev)
 
 

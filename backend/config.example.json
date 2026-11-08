@@ -146,6 +146,11 @@
           "Logistik"
         ]
       }
+    ],
+    "origins": [
+      "Stützpunkt",
+      "Nachbarwehr",
+      "Zivilschutz"
     ]
   },
   "doctrine": {

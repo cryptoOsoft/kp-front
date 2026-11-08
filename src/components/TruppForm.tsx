@@ -19,6 +19,7 @@ import { type LeitungOption } from '../lib/truppLines'
 import { ClearableInput } from './ClearableInput'
 import type { Slot } from './PersonField'
 import { TruppTeam } from './TruppTeam'
+import { UnitVal } from './TruppCard'
 import { atemschutzDoctrine, atemschutzEquipment } from '../lib/deploymentConfig'
 import { keepDraft, useKeptState } from '../lib/draftKeep'
 import s from './Atemschutz.module.css'
@@ -651,7 +652,7 @@ export function TruppForm({
         <div ref={pressureRef} className={s.field}>
           <span>{az.pressureLockedLabelPlain}</span>
           <div className={s.pressureLocked}>
-            <b>{initial!.entryPressureBar} bar</b>
+            <b><UnitVal val={`${initial!.entryPressureBar} bar`} /></b>
             <Icon id="lock" className={s.pressureLockedIcon} />
           </div>
           <p className={s.fieldNote}>{lockedExit
@@ -667,11 +668,11 @@ export function TruppForm({
               <div className={s.bottleBtns}>
                 <button type="button" className={cx(s.bottleBtn, bottle === 'same' && s.bottleOn)}
                   onClick={() => { setBottle('same'); setPressure(lastExit!.bar); setPressureSet(true) }}>
-                  {az.bottleSame}<b>{lastExit!.bar} bar</b>
+                  {az.bottleSame}<b><UnitVal val={`${lastExit!.bar} bar`} /></b>
                 </button>
                 <button type="button" className={cx(s.bottleBtn, bottle === 'new' && s.bottleOn)}
                   onClick={() => { setBottle('new'); setPressure(atemschutzDoctrine().defaultPressureBar); setPressureSet(true) }}>
-                  {az.bottleNew}<b>{atemschutzDoctrine().defaultPressureBar} bar</b>
+                  {az.bottleNew}<b><UnitVal val={`${atemschutzDoctrine().defaultPressureBar} bar`} /></b>
                 </button>
               </div>
             </div>
@@ -680,7 +681,7 @@ export function TruppForm({
             <button type="button" className="row-go" aria-haspopup="dialog" onClick={() => setPicker('pressure')}
               aria-label={`${pressureFieldLabel} ${fillTemplate(az.stackPressure, { n: pressure })}`}>
               <span className="row-go-text">{pressureFieldLabel}</span>
-              <span className={s.pickRowValue}>{fillTemplate(az.stackPressure, { n: pressure })}</span>
+              <span className={s.pickRowValue}><UnitVal val={fillTemplate(az.stackPressure, { n: pressure })} /></span>
               <span className="row-go-word"><Icon id="chevron" /></span>
             </button>
           </div>
@@ -807,7 +808,7 @@ export function TruppForm({
         <h3>{title}</h3>
         {/* with the keys up (a name half-typed) the first tap here only puts them away — the
             Overlay catches its frame's first `.ip-x` (overlays/fieldFirst, sweep 30.10.2026) */}
-        <button className="ip-x" aria-label={az.cancel} onClick={onCancel}><Icon id="close" /></button>
+        <button className="ip-x" aria-label={appConfig.copy.closeDialog} onClick={onCancel}><Icon id="close" /></button>
       </div>
       <div className={s.modalBody}>
         {stack ? (

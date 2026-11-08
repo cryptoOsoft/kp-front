@@ -26,7 +26,7 @@ import type { ReportOptions } from '../lib/report'
 export type PhoneTab = 'bericht' | 'werwas' | 'beilagen'
 export const PHONE_TABS: PhoneTab[] = ['bericht', 'werwas', 'beilagen']
 /** Which tab a still-open Mindestangabe lives in — the head's «noch offen» chips switch to it
- *  before they scroll, and the tab itself carries a dot while one of its steps is open. */
+ *  before they scroll, and the tab itself carries the open mark (StatusMark) while one of its steps is open. */
 export const STEP_TAB: Record<AbschlussStep, PhoneTab> = {
   zeiten: 'bericht',
   einsatzleiter: 'bericht',

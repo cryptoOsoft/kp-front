@@ -162,9 +162,11 @@
   font: var(--fw-bold) var(--fs-2) var(--body); color: var(--ink-dim); }
 
 /* pencil dialog: Einheit and Bestand share a line — both are short, and stacked they pushed
-   Quelle and the Bemerkung below the fold on a phone */
-.dialogRow { display: flex; gap: var(--sp-3); align-items: flex-start; }
-.dialogRow > * { flex: 1 1 0; min-width: 0; }
+   Quelle and the Bemerkung below the fold on a phone. The Bestand stepper keeps its width (its
+   three 44px targets), the Einheit takes the rest and may shrink: as two equal halves the
+   stepper's reset ✕ ran past the sheet's 24px inset to the screen edge (r36, 06.11.2026) */
+.dialogRow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--sp-3); align-items: start; }
+.dialogRow > * { min-width: 0; }
 
 /* (the whole search line — .controls/.search, the filter buttons, the + and the dropdown —
    lives in SurfaceControls.module.css, shared with the Anwesenheit) */

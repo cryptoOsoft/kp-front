@@ -2,12 +2,12 @@ import { useEffect, useState, type RefObject } from 'react'
 import type { Map as MlMap } from 'maplibre-gl'
 import type { CaptionMode, Drawing, Entity, LayerId, LngLat } from '../types'
 import { dockSlots } from '../lib/docking'
-import { cachedLabelSize, LABEL_RANK, placeLabels, type LabelBox, type LabelCandidate, type LabelStyle } from '../lib/labelPass'
-import { effectiveLayer, END_TAG_LABEL_STYLE, READOUT_LABEL_STYLE, shapePx, symPx, SYM_CAPTION_GAP, SYM_CAPTION_STYLE, SYM_PILL_STYLE, teamDockAnchor, teamStripPx, TEAM_DOT_GAP, TEAM_DOT_PX, TEAM_LABEL_STYLE } from '../lib/mapView'
+import { boxesOverlap, cachedLabelSize, LABEL_RANK, placeLabels, type LabelBox, type LabelCandidate, type LabelStyle } from '../lib/labelPass'
+import { CRUMB_LABEL_DX, CRUMB_LABEL_STYLE, effectiveLayer, END_TAG_LABEL_STYLE, READOUT_LABEL_STYLE, READOUT_WORDS_STYLE, shapePx, symPx, SYM_CAPTION_GAP, SYM_CAPTION_STYLE, SYM_PILL_STYLE, teamDockAnchor, teamStripPx, TEAM_DOT_GAP, TEAM_DOT_PX, TEAM_LABEL_STYLE } from '../lib/mapView'
 import { noteWPx } from '../lib/notes'
 import { SHAPE_MAX_PX, shapeAspect } from '../lib/shapes'
 import { floorBadge } from '../lib/symbolRender'
-import { isNamedPerson, readingPillText, symbolCaptionText, symbolReading } from '../lib/symbols'
+import { isNamedPerson, readingPillText, symbolCaptionBoxText, symbolReading } from '../lib/symbols'
 import { softHyphenateText } from '../lib/symbolWrap'
 import type { LineTone, TeamLineBadge } from '../lib/truppLines'
 
@@ -18,8 +18,6 @@ import type { LineTone, TeamLineBadge } from '../lib/truppLines'
 const NO_LABELS: ReadonlySet<string> = new Set()
 /** `.sym-caption { margin-top }` (03-map.css), held to the CSS in lib/mapView */
 const CAPTION_GAP = SYM_CAPTION_GAP
-/** the end tag's Marker `offset={[0, -14]}` (MapView) */
-const END_TAG_LIFT = 14
 /** the line-readout / radius Markers' `anchor="bottom"` offsets (MapView) */
 const READOUT_LIFT = 10
 const RADIUS_LIFT = 4
@@ -30,9 +28,25 @@ const LABEL_STYLE = {
   team: TEAM_LABEL_STYLE,
   /** `.measure-label.draw-label` (lib/mapView · READOUT_LABEL_STYLE) */
   readout: READOUT_LABEL_STYLE,
+  /** `.draw-label .dl-words` — a line's free text, in the names' sans */
+  readoutWords: READOUT_WORDS_STYLE,
   /** `.line-end-tag` (lib/mapView · END_TAG_LABEL_STYLE) */
   endTag: END_TAG_LABEL_STYLE,
 } satisfies Record<string, LabelStyle>
+
+/** A line readout plate's box: one row per line, each measured in its own face (a value in mono,
+ *  free text in sans) – the widest row plus the chrome once, the rows' heights stacked. */
+function readoutPlateSize(lines: readonly { text: string; words: boolean }[]): { w: number; h: number } {
+  const { chromeW, chromeH } = LABEL_STYLE.readout
+  let w = 0
+  let h = 0
+  for (const l of lines) {
+    const s = cachedLabelSize(l.text, l.words ? LABEL_STYLE.readoutWords : LABEL_STYLE.readout)
+    w = Math.max(w, s.w - chromeW)
+    h += s.h - chromeH
+  }
+  return { w: w + chromeW, h: h + chromeH }
+}
 
 /** the end tag's text as the label pass measures it – the Leitung's own facts only. The Trupp on
  *  it is never printed here (15.09.): its marker stands at this very end, and that IS the name. */
@@ -57,13 +71,20 @@ export interface LabelPassScene {
   /** the Leitung each Trupp marker works (lib/truppLines · teamLineBadges) */
   teamLines: ReadonlyMap<string, TeamLineBadge>
   drawingsVisible: boolean
-  /** the FKS-decorated lines, with their end tag's default anchor and alarm tone */
-  lineDecor: readonly { d: Drawing; anchor: LngLat; tone: LineTone }[]
-  drawLabels: readonly { id: string; coord: LngLat; lines: string[] }[]
+  /** the FKS-decorated lines with their alarm tone, each end tag at its ground point + the Marker's
+   *  px offset (MapView · lib/endTagSpots · endTagOffset) */
+  lineDecor: readonly { d: Drawing; tagAt: LngLat; tagOffset: readonly [number, number]; tone: LineTone }[]
+  /** a line's readout plate: measured values (mono) and free text (`words`, sans), one row each */
+  drawLabels: readonly { id: string; coord: LngLat; lines: readonly { text: string; words: boolean }[] }[]
   circleLabels: readonly { id: string; coord: LngLat; text: string }[]
   selectedDrawingId: string | null
   /** as stored — a hand-placed readout (`labelAt`) is pinned */
   storedDrawings: Drawing[]
+  /** Trupps whose trail the operator switched off (lib/useHiddenTrails) – their crumbs are not drawn */
+  hiddenTrails: ReadonlySet<string>
+  /** the floating chrome over the map (top bar, rails, floating chips), in map-container px – a
+   *  label may not sit on or against it. Optional: tests and a bare map have none. */
+  chrome?: readonly LabelBox[]
 }
 
 /**
@@ -75,11 +96,11 @@ export interface LabelPassScene {
  * drawn — its owner paints a 6px ink dot instead. See labelPass.ts for the why.
  *
  * Returns the keys NOT to draw: `cap:<entity>`, `team:<entity>`, `tag:<line>`, `dl:<drawing>`,
- * `cl:<circle>`. Pure over `px` (screen px of a ground point at the current camera).
+ * `cl:<circle>`, `crumb:<entity>:<index>` (a trail breadcrumb's time – its dot stays). Pure over `px` (screen px of a ground point at the current camera).
  */
 export function mapLabelDecisions(px: (c: LngLat) => { x: number; y: number }, scene: LabelPassScene): ReadonlySet<string> {
   const { initialCenter, entities, isVisible, zoom, symMul, captionMode, selectedId, selectedEntityIds, teamLines,
-    drawingsVisible, lineDecor, drawLabels, circleLabels, selectedDrawingId, storedDrawings } = scene
+    drawingsVisible, lineDecor, drawLabels, circleLabels, selectedDrawingId, storedDrawings, hiddenTrails, chrome = [] } = scene
   // ties inside a rank go to whatever is nearer the incident — never to placement order
   const hub = px(initialCenter)
   const near = (p: { x: number; y: number }) => Math.hypot(p.x - hub.x, p.y - hub.y)
@@ -143,7 +164,8 @@ export function mapLabelDecisions(px: (c: LngLat) => { x: number; y: number }, s
       const r = cachedLabelSize(readingPillText(reading), SYM_PILL_STYLE)
       occupied.push({ x: p.x - r.w / 2, y: p.y - r.h / 2, w: r.w, h: r.h })
     }
-    const cap = symbolCaptionText(e, captionMode)
+    // the caption box as drawn: the caption plus a vehicle's grey Herkunft line under it
+    const cap = symbolCaptionBoxText(e, captionMode)
     if (!cap) continue
     const s = cachedLabelSize(softHyphenateText(cap), LABEL_STYLE.caption)
     // A person's typed name ranks with the Trupp names, not with the metadata captions — who is
@@ -159,7 +181,7 @@ export function mapLabelDecisions(px: (c: LngLat) => { x: number; y: number }, s
     for (const ld of lineDecor) {
       const text = endTagText(ld.d)
       if (!text) continue
-      const p = px(ld.d.endLabelAt ?? ld.anchor)
+      const p = px(ld.tagAt)
       const s = cachedLabelSize(text, LABEL_STYLE.endTag)
       cands.push({
         key: `tag:${ld.d.id}`,
@@ -167,12 +189,12 @@ export function mapLabelDecisions(px: (c: LngLat) => { x: number; y: number }, s
           : ld.tone === 'crit' || ld.tone === 'warn' ? LABEL_RANK.criticalTag : LABEL_RANK.tag,
         pinned: !!ld.d.endLabelAt,
         dist: near(p),
-        box: { x: p.x - s.w / 2, y: p.y - END_TAG_LIFT - s.h / 2, w: s.w, h: s.h },
+        box: { x: p.x + ld.tagOffset[0] - s.w / 2, y: p.y + ld.tagOffset[1] - s.h / 2, w: s.w, h: s.h },
       })
     }
     for (const l of drawLabels) {
       const p = px(l.coord)
-      const s = cachedLabelSize(l.lines.join('\n'), LABEL_STYLE.readout)
+      const s = readoutPlateSize(l.lines)
       cands.push({ key: `dl:${l.id}`, rank: l.id === selectedDrawingId ? LABEL_RANK.selected : LABEL_RANK.readout,
         pinned: storedDrawings.some((d) => d.id === l.id && !!d.labelAt), dist: near(p),
         box: { x: p.x - s.w / 2, y: p.y - READOUT_LIFT - s.h, w: s.w, h: s.h } })
@@ -184,6 +206,18 @@ export function mapLabelDecisions(px: (c: LngLat) => { x: number; y: number }, s
         box: { x: p.x - s.w / 2, y: p.y - RADIUS_LIFT - s.h, w: s.w, h: s.h } })
     }
   }
+  // A Trupp's trail breadcrumbs (MapMarkers): the dot always stands, its time only where it fits.
+  // `dist` is the crumb's age in steps, so inside the rank the newest crumb of every trail goes first.
+  for (const e of entities) {
+    const trail = e.kind === 'team' ? e.trail ?? [] : []
+    if (!trail.length || !Array.isArray(e.coord) || !isVisible(effectiveLayer(e)) || hiddenTrails.has(e.id)) continue
+    trail.forEach((c, i) => {
+      const p = px(c.coord)
+      const s = cachedLabelSize(c.t, CRUMB_LABEL_STYLE)
+      cands.push({ key: `crumb:${e.id}:${i}`, rank: LABEL_RANK.crumb, dist: trail.length - 1 - i,
+        box: { x: p.x + CRUMB_LABEL_DX, y: p.y - s.h / 2, w: s.w, h: s.h } })
+    })
+  }
   // ── the Georeferenz twins ────────────────────────────────────────────────────────────
   // A projection is presentation-equivalent to the object beside it, and that includes being
   // arbitrated by this pass: twin labels used to be neither suppressed NOR visible to it, so
@@ -191,7 +225,35 @@ export function mapLabelDecisions(px: (c: LngLat) => { x: number; y: number }, s
   // The live Messen readouts deliberately stay OUT of the pass: they belong to a tool the
   // operator is holding right now, they change on every vertex drag, and a measurement that
   // blinks out because a caption got there first would be unusable.
-  return placeLabels(cands, occupied)
+  // The chrome is a wall too: a readout, trail time or end tag that would stand on or against the top
+  // bar, a rail or a floating chip read as part of it («77 m» glued to the bar's end, hill climb r11,
+  // 04.11.2026). CHROME_PAD widens each box so «against» counts. Applied AFTER the pass and never to
+  // captions – MapView reports the hidden captions to the plan twins, and a symbol under the map's
+  // top bar must not lose its caption on the Plan – nor to the selection or a pinned label.
+  const suppressed = placeLabels(cands, occupied)
+  if (!chrome.length) return suppressed
+  const walls = chrome.map((b) => ({ x: b.x - CHROME_PAD, y: b.y - CHROME_PAD, w: b.w + 2 * CHROME_PAD, h: b.h + 2 * CHROME_PAD }))
+  const out = new Set(suppressed)
+  for (const c of cands) {
+    if (c.pinned || c.rank === LABEL_RANK.selected || c.key.startsWith('cap:')) continue
+    if (walls.some((w) => boxesOverlap(c.box, w, 0))) out.add(c.key)
+  }
+  return out
+}
+
+/** Clearance in px a label keeps from the floating chrome. */
+const CHROME_PAD = 8
+/** What floats over the map and must not wear a label: the top bar, both rails, the phone's floating
+ *  read-outs and the Eintrag FAB. */
+const CHROME_SELECTOR = '.topbar, .rail, .phone-wx, .tb-share, .tb-gps, .fab-entry'
+
+/** The chrome's boxes in the map container's px (read at render time, like `project`). */
+function chromeBoxes(container: HTMLElement): LabelBox[] {
+  const at = container.getBoundingClientRect()
+  return [...document.querySelectorAll<HTMLElement>(CHROME_SELECTOR)].flatMap((el) => {
+    const r = el.getBoundingClientRect()
+    return r.width > 0 && r.height > 0 ? [{ x: r.left - at.left, y: r.top - at.top, w: r.width, h: r.height }] : []
+  })
 }
 
 /**
@@ -205,7 +267,7 @@ export function mapLabelDecisions(px: (c: LngLat) => { x: number; y: number }, s
 export function useLabelPass(mapInst: RefObject<MlMap | null>, scene: LabelPassScene, onCaptionSuppressionChange?: (ids: ReadonlySet<string>) => void) {
   const [, bump] = useState(0)
   const m = mapInst.current
-  const suppressedLabels = m ? mapLabelDecisions((c) => m.project(c as [number, number]), scene) : NO_LABELS
+  const suppressedLabels = m ? mapLabelDecisions((c) => m.project(c as [number, number]), { ...scene, chrome: chromeBoxes(m.getContainer()) }) : NO_LABELS
   const suppressedCaptionKey = [...suppressedLabels]
     .filter((key) => key.startsWith('cap:'))
     .map((key) => key.slice(4))

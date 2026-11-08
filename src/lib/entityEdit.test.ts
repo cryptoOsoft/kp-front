@@ -141,6 +141,10 @@ describe('rosterFieldsToRefile (which names reach the Anwesenheit)', () => {
       .toEqual(['Fahrer'])
     expect(refile({ 'Fahrer': 'Meier Anna' }, { 'Fahrer': 'Meier Anna' }, { force: true })).toEqual(['Fahrer'])
   })
+
+  it('leaves the Fahrer alone when only the Herkunft changed – no Bemerkung reads it', () => {
+    expect(refile({ 'Fahrer': 'Meier Anna', 'Herkunft': '' }, { 'Fahrer': 'Meier Anna', 'Herkunft': 'Stützpunkt' })).toEqual([])
+  })
 })
 
 // ⚠️ 03.09. Rapport: one Notiz reached the journal as three rows — «Notiz «1 Roller in en»»,

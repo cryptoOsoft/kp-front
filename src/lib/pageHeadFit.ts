@@ -4,7 +4,7 @@
  * possible»). Trupps (the Atemschutz-Link board too), Anwesenheit, Material, Checkliste and
  * Rapport wear one shape at every width ≥ 360: the titles block left — the `<h2>` and AT MOST
  * one quiet line under it («✓ Gespeichert», the counts, the Checkliste's subtitle) — the tiles
- * right, centred on each other; `--tap` + `--head-pad-y` above and below (60px on a phone, 68
+ * right, the title on the tiles' centre line (r23); `--tap` + `--head-pad-y` above and below (60px on a phone, 68
  * above; Surface.module.css · `.head`, tokens · `--head-*`). What does not fit gives up WORDS,
  * MEASURED, never per breakpoint (`lib/pageHeadFit` · `usePageHeadFit`, on the top bar's
  * `climbLadder`): (1) the quiet line's time («Gespeichert um 23:21» → «Gespeichert»), (2) each
@@ -33,7 +33,7 @@ import { climbLadder, useHeadFit } from './useHeadFit'
  * Atemschutz-Link board included.
  *
  * A page head is ONE ROW: the titles block on the left (the <h2> and at most one quiet line
- * under it — «✓ Gespeichert», the counts), the tiles on the right, centred on each other. What
+ * under it — «✓ Gespeichert», the counts), the tiles on the right, the title on their centre line. What
  * does not fit gives up WORDS, measured rather than ruled per breakpoint — the top bar's way
  * (lib/useHeadFit), on the same `climbLadder`:
  *

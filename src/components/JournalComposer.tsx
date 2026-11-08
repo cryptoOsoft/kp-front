@@ -11,7 +11,7 @@ import { fillTemplate, fmtFileSize, formatTime, hhmm, pad2, stripUnprintable, fo
 import { toast } from '../lib/ui'
 import { ApiError } from '../lib/api'
 import { forgetLocalThumb, mintLocalThumb, thumbUrl } from '../lib/mediaUrl'
-import { forgetPhotoGeo, rememberPhotoGeo } from '../lib/photoGeo'
+import { forgetPhotoGeo, photoGeoSettled, rememberPhotoGeo } from '../lib/photoGeo'
 import {
   MAX_AUDIO_UPLOAD_MB,
   MAX_FILE_UPLOAD_MB,
@@ -355,6 +355,9 @@ export function JournalComposer({ onSubmit, onClose, incidentStartAt, uploadAudi
   // stepper or explicitly confirms — the row lands at this time in the Verlauf
   const [startConfirmed, setStartConfirmed] = useState(false)
   const [uploading, setUploading] = useState(false)
+  // a picture picked a moment ago is still having its position read (lib/photoGeo): «Erfassen»
+  // waits for it, BUSY – it used to stay pressable for those up to 1.5 s and file the row twice
+  const [locating, setLocating] = useState(false)
   const [clipPlaying, setClipPlaying] = useState(false)
   const clipAudio = useRef<HTMLAudioElement | null>(null)
   // recorded clip and imported memo are exclusive, so one preview player serves both
@@ -631,14 +634,23 @@ export function JournalComposer({ onSubmit, onClose, incidentStartAt, uploadAudi
     ? startConfirmed && importStartAt != null && !uploading
     : text.trim().length > 0 || clip != null || photos.length > 0 || files.length > 0
   const submit = () => {
-    if (!canSend || uploading) return
+    if (!canSend || uploading || locating) return
     if (imported) { void submitImported(); return } // …which clears the draft once the upload lands
     if (files.length) { void submitWithFiles(); return } // …ditto, once the Beilagen land
     submitRow([])
   }
   /** the ordinary save — staged Beilagen have already been uploaded when this runs, so the row
    *  is created with server URLs and nothing here can fail. */
-  const submitRow = (attached: { url: string; name: string }[]) => {
+  const submitRow = (attached: { url: string; name: string }[], geoSettled = false) => {
+    // a one-time action's busy state (docs/ui-conventions.md · One-time actions): the press is
+    // taken at once and the button cannot be pressed again until the row is filed (the wait ends
+    // at PHOTO_GEO_WAIT_MS at the latest – a row without its position beats no row)
+    const geoWait = geoSettled ? null : photoGeoSettled(photos)
+    if (geoWait) {
+      setLocating(true)
+      void geoWait.then(() => { if (!alive.current) return; setLocating(false); submitRow(attached, true) })
+      return
+    }
     clearDraft(draftKey); clearDraft(restKey) // filed — the next open starts empty
     onSubmit({
       text: text.trim(), audioUrl: clip?.url, secs: clip?.secs, photoUrls: photos.length ? photos : undefined,
@@ -759,8 +771,10 @@ export function JournalComposer({ onSubmit, onClose, incidentStartAt, uploadAudi
   return (
     // <Overlay> (Base UI) owns focus-trap + scroll-lock + backdrop-close; its pointerdown-based
     // outside-press already ignores the opening tap, so the old Android `armed` delay is gone.
-    // dismissEscape=false: the composer holds unsaved text — Esc must not discard it (parity with
-    // the old surface, which never closed on Esc). The keyboard inset lifts the phone bottom sheet.
+    // Escape CLOSES it, like every other sheet (staging review 06.11.2026, S6). It used to be vetoed
+    // (`dismissEscape={false}`) so Esc could not discard unsaved text — but the draft outlives the
+    // sheet (draftKeep, above), so a close loses nothing, and an open dropdown or time wheel still
+    // takes the first Escape alone (popoverGuard). The keyboard inset lifts the phone bottom sheet.
     // `--jc-kb` carries the measured keyboard height into CSS as well as the phone sheet's
     // marginBottom: on a TABLET the card is top-anchored, so a bottom margin does nothing —
     // the height has to be capped against the keyboard instead (see 10-journal.css).
@@ -769,7 +783,7 @@ export function JournalComposer({ onSubmit, onClose, incidentStartAt, uploadAudi
     // `is-compact` is the rung below that and asks a different question — not «is a keyboard up»
     // but «does the card still fit», measured (see lib/composerFit · 10-journal.css).
     <Overlay open onClose={onClose} className={`journal-composer ${kbInset > 0 ? 'is-kb' : ''}${compact ? ' is-compact' : ''}`} backdropClassName="modal-backdrop"
-      ariaLabel={C.composerTitle} dismissEscape={false} initialFocus={textRef} grab
+      ariaLabel={C.composerTitle} initialFocus={textRef} grab
       // the lift is the keyboard LESS iOS's pan (keyboardMargin · --vv-foot, 30.09.2026), the cap
       // (--jc-kb) the whole keyboard — so the sheet stands on the keys and never outgrows the band
       style={{ marginBottom: kbInset > 0 ? keyboardMargin(kbInset) : 0, '--jc-kb': `${kbInset}px` } as React.CSSProperties}
@@ -889,7 +903,7 @@ export function JournalComposer({ onSubmit, onClose, incidentStartAt, uploadAudi
                 title={C.linkPendenzTitle}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => onLinkPendenz?.({ id: r.id, text: r.text })}
-              ><span className="jc-ring" />{C.noteOnLabel}{r.text}</button>
+              ><span className="jc-ring" /><span className="jc-phrase-text">{C.noteOnLabel}{r.text}</span></button>
             ))}
           </div>
         )}
@@ -1202,9 +1216,9 @@ export function JournalComposer({ onSubmit, onClose, incidentStartAt, uploadAudi
             the entry, not the act of saving it, and «Erfassen» is the one thing on this sheet
             that must never share a row with anything else. */}
         <div className="jc-foot">
-          <Button variant="primary" block disabled={!canSend || uploading} onClick={submit}
-            icon={uploading ? <ShellLoader /> : <Icon id="check" />}>
-            {uploading ? C.audioUploading : C.send}
+          <Button variant="primary" block disabled={!canSend || uploading || locating} onClick={submit}
+            icon={uploading || locating ? <ShellLoader /> : <Icon id="check" />}>
+            {uploading ? C.audioUploading : locating ? C.photoLocating : C.send}
           </Button>
         </div>
       {/* «Uhrzeit …» — the one answer that is not a row in a menu. It opens THE time picker

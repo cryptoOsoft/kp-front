@@ -5,29 +5,47 @@ import { cx } from '../lib/cx'
 import { fillTemplate } from '../lib/format'
 import { distanceAlongPath, pointAlongPath } from '../lib/geo'
 import { MARKER_Z } from '../lib/labelPass'
-import { RELAY } from '../lib/hydraulics'
+import { hoseDefaults, RELAY, RELAY_PUMP_SYMBOL } from '../lib/hydraulics'
+import { drawsPumps } from '../lib/linePumps'
+import { symPx } from '../lib/mapView'
 import { beginSheetPeek, endSheetPeek } from '../lib/sheetPeek'
-import { PUMP_ATTR, useRelayOverlay, type RelayOverlay } from '../lib/useRelay'
-import type { LngLat } from '../types'
+import { TacticalSymbol } from '../lib/symbolRender'
+import { useLineProfile } from '../lib/useLineProfile'
+import { PUMP_ATTR, relayOverlay, useRelay, useRelayOverlay, type RelayOverlay, type RelayValue } from '../lib/useRelay'
+import type { Drawing, LngLat } from '../types'
 import { PumpBubble } from './PumpBubble'
 import s from './RelayPumpMarkers.module.css'
 
 // The Wassertransport's pumps on the map — whatever relay a panel has open (lib/useRelay ·
-// usePublishRelay: Messen › Strecke, or the selected Leitung's «Messung»). Rendered by MapView
-// inside its <Map>, on the Lage and in the Karte app alike; nothing is drawn while no relay is
-// open. A pump is DRAGGED along its line to move it — snapped to the line, clamped between its
-// neighbours (lib/hydraulics · pumpRange) — and TAPPED to open its bubble right here at the
-// marker (round 4, device test 04.11.2026: the same PumpBubble the chart opens, not one in the
-// panel). The bubble follows a dragged pump; the map moving under it closes it (Base UI positions
-// from the anchor's box and has no per-frame tracking for a CSS-transformed marker), and a tap on
-// the empty map only closes it (MapView · handleClick → lib/useRelay · dismissRelayBubble).
+// usePublishRelay: Messen › Strecke, or the selected Leitung's «Messung»), and the pumps every
+// Leitung with «Pumpen auf Karte» draws while no panel has its relay open (LinePumpMarkers,
+// lib/linePumps). Rendered by MapView inside its <Map>, on the Lage and in the Karte app alike. A
+// pump is DRAGGED along its line to move it — snapped to the line, clamped between its neighbours
+// (lib/hydraulics · pumpRange) — which pins it (`pumps[i].atM`, written once, on release). In a
+// panel's relay a TAP opens its bubble right here at the marker (round 4, device test 04.11.2026:
+// the same PumpBubble the chart opens, not one in the panel); on a resting Leitung a tap selects
+// the Leitung. The bubble follows a dragged pump; the map moving under it closes it (Base UI
+// positions from the anchor's box and has no per-frame tracking for a CSS-transformed marker), and
+// a tap on the empty map only closes it (MapView · handleClick → lib/useRelay · dismissRelayBubble).
+// A pump of a Leitung whose switch is on wears the pack's Motorspritze (lib/hydraulics ·
+// RELAY_PUMP_SYMBOL) at a symbol's map size – in the open panel too, so the switch shows at once
+// what it does; every other relay pump is the chart's numbered disc.
 
 const PUMP_Z = { zIndex: MARKER_Z.selected + 1 }
 const SOURCE_Z = { zIndex: MARKER_Z.selected }
 const NUDGE_PX = 4
 
+/** A pump that reads as a Motorspritze: the pack glyph at a symbol's map size. */
+interface PumpGlyph { svg: string; px: number }
+
+/** What both marker sets need from the map around them (MapView's own props / state). */
+interface MapCtx { byName: Record<string, string>; zoom: number; symMul: number }
+
+const glyphAt = ({ byName, zoom, symMul }: MapCtx, at: LngLat): PumpGlyph =>
+  ({ svg: byName[RELAY_PUMP_SYMBOL] ?? '', px: symPx('symbol', at[1], zoom, symMul) })
+
 /** Mounted inside MapView's <Map>; reads the published relay itself, so a drag re-renders only this. */
-export function RelayPumpMarkers() {
+export function RelayPumpMarkers(ctx: MapCtx) {
   const relay = useRelayOverlay()
   if (!relay || relay.coords.length < 2) return null
   const start = relay.coords[0]
@@ -41,12 +59,55 @@ export function RelayPumpMarkers() {
         const at = pointAlongPath(relay.coords, p.dist)
         return (
           <Marker key={`rp${i}`} longitude={at[0]} latitude={at[1]} anchor="center" style={PUMP_Z}>
-            <PumpGrip relay={relay} i={i} low={p.low} pinned={p.pinned} at={at} />
+            <PumpGrip relay={relay} i={i} low={p.low} pinned={p.pinned} at={at} glyph={relay.symbols ? glyphAt(ctx, at) : undefined} />
           </Marker>
         )
       })}
     </>
   )
+}
+
+/**
+ * The pumps every Leitung with «Pumpen auf Karte» draws (lib/linePumps · drawsPumps), each from
+ * its own controller – the one its editor runs (lib/useRelay), on the same cached profile – so
+ * they stand where the editor puts them and move with the line. The Leitung whose relay a panel
+ * has open is left to RelayPumpMarkers (its live pumps, preview and bubble). `onPin`: a dragged
+ * pump's pin, as the line's edit; absent (read-only) the pumps only answer a tap.
+ */
+export function LinePumpMarkers({ drawings, onPin, onSelectLine, ...ctx }: MapCtx & {
+  drawings: readonly Drawing[]
+  onPin?: (id: string, patch: RelayValue) => void
+  onSelectLine: (id: string) => void
+}) {
+  const open = useRelayOverlay()?.lineId
+  return <>{drawings.filter((d) => drawsPumps(d) && d.id !== open).map((d) => (
+    <LinePumps key={d.id} line={d} ctx={ctx} onPin={onPin} onSelectLine={onSelectLine} />
+  ))}</>
+}
+
+function LinePumps({ line, ctx, onPin, onSelectLine }: {
+  line: Drawing
+  ctx: MapCtx
+  onPin?: (id: string, patch: RelayValue) => void
+  onSelectLine: (id: string) => void
+}) {
+  const { profile, loading } = useLineProfile(line.coords, true)
+  const ctrl = useRelay({
+    coords: line.coords, profile, profileLoading: loading, value: { hose: line.hose, relay: line.relay },
+    defaultHose: hoseDefaults().relay, onChange: onPin ? (patch) => onPin(line.id, patch) : undefined,
+  })
+  const base = relayOverlay(ctrl, line.id)
+  if (!base) return null
+  // a tap selects the Leitung (its editor holds the numbers): a resting line opens no bubble
+  const relay: RelayOverlay = { ...base, selected: null, selectedFrom: null, onSelect: () => onSelectLine(line.id) }
+  return <>{relay.pumps.map((p, i) => {
+    const at = pointAlongPath(relay.coords, p.dist)
+    return (
+      <Marker key={`lp${i}`} longitude={at[0]} latitude={at[1]} anchor="center" style={PUMP_Z}>
+        <PumpGrip relay={relay} i={i} low={p.low} pinned={p.pinned} at={at} glyph={glyphAt(ctx, at)} />
+      </Marker>
+    )
+  })}</>
 }
 
 /** The bubble of the pump tapped on the map, at its marker (`grip`). Closes when the map moves. */
@@ -75,7 +136,7 @@ function MapPumpBubble({ relay, i, grip, at }: { relay: RelayOverlay; i: number;
  * the canvas container has already turned the press into a map tap (which in Messen would add a
  * point under the pump). A press that does not travel NUDGE_PX is a tap.
  */
-function PumpGrip({ relay, i, low, pinned, at }: { relay: RelayOverlay; i: number; low: boolean; pinned: boolean; at: LngLat }) {
+function PumpGrip({ relay, i, low, pinned, at, glyph }: { relay: RelayOverlay; i: number; low: boolean; pinned: boolean; at: LngLat; glyph?: PumpGlyph }) {
   const R = appConfig.copy.relay
   const { current: map } = useMap()
   // the element in state, not a ref: the bubble hangs from it, and a ref is not read during render
@@ -139,9 +200,10 @@ function PumpGrip({ relay, i, low, pinned, at }: { relay: RelayOverlay; i: numbe
   return (
     <>
       <button ref={setGrip} type="button" {...PUMP_ATTR}
-        className={cx(s.pump, relay.selected === i && s.sel, pinned && s.pinned, low && s.low, relay.readOnly && s.static)}
+        className={cx(s.pump, glyph && s.symbol, relay.selected === i && s.sel, pinned && s.pinned, low && s.low, relay.readOnly && s.static)}
         aria-label={name} aria-expanded={open} title={relay.readOnly ? name : `${name} · ${R.dragHint}`}>
-        {relay.pumps.length > RELAY.manyPumps ? i + 1 : fillTemplate(R.pumpShort, { n: i + 1 })}
+        {glyph ? <TacticalSymbol svg={glyph.svg} sizePx={glyph.px} />
+          : relay.pumps.length > RELAY.manyPumps ? i + 1 : fillTemplate(R.pumpShort, { n: i + 1 })}
       </button>
       {open && grip && <MapPumpBubble relay={relay} i={i} grip={grip} at={at} />}
     </>

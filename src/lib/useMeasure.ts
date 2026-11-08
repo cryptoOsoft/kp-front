@@ -60,9 +60,12 @@ export interface MeasureRelay {
  * opened. Opened on its defaults it is still one – an empty `relay`, so the Leitung shows it – and
  * its Ø is written OUT, as adding a relay in the line editor does (lib/hydraulics ·
  * relayAddPatch): the Leitung keeps the Ø it was computed on whatever the station's defaults do.
+ * …and it DRAWS its pumps (`showPumps`, owner 05.11.2026): what Messen showed on the map while it
+ * measured stays there, now as the Leitung's Motorspritzen (lib/linePumps) – switched off in its
+ * editor like any other.
  */
 export function adoptedRelay({ open, value }: Pick<MeasureRelay, 'open' | 'value'>): Pick<Drawing, 'hose' | 'relay'> | undefined {
-  return open ? { hose: value.hose ?? hoseDefaults().relay, relay: value.relay ?? {} } : undefined
+  return open ? { hose: value.hose ?? hoseDefaults().relay, relay: { ...value.relay, showPumps: true } } : undefined
 }
 
 /**

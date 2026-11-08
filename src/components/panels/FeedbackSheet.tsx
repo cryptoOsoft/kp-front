@@ -143,7 +143,16 @@ export function FeedbackSheet({ trouble, onClose }: {
   )
 
   return (
-    <Modal title={cp.title} onClose={() => finish('cancel')} fit>
+    // the buttons are THE sheet foot (Modal · footer, r35 06.11.2026) – they stood inside the body,
+    // right-aligned at their words' width on the phone too, the one sheet that did
+    <Modal title={cp.title} onClose={() => finish('cancel')} fit footer={(
+      <>
+        <button type="button" className="ip-btn" onClick={() => finish('cancel')}>{cp.cancel}</button>
+        <button type="button" className="ip-btn primary" onClick={go} disabled={!canSend}>
+          {cp.next}
+        </button>
+      </>
+    )}>
       <div className="fb-sheet">
         {trouble && <p className="fb-q">{cp.promptFor[trouble.kind]}</p>}
         <p className="fb-intro">{cp.intro}</p>
@@ -186,13 +195,6 @@ export function FeedbackSheet({ trouble, onClose }: {
         </p>
 
         <p className="fb-privacy"><Icon id="info" /> {cp.privacy}</p>
-
-        <div className="fb-actions">
-          <button type="button" className="ip-btn" onClick={() => finish('cancel')}>{cp.close}</button>
-          <button type="button" className="ip-btn primary" onClick={go} disabled={!canSend}>
-            {cp.next}
-          </button>
-        </div>
       </div>
     </Modal>
   )

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { Icon } from '../lib/icons'
 import type { RailLabels } from '../lib/prefs'
 import { appConfig } from '../config/appConfig'
@@ -48,8 +48,10 @@ interface Props {
    *  true – the Karte and the Plan; the Karte's viewer rail (Pin · Messen · ERG) has no keyboard
    *  layer and passes false, so «Messen» does not advertise a D that does nothing there. */
   hotkeys?: boolean
-  /** pinned footer cluster — surface-specific (map nav vs plan zoom), rendered inside .vrail-nav */
-  footer: React.ReactNode
+  /** the surface's VIEW controls – the Karte's Ebenen · Ansichten · − +, the Plan's Einpassen ·
+   *  north dial · − +. Where they stand is this rail's call (see `ViewBar` below): the pinned end
+   *  of the phone's folded bar, their own small bar in the corner below the rail everywhere else. */
+  controls: React.ReactNode
   /** root class so each surface keeps its own selector hook (.tool-rail / .wb-tools) */
   className?: string
 }
@@ -61,36 +63,32 @@ interface Props {
  *  surface name, so this rail lets the finger keep going past the committed wide width. */
 const MAXW = 280
 
-// Shared right-edge vertical tool rail used by BOTH the Lage map and the Plan
-// whiteboard: an expandable, icon-first rail (matching the left NavRail) with a
-// scrolling tool section plus a pinned footer that always stays in reach. The
-// Symbol "primary" button sits inline at the list's `slot` marker (between the
-// selection and drawing groups), not pinned at the top. Each surface supplies its
-// own tool list, optional extras, and footer; the shape + look (.vrail) are
-// identical, so the two action sidebars stay in lockstep from one code object.
+// Shared right-edge vertical tool rail used by the Lage map, the Plan whiteboard and the Karte
+// viewer: an expandable, icon-first rail (matching the left NavRail) holding the TOOLS, in a
+// list that scrolls (with edge chevrons) only when it cannot fit. The Symbol "primary" button
+// sits inline at the list's `slot` marker, not pinned at the top. Each surface supplies its own
+// tool list, optional extras and view `controls`; the shape + look (.vrail) are identical, so
+// the action sidebars stay in lockstep from one code object.
+// The view controls are «looking», not «drawing», and on a tablet or laptop they stand apart:
+// one small bar in the bottom corner on the rail's side (`.view-bar`, staging review 06.11.2026,
+// S2 owner pick C – the old pinned footer cost the tool list ~245px, and a 1440×900 laptop
+// scrolled «Messen» out of reach). The phone's folded bar keeps them at its pinned end, as before.
 /** The rail's open state OUTLIVES its mount. The Karte and every Modul each mount their own
  *  ToolRail, but the operator reads them as ONE sidebar — expanded on the Karte and suddenly
  *  collapsed on the Modul read as the setting not sticking. Module-scoped (session) on purpose:
  *  wanting the words permanently is what the `railLabels` device pref is for. */
 let lastExpanded = false
 
-export function ToolRail({ primary, tools, active, open = false, onPick, toolRefs, extras, footer, className, labels, hotkeys = true }: Props) {
+export function ToolRail({ primary, tools, active, open = false, onPick, toolRefs, extras, controls, className, labels, hotkeys = true }: Props) {
   const [expanded, setExpandedState] = useState(lastExpanded)
   const setExpanded = (v: boolean) => { lastExpanded = v; setExpandedState(v) }
   const nav = appConfig.copy.navRail
-  // the tile's shortcut letter (lib/hotkeys · TOOL_KEY) – the same badge as the left rail, shown
-  // by the device pref «Tastenkürzel anzeigen» (lib/prefs · keyHints) and, in CSS, only with a
-  // mouse and keyboard. Not on the phone's folded bar: its «+» tile is a door to many tools.
-  const [keyHints] = useKeyHints()
   // PHONE: the bar keeps Auswahl · «+» · Messen, and everything that PUTS SOMETHING ON THE
   // SURFACE moves into the «+» sheet (lib/toolFold, components/Palette) — five wide tiles with
   // the footer's two, nothing scrolls. The vertical rail has the room and is unchanged.
   const phone = useIsPhone()
   const bar = phone ? barTools(tools) : tools
-  const keyHint = (toolId: string) => {
-    const k = keyHints && hotkeys && !phone ? railToolKey(toolId) : undefined
-    return k ? <span className="rail-key" aria-hidden>{k}</span> : null
-  }
+  const keyHint = (toolId: string) => (hotkeys ? <RailKey k={railToolKey(toolId)} /> : null)
   /** the armed tool that came out of the sheet, which the «+» tile wears while it is armed */
   const face = phone ? addFace(tools, active) : null
 
@@ -140,7 +138,7 @@ export function ToolRail({ primary, tools, active, open = false, onPick, toolRef
     )
   }
 
-  return (
+  const aside = (
     <aside className={`vrail rail${expanded ? ' expanded' : ''}${rail.dragging ? ' dragging' : ''}${labels === 'short' ? ' labelled' : ''}${phone ? ' folded' : ''} ${className ?? ''}`}>
       {/* ⚠️ NO «Ausklappen» while the words are on. The chevron exists to reveal exactly what this
           setting already shows — with it on, expanding buys 128px of nothing but a second label
@@ -152,7 +150,8 @@ export function ToolRail({ primary, tools, active, open = false, onPick, toolRef
         </button>
       )}
 
-      {/* tools — scroll if the list grows; the pinned footer below never scrolls away.
+      {/* tools — scroll if the list grows (the fallback: the view bar beside the rail and the 50px
+          tiles of a short window, 07-toolrail, are what keep it from happening on a laptop).
           The wrap carries an edge chevron whenever there are hidden tools above/below.
           ⚠️ Every rail element carries its own class AND the shared `rail-*` base (04b-rail.css):
           the base paints it, the `vrail-*` name is the hook the rest of the cascade keys off —
@@ -189,19 +188,56 @@ export function ToolRail({ primary, tools, active, open = false, onPick, toolRef
           }
           // a sentinel entry renders a group divider so the rail reads as clusters
           // (selection · symbol · create · annotate) instead of one undifferentiated stack
-          if (t.sep) return <span key={t.id} className="vrail-sep" aria-hidden />
+          if (t.sep) return <span key={t.id} className="vrail-sep rail-sep" aria-hidden />
           return toolButton(t)
         })}
         {extras}
       </div>
       </div>
 
-      {/* pinned footer — surface-specific nav cluster (map: compass·zoom·fit·coords / plan: zoom·fit·%) */}
-      <div className="vrail-sep vrail-sep-foot" />
-      <div className="vrail-nav">{footer}</div>
+      {/* PHONE: the view controls are the folded bar's pinned end (15-mobile · .vrail-nav) */}
+      {phone && <>
+        <div className="vrail-sep vrail-sep-foot rail-sep" />
+        <div className="vrail-nav">{controls}</div>
+      </>}
 
       {/* drag GRIP on the left edge — aria-label only (a native title pops the OS tooltip) */}
       <button className={`vrail-grip rail-grip${rail.dragging ? ' drag' : ''}`} aria-label={nav.resize} {...rail.gripProps} />
     </aside>
   )
+  return phone || controls == null ? aside : <>{aside}<ViewBar label={nav.viewBar}>{controls}</ViewBar></>
+}
+
+/** A tile's shortcut letter (lib/hotkeys) – the same badge as the left rail, shown by the device
+ *  pref «Tastenkürzel anzeigen» (lib/prefs · keyHints) and, in CSS (04b-rail · .rail-key), only
+ *  with a mouse and keyboard, in the tile's top-left corner. Never on a phone: its folded bar's
+ *  tiles are doors to many tools. The rail puts it on its tools; a surface puts it on a view-bar
+ *  button whose key its keyboard layer binds (MapToolDocks · Ebenen B, Whiteboard · Einpassen 0) –
+ *  the Karte viewer, which has no keyboard layer, puts none. The tile must be `position: relative`. */
+export function RailKey({ k }: { k: string | undefined }) {
+  const [keyHints] = useKeyHints()
+  const phone = useIsPhone()
+  return k && keyHints && !phone ? <span className="rail-key" aria-hidden>{k}</span> : null
+}
+
+/** The tablet/laptop home of a ToolRail's view controls: one small bar in the bottom corner on
+ *  the rail's side (07-toolrail · .view-bar), its buttons in a row with their words under the
+ *  glyphs. ⚠️ Rendered as the rail's NEXT SIBLING, never inside it: the rail's backdrop-filter
+ *  makes it the containing block of anything positioned within, and the stylesheet keys off the
+ *  pair (`:has(+ .view-bar)` lifts the rail's foot above the bar; a rule that hides the rail
+ *  hides `+ .view-bar` with it). Its measured width goes out as `--view-bar-w` – the map's ⓘ
+ *  stands just left of it (03-map) – and is released on unmount, like the rail's `--vrail-w`. */
+function ViewBar({ label, children }: { label: string; children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const root = document.documentElement
+    const publish = () => root.style.setProperty('--view-bar-w', `${Math.round(el.getBoundingClientRect().width)}px`)
+    publish()
+    const ro = new ResizeObserver(publish)
+    ro.observe(el)
+    return () => { ro.disconnect(); root.style.removeProperty('--view-bar-w') }
+  }, [])
+  return <div ref={ref} className="view-bar" role="group" aria-label={label}>{children}</div>
 }

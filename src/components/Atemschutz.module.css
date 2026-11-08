@@ -3,8 +3,9 @@
    grid of big, glanceable monitoring cards with live pressure-based countdowns and an
    escalating colour-coded status banner. Sits below the top bar like the Checkliste
    surface; light "Karte Minimal" style, finger-friendly targets for a tired operator (~44px+). */
-/* geometry + header: the shell every full surface shares (Surface.module.css) */
-.surface { composes: shell from './Surface.module.css'; flex-direction: column; }
+/* geometry + header: the shell every full surface shares, and the page grid (one inset for the
+   head and the cards, one gap) the Rapport shares with it (Surface.module.css) */
+.surface { composes: shell pageGrid from './Surface.module.css'; flex-direction: column; }
 /* the Notfall's solid red on the link board (its strip, its open tab): the red darkened so white
    text on it reaches AA in both themes (4.8:1 at night, 6.3:1 by day — the plain night red gave 3.1) */
 .surface { --nf-fill: color-mix(in srgb, var(--red) 78%, #000); }
@@ -20,34 +21,54 @@
    The head's controls used to be three recipes in one row — a red-FILLED alarm pill, framed
    squares (1px border), a light-filled «+ Trupp» — and the alarm chip was as loud as the alarm
    itself. Now every one of them is the phone card's tile (`.trowPressBtn` / `.trowCard .actBtn`):
-   44px, the one corner, ONE 1px inset edge, 800/14, meaning by text colour + a faint tint only.
-   The single primary action, «+ Trupp», is the one FILLED tile (ink fill, as the chip rows' «on»).
+   44px, the one corner, ONE 1px inset edge, 700/14 in ink with a 16px glyph – THE secondary
+   button's type (13-incident · .ip-btn, the Rapport's head tiles; it was --ink-dim and a 17px glyph
+   until hill climb r21, so «Abgeben» read muted beside «+ Trupp» and «Bestimmen») – meaning by
+   text colour + a faint tint only.
+   The single primary action, «+ Trupp», is the one FILLED tile (ink fill, as the chip rows' «on»)
+   and the one at 800 (the button spec: 800 only on a surface's single action — hill climb r1,
+   04.11.2026; the way-of-looking tiles at 800 out-shouted the cards under them).
    ⚠️ `--ink` + `--surface`, not `--btn-primary`: it reads right by night (a light pill, dark
    word). The sheet chips' «on» used to be this same fill; since 28.09.2026 they wear the blue
    choice fill (--sel), so an ACTION and a CHOSEN answer no longer look alike. */
 .headTile { flex: none; display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2);
   height: 44px; min-width: 44px; padding: 0 12px; border: none; cursor: pointer; border-radius: var(--r-sm);
-  background: var(--surface); color: var(--ink-dim); box-shadow: inset 0 0 0 1px var(--glass-edge);
-  font: var(--fw-heavy) var(--fs-2) var(--body); white-space: nowrap; -webkit-tap-highlight-color: transparent; }
+  background: var(--surface); color: var(--ink); box-shadow: inset 0 0 0 1px var(--glass-edge);
+  font: var(--fw-bold) var(--fs-2) var(--body); white-space: nowrap; -webkit-tap-highlight-color: transparent; }
 /* glyphs: one size, centred by the flex box — never a baseline-sensitive inline SVG */
-.headTile :global(.i) { flex: none; width: 17px; height: 17px; }
+.headTile :global(.i) { flex: none; width: 16px; height: 16px; }
 .headTile:active:not(:disabled) { background-image: linear-gradient(var(--press), var(--press)); }
 @media (hover: hover) { .headTile:hover:not(:disabled) { color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink-faint); } }
 .headTile[data-popup-open] { color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink-faint); }
 /* «+ Trupp» — THE filled tile, in the app's one primary fill (01-tokens · --btn-primary). It was
    --ink until 23.10.2026: the glaring near-white at night that --btn-primary exists to avoid, so
    a routine «+ Trupp» outshone the overdue Trupps on the board. */
-.newBtn { composes: headTile; background: var(--btn-primary); color: var(--on-btn-primary); box-shadow: none; }
+.newBtn { composes: headTile; background: var(--btn-primary); color: var(--on-btn-primary); box-shadow: none; font-weight: var(--fw-heavy); }
 @media (hover: hover) { .newBtn:hover:not(:disabled) { color: var(--on-btn-primary); box-shadow: none; background: var(--btn-primary-hover); } }
 /* per-device alarm-sound toggle (visual alarm + wake-lock stay on either way) */
 .muteBtn { composes: headTile; }
+/* …folded to the bare bell (the phone head, lib/pageHeadFit · `data-folded`): a 20px glyph box
+   (hill climb r24, Sol 1, 05.11.2026). This 24-grid bell draws only 16.5 units, so in the tiles'
+   16px box it stood ~11px tall beside «+ Trupp» and the cards' 18–20px glyphs – a notification
+   mark rather than a control. At 20px it draws ~15px at the cards' ~1.5px stroke (the base 1.8
+   units), centred in the same 44px square. With its word beside it, it keeps the row's 16px. */
+.muteBtn[data-folded] :global(.i) { width: 20px; height: 20px; }
 .muteOn { color: var(--amber-strong); box-shadow: inset 0 0 0 1px var(--amber-45); }
 /* the browser has not released audio: the bell is on, and it cannot make a sound. Red, because
    this is the one bell state that needs a tap — see AtemschutzView · bellLabel. */
 .muteBlocked { color: var(--red-strong); box-shadow: inset 0 0 0 1px var(--red-45);
   background: color-mix(in srgb, var(--red) 10%, var(--surface)); }
-/* the board's arrangement, behind its own icon; the archive menu, the QR and the lite ↶ ↷ wear it too */
+/* the board's arrangement, behind its own icon; the archive menu and the lite ↶ ↷ wear it too (the QR: `.shareBtn`) */
 .orderBtn { composes: headTile; }
+/* «Überwachung abgeben»: a head tile that, folded (lib/pageHeadFit · its first rank), keeps a word
+   — «Abgeben» (hill climb r8, 04.11.2026: the bare QR glyph on the phone head did not say «hand
+   over»), in the tiles' own 700/14 (hill climb r21, 05.11.2026: r11 had shrunk it to 12.5 to fit
+   the 390px head, a step under «+ Trupp»). Since r26 (Sol 3 / Opus 4) it keeps the full title's
+   16px QR in front of it too, the tiles' one 8px glyph gap – the phone head read three patterns
+   (a bare word, a bare bell, «+ Trupp»); the room comes from the folded tiles' 8px inside
+   (`.head .headTile[data-folded]`, below), not from the type. At its second rank (the ladder's
+   last word) the word goes and it is the plain 44px QR square again. */
+.shareBtn { composes: headTile; }
 /* «Überwachung abgeben», while a link IS live. Green = a running, healthy state, the same
    reading the contact clock gives — not an alarm and not the primary action of the header.
    Tokens only, so it survives the day/night flip and a station's own accent. */
@@ -70,7 +91,19 @@
 .overdueQuiet { color: var(--ink-dim); background: var(--surface); box-shadow: inset 0 0 0 1px var(--glass-edge); animation: none; }
 @keyframes az-pulse-tile { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
 
-.body { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-gutter: stable; padding: var(--sp-4) var(--head-pad-x); }
+/* The board's insets – ONE rhythm with the card gap (hill climb r20, 05.11.2026): 16px at the top
+   and the sides, 12 under the last row, 12 between the cards (`.grid`). The sides and the gap are
+   the page grid's (`--page-x`, `--page-gap`, Surface.module.css · r21), which the head and the
+   Rapport read too. r16 had 16 on top but 22 +
+   a scrollbar gutter (~32 visible) at the sides against an 8px gap, and shadowed cards 8px apart
+   read as one slab. The 12 at the foot is what pays for the gap's +4: the 1180×820 iPad and the
+   1536×864 laptop both stand their two rows whole with no scroll (measured r20: 0px to spare; the
+   laptop since its 3-column cap, r33: 110px).
+   ⚠️ No `scrollbar-gutter` reserve any more (r16's `stable both-edges` kept 22/22 by adding a
+   gutter to BOTH sides, so the visible inset was never the padding): a board that fits shows the
+   padding exactly; one that scrolls shows its scrollbar where a scrollbar goes. An overlay
+   scrollbar (the iPad, a phone, macOS) never reserved anything. */
+.body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: var(--sp-4) var(--page-x) var(--sp-3); }
 
 .empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
   height: 100%; color: var(--ink-faint); text-align: center; }
@@ -82,16 +115,27 @@
    height, so an opened fold (Zeiten, Verlauf) grows only ITS card. With `stretch`, expanding one
    Trupp's Verlauf pumped empty space into every neighbour's belly — worse than the ragged
    bottoms `stretch` was once chosen against (the clocks the board is compared BY stay
-   top-aligned either way). */
+   top-aligned either way). ⚠️ And no shared foot line either (hill climb r6 tried out cards stretched
+   to their row with the foot pinned down: beside a taller crew inside, that is the 04.09. «Draussen
+   card stretched into an empty box» again – reverted, the ragged feet are the price). */
 /* ⚠️ 288px, not 270. 270 was chosen to fit three cards on a landscape tablet (300 fitted only
    two). Since 29.09.2026 the card is the phone's (TruppCard): its tiles are a 2×2 grid of equal
    keys, and 288 keeps «Rückzug» and «Raus» on one line each with the glyph beside the word. */
+/* 12px between cards on every wide board, the card's own side padding (hill climb r20: the iPad's
+   8px of r16 went back up to the laptop's 12 – the 4px came out of the board's foot inset, `.body`).
+   The phone's single column keeps 8 (its block below). */
 /* ⚠️ `subgrid` is GONE (04.09.) — it made every row as tall as the tallest card in it (a Draussen
    card stretched into an empty box the height of a neighbour's). Each card ends where its content
    ends; what lines up across a row is the first line — name and clock — which every card opens
    with at the same height. */
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(288px, 1fr));
-  gap: 16px; align-items: start; }
+/* THREE columns at most (hill climb r33, 06.11.2026): the 1536px laptop fitted four, so three out
+   Trupps and one inside filled the first row and the other two inside stood under them – an L over
+   two rows with a hole under the out row. The track's floor is a third of the board (less the two
+   gaps), so auto-fill never makes a fourth column at any width; under three × 288 it still drops to
+   two and one as before. The tablet already ran three, so the board reads the same from the iPad up. */
+.grid { display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(max(288px, calc((100% - 2 * var(--page-gap)) / 3)), 1fr));
+  gap: var(--page-gap); align-items: start; }
 /* ⚠️ The «Raus»-Abschnitt this separated is GONE (17.08.) — a Trupp that came back keeps its slot
    on every screen size (see AtemschutzView · board). The rule is kept out of the sheet rather than
    left behind styling nothing. */
@@ -103,17 +147,20 @@
    below it is not. Rendered only once the board actually holds a Trupp without Atemschutz
    (AtemschutzView · `sectioned`), so an ordinary Einsatz never pays a heading for a distinction
    it does not make. */
-.sect { display: flex; align-items: center; gap: var(--sp-2); margin: 0 0 var(--sp-3); }
+.sect { display: flex; align-items: center; gap: var(--sp-1); margin: 0 0 var(--sp-3); }
 .sectTitle {
   display: inline-flex; align-items: center; gap: 8px;
   font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-faint);
 }
 .sectTitle :global(.i) { width: 15px; height: 15px; color: var(--ink-faint); }
-/* the ONE count badge (05-navrail · .nav-count, 28.09.2026): 16px, min 16, 11/800, --r-xs, and a
-   plain count is INK. It was a faint 999px pill — the only round count in the app. */
-.sectCount { display: inline-block; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box;
-  border-radius: var(--r-xs); background: var(--ink-fill); color: var(--on-accent-ink);
-  font: var(--fw-heavy) var(--fs-micro)/16px var(--body); text-align: center; font-variant-numeric: tabular-nums; }
+/* The section's count is part of the EYEBROW – «DRIN 3», its type and its muted ink, 4px after the
+   word (+ the word's own tracking) – not a badge (hill climb r21, 05.11.2026). It wore the app's
+   count badge (05-navrail · .nav-count: a 16px ink-filled plate), which is a CORNER mark on an
+   icon; in a section head it was the darkest mark in the head and pulled the eye before the
+   clocks. The badge stays everywhere it marks an icon (nav, map, Verlauf, audio); this head is the
+   only one that wore it as a count. */
+.sectCount { font: var(--eyebrow); letter-spacing: var(--eyebrow-track); color: var(--ink-faint);
+  font-variant-numeric: tabular-nums; }
 /* (the hairline rule that ran from the count to the edge — «DRIN 4 ────» — went on 29.09.2026,
    T6: it was the divider between Atemschutz and ohne Atemschutz, then every section wore one,
    between cards that already have their own frames and left edges, and in the SICHERUNGSTRUPP
@@ -127,6 +174,9 @@
    Sicherungstrupp zone's own 4px top / 18px bottom made two more numbers for one boundary. ONE
    adjacency rule, whichever sections happen to be on screen; the first one stays at the top. */
 .phoneBoard > * + :is(.sect, .safetyZone) { margin-top: var(--sp-5); }
+/* …and the wide grid under the same heads (AtemschutzView · `gridGrouped`, «Dringlichkeit» /
+   «Auftrag»): each section is one wrapper (head + grid), the same 24px between them. */
+.stateBoard > * + * { margin-top: var(--sp-5); }
 .sectEmpty { margin: 0; font-size: var(--fs-2); font-weight: var(--fw-medium); color: var(--ink-dim); }
 
 
@@ -183,14 +233,27 @@
    so a wrapped line (the portrait iPad's «22:01 min · Schätzung ≈ 135 bar») STARTED with the
    dot. Placed in the gap, a line-leading dot falls left of the line's own box and
    `overflow-x: clip` drops it; a line break between two values shows no separator at all
-   (UI sweep 07.10.2026). Where `clip` is unknown (iOS < 16) the dot simply stays visible. */
-.metaLine { display: flex; flex-wrap: wrap; align-items: baseline; gap: 1px var(--sp-4); overflow-x: clip;
+   (UI sweep 07.10.2026). Where `clip` is unknown (iOS < 16) the dot simply stays visible.
+   20px of gap (16 until hill climb r20): ~8px clear either side of the dot, well over the ~3px
+   between a figure and its unit (TruppCard · UnitVal), so «29:00 min · raus mit 175 bar» groups
+   as two items, not as «29:00 | min · raus». */
+.metaLine { --meta-gap: calc(var(--sp-4) + var(--sp-1));
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 1px var(--meta-gap); overflow-x: clip;
   padding: var(--sp-2) var(--sp-3) 0; font: var(--fw-medium) var(--fs-1)/17px var(--body); color: var(--ink-dim); }
 .metaLine > span { display: inline-flex; align-items: baseline; gap: var(--sp-1); white-space: nowrap; }
 .metaLine > span + span { position: relative; }
-.metaLine > span + span::before { content: '·'; position: absolute; right: 100%; width: var(--sp-4); text-align: center;
+.metaLine > span + span::before { content: '·'; position: absolute; right: 100%; width: var(--meta-gap); text-align: center;
   color: var(--ink-faint); opacity: .7; }
-.metaLine i { font-style: normal; }
+/* a value's WORD («Schätzung ≈», «Draussen seit») in its value's ink and 700 (hill climb r11,
+   04.11.2026): at the line's 500/dim ink the word read lighter than the number it names, against
+   the owner's «full ink, full weight» Schätzung. Only the figures stay mono. */
+.metaLine i { font-style: normal; font-weight: var(--fw-bold); color: var(--ink); }
+/* …but an OUT card's joining words, «drin» / «raus mit» (owner pick C18), step back to the line's
+   own dim ink, regular (hill climb r13 → r27, 05.11.2026): at the values' 700 ink the words read
+   first, and at 500 – beside the out card's figures, dim too (.trowOut below) – words and figures
+   ran together as one grey line; the 400 / 700 mono step is the split. Set per item
+   (TruppCard · sockelLine `quiet`), so the Schätzung's word can never wear it. */
+.metaLine i.metaWordQuiet { font-weight: var(--fw-regular); color: var(--ink-dim); }
 .metaLine b { font: var(--fw-bold) var(--fs-1) var(--mono); color: var(--ink); font-variant-numeric: tabular-nums; }
 /* (`.metaEst`, the Schätzung's dimmed + lighter value, went on 29.09.2026, T2: the owner wants the
    Schätzung CLEARLY visible, so it keeps full ink and its WORD — «Schätzung ≈ 0 bar» — and the word
@@ -269,7 +332,8 @@
   font: var(--fw-bold) var(--fs-1) var(--body); color: var(--ink-dim); -webkit-tap-highlight-color: transparent; }
 .vrow:active { background-image: linear-gradient(var(--press), var(--press)); }
 .vrow :global(.i) { width: 14px; height: 14px; flex: none; }
-.logChev { color: var(--ink-faint); }
+/* the foot's disclosure: the row chevron's glyph (`.trowChevron` · THE card disclosure glyph) */
+.vrow .logChev { width: 28px; height: 28px; stroke-width: 1.5; color: var(--ink-dim); }
 /* An OPENED card on the phone list is parked at the top of the port (AtemschutzView · the
    `--az-open-pad` effect), and a card about a port tall comes to rest with this row in the FAB's
    corner: the circle sat on the chevron (field checks 24.09.2026). The effect measures where the
@@ -313,20 +377,30 @@
 /* ── The lifecycle tiles (26.09.2026 evening on the phone, EVERY board since 29.09.2026) ─────────
    «Rückzug» | «Raus», «Im Einsatz», «Wieder in den Einsatz» — the second row of the card's tile
    grid, the same shape as «⌓ 240 bar | Kontakt» above them (`.trowPressBtn`, `.kontaktBtn`):
-   48px, the one corner, ONE 1px inset edge, 800/14. Four tiles under one clock are read as a
-   keypad, and a keypad has equal keys.
+   48px, the one corner, ONE 1px inset edge, 700/14 (the button spec's standard; 800 is Kontakt's
+   alone, the board's one action — hill climb r1, 04.11.2026). Four tiles under one clock are read
+   as a keypad, and a keypad has equal keys.
    ⚠️ The tablet's weights (04.09.: a loud amber-worded, framed «Rückzug melden» in `1fr` beside a
    ghost «Raus melden» in `auto`) went on 29.09.2026 (T11): amber means «warning», and on a Trupp
    at 300 bar nothing is wrong. Colour is state and nothing else — «Rückzug» turns amber only at or
    under the Trupp's Alarmdruck (`.actAlarm`), the one moment the tile is the answer. */
 .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-/* a single action («Im Einsatz», «Wieder in den Einsatz», a work squad's «Raus melden») owns the row */
+/* a single action («Im Einsatz», «Wieder in den Einsatz», a work squad's «Raus melden») owns the row
+   (on the grid an out card's «Wieder in den Einsatz» stands at its own width – «The grid's card, denser») */
 .actions:has(> :only-child) { grid-template-columns: 1fr; }
 .actBtn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2); border: none; cursor: pointer;
   min-height: 48px; min-width: 0; padding: 0 12px; border-radius: var(--r-sm);
   background: var(--surface); box-shadow: inset 0 0 0 1px var(--glass-edge);
-  font: var(--fw-heavy) var(--fs-2) var(--body); color: var(--ink-dim); }
-.actBtn :global(.i) { width: 16px; height: 16px; }
+  font: var(--fw-bold) var(--fs-2) var(--body); color: var(--ink-dim); }
+/* ONE glyph on every tile of the card (hill climb r6, 04.11.2026) — the pair (`.trowPressBtn`,
+   `.trowKontakt`) and the lifecycle row (`.actBtn`, the Notfall's held tile too) were 16–17px
+   boxes, and these 24-grid glyphs draw only 9–18 units of them: beside the 700 labels the gauge,
+   the radio waves, the flag and the exit read as specks. 18px and a 2-unit stroke (~1.5px drawn,
+   the label's weight) on all of them, one step more (20px) for the pair's two sparse glyphs — the
+   manometer is an arc in the box's lower half, the radio three thin waves — so all of them read at
+   one optical size; the 8px to the word is the tiles' own `gap: var(--sp-2)`. */
+:is(.actBtn, .trowPressBtn, .trowKontakt) :global(.i) { width: 18px; height: 18px; stroke-width: 2; }
+:is(.trowPressBtn, .trowKontakt) :global(.i) { width: 20px; height: 20px; }
 /* press wash for the whole lifecycle row — every variant below rides on .actBtn */
 .actBtn:active:not(:disabled) { background-image: linear-gradient(var(--press), var(--press)); }
 @media (hover: hover) { .actRueckzug:hover, .actContinue:hover, .actExit:hover { background: var(--fill-soft); } }
@@ -335,10 +409,14 @@
   background: color-mix(in srgb, var(--amber) 10%, var(--surface));
   box-shadow: inset 0 0 0 1px var(--amber-45); }
 /* ⚠️ The card's ONE filled tile (27.09.2026, owner screenshot r2-1): «Wieder in den Einsatz» /
-   «In den Einsatz» on a Trupp that is out, «Im Einsatz» on one still waiting. In the tile family
-   the one primary action is the filled tile («+ Trupp» in the head, `.newBtn`; «Anmelden» in
-   the form), never a green band — in the app's one primary fill (`--btn-primary`, dimmed at night). */
-.actEnter, .actReenter { color: var(--on-btn-primary); background: var(--btn-primary); box-shadow: none; }
+   «In den Einsatz» on a Trupp that is out, «Im Einsatz» on one still waiting – the owner's pick,
+   kept through the hill climb (04.11.2026). In the tile family the one primary action is the
+   filled tile («+ Trupp» in the head, `.newBtn`; «Anmelden» in the form), never a green band — in
+   the app's one primary fill (`--btn-primary`, dimmed at night), at the primary's 800 (on the
+   tablet / desktop grid an out card's tile is a 40px plate at 700, 36px on a mouse – «The grid's
+   card, denser»). Not a quieter mid slate (hill climb r7 tried it): at night it read as a DISABLED
+   button – on the one action the card exists to offer. */
+.actEnter, .actReenter { color: var(--on-btn-primary); background: var(--btn-primary); box-shadow: none; font-weight: var(--fw-heavy); }
 @media (hover: hover) {
   .actEnter:hover, .actReenter:hover { background: var(--btn-primary-hover); }
 }
@@ -386,11 +464,10 @@
    centring itself on a viewport the keyboard has halved, which is the complaint it answers. */
 .modal:global(.is-kb) { top: calc(max(12px, env(safe-area-inset-top)) + var(--vv-pan, 0px)); transform: translateX(-50%);
   height: min(760px, calc(100dvh - 24px - var(--kb-inset, 0px))); }
-/* ⚠️ Tighter than the standard .ip-head, and deliberately so: this form has a row that GROWS
-   — the drawn Leitungen wrap to a second line of chips as soon as a few hoses exist — and the
-   frame is sized to a tablet. The chrome pays for that line, not the fields. 800/17 keeps the
-   app-wide heading cut (a lighter weight reads as a different typeface, not a smaller heading). */
-.modalHead { flex: none; display: flex; align-items: center; gap: 12px; padding: var(--sp-3) var(--sp-5) var(--sp-2); }
+/* THE sheet head (.ip-head): 16 from the top, 24 from the side, the title centred on its 36px ✕
+   (r35, 06.11.2026 – it stood 12 from the top, 4px tighter than every other sheet, to buy room for
+   the form's growing Leitungen row; one head for every sheet won). */
+.modalHead { flex: none; display: flex; align-items: center; gap: 12px; padding: var(--sp-4) var(--sp-5) var(--sp-2); }
 .modalHead h3 { margin: 0; flex: 1 1 auto; font: var(--sheet-title); color: var(--ink); }
 
 /* two columns (Trupp · Druck + Weitere Angaben) so the create form fits without scrolling on a
@@ -629,8 +706,10 @@
 /* (`.linkBtn` is gone with the «Name eingeben (Gast / Nachbarwehr)» row it drew, 04.09. — the
    search field IS the guest entry now, and its door is the last row of the list. See TruppTeam.) */
 
-.modalFoot { flex: none; display: flex; gap: var(--sp-2); justify-content: flex-end; padding: var(--sp-3) var(--sp-5);
-  border-top: 1px solid var(--glass-edge); background: var(--glass); }
+/* THE sheet foot's geometry (r35, 06.11.2026 – `.ip-sheet > .ip-actions`, 13-incident): no hairline,
+   no band of its own, 8 24 16, the buttons to the right. The mini sheets and the Trupp form wore a
+   --glass-edge rule over a 12 24 glass band, the only sheets in the app that did. */
+.modalFoot { flex: none; display: flex; gap: var(--sp-2); justify-content: flex-end; padding: var(--sp-2) var(--sp-5) var(--sp-4); }
 /* second, equally valid submit (Wieder einrücken → «Bereitstellen»): outlined rather than ghost,
    because it commits the form just like the primary does – a ghost would read as «abbrechen». */
 
@@ -715,10 +794,13 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 .comboType :global(.i) { width: 15px; height: 15px; }
 .comboEmpty { padding: 8px 12px; font-size: var(--fs-1); color: var(--ink-faint); }
 .comboMenu {
-  /* --menu-pad: the sticky search row is offset by the same number (ComboMenu.module.css · .searchRow) */
-  --menu-pad: 4px; position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 5; margin: 0; padding: var(--menu-pad); list-style: none;
+  /* THE menu shell (06-contextpanel · .combo-menu, every `Menu`): even --bar-pad and the corner of
+     its rows plus that gap, --r-bar (r35, 06.11.2026 – it was 4px and --r-ctl, the one picker in
+     another shape). --menu-pad: the sticky search row is offset by the same number
+     (ComboMenu.module.css · .searchRow). */
+  --menu-pad: var(--bar-pad); position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 5; margin: 0; padding: var(--menu-pad); list-style: none;
   max-height: 252px; overflow-y: auto; background: var(--surface); border: 1px solid var(--glass-edge);
-  border-radius: var(--r-ctl); box-shadow: var(--e4);
+  border-radius: var(--r-bar); box-shadow: var(--e4);
 }
 /* portalled to <body> (mirrors the global Combo): the scrolling modal/sheet the field sits in
    would otherwise clip the menu at its overflow boundary. Keep it above modal sheets (@80/81)
@@ -737,20 +819,22 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 .comboDotPresent { background: var(--green); }
 .comboDotOff { background: var(--ink-faint); opacity: .4; }
 /* «Gast» on a roster option — somebody recorded on this Einsatz who is not on the
-   Mannschaftsliste (lib/guests). ⚠️ The SAME blue mark the Anwesenheit screen gives them
-   (.guestBadge in Anwesenheit.module.css): one thing, one look for it, on every screen. It
-   states a fact, it does not disable anything — a Nachbarwehr's AdF is pickable like anyone. */
-.comboGuest { flex: none; font: var(--fw-heavy) var(--fs-micro) var(--body); letter-spacing: .02em; color: var(--blue);
-  background: color-mix(in srgb, var(--blue) 14%, var(--surface)); border-radius: 5px; padding: 2px var(--sp-1); }
+   Mannschaftsliste (lib/guests). It states a fact, it does not disable anything — a Nachbarwehr's
+   AdF is pickable like anyone. ONE tag look for a crew fact (r35, 06.11.2026): ink on grey, as
+   the Anwesenheit's «Gast» (.guestBadge) and the Trupp-Suche's «AS» (TruppFinder · .tag) – it was
+   a blue pill here, 3.9:1 by day. */
+.comboGuest { flex: none; font: var(--fw-heavy) var(--fs-micro) var(--body); letter-spacing: .02em; color: var(--ink-dim);
+  background: var(--fill-soft); border-radius: 5px; padding: 2px var(--sp-1); }
 .comboHint { flex: none; font-size: var(--fs-micro); color: var(--ink-faint); }
 /* The Dienstgrad chip, the option's name cell and the sticky search row are the SKINLESS parts
    of this control — identical here and in the global `.combo-*` copy, so ComboMenu draws them
    from ComboMenu.module.css and neither stylesheet names them any more. */
 
-/* "nur Offiziere" toggle pinned above the roster list */
+/* "nur Offiziere" toggle pinned above the roster list — an option row, so --tap tall like the
+   rows under it (.comboOpt; it was 40, hill climb r34) */
 .comboToggle {
   color: var(--ink-dim); font-weight: var(--fw-bold); border-bottom: 1px solid var(--glass-edge);
-  margin-bottom: 2px; min-height: 40px;
+  margin-bottom: 2px;
 }
 .comboToggle :global(.i) { width: 15px; height: 15px; color: var(--accent); }
 /* --blue: this is a SELECTED state, and --accent is the brand red — the note two rules up in
@@ -825,6 +909,14 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: var(--sp-2); justify-items: start; }
 /* 160, not 150 (25.09.2026): the ✕ grew to the full 44px target, and at 360px two 157px cells
    left a name «Gast A…». A 360px phone now lays one chip per row, whole; from ~390px it is two. */
+/* …with a MOUSE the cells go (r35, 06.11.2026): the laptop's 520px Mannschaft sheet made two 232px
+   cells, so a short name left a ~90px hole before the next chip. There the chips pack left in a
+   free row, 8px apart – the rhythm of the Ausrüstung chips under them (`.miniChips`). The grid
+   stays for a finger (the «das Chip springt um» ask above was a tap); three people fit one line at
+   this width, so a crowning re-wraps only a longer crew. */
+@media (hover: hover) and (pointer: fine) {
+  .teamChips { display: flex; flex-wrap: wrap; }
+}
 /* ⚠️ `--r-sm`, not the row's `--r-ctl`: a chip is a button in the house spec (docs/ui-conventions.md ·
    Buttons), and it sits beside the search field's own `--r-ctl` — two different shapes is what
    says «these are targets, that is a field». */
@@ -842,6 +934,11 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
      with the selection callout — which eats the gesture and leaves a highlighted name */
   user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .chipPick:disabled { cursor: default; }
+/* ⚠️ The CHIP is --tap tall, so its two buttons inside its 1px border were 42 (hill climb r34). A
+   pad over that border, top and bottom, gives each its full 44 without moving the chip a pixel;
+   sideways the two meet each other, and the next chip is a grid gap away. */
+.chipPick, .chipX { position: relative; }
+.chipPick::after, .chipX::after { content: ''; position: absolute; inset: -1px 0; }
 /* ⚠️ The CHIP washes, not the name (24.09.2026, field report «ugly hover»): on `.chipPick` the
    grey stopped before the ✕ and rounded its own corners mid-chip. A tap on the name crowns, so
    the chip is the control and the whole of it answers; the ✕ has its own nested state below. */
@@ -932,8 +1029,8 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
      foot keeps the shared --fab-safe reserve: the last card – its «Austritt» included – scrolls
      clear of the circle, and a viewer (no FAB) gets no dead space. Mid-scroll a card still passes
      under it; an opened card's foot row has the guard above (data-az-fab-foot). */
-  .body { padding: var(--sp-3) var(--head-pad-x); padding-bottom: calc(var(--sp-3) + var(--fab-safe, 0px)); }
-  .grid { grid-template-columns: 1fr; }
+  .body { padding: var(--sp-3) var(--page-x); padding-bottom: calc(var(--sp-3) + var(--fab-safe, 0px)); }
+  .grid { grid-template-columns: 1fr; gap: var(--sp-2); }
   /* (the head's phone paddings are the shared tokens — 15-mobile · --head-pad-*) */
 }
 
@@ -1083,11 +1180,21 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
      tracks win every argument, and at 640px they left ~26px for the name — every Trupp rendered as
      a single letter («M», «S.», «H»), which is worse than the flex version it replaced. */
   grid-template-columns: minmax(140px, 1fr) 104px 132px 84px 148px var(--tap);
-  background: var(--surface); border: none; border-left: 5px solid var(--ink-faint);
+  background: var(--surface); border: none; position: relative; isolation: isolate;
   border-radius: var(--r-ctl); padding: var(--sp-3); cursor: pointer; font-family: var(--body);
   box-shadow: 0 0 0 1px var(--item-edge, var(--border-soft)), var(--item-lift, var(--e3));
-  /* the Truppfarbe dot, and the indent that hangs a second line under the NAME past it */
+  /* the Truppfarbe ring, and the indent that hangs a second line under the NAME past it */
   --trow-dot: 11px; }
+/* ── The tone edge only where it says something (grid hill climb r11; the phone too since owner
+   pick C2, 05.11.2026) ───────────────────────────────────────────────────────────────────────
+   The 5px left edge is the state tone: amber fällig, red überfällig, blue angemeldet, green
+   Sicherungstrupp. A calm crew inside, a crew out and a work squad wore a neutral grey one that
+   said nothing — so a row or card is its 1px ring, and only a tone with a meaning draws the edge,
+   as an overlay inside the frame (the colour each tone class sets as `border-left-color`). Every
+   row keeps the same 12px gutter, and the head band and the foot still bleed to the frame's edge.
+   `isolation` (above) keeps its z-index inside the row. */
+.trow:is(.trowWarn, .trowCrit, .trowIdle, .trowSafety)::before { content: ''; position: absolute; inset: 0; z-index: 1;
+  border-left: 5px solid; border-left-color: inherit; border-radius: inherit; pointer-events: none; }
 .trowWarn { border-left-color: var(--amber); background: color-mix(in srgb, var(--amber) 6%, var(--surface)); }
 /* ⚠️ Überfällig has NO wash since 24.10.2026 (owner, sweep M3 — G.7: red for danger, quiet ground):
    the red edge, the red clock and the red «Kontakt» say it (no triangle at the clock since 30.10.2026). The
@@ -1105,10 +1212,32 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
    mixed rather than faded: the row still reads as spent, and the text stays legible. */
 /* a Trupp WITHOUT Atemschutz: the same row, in the one tone that is neither an alarm nor a
    promise of one — its clock is an Einsatzzeit, not a contact clock (see TruppRow). */
-.trowPlain { border-left-color: var(--ink-faint); }
 .trowPlain .trowClockVal { color: var(--ink-dim); }
-.trowOut { border-left-color: var(--ink-faint);
-  background: color-mix(in srgb, var(--ink) 5%, var(--surface)); }
+/* ⚠️ Mixed toward the CANVAS, not toward `--ink` (hill climb r3, 04.11.2026): 5% ink darkened the
+   card by day but LIT it by night (night ink is near-white), so the spent crews wore the brightest
+   surface on the dark board. The canvas sinks it in both themes; the name goes to the dim ink. */
+.trowOut { background: color-mix(in srgb, var(--canvas-bg) 55%, var(--surface)); }
+.trowOut .trowName { color: var(--ink-dim); }
+/* …and the crew under it in the same tone (hill climb r13, 05.11.2026): in full ink beside the
+   dimmed name the crew was the louder line of the head. The head dims as ONE block, the name
+   keeps its weight over the crew's 400. A crew inside keeps its ink line (owner pick A3). */
+.trowOut .crewLine { color: var(--ink-dim); }
+/* …and on the tablet / desktop grid one step further down (hill climb r17, 05.11.2026): in the dim
+   ink at 800 the out cards' names, beside the filled «Wieder in den Einsatz», still made the grid's
+   top row of spent crews its loudest. The name keeps the dim ink at 700, the crew goes to the faint
+   ink of the «DRAUSSEN SEIT» caption over it, the clock stays dim 16/700 – the head reads as one
+   sunk block. Both inks stay over AA on the out ground (faint ~5.9:1 by day, ~6.6:1 at night). The
+   filled tile and the foot are untouched (owner, 27.09.2026). The phone's Draussen row (name and
+   time only) keeps its 800: it has no crew line and no filled tile beside it. */
+.grid .trowOut .trowName { font-weight: var(--fw-bold); }
+.grid .trowOut .crewLine { color: var(--ink-faint); }
+/* …and the rest of the card's text with it (hill climb r15, 05.11.2026): the fact chips and the
+   foot's values in full ink kept the grid's top row of out cards as loud as the crews inside.
+   The out tone is the phone row's — the dim ink, NOT `--done-opacity` (that took the text under
+   AA, see above). The dashed amber «+ Auftrag» keeps its tone (a gap is a gap), a red low Druck
+   keeps its red (`.metaAlarm`), and «Wieder in den Einsatz» stays the card's one full-strength
+   filled tile (owner, 27.09.2026). No Schätzung ever stands on an out card (TruppCard · estimate). */
+.trowOut .fact:not(.factDash), .trowOut .metaLine b { color: var(--ink-dim); }
 /* ⚠️ …and SMALL, not merely grey (04.09., the card's `.bandQuiet` read once more on the row). A
    row that is out has no contact clock, so the cell holds «–:––» — 25px of mono nothing, in the
    size the board reserves for the crews it is watching. Grey alone did not take it out of the
@@ -1124,7 +1253,10 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
    16 (`--fs-3`) on every board since 08.10.2026 — it was 17.5 on a card and 16.5 on a phone row,
    and the scale has no step between 16 and 19; still the largest word on the line after the clock. */
 .trowName { display: flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-3); font-weight: var(--fw-heavy); color: var(--ink); }
-.trowDot { width: var(--trow-dot); height: var(--trow-dot); border-radius: var(--r-pill); flex: none; }
+/* the Truppfarbe as a hollow RING (owner pick C5, 05.11.2026): a filled red disc beside a name read
+   as an alarm. Same hue, drawn in `color` (TruppCard · RowLine and SafetyRow set it inline). */
+.trowDot { width: var(--trow-dot); height: var(--trow-dot); border-radius: var(--r-pill); flex: none;
+  box-shadow: inset 0 0 0 3px currentColor; }
 /* the ellipsis has to live on a child: `text-overflow` needs a block with inline content, and
    .trowName is a flex container — on it, a long name was chopped mid-letter with no «…» */
 .trowNameTxt { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1133,8 +1265,6 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 .rueckzugBadge { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 26px; height: 26px;
   border-radius: var(--r-pill); background: var(--amber); color: var(--on-amber); }
 .rueckzugBadge :global(.i) { width: 15px; height: 15px; }
-.trowTeam { font-size: var(--fs-1); color: var(--ink-faint); white-space: nowrap; overflow: hidden;
-  text-overflow: ellipsis; margin-top: 1px; }
 
 /* the Planungshilfe under the name. Hidden by default — on a wide row the pressure has its own
    column; this is the phone's substitute for it, in space that is already there. */
@@ -1149,18 +1279,38 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 .trowWarn .trowState { color: var(--amber-strong); }
 .trowCrit .trowState { color: var(--red-strong); }
 
-/* the number the whole surface exists for — mono and tabular so the digits line up down the column */
+/* the number the whole surface exists for — mono and tabular so the digits line up down the column.
+   A calm clock in the STRONG green on every board (hill climb r19, 05.11.2026): the phone row's plain
+   `--green` read darker and more saturated at night than the grid's band clocks, which wear the strong
+   ink since r18 — one calm clock, one ink, on the neutral phone card as on the green band. */
 .trowClock { text-align: right; }
 .trowClockVal { display: block; font-family: var(--mono); font-size: 28px; font-weight: var(--fw-heavy);
-  line-height: 1; color: var(--green); font-variant-numeric: tabular-nums; }
-.trowWarn .trowClockVal { color: var(--amber); }
+  line-height: 1; color: var(--green-strong); font-variant-numeric: tabular-nums; }
+/* fällig in the strong amber ink (05.11.2026): plain --amber measured 2.4:1 on the phone row's
+   wash and 2.2:1 on the grid's amber head band by day, under the 3:1 of large text; the strong
+   ink is 5.6:1 on the band by day, 5.2:1 at night (überfällig's --red-strong: 4.9 / 5.4) */
+.trowWarn .trowClockVal { color: var(--amber-strong); }
 .trowCrit .trowClockVal { color: var(--red-strong); }
 /* «3d 9h» (TruppCard · ClockVal, 30.09.2026): the unit is a small body-face letter against its
    number, so a day-long clock stops out-measuring the name beside it */
 .clockUnit { font-family: var(--body); font-size: .75em; font-weight: var(--fw-bold); margin-left: 1px; }
 .clockGroup { margin-left: .15em; }
-.trowSub { display: block; font-size: var(--fs-micro); font-weight: var(--fw-bold); letter-spacing: .05em;
-  text-transform: uppercase; color: var(--ink-faint); margin-top: var(--sp-1); white-space: nowrap; }
+/* «270 bar», «10:00 min» (TruppCard · UnitVal, owner pick C6, 05.11.2026): the figure stays in its
+   value's mono so the digits line up, the unit word goes in the body face at 500 with no tracking —
+   same size and ink as its figure, on its baseline. The Schätzung's figure keeps its 700 (T2).
+   The space before the unit is the span's own, so it is a body-face space (~3–4px), not a mono
+   cell (~7.5–10px): figure–unit gap < the gap between two items (hill climb r20). */
+.valUnit { font-family: var(--body); font-weight: var(--fw-medium); letter-spacing: 0; }
+/* the clock's caption, ABOVE the time (owner pick A1/C7, 05.11.2026): 11px caps with the tracking
+   nearly closed — at .05em it read as fine print, at 12.5 it out-weighed the name's line. One line,
+   normal word spacing. ⚠️ The «KON TAKT» / «DRAU SSEN» gaps in the hill-climb laptop shots are
+   not in the string, the tracking or a kerning pair: headless Chromium at DPR 1 renders with full
+   font hinting and snaps every glyph to a whole pixel, so where a gap opens depends on the text's
+   fractional x (the same «Draussen seit» was gapped on one card and even on the next). Measured
+   05.11.2026: tracking 0, `text-rendering`, `font-kerning`, a layer of its own — none changes it;
+   `--font-render-hinting=none` (and any DPR 2 screen) sets it evenly. Not a CSS fix. */
+.trowSub { display: block; font-size: var(--fs-micro); font-weight: var(--fw-bold); letter-spacing: .01em;
+  word-spacing: normal; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 2px; white-space: nowrap; }
 /* the clock's line: the digits, right-aligned in the clock cell. No tier glyph in front of them
    since 30.10.2026 – the digits' colour (amber / red) is the tier. */
 .trowClockLine { display: flex; justify-content: flex-end; align-items: center; gap: var(--sp-2); }
@@ -1173,19 +1323,23 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
    Trupp leaving a hole here is what pulled every other column out of line */
 .trowAct { justify-self: stretch; }
 .trowKontakt { width: 100%; padding: 0 12px; min-height: 48px; border-radius: var(--r-ctl); font-size: var(--fs-2); }
-.trowKontakt :global(.i) { width: 16px; height: 16px; }
-.trowChevron { width: var(--tap); height: var(--tap); display: grid; place-items: center; color: var(--ink-faint); }
-.trowChevron :global(.i) { width: 18px; height: 18px; }
+/* THE card disclosure glyph (hill climb r22, Sol 1, 05.11.2026) – this row chevron and the card
+   foot's `.logChev` share it: a ~14px visible glyph (the 24-unit chevron in a 28px box, the path
+   spans half of it) at a 1.75px stroke (1.5 units × 28/24), in the secondary ink. It was a 15–18px
+   box at the icon's 1.8 units – a 7–9px, 1.1px hairline in --ink-faint beside the bold names and
+   clocks. Only the glyph grew: it stays centred in its track, the tap target is the row. */
+.trowChevron { width: var(--tap); height: var(--tap); display: grid; place-items: center; color: var(--ink-dim); }
+.trowChevron :global(.i) { width: 28px; height: 28px; stroke-width: 1.5; }
 
 /* Each step drops the least operational thing left, so the NAME and the CLOCK survive to the
-   narrowest width. What goes, in order: the crew line · the caption · the pressure · the state
-   word. Nothing that goes is lost — it is all on the card behind the tap. */
+   narrowest width. What goes, in order: the caption · the pressure · the state word. Nothing
+   that goes is lost — it is all on the card behind the tap. */
 @media (max-width: 1023px) {
   /* «SEIT LETZTEM KONTAKT» is ~118px of nowrap text; below this the clock track can no longer hold
      it and it ran out under the Kontakt button. The column stays self-evident: one mono number per
      row, colour-coded, under a header that already says what the board is. */
   .trow { grid-template-columns: minmax(120px, 1fr) 96px 92px 140px var(--tap); }
-  .trowTeam, .trowSub, .trowPress { display: none; }
+  .trowSub, .trowPress { display: none; }
 }
 @media (max-width: 760px) {
   /* the state word goes too — the left border colour and the clock colour already carry it, and
@@ -1203,9 +1357,8 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
   .trowKontakt { padding: 0; min-height: var(--tap); }
   .trowKontakt span { display: none; }
   /* every remaining pixel goes to the name: the clock needs 4 mono characters, the chevron is only
-     a hint (the whole row is the button), and 15.5px still clears the 12.5px floor comfortably */
+     a hint (the whole row is the button) – its 24px track still holds the 14px glyph */
   .trowChevron { width: 24px; }
-  .trowChevron :global(.i) { width: 15px; height: 15px; }
   .trowName { gap: var(--sp-2); }
 }
 
@@ -1247,8 +1400,11 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
    the title line, then this row on a line of its own — is GONE: it cost 121px of a phone for a
    head that fits in 60, and «the ⚠ tile arriving adds a tile, not a row» holds on one row too. */
 .headActs { composes: headActions from './Surface.module.css'; }
-/* the ladder's «close up» step (lib/pageHeadFit): a worded tile 8px inside — still ≥ a tap wide */
-.head[data-fit-tight] .headTile { padding: 0 8px; }
+/* the ladder's «close up» step (lib/pageHeadFit): a worded tile 8px inside — still ≥ a tap wide.
+   A FOLDED tile is 8px inside already (hill climb r26, Sol 3 / Opus 4): the short word is the
+   crowded head's form, and on the 390px phone the 16px the two worded tiles give back keep «Abgeben» its
+   QR glyph without folding «✓ Gespeichert» to its mark (an icon-only tile stays the 44px square). */
+.head[data-fit-tight] .headTile, .head .headTile[data-folded] { padding: 0 var(--sp-2); }
 /* the sync line under the title is ONE line: the quiet state gives its time to the ladder first,
    and the LOUD one (the switcher's `.ip-offline-chip`, `flex: none` elsewhere) may shrink rather
    than run under the tiles — its text ellipsizes, which the ladder reads as «does not fit»
@@ -1285,6 +1441,9 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
    real border, as on `.bottomRail`, hence the inset hairline of the wide head goes. */
 .head.headCompact { background: var(--surface); box-shadow: none; border-bottom: 1px solid var(--glass-edge); }
 .headTitlesCompact { display: flex; flex-direction: column; min-width: 0; }
+/* the link board's one-row title is its own line, no quiet row to keep room for (Surface.module.css
+   · ONE title line holds for the page heads) */
+.headTitlesCompact { padding-bottom: 0; }
 /* the ONLY `h2` inside `.headRow` is the repurposed Einsatz title (no kicker survives beside
    it) — «orientation, not information» (maintainer review, 03.09.): a modest weight, not the
    tablet's hero size, and EXPLICITLY not-uppercase/not-tracked — `.surfaceLite .headTitles h2`
@@ -1364,7 +1523,7 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 /* ↶ ↷ 🔔 without frames on this head (R1): three framed squares beside a two-line title read as a
    toolbar of their own. A bell that is muted or blocked keeps its tint — that state needs eyes. */
 .head.headCompact .headActs > :is(.orderBtn, .muteBtn):not(.muteOn, .muteBlocked) { background: transparent; box-shadow: none; }
-.bodyFocus { display: flex; flex-direction: column; padding: 0; overflow: hidden; scrollbar-gutter: auto; }
+.bodyFocus { display: flex; flex-direction: column; padding: 0; overflow: hidden; }
 /* the port: the body's height under the head and the Notfall strips. (Its 6–10px padding — 05.09.
    and 09.09., which kept a card's coloured edge off the head's hairline — went with the card on
    30.10.2026: the page is flat. Its layout is under «NO CARD» below.) */
@@ -1433,12 +1592,17 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 .tabCrit { background: color-mix(in srgb, var(--red) 20%, transparent); }
 .tabCrit .tabClock { color: var(--red-strong); }
 /* the open tab is «where you are» — a soft ink wash on the flat bar (R1 30.10.2026; the ink pill
-   of 29.09.2026 was a filled chip in a row of framed chips). Its line takes the ink too. A Notfall
-   (red) tab stays RED when it is the open one, filled, so «this page is the Notfall» reads from
-   the bar as well as from the page. Doubled class so it outranks `.tabWarn` / `.tabCrit`. */
+   of 29.09.2026 was a filled chip in a row of framed chips). Its line takes the ink too. A red tab
+   (Alarmdruck, überfällig) stays RED when it is the open one, filled. Doubled class so it outranks
+   `.tabWarn` / `.tabCrit`. */
 .tab.tabOn { background: color-mix(in srgb, var(--ink) 16%, transparent); color: var(--ink); }
 .tab.tabOn .tabClock { color: inherit; }
 .tab.tabOn.tabCrit { background: var(--nf-fill); color: var(--on-accent-ink); }
+/* …but the NOTFALL Trupp's own tab, while you are on its page, is the plain open tab with its name
+   in red (owner pick E3, 06.11.2026): the page itself says «Notfall», a red block under it said it
+   a third time. On any other page the tab keeps the red tint of `.tabCrit` (settled R1). */
+.tab.tabOn.tabNf { background: color-mix(in srgb, var(--ink) 16%, transparent); color: var(--ink); }
+.tab.tabOn.tabNf .tabName { color: var(--red-strong); }
 /* «+ Trupp» — one more cell of the SAME grid, so it is exactly as wide as a chip and as tall as
    its row (05.09.). Before this it was a 44px square in a fixed column of its own beside the
    strip: the only thing on the rail that matched neither the width nor the height of a tab, and
@@ -1472,6 +1636,8 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 .focusCard { display: flex; flex-direction: column; align-items: stretch; padding: 0; overflow-y: auto; overscroll-behavior: contain; }
 .focusCard > .trow.trowCard { flex: 1 0 auto; width: 100%; max-height: none; overflow: visible; padding: 0 16px 16px;
   background: transparent; border: 0; border-radius: 0; box-shadow: none; }
+/* the page IS the screen: no frame, so no tone edge either (as before the edge became an overlay) */
+.focusCard > .trow.trowCard::before { content: none; }
 .focusCard .trowCard > * { flex: 0 0 auto; }
 .pageActs { margin-top: auto; padding-top: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-2); }
 /* the zones keep their markup; in the group ONE gap spaces them, so their own top spacing goes */
@@ -1481,11 +1647,19 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 /* Druck | Kontakt — the radio-check pair the thumb works all Einsatz long — a step taller */
 .focusCard .pageActs .trowActs > .kontaktBtn { min-height: 64px; }
 .focusCard .trowHead { margin: 0 -16px; padding: var(--sp-4) var(--sp-4) var(--sp-2); }
-.focusCard .vfoot { margin: var(--sp-3) -16px 0; background: transparent; }
+/* the foot line runs edge to edge (its hairline), its text on the page's content edge: the row and
+   the opened Verlauf's rows take the page's inset (`--page-in`, 16; 24 on a Notfall page) instead of
+   the card's 12 (`.trowCard .vrow`, `.vrowTerse`). `> .trow.trowCard >` outranks the card's own
+   `.trowCard .vfoot` margins (hill climb r32 – the page's 4px offset used to be that rule winning
+   by source order). */
+.focusCard > .trow.trowCard { --page-in: var(--sp-4); }
+.focusCard > .trow.trowCard > .vfoot { margin: var(--sp-3) calc(-1 * var(--sp-4)) 0 calc(-1 * var(--page-in)); background: transparent; }
+.focusCard > .trow.trowCard > .vfoot :is(.vrow, .zonePanel, .logList) { padding-left: var(--page-in); }
+.focusCard > .trow.trowCard > .vfoot :is(.zonePanel, .logList) { padding-right: var(--sp-4); }
 /* every page opens with its NAME big (the scale's 32px; the mock's 30), the Notfall Trupp's
    included (NotfallPageHead) */
 .focusCard .trowHead .trowNameTxt { font-size: var(--fs-6); line-height: 1.1; }
-/* …and the clock names what it counts, under it («SEIT LETZTEM KONTAKT») */
+/* …and the clock names what it counts, above it («SEIT LETZTEM KONTAKT» – RowLine draws it first) */
 .focusCard .trowHead .trowClock { display: flex; flex-direction: column; align-items: flex-end; }
 .focusCard .trowHead .trowSub { display: block; }
 /* a crew at the door: «Bereit» where the clock would stand (TruppCard · `page`) */
@@ -1566,7 +1740,7 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 .trowIdle .trowClockVal { font-size: var(--fs-3); font-weight: var(--fw-bold); color: var(--ink-dim); }
 /* ── ONE tile family on the phone (26.09.2026 evening, phone card slim-down) ───────────────────
    The pressure tile, «Kontakt», «Rückzug» and «Raus» are one shape — 48px, the one corner, ONE
-   1px inset edge, 800/14 — laid as a 2×2 grid on the opened card (the pair, then `.actions`
+   1px inset edge, 14px; 800 for Kontakt, 700 for the rest (04.11.2026) — laid as a 2×2 grid on the opened card (the pair, then `.actions`
    under it with the same columns and gap) and as the pair alone on the closed row. Colour is
    state and nothing else: the Kontakt tile wears the tier (`.kontaktWarn` / `.kontaktCrit` over
    its calm green), «Rückzug» is amber only while the Trupp is at or under its Alarmdruck
@@ -1574,12 +1748,14 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 .trowPressBtn { min-height: 48px; padding: 0 12px; border-radius: var(--r-sm); font-size: var(--fs-2);
   background: var(--surface); color: var(--ink); gap: var(--sp-2);
   box-shadow: inset 0 0 0 1px var(--glass-edge); }
-.trowPressBtn :global(.i) { width: 17px; height: 17px; }
 @media (hover: hover) { .trowPressBtn:hover { background: var(--fill-soft); } }
 /* the last reported bar on the pressure tile (TruppPair, 26.09.2026) — the band's pressure readout
    moved here, so the row and the opened card show it in one place. Mono like every bar on this
-   board; red at or under this Trupp's line, the colour the band's «Alarmdruck» wore. */
-.pairBar { font: var(--fw-heavy) var(--fs-2) var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+   board; red at or under this Trupp's line, the colour the band's «Alarmdruck» wore. 700, the
+   tiles' weight: 800 is Kontakt's alone (hill climb r1, 04.11.2026). 16px, one step over the tile's
+   14px words (r7): the card's measured Druck is its loudest number after the clock, above the
+   foot's 12.5px values (the Schätzung there keeps its 700 – owner, 29.09.2026 T2). */
+.pairBar { font: var(--fw-bold) var(--fs-3) var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .pairBarLow { color: var(--red-strong); }
 /* (…the second row of the grid, the lifecycle tiles, is `.actions` / `.actBtn` above — the base
    rules since 29.09.2026, when the tablet card took the phone's tiles.) */
@@ -1613,42 +1789,177 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 /* the tablet grid and the handed-over Tafel: every card stands open, nothing collapses — the same
    line without the toggle and its chevron track (TruppCard · `head`) */
 .trowHeadStatic { grid-template-columns: minmax(0, 1fr) auto; cursor: auto; }
-/* the crew line and the clock's caption stand on the wide ROW's tracks only (hidden ≤ 1023px): on
-   a card the crew is the first chip and the tiles say what the clock is about */
-.trowHead :is(.trowTeam, .trowSub) { display: none; }
+/* (No FAB column on the phone list since owner pick A4/C10, 05.11.2026: clock and chevron stand at
+   the row's right edge, the chevron's glyph 17px in. The recording FAB floats over content and
+   what it covers is reachable by scrolling — settled, sweep16 #10.) */
+/* The phone's opened card keeps the caption hidden — its section heads say Drin / Draussen (owner
+   24.09.2026: «just the time») — but the wide grid's card names its clock (below). */
+.trowHead .trowSub { display: none; }
+/* ── The crew, its own line under the name (owner pick A3, 05.11.2026 — TruppCard · crewLine) ──────
+   Plain 14px ink, not a chip: the Trupp's members after its leader («Widmer Lukas · Wyss Urs»),
+   wrapping between people (`.crewName`), hung under the NAME past the ring. A button drawn as text
+   (the door to the Trupp sheet): a 28px box — a 20px line, 4px above and below — and on touch an
+   invisible 8px pad above and below it (8 + 28 + 8 = 44, like the chips'). In the static head it
+   takes the head grid's last row across both tracks; on the phone's opened card it stands under the
+   collapse button. */
+.crewLine { position: relative; display: block; width: 100%; min-width: 0; margin: 0; padding: var(--sp-1) 0;
+  border: none; background: none; color: var(--ink); font: var(--fw-regular) var(--fs-2)/20px var(--body); text-align: left; }
+.trowCard:has(.trowDot, .nfGlyph) .crewLine { padding-left: calc(var(--trow-dot) + var(--sp-2)); }
+button.crewLine { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+@media (pointer: coarse) { button.crewLine::before { content: ''; position: absolute; inset: calc(-1 * var(--sp-2)) 0; } }
+@media (hover: hover) { button.crewLine:hover { text-decoration: underline; text-decoration-color: var(--ink-faint); text-underline-offset: 3px; } }
+.trowHeadStatic .crewLine { grid-column: 1 / -1; }
+/* ── The grid's card names its clock (hill climb r2, 04.11.2026) ──────────────────────────────────
+   On the tablet / desktop grid an out card's break clock and an inside card's contact clock stood
+   in the same place with nothing saying which is which. The caption the link board's page already
+   wears names it — «SEIT LETZTEM KONTAKT», «DRAUSSEN SEIT», «EINSATZZEIT», «ANGEMELDET UM» — and
+   with it the state: no extra state word by the name (owner 29.09.2026: «the draussen subtitle is
+   probably not even required»). Under a «Draussen» head (the grouped orders) the out card drops
+   its caption (RowLine · `headed`). The clock cell dissolves into the head's grid (`display:
+   contents`), three rows: 1 the caption ABOVE the time (owner pick A1/C7, 05.11.2026), across the
+   whole head so its nowrap width never squeezes the name; 2 the name | the clock; 3 the crew line.
+   Row 1 is reserved (the 11px caps' 1-line box + 5px) even where the caption is absent, and row 2
+   is at least the inside clock's 24px line box (its 32px digits fill it — see the grid clock rule
+   below), so every name on a grid row stands at one height.
+   The caption's air (hill climb r18, 05.11.2026 – at r13's 8px over it and ~3px to the digits the
+   clock block looked jammed into the band's corner): 10px over its cap line, 6px from its caps to
+   the digits' cap height (measured in the iPad shot; row 2's 24px line box sets the 32px digits
+   1px high, hence 5px under the caption's box). The 6px that adds come back below, never off a
+   target: row 2 is 24px (the digits are 24.3px tall), the crew line's top pad gives 2px, and under
+   the crew the band's foot (`.trowIn` …) gives 4 or, on a card without the band, the air over the
+   first tile 3 (`+ .actZone`; its crew line keeps 8px to the tile). The iPad's two rows and the
+   laptop's board keep their insets. The phone keeps its name-and-time row (settled). */
+.grid .trowHeadStatic { grid-template-rows: calc(var(--fs-micro) + var(--sp-1) + 1px) minmax(24px, auto);
+  padding-top: calc(var(--sp-2) + 1px); }
+.grid .trowHeadStatic .trowClock { display: contents; }
+.grid .trowHeadStatic .trowId { grid-column: 1; grid-row: 2; }
+.grid .trowHeadStatic .trowClockLine { grid-column: 2; grid-row: 2; }
+/* …and 2px lower in its reserved row since hill climb r31 (Opus 6, 06.11.2026): 4px from its caps to
+   the digits, so caption and time read as one unit; 12px over its cap line. Every grid card, out
+   ones too, so the captions of one grid row stay on one line. The name row does not move. */
+.grid .trowHeadStatic .trowSub { display: block; grid-column: 1 / -1; grid-row: 1; justify-self: end; align-self: start;
+  line-height: 1; margin-top: 2px; }
+.grid .trowHeadStatic .trowSub:empty { display: none; }
+/* a card without the band: its first tile 5px under the crew line's box (8 under its glyphs), not
+   the zone's 8 (r18, above) */
+.grid .trowHeadStatic + .actZone { padding-top: calc(var(--sp-1) + 1px); }
+/* The grid's crew line: 14px type, a 26px box on a mouse (a 20px line, 2px above, 4 below – its
+   whole hit area, over the 24px floor). On touch a 20px box – an 18px line, 2px under it and none
+   above (hill climb r16, 05.11.2026: 28 with the phone's 20px line and 4px pads, 22 with 2px pads;
+   r18 took the top pad for the caption's air) – and an invisible pad so it still owns 44px: 4px
+   down (a card without the band has its first tile 5px under it, `+ .actZone`) and the rest up
+   over the name row, where nothing on the grid takes a tap. */
+.grid .trowHeadStatic .crewLine { grid-row: 3; padding-block: 2px var(--sp-1); }
+@media (pointer: coarse) {
+  .grid .trowHeadStatic .crewLine { padding-block: 0 2px; line-height: 18px; }
+  .grid button.crewLine::before { inset: calc(20px + var(--sp-1) - var(--tap)) 0 calc(-1 * var(--sp-1)); }
+}
+/* ── Inside vs outside on the grid (hill climb r3, 04.11.2026) ───────────────────────────────────
+   The out cards wore the strongest blocks (the filled «Wieder in den Einsatz», a surface lit at
+   night) while the crews under PA blended into the controls round them. A crew inside with a
+   calm clock (`rowTone` → `.trowIn`) gets a head BAND: a green wash behind its name and its
+   contact clock, bled to the card's edges, closed by a 3px green rule along its FOOT (r5: the
+   8 % wash alone was too quiet to find the crews inside at a glance, at night most of all — now
+   12 % and the rule). Fällig / überfällig are other tones (`.trowWarn` keeps its amber wash over
+   the whole card, `.trowCrit` its quiet ground — no red wash, 24.10.), so they never wear it. No
+   coloured TOP rule: the tablet card's top status edge went on 29.09.2026 and stays gone. The
+   phone row has its section head «Drin» and no band.
+   ⚠️ …and fällig / überfällig wear the SAME band in their tone since 05.11.2026 (owner: «warnings
+   must show there too»): amber wash + amber foot rule, red wash + red foot rule, so the state reads
+   at the head like the green one. The tier tokens the card's edge already wears; on überfällig the
+   red stays in the head only — the card's ground below it stays quiet (24.10.).
+   The wash is 22 % by day, 16 % at night (hill climb r18, 05.11.2026: at 12 % the mint band was
+   the board's quietest block beside the out cards' filled tiles; night one token step, its dark
+   ground shows a tint sooner; the calm green 26 % at night since r33, below). By day the three
+   tiers keep one strength, so they stay comparable; the
+   calm clock wears `--green-strong` (`.trowClockVal`, every board since r19) like fällig's and
+   überfällig's strong inks (plain green would be 3.3:1 on the day band).
+   2px under the crew line (its own 4px pad over it on a mouse, 2px on touch): the band closes
+   ~8–10px under the crew's glyphs as it opens 10px over the caption (r18 – the caption's 4px more
+   air came off here, so the iPad's cards keep their height). */
+.grid :is(.trowIn, .trowWarn, .trowCrit) .trowHead { padding-bottom: 2px; border-bottom: 3px solid; }
+.grid .trowIn .trowHead { background: var(--green-22); border-bottom-color: var(--green); }
+.grid .trowWarn .trowHead { background: var(--amber-22); border-bottom-color: var(--amber); }
+.grid .trowCrit .trowHead { background: var(--red-22); border-bottom-color: var(--red); }
+/* …and the calm green at 26 % rather than 16 at night (hill climb r33, 06.11.2026): at 16
+   the band (HSL L ~21 %) sat close to the out cards' sunk ground beside it, so the inside and the
+   out rows read as one dark slab. 26 % lifts it ~3.5 % (L ~24 %, the amber band's lightness at 16).
+   ⚠️ Not the --green-28 token: on it the clock caption's --ink-dim computes to 4.48:1, under AA; at 26
+   it is 4.68 (the clock's --green-strong 4.75, the name's ink ~7.3). Amber and red stay at 16 – they
+   already stood lighter (~24 %) and 28 took their strong inks to ~4.1:1. Day unchanged. */
+:global(:root[data-theme="night"]) .grid .trowIn .trowHead { background: color-mix(in srgb, var(--green) 26%, transparent); }
+:global(:root[data-theme="night"]) .grid .trowWarn .trowHead { background: var(--amber-16); }
+:global(:root[data-theme="night"]) .grid .trowCrit .trowHead { background: var(--red-16); }
+/* the clock's caption steps up one ink tier on the stronger wash: --ink-faint measured 4.49:1 on it
+   at night */
+.grid :is(.trowIn, .trowWarn, .trowCrit) .trowHead .trowSub { color: var(--ink-dim); }
 /* ONE type on every board (29.09.2026): the phone's 25px clock and a name that wraps once rather
    than ellipsising — a 4-column desktop grid cut «Brunner Thomas» to «Brunner Tho…» beside the
    row's wide-screen 28px. (The Tafel's focus card keeps its 34px — `.focusCard` above.) */
 .trowCard:not(.trowOut, .trowIdle) .trowHead .trowClockVal { font-size: 25px; }
+/* …but on the tablet / desktop grid the clock of a crew UNDER PA — calm, fällig, überfällig — is
+   the card's first read (hill climb r6, 04.11.2026: beside the filled «Wieder in den Einsatz» of
+   the out cards the 25px contact clocks took a second scan). 32px (`--fs-6`) at 700, the mono's
+   heaviest cut (Spline Sans Mono stops at 700, so the 800 above drew 700 anyway). It takes no
+   height: the line box stays the head's 24px row (`.grid .trowHeadStatic` above) — the mono's
+   digits are .76 em tall with no descenders, so at 32px they fill that box and the tablet's second
+   grid row keeps its whole foot. The caption above keeps its 6px off them (r18). An out card's
+   clock, a waiting crew's and a work squad's Einsatzzeit stay as they are. */
+.grid .trowCard:is(.trowIn, .trowWarn, .trowCrit) .trowHead .trowClockVal {
+  font-size: var(--fs-6); font-weight: var(--fw-bold); line-height: 24px; }
 .trowHead .trowNameTxt { white-space: normal; overflow-wrap: break-word;
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; line-height: 1.2; }
 .trowCard > .trowActs { margin-top: var(--sp-2); }
 /* ── The facts as chips (26.09.2026 evening, phone card slim-down, ③ — TruppCard · facts) ────────
-   A wrapping strip of 36px chips: one 1px inset edge, the one corner, 700/12.5 ink, no colour —
-   the crew, «Löschen · Test», «Ltg 1», «Kanal 11», the Kürzel of the Ausrüstung, and the ⋯ last.
-   Rows sit 8px apart, so a chip plus its invisible 4px pad above and below is the 44px tap floor
-   without two pads ever overlapping (the pad is a pseudo-element: it grows the hit area, not the
-   drawn chip). The one colour is the gap's: a dashed amber «+ Auftrag». */
-.facts { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-3); }
-.fact { position: relative; display: inline-flex; align-items: center; gap: var(--sp-1); min-height: 36px; max-width: 100%;
-  min-width: 0; padding: 0 var(--sp-3); border: none; border-radius: var(--r-sm); background: transparent;
-  box-shadow: inset 0 0 0 1px var(--glass-edge); font: var(--fw-bold) var(--fs-1) var(--body); color: var(--ink);
+   A wrapping strip of 36px chips: the crew, «Löschen · Test», «Ltg 1», «Kanal 11», the Kürzel of
+   the Ausrüstung. Each is the door to its sheet, but what it SHOWS is a fact, so it reads as a quiet
+   field, not as one more button (hill climb r1, 04.11.2026: framed 700 capsules under the framed
+   800 tiles made the card a wall of controls): no edge, a faint ink fill, the one corner, 500/12.5
+   ink, no colour. The tiles above stay the framed buttons.
+   A COMPACT field since hill climb r2 (04.11.2026: the 36px chips were the card's tallest rows):
+   28px drawn — a 20px line, 4px above and below — 8px to the tiles over it, 12 to the foot under
+   it (r31). Rows 8px apart on every device (owner pick A2, 05.11.2026 — they were 16 on touch). On touch
+   the 44px tap floor is an invisible 8px pad above and below each chip (a pseudo-element: it grows
+   the hit area, not the drawn chip, 8 + 28 + 8 = 44); between two rows the pads overlap the 8px gap
+   invisibly, the later row's on top. The crew is no chip since A3 (`.crewLine`).
+   The one colour is the gap's: a dashed amber «+ Auftrag». */
+.facts { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-2); }
+.fact { position: relative; display: inline-flex; align-items: center; gap: var(--sp-1); min-height: 28px; max-width: 100%;
+  min-width: 0; padding: var(--sp-1) var(--sp-2); border: none; border-radius: var(--r-sm); background: var(--ink-5);
+  font: var(--fw-medium) var(--fs-1)/20px var(--body); color: var(--ink);
   white-space: nowrap; text-align: left; }
 button.fact { cursor: pointer; }
 button.fact:active { background-image: linear-gradient(var(--press), var(--press)); }
-@media (hover: hover) { button.fact:hover { background: var(--fill-soft); } }
-@media (pointer: coarse) { button.fact::before { content: ''; position: absolute; inset: -4px -3px; } }
+@media (hover: hover) { button.fact:hover { background: var(--ink-8); } }
+@media (pointer: coarse) { button.fact::before { content: ''; position: absolute; inset: calc(-1 * var(--sp-2)) -3px; } }
+/* ⚠️ Two chip rows 8px apart cannot both own 44px inside 8px of air above and below (8 + 28 + 8 +
+   28 + 8 = 80 < 88). On the grid the rows are known — the Auftrag & co., then `.factsEnd` (Kanal +
+   Ausrüstung) — so on touch the strip stands 12px under the tiles and 12px over the foot (hill
+   climb r31, 06.11.2026: 16 under the tiles and 8 over the hairline made the chips read as the
+   foot's), the row gap is split 4 | 4, and each row's pad reaches into its 12: row 1 owns 12 + 28 +
+   4, row 2 (`.factsEnd`) 4 + 28 + 12 — 44 each, the drawn gap still 8, the card no taller. A lone
+   row owns 44 the same way. (A first row that itself wraps in two lines reaches 4px into its own
+   chips above; the field data has not produced one.) */
+@media (pointer: coarse) {
+  .grid .facts { margin-top: var(--sp-3); }
+  .grid .facts > button.fact::before { top: calc(-1 * var(--sp-3)); bottom: calc(-1 * var(--sp-1)); }
+  .grid .factsEnd > button.fact::before { top: calc(-1 * var(--sp-1)); bottom: calc(-1 * var(--sp-3)); }
+}
+/* «Kanal 11» (+ the Ausrüstung after it) — the facts' LAST row on the grid (hill climb r8,
+   04.11.2026: it shared the Auftrag's row on one card and stood alone on the next, so the same
+   fact moved from card to card). Same chips, same data; the row gap above it is the strip's own
+   8px. Off the grid (phone, Tafel) the wrapper
+   dissolves and the chips wrap as they always did. */
+.factsEnd { display: contents; }
+.grid .factsEnd { display: flex; flex-wrap: wrap; flex-basis: 100%; min-width: 0; gap: inherit; }
 .factTxt { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-/* the crew chip never ellipsises (31.10.2026, owner: «crew names must not be cut off»): every name
-   is a nowrap span and the « · » between them is the only break opportunity, so the chip wraps
-   BETWEEN people and grows by a line each time. The chip keeps its 36px floor (`.fact`); a
-   wrapped chip needs vertical room above and below the text, and the edge is its own box. */
-.factCrew { white-space: normal; }
-.crewTxt { min-width: 0; padding: var(--sp-2) 0; line-height: 1.3; }
+/* the crew line never ellipsises (31.10.2026, owner: «crew names must not be cut off»): every name
+   is a nowrap span and the « · » between them is the only break opportunity, so the line wraps
+   BETWEEN people and grows by a 20px line each time */
 .crewName { white-space: nowrap; }
 .fact :global(.i) { width: 13px; height: 13px; flex: none; color: var(--ink-faint); }
 /* the missing Auftrag: dashed and amber, the one gap that stays visible on the card */
-.factDash { box-shadow: none; outline: 1.5px dashed color-mix(in srgb, var(--amber) 70%, transparent);
+.factDash { background: transparent; outline: 1.5px dashed color-mix(in srgb, var(--amber) 70%, transparent);
   outline-offset: -1.5px; color: var(--amber-strong); }
 /* a chip that JUMPS somewhere (the drawn Leitung, the docked symbol) keeps a small chevron, in the
    dim ink — NOT the Kennzeile's blue (owner review 27.09.2026): on the phone card no chip wears a
@@ -1657,11 +1968,69 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
 /* the ⋯, the last chip: square, the glyph in the dim ink */
 .kennQuiet { color: var(--ink-dim); }
 .kennCrit { color: var(--red-strong); }
-/* the Verlauf keeps its full-bleed foot (hairline + wash), flush with the frame's bottom edge */
+/* the Verlauf keeps its full-bleed foot (hairline + wash), flush with the frame's bottom edge; 12px
+   above it (hill climb r31, Opus 2, 06.11.2026 – at 8 the last chip row read as part of the foot,
+   on the grid's touch card 16px under the tiles but 8 over the hairline). The facts' 8px touch pad
+   (`.fact`) reaches 8 of it; the 4 under the pad nobody owns. */
 .trowCard .vfoot { margin: var(--sp-3) calc(-1 * var(--sp-3)) calc(-1 * var(--sp-3)); }
 .trowCard .vfoot:empty { margin: 0; }
 .trowCard .metaLine, .trowCard .zonePanel, .trowCard .logList { padding-left: var(--sp-3); padding-right: var(--sp-3); }
 .trowCard .vrow { padding-left: var(--sp-3); }
+/* ── The grid's card, denser (hill climb r2, 04.11.2026) ─────────────────────────────────────────
+   On the tablet / desktop grid an inside crew's lower half (facts, foot) fell under the fold and
+   a short out card left a hole under it while the next grid row was clipped. Order and slots are
+   untouched («Wie gesetzt» keeps every card where it is); only the heights give.
+   Touch: the secondary lifecycle tiles — Rückzug | Raus (Fortsetzen), Notfall (beendet) — at the
+   44px floor; the pair «Druck | Kontakt» (Kontakt is the board's primary) and a waiting crew's
+   «Im Einsatz» keep their 48px (3am tenet: primary 48–56). The phone's card is not on a grid and
+   keeps its 48px keypad.
+   An OUT card's «Wieder in den Einsatz» / «In den Einsatz» takes the button spec's smaller size
+   too — 44px, 14/700 (hill climb r24, Opus 1, 05.11.2026): with «Wie gesetzt» the out cards can
+   stand first, and a 48px ink bar at 800 on each of them drew the two-second scan to the crews
+   OUTSIDE before the green clocks of the ones inside. It stays the card's one FILLED tile (owner,
+   27.09.2026); only its height and weight give. And its WIDTH (hill climb r26, Sol 2 / Opus 2):
+   sized by its word, 16px each side, on the card's content edge (the row's start) – three
+   card-wide ink slabs side by side still outweighed the live clocks. The phone keeps its
+   full-width tile (not on the grid).
+   Lighter still (hill climb r31, Opus 1, 06.11.2026): the flag at the head tiles' 16px glyph (not the
+   card tiles' 18), and on touch a 40px PLATE in the old 44px slot – 2px of margin over and under
+   it, and an invisible 2px pad (`::before`) over each margin, so the hit area is the 44px it was
+   (the fact chips' trick, owner pick A2). Nothing around it moves. A mouse keeps its 36px. */
+.grid .trowCard :is(.actRueckzug, .actContinue, .actExit, .actNotfall, .actNotfallEnd) { min-height: var(--tap); }
+.grid .trowCard .actReenter { min-height: var(--tap); font-weight: var(--fw-bold); justify-self: start; padding: 0 var(--sp-4); }
+.grid .trowCard .actReenter :global(.i) { width: 16px; height: 16px; }
+@media (pointer: coarse) {
+  .grid .trowCard .actReenter { position: relative; min-height: calc(var(--tap) - 4px); margin-block: 2px; }
+  .grid .trowCard .actReenter::before { content: ''; position: absolute; inset: -2px 0; }
+}
+/* A mouse (24px floor): every tile at 36px and the foot line (Verlauf ⌄ and ⋯) 28px tall (hill climb
+   r13, 05.11.2026 — 40/36 before, and on the 1536×864 laptop the second row's feet stood under the
+   panel's edge; 32 until r31, whose 4px more air over the foot came off the foot line, so the
+   laptop's two rows still fit). Type, gaps and the card order stay; only the plates give. */
+@media (hover: hover) and (pointer: fine) {
+  .grid .trowCard :is(.trowPressBtn, .trowKontakt, .actBtn) { min-height: 36px; }
+  .grid .trowCard .vrow { min-height: 28px; }
+  .grid .trowCard .footMore { width: 32px; height: 28px; }
+}
+/* Touch: the foot line DRAWN 36px, its 44px owned by an invisible 8px pad BELOW the card (hill climb
+   r17, 05.11.2026 – on the 1180×820 iPad the second row's foot stood on the panel's edge, 1px of
+   bottom inset against the 16 on top). The chips over the foot cannot give: two 28px rows 8px apart
+   own 44 each only with the strip's 12px over them (`.grid .facts`) and the foot's 12px margin under
+   them – every pixel between the last tile and the foot's hairline is a chip's. Under the card is
+   air nobody owns: the 8px row gap, or the board's bottom inset. 8px per row, so the iPad's grid
+   ends 17px over the panel's edge. For the pad to stand outside the frame the grid card does not
+   clip on touch; the two full-bleed pieces round their own outer corners instead (the head band,
+   the foot's wash). An opened Verlauf is the foot's last piece then – the line keeps its 44px and
+   no pad, and the foot clips its panels to the corner again. */
+@media (pointer: coarse) {
+  .grid .trow.trowCard { overflow: visible; }
+  .grid .trowCard .trowHead { border-radius: var(--r-ctl) var(--r-ctl) 0 0; }
+  .grid .trowCard .vfoot { border-radius: 0 0 var(--r-ctl) var(--r-ctl); }
+  .grid .trowCard .vfoot:has(> .vopen) { overflow: hidden; }
+  .grid .trowCard .vfootRow:last-child > .vrow { position: relative; min-height: 36px; border-bottom-left-radius: var(--r-ctl); }
+  .grid .trowCard .vfootRow:last-child > .footMore { position: relative; height: 36px; }
+  .grid .trowCard .vfootRow:last-child > :is(.vrow, .footMore)::before { content: ''; position: absolute; inset: 0 0 calc(-1 * var(--sp-2)); }
+}
 
 /* the Sicherungstrupp — one place, between the crews inside and everybody else */
 /* (its air above is the phone board's one section rule, `.phoneBoard`; the head after it brings its own) */
@@ -1680,7 +2049,8 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
   border-radius: var(--r-ctl); background: var(--btn-primary); color: var(--on-btn-primary); font: var(--fw-heavy) var(--fs-2) var(--body); }
 .rowEnter:active { background-image: linear-gradient(var(--press), var(--press)); }
 /* The SICHERUNGSTRUPP head (26.09.2026, phone card slim-down): a section head like DRIN / DRAUSSEN,
-   and «Bestimmen» at the row's right — a 36px pill of the count badge's family, so the
+   and «Bestimmen» at the row's right — a 36px framed tile in the secondary button's 700/14 (800
+   until r21: that weight is the single primary's, «+ Trupp»), so the
    head reads as a head with a door in it, not as a box. The dashed «Kein Sicherungstrupp» slot
    (D1 ⑦, 24.09.2026) went with the slim-down: an empty section under its own head says the same
    in no words. `.sectDue`: a crew is inside and nobody stands ready — the title wears the warn
@@ -1688,7 +2058,7 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
 /* 4 + the zone's 8px row gap = the 12px every other head keeps above its first card (30.09.2026) */
 .sectSafety { margin-bottom: 4px; }
 .sectAct { position: relative; margin-left: auto; flex: none; min-height: 36px; padding: 0 var(--sp-3); border: none; cursor: pointer; border-radius: var(--r-sm);
-  background: var(--surface); color: var(--ink); font: var(--fw-heavy) var(--fs-2) var(--body); box-shadow: inset 0 0 0 1px var(--glass-edge); }
+  background: var(--surface); color: var(--ink); font: var(--fw-bold) var(--fs-2) var(--body); box-shadow: inset 0 0 0 1px var(--glass-edge); }
 .sectAct:active:not(:disabled) { background-image: linear-gradient(var(--press), var(--press)); }
 /* 36px drawn, --tap under a finger — the same 4px pad as `.fact` */
 @media (pointer: coarse) { .sectAct::before { content: ''; position: absolute; inset: -4px 0; } }
@@ -1715,9 +2085,9 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
 /* opened from the Trupp form (30.09.2026, TruppSheets · PressureGrid `chosen`): the picked cell is
    the form's answer — THE choice fill */
 .pressureCellOn, .pressureCellOn.pressureCellLow { background: var(--sel); color: var(--on-sel); box-shadow: var(--sel-shadow); }
-/* «Ohne Druck raus» — the sheet's foot, in the body's gutter. THE button (<Button>, 08.10.2026: it
-   was a 50px grey slab of its own); this only places it, stretched across the sheet's column. */
-.pressureSheetFooter { flex: none; margin: 0 var(--sp-5) var(--sp-4); }
+/* («Ohne Druck raus» is the sheet's foot — THE sheet foot, `.modalFoot`, with the button `block`
+   across the grid's column, TruppSheets · PressureSheet; its own `.pressureSheetFooter` margin went
+   with r35, 06.11.2026) */
 
 /* ── The mini sheets: Druck · Kanal · Auftrag · Mannschaft (26.09.2026, phone card slim-down;
    TruppSheets; the Druck joined 29.09.2026) ────
@@ -1765,7 +2135,7 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
   /* the Kanal pad keeps its cap on the phone too — same weight as the rule above, or it loses */
   .modal.miniSheet.miniSheetPad { max-height: min(60dvh, 520px); }
   /* the grab bar is the sheet's top gutter, and a head under a bar is the handle */
-  .miniSheet .modalHead { padding-top: 2px; touch-action: none; }
+  .miniSheet .modalHead { padding-top: var(--sp-1); touch-action: none; }   /* .ip-sheet's 4px under the bar (15-mobile) */
   .miniSheet .modalHead button { touch-action: auto; }
 }
 
@@ -1804,7 +2174,7 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
     border-radius: var(--r-hero) var(--r-hero) 0 0; }
   /* the grab bar is the sheet's top gutter now — the head needs none of its own (15-mobile.css
      · `.ui-sheet-grab`), and a head under a bar is the handle, as on every other bottom sheet */
-  .modalSheet .modalHead { padding-top: 2px; touch-action: none; }
+  .modalSheet .modalHead { padding-top: var(--sp-1); touch-action: none; }   /* .ip-sheet's 4px under the bar (15-mobile) */
   .modalSheet .modalHead button { touch-action: auto; }
   /* keyboard up: the top stands in the visible band too (+ --vv-pan), while the lift stands the foot
      on the keys (keyboardLift · --vv-foot) — with only the lift, iOS's pan slid the head off the
@@ -1892,7 +2262,10 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
    green numbers that read «Kontakt ok». Frozen, every state wears the one neutral tone that
    «Stand beim Abschluss» means. Last in the file and scoped to the surface, so it outranks the
    status and tier rules above without touching the live board. */
-.surfaceFrozen .trow { border-left-color: var(--ink-faint); background: var(--surface); }
+.surfaceFrozen .trow { background: var(--surface); }
+/* (the tone edge is a state's alone — closed, no row or card has one) */
+.surfaceFrozen .trow::before { content: none; }
+.surfaceFrozen .trowHead { background: transparent; }
 .surfaceFrozen .trowClockVal, .surfaceFrozen .tabClock { color: var(--ink-dim); animation: none; }
 .surfaceFrozen .trowState { color: var(--ink-faint); }
 /* …and the SICHERUNGSTRUPP head (staging r6, F3; a head since 26.09.2026): a missing
@@ -1941,18 +2314,19 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
    card below it and is the port's scroll padding for every scroll-into-view. */
 .nfStack { position: sticky; top: 0; z-index: 3; display: grid; gap: var(--sp-2); margin: 0 0 var(--sp-3); }
 
-/* ── The link board's Notfall (Atemschutz-Link redesign, owner pick R1, 30.10.2026) ───────────────
-   On the Notfall Trupp's OWN tab the whole page is the Notfall: a red rail down the left and a red
-   tint (`.bodyFocusNf`), and its head (AtemschutzNotfall · NotfallPageHead) says it in words —
-   «NOTFALL SEIT 12:12», the name big and red, both clocks named, the Sicherungstrupp act. On any
-   other tab a solid red strip under the header leads to it (`.nfStrip`). No ⚠ in either (owner:
-   «red and notfall is already enough»). */
-.bodyFocusNf { background: color-mix(in srgb, var(--red) 10%, transparent); box-shadow: inset 6px 0 0 var(--red); }
-/* the page's content clears the 6px rail: 24px in, the foot's rule still reaching the edge */
-.bodyFocusNf .focusCard > .trow.trowCard { padding-left: var(--sp-5); }
-.bodyFocusNf .focusCard .vfoot { margin-left: calc(-1 * var(--sp-5)); }
+/* ── The link board's Notfall (Atemschutz-Link redesign, owner pick R1, 30.10.2026; reduced by owner
+   pick E3, 06.11.2026) ────────────────────────────────────────────────────────────────────────────
+   On the Notfall Trupp's OWN tab the whole page is the Notfall: a red rail down the left
+   (`.bodyFocusNf` – no red wash on the ground since E3), and its head (AtemschutzNotfall ·
+   NotfallPageHead) is the information: the name big and red, the crew under it, both clocks named
+   – no «NOTFALL SEIT …» eyebrow (E3). The Sicherungstrupp act stands with the tiles at the foot
+   (NotfallPageSafety in `.pageActs`). On any other tab a solid red strip under the header leads to
+   it (`.nfStrip`). No ⚠ in either (owner: «red and notfall is already enough»). */
+.bodyFocusNf { box-shadow: inset 6px 0 0 var(--red); }
+/* the page's content clears the 6px rail: 24px in (`--page-in`, which the foot's row takes too),
+   the foot's rule still reaching the edge */
+.bodyFocusNf .focusCard > .trow.trowCard { --page-in: var(--sp-5); padding-left: var(--page-in); }
 .nfPage { padding: var(--sp-4) 0 var(--sp-2); }
-.nfPageEyebrow { display: block; margin-bottom: 4px; font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--red-strong); }
 .nfPageName { margin: 0; font: var(--fw-heavy) var(--fs-6)/1.1 var(--body); color: var(--red-strong); overflow-wrap: anywhere; }
 .nfPageClocks { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin: var(--sp-2) 0 var(--sp-3); }
 .nfPageSince, .nfPageContact { display: flex; flex-direction: column; font-family: var(--mono); font-weight: var(--fw-heavy); line-height: 1; font-variant-numeric: tabular-nums; }
@@ -1960,7 +2334,7 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
 .nfPageContact { align-items: flex-end; font-size: var(--fs-5); color: var(--ink); }
 .nfPageSince small, .nfPageContact small { margin-top: 4px; font: var(--fw-bold) var(--fs-1) var(--body); }
 .nfPageContact small { color: var(--ink-dim); }
-.nfPageAct { display: flex; gap: var(--sp-2); margin-bottom: 12px; }
+.nfPageAct { display: flex; gap: var(--sp-2); }
 .nfPageAct > :first-child { flex: 1 1 auto; min-width: 0; }
 /* «Anderer ⌄» — the candidate menu beside a ready Sicherungstrupp (any other crew, a busy one too) */
 .nfOther { flex: none; display: inline-flex; align-items: center; gap: 4px; min-height: 48px; padding: 0 12px;

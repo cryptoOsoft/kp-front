@@ -371,7 +371,7 @@ button.hydRow.lit:global(.list-row):not(:disabled) { background-color: var(--sel
    Einsatz's plan with no tool bar under it — on a phone it ends 18px above the ONE bar
    (15-mobile · `.whiteboard`; the Karte's root wears `.phone-tools` for its docks, whose
    two-bar box must not apply here), on a tablet it is the whole surface — and its own fit keeps
-   the floating row free (lib/whiteboard · chipRowInset). The chip row stands exactly where the
+   the floating row free (lib/whiteboard · bottomInset). The chip row stands exactly where the
    reader's own `.wb-botleft` would: on the floating row's baseline 8px above the bar on a phone,
    16px off the foot beside the rail on a tablet (09-whiteboard · .wb-botleft). Round 3 ended
    the reader a whole chip row higher AND let the fit reserve the row again. */
@@ -480,11 +480,11 @@ button.hydRow.lit:global(.list-row):not(:disabled) { background-color: var(--sel
 .search.libSearch :global(.ui-search-input) { text-overflow: ellipsis; }
 .search.libSearch :global(.ui-search-input)::placeholder { font-size: var(--fs-2); }
 
-/* the hairline between the surfaces and the rest: the phone bar's │ before the map tools (mockup
-   a-map) and the tablet rail's line over a selected object's plans (mockup t-obj, «unter dem
-   Strich»). The shared .nav-sep is spacing only (05-navrail); these two paint it. */
+/* the hairline between the surfaces and the rest on the phone bar: the │ before the map tools
+   (mockup a-map). The tablet rail's line over a selected object's plans (mockup t-obj, «unter dem
+   Strich») is the shared rail hairline (04b-rail · .rail-sep, 05.11.2026); this one only centres
+   the bar's vertical divider (15-mobile · .nav-sep sizes it). */
 :global(.nav-sep).barSep { background: var(--border); align-self: center; }
-:global(.nav-sep).railSep { height: 1px; margin: var(--sp-1) var(--sp-2); background: var(--border); }
 
 /* ── «Alarm auf diesem Gerät» (3am sweep §1, 23.10.2026 · AlarmReadiness) ─────────────────── */
 /* the line and its rows: at the top of «Auf diesem Gerät» and under Einstellungen › Gerät */

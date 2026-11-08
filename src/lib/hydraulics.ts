@@ -65,8 +65,8 @@ export const RELAY = {
   pumpBarMax: 16,
 } as const
 
-/** The symbol a relay pump becomes when it is put on the Karte (WaterRelay · «Pumpen als
- *  Symbole setzen»): the pack's Motorspritze, «MS 2» in the FKS blue box (tools/gen_symbols.py ·
+/** The symbol a Leitung's pumps are drawn as on the Karte and the printed Kroki («Pumpen auf
+ *  Karte», lib/linePumps): the pack's Motorspritze, «MS 2» in the FKS blue box (tools/gen_symbols.py ·
  *  «VKF Pumpe Typ2»; its palette aliases are Motorspritze / Wassertransport / MS). */
 export const RELAY_PUMP_SYMBOL = 'VKF Pumpe Typ2'
 

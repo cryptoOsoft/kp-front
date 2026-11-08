@@ -22,6 +22,7 @@ export const atemschutzCopy: Localizable<Pick<Copy, 'atemschutz' | 'lineDecor'>>
     emptyHint: 'Crea una squadra per avviare la sorveglianza.',
     newTrupp: 'Annuncia squadra',
     shareLink: 'Cedi la sorveglianza',
+    shareLinkShort: 'Cedi',
     shareLinkOn: 'Cedi la sorveglianza – un link è attivo',
     linkReentryHint: 'Il link riporta a questa tavola – se la pagina viene chiusa per errore, basta aprire di nuovo il codice QR.',
     /** the «+ Trupp» tab on the handed-over phone board (AtemschutzView · focusMode) */
@@ -129,6 +130,9 @@ export const atemschutzCopy: Localizable<Pick<Copy, 'atemschutz' | 'lineDecor'>>
     elapsed: 'Tempo d’intervento',
     outFor: 'Fuori da',
     outForPlain: 'Senza compito da', // ⚠️ app only — see de/atemschutz.ts · outForPlain
+    // the foot words of an OUT card (de/atemschutz.ts · footInside)
+    footInside: 'dentro',
+    footOutAt: 'uscito con',
     currentPressure: 'Pressione',
     lowestPressure: 'Più bassa',
     lineField: 'Linea',

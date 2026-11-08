@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { END_TAG_LABEL_STYLE, READOUT_LABEL_STYLE, SYM_CAPTION_GAP, SYM_CAPTION_STYLE, SYM_PILL_STYLE, TEAM_LABEL_STYLE } from './mapView'
+import { CRUMB_LABEL_STYLE, END_TAG_LABEL_STYLE, READOUT_LABEL_STYLE, READOUT_WORDS_STYLE, SYM_CAPTION_GAP, SYM_CAPTION_STYLE, SYM_PILL_STYLE, TEAM_LABEL_STYLE } from './mapView'
 
 // The label pass books every on-map label's box from these numbers, never from the DOM. They have to
 // follow the CSS they stand for: when a type step moved the CSS (stage 2: 11.5 → 11px, 6 → 4px
@@ -62,15 +62,30 @@ describe('on-map label metrics follow their CSS', () => {
     expect(READOUT_LABEL_STYLE.chromeH).toBe(2 * v)
     const lh = Number(decl(rule('11-measure.css', '.measure-label.draw-label'), 'line-height'))
     expect(READOUT_LABEL_STYLE.lineH).toBeCloseTo(size * lh, 1)
+    // a line's free text: same plate, the names' face (--body), the values' size
+    expect(decl(rule('11-measure.css', '.measure-label.draw-label .dl-words'), 'font-family')).toBe('var(--body)')
+    expect(READOUT_WORDS_STYLE.font).toContain('Sora')
+    expect(fontPx(READOUT_WORDS_STYLE.font)).toBe(size)
   })
   it('.line-end-tag', () => {
     const b = rule('09-whiteboard.css', '.line-end-tag')
     const [v, h] = padding(b)
     const border = 2 * 1.5
-    expect(fontPx(END_TAG_LABEL_STYLE.font)).toBe(token('--fs-micro'))
-    expect(decl(b, 'font')).toMatch(/var\(--fs-micro\)\/1 /)
+    expect(fontPx(END_TAG_LABEL_STYLE.font)).toBe(token('--fs-1'))
+    expect(decl(b, 'font')).toMatch(/^var\(--fw-bold\) var\(--fs-1\)\/1 /)
+    expect(END_TAG_LABEL_STYLE.font).toMatch(/^700 /)
+    expect(END_TAG_LABEL_STYLE.lineH).toBe(token('--fs-1'))
     expect(END_TAG_LABEL_STYLE.chromeW).toBe(2 * h + border)
     expect(END_TAG_LABEL_STYLE.chromeH).toBe(2 * v + border)
+  })
+  it('.map-trail-dot i', () => {
+    const b = rule('09-whiteboard.css', '.map-trail-dot i')
+    const [v, h] = padding(b)
+    const size = px(decl(b, 'font-size'))
+    expect(fontPx(CRUMB_LABEL_STYLE.font)).toBe(size)
+    expect(CRUMB_LABEL_STYLE.chromeW).toBe(2 * h)
+    expect(CRUMB_LABEL_STYLE.chromeH).toBe(2 * v)
+    expect(CRUMB_LABEL_STYLE.lineH).toBeCloseTo(size * Number(decl(b, 'line-height')), 2)
   })
   it('.team-dot b', () => {
     const b = rule('09-whiteboard.css', '.team-dot b')

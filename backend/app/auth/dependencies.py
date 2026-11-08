@@ -115,6 +115,9 @@ def _link_guest(claims: dict) -> User:
     guest.link_scoped = True  # type: ignore[attr-defined]  # read by /api/auth/me
     guest.link_incident_id = incident_id  # type: ignore[attr-defined]
     guest.link_kind = _link_kind(claims)  # type: ignore[attr-defined]
+    # which SESSION this is (the cookie's own random jti): every link holder shares the one guest
+    # identity above, so a per-device owner needs this – api/presentation · _owner
+    guest.link_session = str(claims.get("jti") or "")  # type: ignore[attr-defined]
     return guest
 
 

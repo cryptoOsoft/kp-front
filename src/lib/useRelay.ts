@@ -10,6 +10,9 @@ import { reverseProfile, type ProfileResult } from './profile'
 // pure engine (lib/hydraulics) — the resolved assumptions, the plan, the tapped pump and where it
 // was tapped, a pump being dragged — and the little store that puts its pumps on the map
 // (components/RelayPumpMarkers). The chart's read-out spot is lib/chartCursor's, not this one's.
+// A Leitung whose «Pumpen auf Karte» is on runs one of these per line on the map too, with no
+// panel open (RelayPumpMarkers · LinePumpMarkers): the same controller, so the pumps a resting
+// Leitung draws are the pumps its editor computes.
 
 /** Where a pump was tapped: its bubble opens there and only there (round 4, device test
  *  04.11.2026) – at the chart's dot, or at the map's marker. */
@@ -51,13 +54,16 @@ export interface RelayController {
   range: (i: number) => [number, number]
   /** the same route with another hose or flow — what the alternatives would take (RelayMessages) */
   planWith: (over: Partial<RelayInput>) => RelayPlan | null
+  /** «Pumpen auf Karte» (RelaySettings · showPumps): the Leitung draws these pumps as Motorspritzen */
+  showPumps: boolean
+  setShowPumps: (on: boolean) => void
 }
 
 /** Drop the keys a relay leaves at their default, so the stored object says only what was set. */
-const compact = ({ flow, source, startBar, pumps, reverse }: RelaySettings): RelaySettings => ({
+const compact = ({ flow, source, startBar, pumps, reverse, showPumps }: RelaySettings): RelaySettings => ({
   ...(flow != null ? { flow } : null), ...(source ? { source } : null),
   ...(startBar != null ? { startBar } : null), ...(pumps?.length ? { pumps } : null),
-  ...(reverse ? { reverse } : null),
+  ...(reverse ? { reverse } : null), ...(showPumps ? { showPumps } : null),
 })
 
 /**
@@ -136,6 +142,8 @@ export function useRelay({ coords: drawn, profile: drawnProfile, profileLoading,
     },
     range: (i) => (plan ? pumpRange(plan, pins, i, lengthM) : [0, lengthM]),
     planWith: (over) => (plan ? planFor({ ...input, ...over }, lengthM, points) : null),
+    showPumps: !!value.relay?.showPumps,
+    setShowPumps: (on) => { if (on !== !!value.relay?.showPumps) write({ ...value.relay, showPumps: on || undefined }) },
   }
 }
 
@@ -188,6 +196,23 @@ export interface RelayOverlay {
   onClose: () => void
   onDrag: (i: number, atM: number, phase: DragPhase) => void
   range: (i: number) => [number, number]
+  /** the Leitung this relay is on (absent: Messen). While its Messung is open the map draws its
+   *  pumps from HERE – the live, draggable ones – and its resting ones (LinePumpMarkers) step aside. */
+  lineId?: string
+  /** the pumps read as Motorspritzen (the Leitung's «Pumpen auf Karte» is on), else as the chart's
+   *  numbered discs */
+  symbols: boolean
+}
+
+/** What the map needs of a controller to draw its pumps — the panel's (usePublishRelay) and a
+ *  resting Leitung's (components/RelayPumpMarkers · LinePumpMarkers) alike. Null: no plan yet. */
+export function relayOverlay(ctrl: RelayController, lineId?: string): RelayOverlay | null {
+  return ctrl.plan ? {
+    coords: ctrl.coords, source: ctrl.input.source, pumps: ctrl.plan.pumps, selected: ctrl.selected, selectedFrom: ctrl.selectedFrom,
+    terrain: ctrl.plan.terrain, readOnly: ctrl.readOnly,
+    onSelect: (i) => ctrl.tapPump(i, 'map'), onPumpBar: ctrl.setPumpBar, onClose: () => ctrl.select(null),
+    onDrag: ctrl.dragPump, range: ctrl.range, lineId, symbols: ctrl.showPumps,
+  } : null
 }
 
 let current: { owner: symbol; overlay: RelayOverlay } | null = null
@@ -203,15 +228,10 @@ export function useRelayOverlay(): RelayOverlay | null {
 
 /** Publish `ctrl`'s pumps on the map while `on` (the panel's relay is open), and take them away
  *  when it closes or unmounts. Along `ctrl.coords` — the route the water takes, so the source
- *  letter stands at the right end of a reversed one. */
-export function usePublishRelay(ctrl: RelayController, on: boolean) {
+ *  letter stands at the right end of a reversed one. `lineId`: the Leitung it is on (absent: Messen). */
+export function usePublishRelay(ctrl: RelayController, on: boolean, lineId?: string) {
   const [owner] = useState(() => Symbol('relay'))
-  const overlay: RelayOverlay | null = on && ctrl.plan ? {
-    coords: ctrl.coords, source: ctrl.input.source, pumps: ctrl.plan.pumps, selected: ctrl.selected, selectedFrom: ctrl.selectedFrom,
-    terrain: ctrl.plan.terrain, readOnly: ctrl.readOnly,
-    onSelect: (i) => ctrl.tapPump(i, 'map'), onPumpBar: ctrl.setPumpBar, onClose: () => ctrl.select(null),
-    onDrag: ctrl.dragPump, range: ctrl.range,
-  } : null
+  const overlay = on ? relayOverlay(ctrl, lineId) : null
   useEffect(() => {
     if (overlay) { current = { owner, overlay }; notify() }
     else if (current?.owner === owner) { current = null; notify() }

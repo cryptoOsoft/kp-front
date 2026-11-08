@@ -17,6 +17,7 @@ import { truppForLine, truppTagText } from './truppLines'
 import { symbolLegendText } from './symbols'
 import { doneBadge } from './objectDone'
 import { withCartoLabelsBaked, withoutCartoBasemapKey, withoutCartoRetina } from './carto'
+import { drawnPumpEntities } from './linePumps'
 
 export interface KrokiEntityOut {
   coord: LngLat
@@ -275,7 +276,10 @@ export function buildKrokiPayload(args: {
     (a?.target.kind === 'line' ? { id: a.target.id, endpoint: a.target.endpoint, port: a.port } : undefined)
   const targetLineIds = new Set(storedDrawings.flatMap((d) => [lineTarget(d.startAttachment)?.id, lineTarget(d.endAttachment)?.id]))
   const attachedIds = new Set(storedDrawings.flatMap((d) => [objectTarget(d.startAttachment), objectTarget(d.endAttachment)]))
-  const ents = entities
+  // …plus the Motorspritzen a Leitung draws («Pumpen auf Karte», lib/linePumps): derived here as on
+  // the screen – along the STORED path, on the profile the screen fetched (a print awaits
+  // readyLinePumps) – as ordinary symbols on the drawings' layer, so they hide with the drawings
+  const ents = [...entities, ...drawnPumpEntities(storedDrawings)]
     .filter((e) => visible(e.layer))
     .map((e) => {
       const out = krokiEntity(e, byName, captionMode, args.currentView?.zoom)

@@ -69,7 +69,7 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
       {
         id: 'tastatur', title: 'Keyboard shortcuts', icon: 'type', only: 'keyboard',
         blocks: [
-          { kind: 'lead', text: 'With a keyboard everything is reachable without a mouse. Shortcuts do nothing while you are typing in a text field. Where an area in the left rail has a key, that key is printed on it.' },
+          { kind: 'lead', text: 'With a keyboard everything is reachable without a mouse. Shortcuts do nothing while you are typing in a text field. Where a tile in either rail, or «Log» and «Entry» at the top, has a key, that key is printed on it.' },
           { kind: 'sub', text: 'Switching areas' },
           { kind: 'list', items: [
             'Numbers open the plan module with that number – which ones exist depends on this brigade’s modules: [[1]] module 1, [[2]] or [[3]] the «2/3» module, [[4]] module 4 …',
@@ -258,7 +258,7 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
         ],
       },
       {
-        id: 'verlauf', title: 'Log & entry', icon: 'history',
+        id: 'verlauf', title: 'Log & entry', icon: 'verlauf',
         blocks: [
           { kind: 'lead', text: 'A shared, running log across Situation and Plan – the incident chronicle.' },
           { kind: 'list', items: [

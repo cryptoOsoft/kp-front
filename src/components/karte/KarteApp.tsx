@@ -725,7 +725,7 @@ export default function KarteApp({ einsaetze, announceReturn = false, onOpenVisi
             hotkeys={false} // the viewer has no keyboard layer: no letters on Pin · Messen · ERG
             active={tool === 'layers' ? '' : tool ?? ''}
             onPick={(id) => setTool(id as Tool)}
-            footer={(
+            controls={(
               <>
                 <button className={cx('vrail-nbtn vrail-layers', tool === 'layers' && 'on')} title={C.tools.layers} aria-label={C.tools.layers} aria-pressed={tool === 'layers'} onClick={() => setTool('layers')}>
                   <span className="vrail-glyph"><Icon id="layers" /></span><span className="vrail-label">{C.tools.layers}</span>

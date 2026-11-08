@@ -66,8 +66,8 @@ const onKeyHints = (cb: () => void) => {
   return () => window.removeEventListener(KEY_HINTS_EVENT, cb)
 }
 
-/** «Tastenkürzel anzeigen» (lib/prefs · keyHints, default ON): the letter badges on both rails
- *  read it, the Einstellungen sheet writes it. Its own store rather than a `useDevicePrefs` field
+/** «Tastenkürzel anzeigen» (lib/prefs · keyHints, default ON): the letters on both rails and on
+ *  the top bar's Verlauf / Eintrag read it, the Einstellungen sheet writes it. Its own store rather than a `useDevicePrefs` field
  *  because the rails and the sheet never share a parent that could thread it down – and live,
  *  like `useRailLabels`: the sheet sits over the rails and nothing remounts. */
 export function useKeyHints(): [boolean, (v: boolean) => void] {

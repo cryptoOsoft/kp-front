@@ -132,6 +132,8 @@ import { assignedPersonIds, linkTrupps, rosterIdByName as rosterIdByNameOf, trup
 import { rosterWithGuests } from './lib/guests'
 import type { Item } from './lib/checklists'
 import { warmTemplates } from './lib/checklists'
+import { TAFEL_ID, findForms } from './lib/boardForm'
+import { hasProblems, type TickWrite } from './lib/problemLink'
 import { primeKeyboard } from './lib/keyboardPrime'
 import { createPortal, flushSync } from 'react-dom'
 import type { NoteSize } from './types'
@@ -156,6 +158,7 @@ import { useSessionRole, useWorkspaceFlags } from './workspace/access'
 import { useOfflinePrefetch } from './workspace/useOfflinePrefetch'
 import { loadReportPreflight, loadWhiteboard, requestReportStep } from './workspace/lazySurfaces'
 import { useTafelPages } from './workspace/useTafelPages'
+import { useTafelPendenzen } from './workspace/useTafelPendenzen'
 import type { OneShotRows, WorkspaceMode } from './workspace/types'
 import { WorkspaceMeldungen } from './workspace/WorkspaceMeldungen'
 import { WorkspaceSheets } from './workspace/WorkspaceSheets'
@@ -178,6 +181,8 @@ import { useRecordSlices } from './workspace/useRecordSlices'
 import { useRosterRoles } from './workspace/useRosterRoles'
 import { useMediaOutbox } from './workspace/useMediaOutbox'
 import { useLifecycleElsewhere } from './workspace/useLifecycleElsewhere'
+import { PresentationContext, usePresentation } from './workspace/usePresentation'
+import { MapRings, PresentationPill } from './components/Presentation'
 import { startTutorial, useTutorialSession } from './lib/tutorials/session'
 import { loadProgress as loadTutorialProgress, resumeFor } from './lib/tutorials/progress'
 import { tutorialEvent } from './lib/tutorials/bus'
@@ -1210,7 +1215,13 @@ export function IncidentWorkspace({
   const composerOpenedAt = useRef<string | null>(null)
   useEffect(() => { if (composerOpen) composerOpenedAt.current = new Date().toISOString() }, [composerOpen])
   // a Verlauf row can ask the plan to revisit a point; nonce makes each request distinct
-  const [planFocus, setPlanFocus] = useState<{ x: number; y: number; floor: number; annoId?: string; twinEntityId?: string; flash?: boolean; nonce: number } | null>(null)
+  const [planFocus, setPlanFocus] = useState<{ x: number; y: number; floor: number; annoId?: string; twinEntityId?: string; flash?: boolean; scale?: number; span?: { w: number; h: number }; nonce: number } | null>(null)
+  // the Präsentationsmodus (workspace/usePresentation): follow / present / point, never stored
+  const presentation = usePresentation({
+    incidentId: incidentMeta.id, enabled: running && !replayActive && !asLink, canPresent: canShareLink, isLink: linkScoped,
+    mode, setMode, activePlanId, setActivePlanId, mapRef, setPlanFocus,
+    hasPlan: (id) => planDocs.some((d) => d.id === id), selectedId, setSelectedId, journalOpen, setJournalOpen,
+  })
   // «zeigen» on the Lage: the drawing gets an outline for a couple of seconds and is NOT selected
   // (see MapView · flashDrawingId). Cleared on a timer — pointing is a gesture, not a state.
   const [flashDrawingId, setFlashDrawingId] = useState<string | null>(null)
@@ -1755,6 +1766,7 @@ export function IncidentWorkspace({
 
   // the Tafel's pages (10.10.2026): the template set, the pre-fill, the live mini Karte — not for a
   // link session (bound to one object)
+  const tafelTickWrites = useRef<(w: readonly TickWrite[]) => void>(() => {})
   const tafel = useTafelPages({
     enabled: !linkScoped,
     title: incidentMeta.title, address: incidentMeta.address,
@@ -1763,6 +1775,9 @@ export function IncidentWorkspace({
     mapEntities, drawings, layers: mapLayers, isVisible, byName: sym.byName, center: incidentView.center,
     symMul: symbolScale.map, captionMode: symbolCaptions, trupps: effTrupps,
     openKarte: () => setMode('map'),
+    // the checklist problems on the Tafel (lib/problemLink); the tick writer is set below
+    checklists, writeTicks: (w) => tafelTickWrites.current(w),
+    history: { group: () => undoHist.group('plan'), top: () => undoHist.peekUndo(), undo: () => stepHistory('undo') },
   })
 
   // --- Georeferenz: which plans are tied to the ground, and how — lib/useGeorefFits -------------
@@ -2172,6 +2187,12 @@ export function IncidentWorkspace({
     log, setSelectedDrawingId, setSelectedId, mode, pushEvent, composerOpenedAtRef: composerOpenedAt, activePlanId,
     uploadPhotoForRow, uploadMediaForRow, setComposerOpen, setNoteOn, player, timeline, running, undoHist, journal,
   })
+  // …and the Tafel's «Aufträge / Pendenzen» page, a view on those same Wiedervorlagen
+  const tafelPendenzen = useTafelPendenzen({
+    tafel, timeline, reminders, pushEvent, emit, canWrite: !readOnly, author: user?.display_name,
+    setJournalOpen, setJournalLandOn, undoHist, incidentId: incidentMeta.id, board,
+    showPlan: (planId) => { setJournalOpen(false); if (mode !== 'plans') clearMapUi(); setMode('plans'); setPanel(null); setActivePlanId(planId) },
+  })
 
   // --- Atemschutzüberwachung (SCBA monitoring): Trupp mutations live in useTruppActions ---
   /** WHERE a placed Trupp's symbol stands, in words — «Gebäude · 2. OG», «M6», «Karte · bei
@@ -2269,7 +2290,7 @@ export function IncidentWorkspace({
   })
   const {
     deleteGroup, deleteEntity, placed, goToModule, goToTrupp, viewsApi, toggleViews, selected,
-    undockTeam, setEntityDone, focusDrawing, noteEntity, pick, pickShape, placePumpSymbols,
+    undockTeam, setEntityDone, focusDrawing, noteEntity, pick, pickShape,
   } = mapActions
   // a generic (untracked) team marker — the map twin of the plan's placeTeamChip
   const teamMarkers = useTeamMarkerActions({
@@ -2727,7 +2748,10 @@ export function IncidentWorkspace({
   // canEditRecord, not canEditIncident (07.09.): ticking is record-keeping — the el role
   // and an editor's Führungsansicht keep it; the backend enforces the same boundary.
   const canTick = canEditRecord
-  const { toggleTick, setBranch, describeStep: describeChecklistStep } = useChecklistActions({ canTick, checklists, setChecklists: checklistSet, authorName: user?.display_name, log, emit })
+  const { toggleTick, setTrend, applyTickWrites, setBranch, describeStep: describeChecklistStep } = useChecklistActions({ canTick, checklists, setChecklists: checklistSet, authorName: user?.display_name, log, emit })
+  useEffect(() => { tafelTickWrites.current = applyTickWrites })
+  // the Checkliste says whether a ticked problem already stands on a Tafel page (lib/problemLink)
+  const problemsOnTafel = findForms(board?.[TAFEL_ID] ?? []).some((a) => hasProblems(a.form))
   // in an effect, not during render: it is read only when a step is TAKEN, long after this commit
   useEffect(() => { checklistDescribeRef.current = describeChecklistStep })
   // Deep links: an item's `action` jumps to the matching surface (best-effort, reusing
@@ -3207,7 +3231,7 @@ export function IncidentWorkspace({
         selectedDrawingId, patchDrawingLabelLive, commitDrawingLabel,
         changeMapEnding, reverseDrawing, setDrawingWallRole, objects, syncLineNoToTrupp, pickablePersonnel, linkTruppLine,
         unlinkLine, setSelectedDrawingId, setMode, setPanel, setGpsRouting, revertAll, gpsEndOf, releaseHere,
-        releaseOnSite, setDrawingAttachment, focusEntity, isVisible, toggleLayer, deleteDrawing, placePumpSymbols,
+        releaseOnSite, setDrawingAttachment, focusEntity, isVisible, toggleLayer, deleteDrawing,
       }} />
 
       <MapToolDocks {...{
@@ -3216,7 +3240,8 @@ export function IncidentWorkspace({
         measure, pendingShape, setPendingShape, setRotStart, rotStart, tacticalLocked, createLine,
         createArea, replayActive, railLabels, slimMapTools, pick, panel, layersPreset, togglePanel, viewsApi,
         view, readOnly, isEl, viewsOpen, sharePick, shareParent, toggleViews, coord, mapRef, paletteOpen,
-        sym, setPaletteOpen, pickShape, teamPick, trupps, placeTruppOnMap, placeGenericTeam, placePumpSymbols,
+        sym, setPaletteOpen, pickShape, teamPick, trupps, placeTruppOnMap, placeGenericTeam,
+        truppColors: truppColors(),
       }} />
 
       <PlansSurface {...{
@@ -3225,9 +3250,10 @@ export function IncidentWorkspace({
         setPickerOpen, symbolScale, symbolCaptions, mapSuppressedCaptions, georefFits, mapActions,
         replayBoard, replayBuilding, store, trails, deleteGhostTrail, armTrailDrop, building, gebaeude, logPlan,
         roster, addRecent, user, emit, planStacks, planFocus, effTrupps, truppCounterNames, teamNameTaken,
-        azAlarm, truppActions, newTruppFromMarker, showTrupp, planScale, setPlanScale, tafel,
+        azAlarm, truppActions, newTruppFromMarker, showTrupp, planScale, setPlanScale, tafel: tafelPendenzen.tafel,
         truppFinder: { open: () => setFindTruppOpen(true), disabled: placed.length === 0 },
         readingsChip: replayActive ? null : <ReadingsChip points={readingPoints} compact={isPhone} onGo={goToReading} />,
+        presentation: presentation.board,
       }} />
 
       {pickerOpen && (
@@ -3246,6 +3272,8 @@ export function IncidentWorkspace({
           canTick={canTick}
           incidentTitle={incidentMeta.title}
           onTick={toggleTick}
+          onTrend={setTrend}
+          problemsOnTafel={problemsOnTafel}
           onBranch={setBranch}
           onAction={checklistAction}
           // «Zeichnen» arms the Karte's line tool, which a locked device disarms on arrival
@@ -3300,7 +3328,7 @@ export function IncidentWorkspace({
         setJournalOpen, setJournalLandOn, journalFromRapport, setJournalFromRapport, openRapport, readOnly,
         enterReplay, reminders, setNoteOn, setComposerOpen, reRaisePendenz, media, setPlayer, photoOnMap,
         tacticalLocked, placePhotos, showPhotoOnMap, player, isEditor, addPlayerEntry, composerOpen,
-        addJournal, noteOn, roleReadOnly, linkScoped,
+        addJournal, noteOn, roleReadOnly, linkScoped, openTafelPendenzen: linkScoped ? undefined : tafelPendenzen.openPage,
       }} />
       {sharePick && (
         <SharePositionSheet
@@ -3328,6 +3356,7 @@ export function IncidentWorkspace({
           }}
         />
       )}
+      <PresentationContext.Provider value={canShareLink ? presentation : null}>
       <WorkspaceSheets {...{
         helpOpen, setHelpOpen, shareLink, incidentMeta, setShareLink, setAtemschutzLinkOn, installGuideOpen,
         setInstallGuideOpen, offlineReadyOpen, setOfflineReadyOpen, offlineProbeUrls, sym, backendPlans,
@@ -3338,6 +3367,9 @@ export function IncidentWorkspace({
         setKeepScreenOn, linkScoped, setFeedbackParent, setFeedbackOpen, share, setShareParent, setSharePick,
         feedbackParent, canWriteRecord, photoPosition, setPhotoPosition, role: user?.role,
       }} />
+      </PresentationContext.Provider>
+      <PresentationPill p={presentation} />
+      <MapRings mapRef={mapRef} rings={presentation.mapRings} strokes={presentation.mapStrokes} presenter={presentation.state?.presenter?.client ?? null} />
 
       {/* phone field-capture: a editor can't draw tactical symbols on a phone, but can
           always add a journal entry / photo / voice memo from the field — tap to compose,

@@ -54,6 +54,20 @@ describe('ConfirmCard · safeAnswer on the alternative', () => {
     expect(alt.className).toContain('primary')
     expect(screen.getByRole('button', { name: 'Schliessen' }).className).not.toContain('primary')
   })
+
+  // owner pick «Trupps noch drin» mock 4 (06.11.2026): one order on every device, the safe answer
+  // last – on its own full-width row (08-toasts · .confirm-card-safe); the crews one per line
+  it('stands Abbrechen · confirm · safe answer, and names each item on its own line', () => {
+    render(<ConfirmCard open message="2 Trupps sind noch drin:" confirmLabel="Trotzdem abschliessen" cancelLabel="Abbrechen"
+      altLabel="Zur Tafel" safeAnswer="alt" onResolve={vi.fn()}
+      items={[{ head: 'Trupp 4', text: 'Weber Fabian / Moser Simon' }, { text: 'Frei Nora' }]} />)
+    expect(document.querySelector('.confirm-card')?.classList.contains('confirm-card-safe')).toBe(true)
+    const order = Array.from(document.querySelectorAll('.confirm-actions button')).map((b) => b.textContent)
+    expect(order).toEqual(['Abbrechen', 'Trotzdem abschliessen', 'Zur Tafel'])
+    const lines = Array.from(document.querySelectorAll('.confirm-line'))
+    expect(lines.map((l) => l.textContent)).toEqual(['Trupp 4 – Weber Fabian / Moser Simon', 'Frei Nora'])
+    expect(lines[0].querySelector('b')?.textContent).toBe('Trupp 4')
+  })
 })
 
 /* A row's own BUTTON (3am sweep, 23.10.2026): settles the point in the sheet, which stays open

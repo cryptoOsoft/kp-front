@@ -48,33 +48,47 @@ export const lineLabelAction = (truppId: string | undefined, tone: LineTone | un
 // A Trupp marker is a STRIP — [dot][gap][name] — so where the strip is anchored decides what the
 // coordinate MEANS. Both halves of the map have to agree on it: MapMarkers anchors the marker,
 // MapView's label pass measures the same boxes without a DOM.
-/** `.team-dot i` — the dot IS the position, so it is what sits on the coordinate. */
-export const TEAM_DOT_PX = 13
+/** `.team-dot i` — the dot IS the position, so it is what sits on the coordinate. 16px: an inside
+ *  Trupp's dot fills it, an out Trupp's 13px dot sits centred in the same box (09-whiteboard ·
+ *  .team-dot.raus i), so coming out moves neither the point nor the name. */
+export const TEAM_DOT_PX = 16
 /** `.team-dot` gap — the distance the name hangs off the dot. */
 export const TEAM_DOT_GAP = 8
 /** The selected pill's accent cap, centre-to-left-edge: 1px border + 8px padding + half of the
  *  4px cap — so selecting a Trupp swaps the chrome without moving the point it states. */
 export const TEAM_PILL_CAP_PX = 11
 /** `.team-link` + its gap — the «angedockt» glyph at the right end of the same strip. */
-/** the resting strip's name chip, as the label pass measures it (`.team-dot b` – 700 11px
- *  Sora, 4px padding each side, 15px line). ONE definition: MapView books the box with it and
+/** the resting strip's name chip, as the label pass measures it (`.team-dot b` – 700 12.5px
+ *  Sora, 2px/8px padding – the measure label's, every one-line plate's since hill climb r6 –,
+ *  line-height 1.25). ONE definition: MapView books the box with it and
  *  MapMarkers centres a docked strip with it, so the two can never disagree. */
-export const TEAM_LABEL_STYLE = { font: '700 11px Sora, system-ui, sans-serif', maxTextW: Infinity, chromeW: 8, chromeH: 2, lineH: 15 }
+export const TEAM_LABEL_STYLE = { font: '700 12.5px Sora, system-ui, sans-serif', maxTextW: Infinity, chromeW: 16, chromeH: 4, lineH: 15.625 }
 /** The label-pass boxes of the other on-map labels, as their CSS draws them. ONE place, held to the
- *  CSS by mapView.labelCss.test.ts: a type step there (stage 2 took them 11.5 → 11px, the 4px grid)
- *  that is not copied here books boxes that are wider or taller than what is on screen.
- *  `.sym-caption` (03-map.css) — 700 --fs-micro Sora, wraps at compound seams inside its 120px
- *  span, 1px/4px padding, line-height 1.25, hung `margin-top` under the glyph. */
-export const SYM_CAPTION_STYLE = { font: '700 11px Sora, system-ui, sans-serif', maxTextW: 120, chromeW: 8, chromeH: 2, lineH: 13.75 }
+ *  CSS by mapView.labelCss.test.ts: a type step there (stage 2 took them 11.5 → 11px, the 4px grid;
+ *  the hill climb took the names, captions, readouts and trail times up to --fs-1 12.5px, 04.11.2026,
+ *  for a gloved arm's length in sunlight) that is not copied here books boxes that are wider or
+ *  taller than what is on screen.
+ *  `.sym-caption` (03-map.css) — 700 --fs-1 Sora, wraps at compound seams inside its 120px
+ *  span, 4px/8px padding, line-height 1.35, hung `margin-top` under the glyph. */
+export const SYM_CAPTION_STYLE = { font: '700 12.5px Sora, system-ui, sans-serif', maxTextW: 120, chromeW: 16, chromeH: 8, lineH: 16.875 }
 /** `.sym-pill` (03-map.css) — 700 --fs-micro mono, never wraps, 20px tall; the chrome is the
  *  0/8px padding plus the 13px Messgerät and its 4px gap. Centred on the glyph's anchor. */
 export const SYM_PILL_STYLE = { font: '700 11px "Spline Sans Mono", ui-monospace, monospace', maxTextW: Infinity, chromeW: 2 * 8 + 13 + 4, chromeH: 0, lineH: 20 }
 /** `.sym-caption { margin-top }` (03-map.css) */
 export const SYM_CAPTION_GAP = 4
-/** `.measure-label.draw-label` (11-measure.css) — 700 --fs-micro mono, never wraps, 2px/8px padding, line-height 1.25 */
-export const READOUT_LABEL_STYLE = { font: '700 11px "Spline Sans Mono", ui-monospace, monospace', maxTextW: Infinity, chromeW: 16, chromeH: 4, lineH: 13.75 }
-/** `.line-end-tag` (09-whiteboard.css) — 800 --fs-micro/1, 2px/4px padding plus a 1.5px border; `inline-grid` stacks the Trupp row */
-export const END_TAG_LABEL_STYLE = { font: '800 11px Sora, system-ui, sans-serif', maxTextW: Infinity, chromeW: 11, chromeH: 7, lineH: 11 }
+/** `.measure-label.draw-label` (11-measure.css) — 700 --fs-1 mono, never wraps, 2px/8px padding, line-height 1.25 */
+export const READOUT_LABEL_STYLE = { font: '700 12.5px "Spline Sans Mono", ui-monospace, monospace', maxTextW: Infinity, chromeW: 16, chromeH: 4, lineH: 15.625 }
+/** `.measure-label.draw-label .dl-words` (11-measure.css) — a line's FREE TEXT on the same plate:
+ *  the names' 700 --fs-1 Sora (the measured values above stay mono), same chrome. */
+export const READOUT_WORDS_STYLE = { ...READOUT_LABEL_STYLE, font: '700 12.5px Sora, system-ui, sans-serif' }
+/** `.map-trail-dot i` (09-whiteboard.css) — a breadcrumb's time: 400 --fs-micro mono (one step
+ *  under the names' 700 --fs-1 plate, hill climb r33), 1px/4px padding, line-height 1.25, hung
+ *  CRUMB_LABEL_DX right of the coordinate (12px off the 9px dot's left edge, the dot centred on the point). */
+export const CRUMB_LABEL_STYLE = { font: '400 11px "Spline Sans Mono", ui-monospace, monospace', maxTextW: Infinity, chromeW: 8, chromeH: 2, lineH: 13.75 }
+export const CRUMB_LABEL_DX = 12 - 9 / 2
+/** `.line-end-tag` (09-whiteboard.css) — the plates' 700 --fs-1/1, 2px/4px padding plus a 1.5px border
+ *  (a ~20px plate since hill climb r17); `inline-grid` stacks the Trupp row */
+export const END_TAG_LABEL_STYLE = { font: '700 12.5px Sora, system-ui, sans-serif', maxTextW: Infinity, chromeW: 11, chromeH: 7, lineH: 12.5 }
 /** the whole resting strip's width: [dot][gap][name]. ⚠️ No Leitung field any more (11.10.2026,
  *  owner: «on the map the trupps are numbered – which we don't need»): the Karte's marker is the
  *  Gebäude chip's — name only — and the Leitung's number stays on the hose's own end tag. */
@@ -87,8 +101,9 @@ export const teamStripPx = (label: string): number =>
 // slightly when zooming out, so a cluster doesn't clump together.
 const SIZE_M: Record<string, number> = { vehicle: 11, command: 10, hydrant: 6, symbol: 8, area: 8 }
 // the band (px). `mul` is the global S/M/L factor (lib/prefs · symbolMul); it
-// scales the whole band, so the ceiling/floor grow along with it.
-const SYM_MIN = 28
+// scales the whole band, so the ceiling/floor grow along with it. The Gebäude stack draws its
+// symbols on this floor too (components/Whiteboard · symBase), so a symbol reads the same size there.
+export const SYM_MIN = 28
 // …except a VEHICLE, which has a higher floor of its own. A vehicle is the only kind whose NAME
 // is baked into the glyph body (lib/useVehiclePositions · vehicleSymbolSvg), so the name can only
 // grow with the glyph. At the owner's tablet zoom every GPS vehicle at the Magazin sits exactly

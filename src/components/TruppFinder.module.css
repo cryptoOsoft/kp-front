@@ -9,21 +9,21 @@
   position: fixed; left: 50%; top: 12vh; transform: translateX(-50%); z-index: var(--z-dialog);
   width: min(520px, calc(100vw - 32px)); max-height: min(70vh, 640px);
   display: flex; flex-direction: column; overflow: hidden;
+  /* THE sheet material, no edge (r35, 06.11.2026: the sheets draw none, --e4 is the outline) */
   background: var(--glass); backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-edge); border-radius: var(--r-hero); box-shadow: var(--e4);
+  border-radius: var(--r-hero); box-shadow: var(--e4);
 }
 
-/* the row keeps its height — the ✕ grew to 44, so its own box now supplies the padding the
-   header used to add around a 36px button (8 + 44 + 8 = a 60px row; 10/10/18 until 08.10.2026,
-   the 4/8 grid) */
+/* a 60px row: 8 + the 44px search + 8. The ✕ stands 16 from the card's edge, the field's own inset
+   on the left (r35, 06.11.2026 – it was 8, its 44px box doing the padding) */
 .head { flex: none; display: flex; align-items: center; gap: var(--sp-3);
-  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-4); border-bottom: 1px solid var(--border-soft); }
+  padding: var(--sp-2) var(--sp-4); border-bottom: 1px solid var(--border-soft); }
 /* the query field is THE search's `head` modifier (`.ui-search-head`, 13-incident.css,
    29.09.2026): glyph, 18/700 query and its ✕, with the card as its surface */
-/* The ✕ IS the global `.ip-x` (28.09.2026 — it was a bare, unfilled copy); the head is a search
-   field, so it takes the one exception to the 36px: var(--tap) beside a 44px field (AGENTS ·
-   Buttons follow one spec). Doubled with the global class so the size beats `.ip-x`'s own 36. */
-.x:global(.ip-x) { flex: none; width: var(--tap); height: var(--tap); }
+/* The ✕ IS the global `.ip-x` (28.09.2026 — it was a bare, unfilled copy), at its house 36px over
+   the 44px pad, centred on the search field (r35, 06.11.2026: the «44 beside a 44px field»
+   exception is gone, docs/ui-conventions · «The ✕ that closes a sheet») */
+.x { flex: none; }
 
 .list { flex: 1 1 auto; min-height: 0; overflow-y: auto; margin: 0; padding: 8px; list-style: none; }
 .row { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;

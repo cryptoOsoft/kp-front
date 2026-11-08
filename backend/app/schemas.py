@@ -1578,6 +1578,12 @@ class FleetConfig(BaseModel):
     model_config = ConfigDict(extra="ignore")
     vehicles: list[FleetVehicle] = Field(default_factory=list)
     attributeLists: list[FleetAttributeList] = Field(default_factory=list)
+    #: «Herkunft» (05.11.2026): where a vehicle that is not the own Feuerwehr comes from
+    #: (Stützpunkt, Zivilschutz, Wache Nord …). ONE suggestion list for every vehicle symbol and
+    #: every live GPS vehicle; free typing stays possible, empty = no suggestions. Edited at
+    #: /admin › Fahrzeuge & Symbole and as Kategorie «Herkunft» on the workbook's
+    #: Partnerorganisationen sheet.
+    origins: list[str] = Field(default_factory=list)
     # Legacy fixed lists — still accepted/echoed so existing stored configs round-trip; the
     # admin editor migrates them into attributeLists on first edit.
     vehicleTypes: list[str] = Field(default_factory=list)

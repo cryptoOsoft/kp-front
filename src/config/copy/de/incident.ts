@@ -178,7 +178,7 @@ export const incidentCopy = {
   // Abschluss-Assistent — the guided closing ritual over the EXISTING views. Every small
   // incident is a training run on the big-incident tool (practice rationale, 2026-07-08).
   abschluss: {
-    leftEarly: ' · bis {t}',
+    leftEarly: 'bis {t}',
     steps: {
       zeiten: 'Einsatzende',
       anwesenheit: 'Anwesenheit',
@@ -199,6 +199,8 @@ export const incidentCopy = {
     mittelCount: (n: number) => (n === 1 ? '1 Position' : `${n} Positionen`),
     mittelNone: 'Nichts verwendet',
     complete: 'Einsatz abschliessen',
+    // the Rapport head's folded tile (phone): it keeps a word, never a bare glyph
+    completeShort: 'Abschliessen',
     backToRapport: 'Zurück zum Rapport',
     confirmTitle: 'Einsatz abschliessen',
     confirmMsg: 'Der Rapport wird als abgeschlossen markiert und der Einsatz abgeschlossen. Spätere Korrekturen bleiben möglich und erscheinen als Nachträge.',
@@ -217,9 +219,9 @@ export const incidentCopy = {
     registeredTitle: 'Noch angemeldet',
     registeredStandDown: 'Als «nicht eingesetzt» schliessen',
     // Trupps, die beim Abschluss noch DRIN sind: eine eigene, erste Frage
-    insideOne: '1 Trupp ist noch drin: {list}.',
-    insideMany: '{n} Trupps sind noch drin: {list}.',
-    insideTrupp: 'Trupp {name}',
+    insideOne: '1 Trupp ist noch drin:',
+    insideMany: '{n} Trupps sind noch drin:',
+    insideTrupp: 'Trupp {no}',
     insideClose: 'Trotzdem abschliessen',
     insideTitle: 'Trupps noch drin',
     // die sichere, fokussierte Antwort auf der Liste der offenen Punkte

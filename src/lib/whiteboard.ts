@@ -4,11 +4,11 @@
 /*
  * *A plan opens with the WHOLE sheet between the bars* (sweep B8, 07.10.2026, owner option 1):
  * `lib/whiteboard · containFit` contains it in the canvas less the top bar (`TOP_INSET`), the
- * side rails (`sideInsets`) and the bottom-left chip row (`chipRowInset` — 76px on a tablet,
- * 58px on a phone, where the row stands just above the tool bar; the Gebäude keeps
- * `STACK_CHIP_ROW`). The chips never cover the sheet's legend at fit, and «Einpassen» is scale 1
- * of the same box. The constants mirror the CSS like `TOP_INSET` does: move the chip row and
- * they move with it. (The Karte has no inset-aware fit to follow: its `fitBounds` takes a flat
+ * side rails (`sideInsets`) and the bottom reserve (`bottomInset` — on a tablet the taller of the
+ * bottom-left chip row and the bottom-right view bar, 94px; 58px on a phone, where the row stands
+ * just above the tool bar; the Gebäude keeps `STACK_CHIP_ROW`). Neither the chips nor the bar
+ * cover the sheet's legend or title block at fit, and «Einpassen» is scale 1 of the same box. The
+ * constants mirror the CSS like `TOP_INSET` does: move the chip row or the bar and they move with it. (The Karte has no inset-aware fit to follow: its `fitBounds` takes a flat
  * padding.)
  */
 
@@ -47,6 +47,13 @@ export const SIDE_INSET_L = 88
 /** the Gebäude's Messungen column (ReadingParts · StackReadings, 09-whiteboard `.wb-readings`): its
  *  252px + the 16px gap to the stack, kept free left of the stack while a Messpunkt is on it */
 export const STACK_READINGS_LANE = 268
+/** the Gebäude's storey-label gutter (09-whiteboard `.wb-floor-label`, `--wb-label-lane`): every
+ *  storey's «3. OG ⌄» stands in this lane LEFT of the stack, so nothing drawn on a storey can cover
+ *  it (hill climb r3, 04.11.2026 – a note hid «EG»). The fit keeps it free; the board's coordinate
+ *  space does not move, the lane is outside it. 72 since the plate's 8px side padding (owner pick
+ *  A8, 05.11.2026 – it was 64 with 4px sides); 80 since every plate is one 72px width
+ *  (`--wb-floor-plate-w`, hill climb r15) plus its 8px gap. */
+export const STACK_LABEL_LANE = 80
 export const SIDE_INSET_R = 92
 /**
  * No side rails on a phone — they are the two stacked bottom bars there.
@@ -59,10 +66,11 @@ export const SIDE_INSET_R = 92
  */
 export const sideInsets = (viewportW: number, phone = viewportW <= 600) =>
   phone ? { l: 0, r: 0 } : { l: SIDE_INSET_L, r: SIDE_INSET_R }
-// in the floor-stack (Gebäude) view the +OG / −UG pills straddle the top and bottom
-// edges of the stack (CSS top/bottom: half their --tap height, 22px). The default "fit" reserves this much
-// extra room above AND below so both pills stay fully on-screen instead of clipping.
-export const STACK_VPAD = 36
+// in the floor-stack (Gebäude) view the +OG / −UG pills stand just outside the top and bottom
+// edges of the stack (09-whiteboard · .wb-floor-add: --sp-3 off the edge, a --tap tall = 56px).
+// The default "fit" reserves this much room above AND below so both stay on-screen with 8px to
+// spare — which is also how far «+ UG» ends above the chip row (15-mobile · --stack-foot-lift).
+export const STACK_VPAD = 64
 // …and, below that, the bottom-left chip row (09-whiteboard · .wb-botleft: 12px off the edge, a
 // --tap tall). The stack's «+ UG» straddles its bottom edge, so a fit that ran down to the
 // canvas edge put that pill ON the chips (3am test r2, 25.09.2026 — at 820 and at 360). The
@@ -81,7 +89,16 @@ export const STACK_CHIP_ROW = 56
  */
 export const CHIP_ROW_INSET = 76
 export const CHIP_ROW_INSET_PHONE = 58
-export const chipRowInset = (phone: boolean): number => (phone ? CHIP_ROW_INSET_PHONE : CHIP_ROW_INSET)
+/**
+ * …and the tablet's bottom-RIGHT corner is the tool rail's view bar (07-toolrail · .view-bar,
+ * staging review 06.11.2026 S2: Einpassen · north dial · − +), which reaches higher than the chips:
+ * `--view-bar-reserve` = 16px off the foot + a 56px tile + 2 × 6px pad + 2px border + 8px air.
+ * A wide sheet's bottom-right corner — where a plan's title block is — ran under it. The reserve
+ * is the whole width (the fit is one box), and 94 also covers the 50px tiles of a short window.
+ */
+export const VIEW_BAR_INSET = 94
+/** The fit's bottom reserve: the chip row on a phone, the taller of row and view bar elsewhere. */
+export const bottomInset = (phone: boolean): number => (phone ? CHIP_ROW_INSET_PHONE : Math.max(CHIP_ROW_INSET, VIEW_BAR_INSET))
 /**
  * THE fitted board: the plan's sheet contained in the free area — the canvas less the top bar,
  * the side rails and the bottom reserve. Every «eingepasst» (the opening view, «Einpassen», a

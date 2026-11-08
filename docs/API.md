@@ -83,6 +83,7 @@ PIN-kiosk flow issuing JWTs as **httpOnly cookies** (single-origin, so no tokens
 | `/api/object-visits/*` | Objektbesuche field API: catalogue, visits, attachments, revisions, report PDF | auth (writes per `objectVisits.captureRoles`; never a link session) · admin (read) |
 | `/api/admin/object-visits/*` | Objektbesuche admin view: every visit, the delivery outbox and retry, notify settings, destination test, ZIP export | admin |
 | `/api/incidents/{id}/report/pdf`, `…/tafel/pdf`, `…/zeitplan/pdf` | `POST` – render the Einsatzrapport, the Tafel and the Zeitplan as PDF (read-only output) | auth |
+| `/api/incidents/{id}/presentation` | the Präsentationsmodus: `GET` the live poll (`client`, `known`, `since`, `wait=1`), `POST` start, `DELETE` end, `POST …/signal` join · leave · view · pointer – in memory, never stored ([`presentation.md`](presentation.md)) | auth (poll, signal – the view and alarm links too) · editor (start, end) |
 | `/api/incident-link/*` | exchange an alerting system's link token for a read-only session on one incident (`/l/<token>`); the two **standing** links – the Stations-Terminal (`/l/t<secret>`, enrolls a device cookie) and the fixed Atemschutz URL (`/l/s<secret>`) – bind to whichever Einsatz is open; key management and rotation for all three | station keys (session) · admin (keys) · fail-closed |
 | `/api/diag/client-error` | client error sink (bounded, logged at WARNING) | none |
 | `/api/diag/export` | the Diagnose-Datei: the last 50 sanitised crashes, to attach to a bug report | auth (never a link session) |

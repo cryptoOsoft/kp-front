@@ -1,3 +1,4 @@
+import { appConfig } from '../config/appConfig'
 import { hhmm } from './format'
 import { isVehicleSym } from './symbols'
 import type { FleetVehicle } from './deploymentConfig'
@@ -30,9 +31,14 @@ export function boardSeedFrom(src: BoardSeedSources): FormSeed {
   const out = (src.fahrzeuge ?? [])
     .filter((f) => f.ausgerueckt || f.vorOrt || f.zurueck)
     .map((f) => labels.get(f.id) ?? f.id)
+  // a vehicle from elsewhere says so in the Formation cell – «TLF (Stützpunkt)» – the way the
+  // Karte's grey line does (lib/symbols · symbolOriginText); the own Feuerwehr's stays «TLF»
   const placed = (src.entities ?? [])
     .filter((e) => e.kind === 'vehicle' || isVehicleSym(e))
-    .map((e) => e.label ?? '')
+    .map((e) => {
+      const origin = e.fields?.[appConfig.symbols.originField]?.trim()
+      return e.label?.trim() && origin ? `${e.label.trim()} (${origin})` : e.label ?? ''
+    })
   return {
     title: src.title,
     address: src.address,

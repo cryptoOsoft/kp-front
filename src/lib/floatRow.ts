@@ -28,8 +28,10 @@ export interface Box { left: number; right: number; top: number; bottom: number 
 const GAP = 8
 const ROW_SEL = '.wb-botleft'
 /** what stands on the row's floor on a phone: the tool's option dock, the armed tool's readout,
- *  Messen's results panel (MeasurePanel · `data-float-stack`, a hashed module class) */
-const OBSTACLE_SEL = '.phone-tools .wb-dock, .phone-tools .armed-pill-row, .phone-tools [data-float-stack]'
+ *  Messen's results panel (MeasurePanel · `data-float-stack`, a hashed module class), and the
+ *  Präsentationsmodus pill (components/Presentation – it stands bottom centre, the chips rise
+ *  past it; owner's iPhone 06.11.2026) */
+const OBSTACLE_SEL = '.phone-tools .wb-dock, .phone-tools .armed-pill-row, .phone-tools [data-float-stack], .phone-tools .present-pill, .phone-tools .present-again'
 /** …and what else stands in the stack the message lane has to clear: the Eintrag FAB (only a
  *  recording one stays while a tool is out) */
 const STACK_EXTRA_SEL = '.fab-entry'

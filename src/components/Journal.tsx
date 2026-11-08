@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { PlanDocument, TimelineEvent } from '../types'
 import { linkParts, type JournalLink } from '../lib/journalLinks'
 import { Icon } from '../lib/icons'
@@ -12,11 +12,11 @@ import { openPhoto } from '../lib/ui'
 import { appConfig } from '../config/appConfig'
 import { dueClock, fillTemplate, fmtDuration, formatTime } from '../lib/format'
 import { thumbUrl } from '../lib/mediaUrl'
-import { ART_DISC, groupByDay, isHandWritten, isNachtrag, repeatRuns, rowPhotos, rowTarget, rowText, type ArtTone, type LiveTargets } from '../lib/verlauf'
+import { ART_DISC, groupByDay, isHandWritten, otherDay, isNachtrag, pendenzenBelow, pendenzenCut, repeatRuns, rowPhotos, rowTarget, rowText, rowTime, STRIP_INSET, stripRuns, stripScale, type ArtTone, type LiveTargets } from '../lib/verlauf'
 import { journalDisc, withoutAreaPrefix } from '../lib/report'
 import { journalQuery, matchesJournalQuery } from '../lib/journalSearch'
 import { journalCategories, journalFacets, matchesJournalCategories, showsPinnedPendenzen, type JournalCategoryKind } from '../lib/journalFilter'
-import type { OpenReminder } from '../lib/reminders'
+import { openReRaises, type OpenReminder } from '../lib/reminders'
 import { cardinalIndex, fmtDistance, takenClock, type PhotoPlacement } from '../lib/photoGeo'
 
 /** HH:MM of an ISO instant — the Pendenzen block's time column and its Meldung lines. */
@@ -24,6 +24,11 @@ function rowClock(iso: string): string {
   const d = new Date(iso)
   return Number.isNaN(d.getTime()) ? '–' : formatTime(d)
 }
+
+/** …and the day it fell on, when that is not today (lib/verlauf · otherDay): an Einsatz that
+ *  crossed midnight raised half its Pendenzen «yesterday», and a bare «23:43» above «00:40»
+ *  read as the newer one (staging review 06.11.2026, S5). */
+const rowDay = (iso: string, nowMs: number) => otherDay(new Date(iso), new Date(nowMs))
 
 /** «vor 54 min» / «vor 3 h» — the other half of the time column, one tap away. */
 function ageLabel(iso: string, nowMs: number, C: typeof appConfig.copy.journal): string {
@@ -51,10 +56,6 @@ function useAudioPlayer() {
   return { playing, toggle }
 }
 
-/** Breathing room, in px, at each end of the activity strip. THE source of truth for it: the
- *  track is inset by this and the tap→time maths subtracts it, so the two cannot drift apart
- *  and leave a tap landing a few minutes off what the ticks show. */
-const STRIP_INSET = 10
 
 /** Rows the log mounts at first, and how many more each scroll to the tail reveals. */
 const PAGE_ROWS = 150
@@ -132,7 +133,7 @@ export type JournalProps = {
   /** correct a HAND-WRITTEN row's text — append-only `textEdit` patch, same pattern as the
    *  transcript edit. Offered on everything a person typed (composer entries, Meldungen,
    *  Nachdokumentation in the player) and on nothing the app wrote about an action; the
-   *  corrected line is marked «korrigiert HH:MM». See lib/verlauf · isHandWritten. */
+   *  corrected line is marked «Korrigiert HH:MM». See lib/verlauf · isHandWritten. */
   onEditText?: (id: string, text: string) => void
   /** where picture `i` of a row was taken, and what it can do on the Karte (lib/photoGeo ·
    *  photoPlacement). `null` for a picture without a position — the sheet then says nothing. */
@@ -142,6 +143,9 @@ export type JournalProps = {
   onPhotoPlace?: (e: TimelineEvent) => void
   /** «Auf Karte zeigen»: a picture of this row is on the Karte already */
   onPhotoShow?: (entityId: string) => void
+  /** «von der Tafel» on a Pendenz typed on the Tafel's «Aufträge / Pendenzen» page: open that
+   *  page. Absent ⇒ the mark is a plain word (a link session has no Tafel pages) */
+  onOpenTafel?: () => void
   /**
    * The replay playhead. Set ⇒ this Verlauf is being read alongside a Wiedergabe: rows after
    * this instant are the FUTURE and render dimmed, and the row the playhead stands in is marked.
@@ -161,13 +165,15 @@ export type JournalProps = {
 // happens on either surface. Rendered as a slide-over so it can open over the
 // map or the plan; a row jumps back to wherever its event happened. Each row is
 // a <JournalRow>; the row's detail sheet is rendered here, at the bottom.
-export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, onClose, onTranscript, onReplay, openReminders, onReminderDone, onReminderNote, onReminderAgain, mediaStatusOf, onOpenPlayer, onEditText, replayAtMs, onSeekTo, landOn, deliveryNotice, photoPlacement, onPhotoPlace, onPhotoShow }: JournalProps) {
+export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, onClose, onTranscript, onReplay, openReminders, onReminderDone, onReminderNote, onReminderAgain, mediaStatusOf, onOpenPlayer, onEditText, replayAtMs, onSeekTo, landOn, deliveryNotice, photoPlacement, onPhotoPlace, onPhotoShow, onOpenTafel }: JournalProps) {
   // read per-render (not module-load) so the resolved locale is applied — see config/copy
   const C = appConfig.copy.journal
   const audio = useAudioPlayer()
   // open reminders keyed by id, plus a clock captured when the drawer opens (it remounts on
   // each open, so this is "now" at open time) to flag overdue rows
   const openMap = new Map((openReminders ?? []).map((r) => [r.id, r]))
+  // done rows whose «wieder in …» already raised an item that is still open (lib/reminders)
+  const reRaised = openReRaises(events, openReminders ?? [])
   // id → the item's own words, so a Meldung row can name what it is an answer to. Built from the
   // `created` rows themselves (not from `openReminders`), or a Meldung on an item that has since
   // been ticked off would lose its anchor the moment it was closed.
@@ -333,6 +339,18 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
     const to = stripTicks[stripTicks.length - 1]
     return to > from ? { from, to } : null
   }, [stripTicks])
+  // …and its time scale: the end clocks and round times between them, labelled where they fit —
+  // which needs the track's width, so the strip is measured (lib/verlauf · stripScale).
+  const [stripTrackPx, setStripTrackPx] = useState(0)
+  const measureStrip = useCallback((el: HTMLDivElement | null) => {
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(() => setStripTrackPx(Math.max(0, el.clientWidth - STRIP_INSET * 2)))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+  const scale = useMemo(() => (stripSpan ? stripScale(stripSpan.from, stripSpan.to, stripTrackPx) : null), [stripSpan, stripTrackPx])
+  // …and the rows as the ruler's events band: stretches of activity, the busy ones darker
+  const band = useMemo(() => (stripSpan ? stripRuns(stripTicks, stripSpan.from, stripSpan.to, stripTrackPx) : null), [stripTicks, stripSpan, stripTrackPx])
   /** Scroll the list to the row nearest a moment on the strip. */
   const jumpTo = (ms: number) => {
     let best: string | null = null
@@ -393,8 +411,10 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
           target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>{p.text}</a>
       )
     }
+    // a name with its role is ONE unit on the line (`.jr-link-unit`, 10-journal.css): «(AS)»
+    // never wraps away from «Weber Nina», while the row still wraps between people
     return (
-      <b key={pi} className={`jr-link jr-link-${p.kind}`} title={p.hint} data-trupp={p.truppId}>
+      <b key={pi} className={`jr-link jr-link-${p.kind}${p.role ? ' jr-link-unit' : ''}`} title={p.hint} data-trupp={p.truppId}>
         {p.text}
         {p.role && <i className="jr-link-role"> ({p.role})</i>}
       </b>
@@ -524,6 +544,55 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
   // …and HIDDEN while a filter is on that does not tick «Pendenz» (lib/journalFilter ·
   // showsPinnedPendenzen): the box is part of what the ticks narrow.
   const pinnedReminders = showsPinnedPendenzen(filterSel) ? openReminders ?? [] : []
+  // How many Pendenzen lie wholly or partly below the box's fold — its foot cue «3 weitere ⌄»
+  // (`.jr-pinned[data-more]`, lib/verlauf · pendenzenBelow; 0 = at the end, no strip). iOS hides
+  // an idle scrollbar, so without it a box cut between two rows reads as complete. A callback ref, because the box mounts inside the Overlay's portal
+  // after this component's own effects have run; re-read on scroll, when the drawer, the box or
+  // any row resizes (capped at its max-height the box keeps its size while late fonts re-wrap the
+  // rows under it) and when rows come and go.
+  // …and on every resize the box is cut at the last WHOLE row (lib/verlauf · pendenzenCut): an
+  // inline max-height under the CSS one, so at rest the foot band stands where the next row's
+  // rule would and no row is sliced through its sentence (hill climb r4, 04.11.2026). The inline
+  // cap is dropped first, so the CSS one is what is measured against.
+  const [pinnedBelow, setPinnedBelow] = useState(0)
+  const watchPinned = useCallback((el: HTMLDivElement | null) => {
+    if (!el) { setPinnedBelow(0); return }
+    // the scroll-end guard first: there the strip's natural spot overlaps the last row, which
+    // would otherwise count itself as hidden
+    const read = () => {
+      const foot = el.querySelector<HTMLElement>('.jr-pinned-foot')
+      const below = !foot || el.scrollHeight - el.scrollTop - el.clientHeight <= 1 ? 0
+        : pendenzenBelow([...el.querySelectorAll('.jr-pinned-row')].map((r) => r.getBoundingClientRect().bottom), foot.getBoundingClientRect().top)
+      setPinnedBelow(below)
+    }
+    const fit = () => {
+      el.style.maxHeight = ''
+      const foot = el.querySelector<HTMLElement>('.jr-pinned-foot')
+      if (foot && el.scrollHeight - el.clientHeight > 1) {
+        const box = el.getBoundingClientRect()
+        const tops = [...el.querySelectorAll('.jr-pinned-row')].map((r) => r.getBoundingClientRect().top - box.top + el.scrollTop)
+        // the band plus the bottom border (offset − client = both borders, clientTop = the top one)
+        const cut = pendenzenCut(tops, el.offsetHeight, foot.offsetHeight + el.offsetHeight - el.clientHeight - el.clientTop)
+        if (cut !== null) el.style.maxHeight = `${cut}px`
+      }
+      read()
+    }
+    // a frame later, not inside the callback: the cut resizes an observed box, and a resize the
+    // observer has to deliver again in the same frame is its «loop completed» error
+    let frame = 0
+    const ro = typeof ResizeObserver === 'undefined' ? null
+      : new ResizeObserver(() => { cancelAnimationFrame(frame); frame = requestAnimationFrame(fit) })
+    const watch = () => {
+      ro?.disconnect()
+      for (const node of [el.parentElement, el, ...el.children]) if (node) ro?.observe(node)
+      fit()
+    }
+    const mo = typeof MutationObserver === 'undefined' ? null : new MutationObserver(watch)
+    mo?.observe(el, { childList: true })
+    el.addEventListener('scroll', read, { passive: true })
+    watch()
+    return () => { el.removeEventListener('scroll', read); cancelAnimationFrame(frame); ro?.disconnect(); mo?.disconnect() }
+  }, [])
 
   /** The funnel's menu: «Art des Eintrags», then «Bereich», each row a checkbox with the row's
    *  own disc and its count, and «Alle zeigen» last. Checkboxes keep the menu open (lib/overlays ·
@@ -592,7 +661,9 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
             timeline strip vacates (the strip is hidden while searching anyway), with its own ✕.
             The lens in the head is lit while the field is open and closes it on a second tap. */}
         <div className="journal-head">
-          <span className="journal-title"><Icon id="history" />{C.title} · {events.length}</span>
+          {/* the title and its count as two pieces (hill climb r6): the count is a caption beside
+              the name, not part of it — so «Verlauf» leads and «· 322» steps back (10-journal.css) */}
+          <span className="journal-title"><Icon id="verlauf" /><span className="journal-title-txt">{C.title}</span>{' '}<span className="journal-count">· {events.length}</span></span>
           {/* ⚠️ ON A TAP, never by itself. The disc carries the Bereich now, and a glyph has to be
               learned — but a panel that opens on its own, or one the app remembers having opened,
               is a thing to dismiss on the way to the record. This one is a question somebody asks
@@ -629,10 +700,12 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
           {/* ⚠️ `aria-label`, because the word inside it is hidden on a phone (10-journal.css) —
               the head is one item wider since the legend button joined it, and this is the label
               that can most afford to go. */}
+          {/* THE button's framed secondary (hill climb, 04.11.2026): it was the filled primary, and
+              playing back history out-shouted the title and the open Pendenzen below it. */}
           {onReplay && (
-            <button className="journal-replay" onClick={onReplay} title={C.replayHint} aria-label={C.replay}>
-              <Icon id="play" /><span>{C.replay}</span>
-            </button>
+            <Button className="journal-replay" onClick={onReplay} title={C.replayHint} aria-label={C.replay} icon={<Icon id="play-circle" />}>
+              <span>{C.replay}</span>
+            </Button>
           )}
           <button className="journal-x" title={appConfig.copy.closeDialog} aria-label={appConfig.copy.closeDialog} onClick={onClose}><Icon id="close" /></button>
         </div>
@@ -683,7 +756,7 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
             list, and above a narrowed one they would point at rows that are not there. */}
         {stripSpan && !searching && !filtering && (
           <div
-            className="jr-strip" role="slider" tabIndex={0}
+            className="jr-strip" role="slider" tabIndex={0} ref={measureStrip}
             aria-label={C.stripLabel}
             aria-valuemin={0} aria-valuemax={100} aria-valuenow={0}
             onPointerDown={(ev) => {
@@ -701,14 +774,29 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
               if (ev.key === 'ArrowLeft') { ev.preventDefault(); jumpTo(stripSpan.from + step * --strideRef.current) }
             }}
           >
-            {/* the ticks live on an INSET track. Positioned against the strip itself, the first
-                and last tick sat on its rounded ends — half-swallowed by the corner radius and
-                the inset hairline, so the two moments that bracket the whole Einsatz were the
-                two you could not see. */}
-            <div className="jr-strip-track" style={{ insetInline: STRIP_INSET }}>
-              {stripTicks.map((t, i) => (
-                <i key={i} style={{ left: `${((t - stripSpan.from) / (stripSpan.to - stripSpan.from)) * 100}%` }} />
+            {/* the ticks live on an INSET track (lib/verlauf · STRIP_INSET). Positioned against the
+                strip itself, the first and last moment sat on its rounded ends – half-swallowed by
+                the corner radius – and a clock on either could not centre on its mark. */}
+            {/* …and on it, as one ruler: the rows' events band (stripRuns) above a spine, the
+                divisions hanging under it, the round times as the tall marks standing on it, every
+                round time labelled and centred, and the
+                first and last moment's clocks at the ends where they keep clear of one of those
+                (stripScale – the stamp gives way, never an hour). Where the END stamp gave
+                way, a short ink tick caps the right end: the latest moment, the «now» of the strip. */}
+            <div className="jr-strip-track" style={{ insetInline: STRIP_INSET }} aria-hidden>
+              {band?.runs.map((r) => <i key={r.from} className="jr-strip-run" style={{ left: `${r.from * 100}%`, width: `${(r.to - r.from) * 100}%` }} />)}
+              {band?.busy.map((r) => <i key={r.from} className="jr-strip-run jr-strip-busy" style={{ left: `${r.from * 100}%`, width: `${(r.to - r.from) * 100}%` }} />)}
+              {scale?.minor.map((m) => <b key={m.frac} className={m.mid ? 'jr-strip-div jr-strip-mid' : 'jr-strip-div'} style={{ left: `${m.frac * 100}%` }} />)}
+              {scale?.marks.map((m) => (
+                <Fragment key={m.frac}>
+                  <b className="jr-strip-major" style={{ left: `${m.frac * 100}%` }} />
+                  {m.label && <span className="jr-strip-lbl" style={{ left: `${m.frac * 100}%` }}>{m.label}</span>}
+                </Fragment>
               ))}
+              {scale?.start && <span className="jr-strip-lbl jr-strip-end" style={{ left: 0 }}>{scale.start}</span>}
+              {scale?.end
+                ? <span className="jr-strip-lbl jr-strip-end" style={{ left: '100%' }}>{scale.end}</span>
+                : scale && <b className="jr-strip-now" style={{ left: '100%' }} />}
             </div>
           </div>
         )}
@@ -725,9 +813,9 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
             ⚠️ No box at all when nothing is open — the log then has the whole drawer, which is
             the state most of an Einsatz is in. See `.jr-pinned` in 06-contextpanel.css. */}
         {pinnedReminders.length > 0 && (
-          <div className="jr-pinned">
+          <div className="jr-pinned" ref={watchPinned} data-more={pinnedBelow > 0 || undefined}>
             <div className="jr-pinned-head">
-              <Icon id="checklist" /><span>{C.openRemindersHead}</span>
+              <Icon id="pendenzen" /><span>{C.openRemindersHead}</span>
               <b>{C.openCount.replace('{n}', String(pinnedReminders.length))}</b>
             </div>
             {pinnedReminders.map((r) => {
@@ -738,13 +826,15 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
               // first) already answers it positionally; tapping swaps the column to the age for
               // the times the clock stops answering it. Überfällig stays the banner's business.
               const dueLater = r.dueAt && Date.parse(r.dueAt) > now
+              // …and on another day than today, the day under the clock (rowDay)
+              const raisedDay = rowDay(r.createdAt, now)
               return (
                 <div key={r.id} className={`jr-pinned-row ${r.urgent ? 'urgent' : ''}`}>
                   <button
                     type="button" className="jr-when"
                     title={C.ageToggle} aria-label={C.ageToggle}
                     onClick={() => setShowAge((v) => !v)}
-                  >{showAge ? ageLabel(r.createdAt, now, C) : rowClock(r.createdAt)}</button>
+                  >{showAge ? ageLabel(r.createdAt, now, C) : <>{rowClock(r.createdAt)}{raisedDay && <small>{raisedDay}</small>}</>}</button>
                   {/* ⚠️ The ring sits in the VERLAUF'S ICON SLOT, before the text, not out at the
                       right margin. Two things come of it: the item's text starts on exactly the
                       same axis as every line in the log below, so the block reads as the same
@@ -773,12 +863,23 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
                         onClick={() => onReminderNote(r)}
                       >{r.text}</button>
                     ) : <span className="jr-pinned-text">{r.text}</span>}
+                    {/* who it is for, and — typed on the Tafel's «Aufträge / Pendenzen» page — that
+                        it came from there, a tap opening that page (mock 6A, Verlauf side) */}
+                    {(r.assignee || r.origin === 'tafel') && (
+                      <span className="jr-pinned-meta">
+                        {r.assignee && <span className="jr-pinned-wer">{fillTemplate(C.pinnedWer, { wer: r.assignee })}</span>}
+                        {r.assignee && r.origin === 'tafel' && <span aria-hidden="true">·</span>}
+                        {r.origin === 'tafel' && (onOpenTafel
+                          ? <button type="button" className="jr-pinned-from" title={C.fromTafelTitle} onClick={onOpenTafel}><Icon id="easel" />{C.fromTafel}</button>
+                          : <span className="jr-pinned-from"><Icon id="easel" />{C.fromTafel}</span>)}
+                      </span>
+                    )}
                     {/* ⚠️ EVERY Meldung, not the latest one. They stand scattered through the
                         Verlauf where they happened, so this is the only place the thread reads
                         as a thread — and showing one of three looked like the whole story. */}
                     {r.notes.map((n) => (
                       <span className="jr-pinned-note" key={n.rowId}>
-                        <b>{rowClock(n.at)}</b>{n.text}
+                        <b>{[rowDay(n.at, now), rowClock(n.at)].filter(Boolean).join(' ')}</b>{n.text}
                       </span>
                     ))}
                   </div>
@@ -796,10 +897,16 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
                 </div>
               )
             })}
+            {/* the foot: a band at the box's bottom edge, «3 weitere ⌄», shown while rows are
+                below the fold (`data-more`). Always in the DOM so it never moves the rows it covers. */}
+            <span className="jr-pinned-foot" aria-hidden>
+              {pinnedBelow > 0 && C.pinnedMoreBelow.replace('{n}', String(pinnedBelow))}
+              <Icon id="chevron-down" />
+            </span>
           </div>
         )}
         <div className="history-list" ref={listRef}>
-          {events.length === 0 && <EmptyState icon="history" title={C.empty} />}
+          {events.length === 0 && <EmptyState icon="verlauf" title={C.empty} />}
           {/* a query that kept nothing says so – and what it looked in, because «Nichts» beside a
               name that IS in the Verlauf otherwise reads as the search being broken */}
           {/* …and with a filter on, the ticks are the likelier culprit, so they are what it names */}
@@ -811,11 +918,12 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
           {shown.map((g, gi) => (
             <Fragment key={g.label ?? `today-${gi}`}>
               {g.label && <div className="jr-day-sep" role="separator">{g.label}</div>}
-              {g.events.map((e) => (
+              {g.events.map((e, i) => (
                 <JournalRow
                   key={e.id} e={e} plans={plans} live={live} closedAt={closedAt} now={now} replayAtMs={replayAtMs}
                   openMap={openMap} repeated={repeats.counts.get(e.id) ?? 1}
-                  pendenzTitles={pendenzTitles} pendenzRowIds={pendenzRowIds} audioWindows={audioWindows}
+                  sameMinute={i > 0 && rowTime(g.events[i - 1]) === rowTime(e)}
+                  pendenzTitles={pendenzTitles} pendenzRowIds={pendenzRowIds} reRaised={reRaised} audioWindows={audioWindows}
                   playing={audio.playing === e.id} onTogglePlay={audio.toggle}
                   editTx={editTx} editRow={editRow} setEditTx={setEditTx} setEditRow={setEditRow}
                   saveTranscript={saveTranscript} saveRowText={saveRowText}
@@ -862,9 +970,10 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
           // or the Bereich (Tafel, Lage …) — the filter's two groups (sweep E.5) — · who wrote it.
           // The time is the only place in the app that prints SECONDS: the list shows HH:MM, so «why
           // is this line above that one» has no answer anywhere else (the Verlauf sorts on the full
-          // stamp — lib/journalStore · chronological).
+          // stamp — lib/journalStore · chronological). …with the day in front when it is not today
+          // (rowDay, S5): a sheet over a multi-day Verlauf otherwise answered «wann» with a clock.
           const meta = [
-            e.at ? formatTime(new Date(e.at), true) : null,
+            e.at ? [rowDay(e.at, now), formatTime(new Date(e.at), true)].filter(Boolean).join(' ') : null,
             disc?.label,
             byHand ? C.detailSourceManual : C.detailSourceSystem,
           ].filter(Boolean).join(' · ')
@@ -890,7 +999,7 @@ export function Journal({ events, plans, live, closedAt, vocab = [], onSelect, o
             ...(e.correctedAt
               ? [{
                   k: C.detailCorrected,
-                  v: formatTime(new Date(e.correctedAt), true),
+                  v: [rowDay(e.correctedAt, now), formatTime(new Date(e.correctedAt), true)].filter(Boolean).join(' '),
                   ...(e.textOriginal ? { sub: fillTemplate(C.detailCorrectedFirst, { text: withoutAreaPrefix(e.textOriginal) || e.textOriginal }) } : {}),
                 }]
               : []),

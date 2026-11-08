@@ -4,6 +4,8 @@ import { StrictMode } from 'react'
 import { act, render, screen, cleanup, fireEvent, waitFor, within } from '@testing-library/react'
 import { JournalComposer, type JournalDraft } from './JournalComposer'
 import { clearAllDrafts } from '../lib/draftKeep'
+import { appConfig } from '../config/appConfig'
+import { resetPopoverGuard } from '../lib/overlays/popoverGuard'
 
 afterEach(() => { cleanup(); clearAllDrafts(); vi.unstubAllGlobals() })
 
@@ -11,6 +13,14 @@ vi.mock('../lib/audioImport', async (orig) => ({
   ...(await orig<typeof import('../lib/audioImport')>()),
   // jsdom cannot decode audio — the probe would never settle
   probeAudioDuration: async () => 12,
+}))
+
+// a picked picture's position read (lib/photoGeo · photoGeoSettled) — null: nothing pending, as
+// almost always; a test sets a promise to hold «Erfassen» in its busy state
+let geoWait: Promise<void> | null = null
+vi.mock('../lib/photoGeo', async (orig) => ({
+  ...(await orig<typeof import('../lib/photoGeo')>()),
+  photoGeoSettled: () => geoWait,
 }))
 
 /** the time picker draws wheels on a coarse pointer (a phone) and a typed field on a fine one */
@@ -480,6 +490,19 @@ describe('JournalComposer · the half-written draft', () => {
     expect((screen.getByRole('textbox') as HTMLTextAreaElement).value).toBe('Halb geschriebener Satz')
   })
 
+  // Escape closes it like every other sheet (staging review 06.11.2026, S6) – the draft is kept
+  it('Escape closes, and the draft is handed back', () => {
+    resetPopoverGuard() // the menu the test before closed still holds the guard's 350 ms tail
+    const onClose = vi.fn()
+    setup({ onClose })
+    type('Halb geschriebener Satz')
+    fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Escape' })
+    expect(onClose).toHaveBeenCalledTimes(1)
+    cleanup()
+    setup()
+    expect((screen.getByRole('textbox') as HTMLTextAreaElement).value).toBe('Halb geschriebener Satz')
+  })
+
   // …and filing the row is what empties it, so the next entry starts on a blank sheet
   it('a sent entry leaves nothing behind', () => {
     setup()
@@ -572,6 +595,34 @@ describe('JournalComposer · what gives way when the room runs out', () => {
       await waitFor(() => expect(document.querySelector('.jc-photo')).toBeTruthy())
       expect(ev.defaultPrevented).toBe(true)
     } finally {
+      URL.createObjectURL = createObjectURL
+    }
+  })
+
+  // a one-time action's busy state (05.11.2026): while a just-picked picture's position is read,
+  // «Erfassen» is taken once and cannot be pressed again – it filed the row twice
+  it('files a row with a picture whose position is still being read ONCE', async () => {
+    const createObjectURL = URL.createObjectURL
+    URL.createObjectURL = vi.fn(() => 'blob:fresh')
+    let release = () => {}
+    geoWait = new Promise<void>((res) => { release = res })
+    try {
+      const { onSubmit } = setup()
+      const card = document.querySelector('.journal-composer') as HTMLElement
+      const ev = new Event('paste', { bubbles: true, cancelable: true })
+      Object.defineProperty(ev, 'clipboardData', { value: { files: [new File(['x'], 'shot.png', { type: 'image/png' })] } })
+      card.dispatchEvent(ev)
+      await waitFor(() => expect(document.querySelector('.jc-photo')).toBeTruthy())
+      const C = appConfig.copy.journal
+      fireEvent.click(screen.getByRole('button', { name: C.send }))
+      const busy = screen.getByRole('button', { name: C.photoLocating }) as HTMLButtonElement
+      expect(busy.disabled).toBe(true)
+      fireEvent.click(busy)
+      expect(onSubmit).not.toHaveBeenCalled()
+      await act(async () => { release(); await geoWait })
+      expect(onSubmit).toHaveBeenCalledTimes(1)
+    } finally {
+      geoWait = null
       URL.createObjectURL = createObjectURL
     }
   })

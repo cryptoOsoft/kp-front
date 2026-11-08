@@ -170,6 +170,7 @@ export const anwesenheitCopy: Localizable<Pick<Copy, Keys>> = {
     actualNone: 'Non ancora stato presente.',
     plannedNone: 'Nessuna disponibilità registrata.',
     addShift: 'Aggiungi un turno',
+    shiftAdded: 'Turno aggiunto',
     stillHere: 'ancora qui',
     running: 'in corso',
     ended: 'terminato',

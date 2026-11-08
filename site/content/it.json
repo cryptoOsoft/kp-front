@@ -105,7 +105,7 @@
         "time": "03:12",
         "tag": "Squadre",
         "h3": "La squadra 1 entra.",
-        "p": "Pressione, tempo di rientro e orologio di contatto scorrono per ogni squadra. L’app\n            avvisa prima che il margine diventi critico – anche quando nessuno sta guardando l’ora."
+        "p": "Pressione, tempo di rientro e orologio di contatto scorrono per ogni squadra. L’app\n            avvisa prima che il margine diventi critico – anche quando nessuno sta guardando l’ora.\n            KP Front emette gli avvisi rilevanti direttamente nell’applicazione, in modo visivo e acustico. Se si\n            usano più dispositivi sincronizzati, gli stati di allarme vengono allineati tramite la connessione di rete\n            esistente. Gli avvisi acustici possono essere disattivati all’occorrenza."
       },
       {
         "time": "03:18",
@@ -296,8 +296,8 @@
   },
   "sibling": {
     "eyebrow": "Progetto affine",
-    "h2": "KP Front conduce davanti. KP Rück tiene la visione d’insieme dietro.",
-    "p": "<strong>KP Rück</strong> riproduce in digitale la lavagna magnetica del posto di comando\n          arretrato: una tavola per personale, veicoli e materiale. App propria, stessa grafia –\n          i due ricevono lo stesso allarme dal sistema di allertamento\n          e non hanno bisogno l’uno dell’altro.",
+    "h2": "KP Front crea profondità tattica sul luogo d’intervento. KP Rück crea ampiezza operativa nella situazione generale.",
+    "p": "<strong>KP Rück</strong> riproduce in digitale la lavagna magnetica del posto di comando\n          arretrato: una tavola per personale, veicoli e materiale. App propria, stessa grafia –\n          i due ricevono lo stesso allarme dal sistema di allertamento\n          e non hanno bisogno l’uno dell’altro. Le due applicazioni possono essere impiegate nella stessa situazione in parallelo e in modo indipendente l’una dall’altra.",
     "cta": "Guarda KP Rück",
     "setup": {
       "h3": "Gestirli entrambi – senza configurare tutto due volte",
@@ -349,7 +349,7 @@
       },
       {
         "q": "KP Front funziona senza connessione a Internet?",
-        "a": "Sì. Installata come app, KP Front funziona sul dispositivo: mappa, piani,\n          squadre e diario restano utilizzabili anche se la rete viene a mancare.\n          L’app carica da sé le mappe e i piani attorno a un intervento, poco dopo che è stato\n          aperto – e la <strong>verifica di prontezza</strong> indica prima dell’intervento se i\n          dati necessari sono sul dispositivo. Dopo un’interruzione le modifiche vengono\n          sincronizzate appena la connessione è di nuovo disponibile; quanto è stato registrato\n          nel frattempo viene conservato."
+        "a": "Sì. KP Front è in linea di principio utilizzabile offline. Le mappe e gli altri dati necessari vengono\n          salvati localmente. L’app carica da sé le mappe e i piani attorno a un intervento, poco dopo che è stato\n          aperto – e la <strong>verifica di prontezza</strong> indica prima dell’intervento se i dati necessari sono\n          sul dispositivo. Offline, i dati meteo e gli altri dati esterni legati al tempo corrispondono allo stato\n          dell’ultimo aggiornamento. Più dispositivi possono essere sincronizzati tramite una connessione di rete\n          esistente, se necessario anche all’interno di una propria rete locale senza accesso a Internet. Dopo\n          un’interruzione le modifiche vengono sincronizzate appena la connessione è di nuovo disponibile; quanto è\n          stato registrato nel frattempo viene conservato."
       },
       {
         "q": "Possiamo adattarlo ai nostri processi?",

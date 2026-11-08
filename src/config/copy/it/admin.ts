@@ -869,6 +869,10 @@ export const adminCopy: Localizable<Pick<Copy, 'admin'>> = {
       vehicleRemoveConfirm: 'Eliminare il veicolo? La sua riga nella griglia degli orari di uscita sparisce e gli orari segnalati non trovano più la sua sigla.',
       vehicleIncomplete: 'Incompleto – la riga viene salvata solo con denominazione e sigla.',
       vehicleDuplicate: 'Questa sigla esiste già – la riga non viene salvata.',
+      originsTitle: 'Provenienza dei veicoli',
+      originsTip: 'Da dove viene un veicolo che non appartiene al proprio corpo – ad es. centro di supporto, protezione civile, corpo vicino o, con più sedi, «Caserma Nord». La lista è proposta nel campo «Herkunft» di ogni simbolo di veicolo e di ogni veicolo localizzato; il testo libero resta possibile. Vuoto significa il proprio corpo: sulla carta non appare nulla.',
+      originsLabel: 'Scelte',
+      originsPlaceholder: 'ad es. Centro di supporto',
       attributesTitle: 'Elenchi di scelta dei simboli',
       cliHint: 'In sola lettura – gli elenchi si modificano in «Daten» → «Arbeitsmappe».',
       cliTip: 'Sul foglio «Symbolfelder», una riga per opzione (simbolo, campo, opzione). Senza '
@@ -883,7 +887,7 @@ export const adminCopy: Localizable<Pick<Copy, 'admin'>> = {
       fieldGlossary: {
         Titel: 'Etichetta visibile del veicolo.', Status: 'Stato dipendente dal contesto, ad es. salvato o valvola aperta/chiusa.',
         Stoff: 'Nome della sostanza pericolosa.', 'UN-Nr.': 'Numero ONU a quattro cifre.', Einheit: 'Organizzazione o unità impiegata.',
-        Name: 'Persona dall’organico.', Funktion: 'Compito di comando.', Fahrer: 'Autista dall’organico.', Typ: 'Tipo di attrezzatura o configurazione.',
+        Name: 'Persona dall’organico.', Funktion: 'Compito di comando.', Fahrer: 'Autista dall’organico.', Herkunft: 'Provenienza del veicolo – vuoto significa il proprio corpo. La lista è sopra sotto «Provenienza dei veicoli».', Typ: 'Tipo di attrezzatura o configurazione.',
       },
       propsLabel: 'Proprietà',
       controls: {

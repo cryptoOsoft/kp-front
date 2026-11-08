@@ -379,7 +379,7 @@ describe('a locked line on the plan (BoardAnno.locked — the twin of Drawing.lo
 
   // (the «beside Ebenen» case is gone with the Plan's Ebenen button, 15.09.2026 — the detail
   //  slot is the plan's alone now; see Whiteboard · editorSlotFree)
-  it('has no Ebenen row in its rail footer – the panel it opened listed nothing', () => {
+  it('has no Ebenen button in its view controls – the panel it opened listed nothing', () => {
     renderPlan([line])
     expect(screen.queryAllByRole('button', { name: appConfig.copy.panels.layers })).toHaveLength(0)
   })
@@ -1449,18 +1449,25 @@ describe('the Gebäude north dial answers one tap, every time', () => {
       hist={{}} setHist={() => {}} focus={null}
     />)
     const canvas = container.querySelector('.wb-canvas')!
-    // the dial, in the rail's footer (UX sweep M7, 20.10.2026 – it was on the canvas, top-right)
-    const dial = () => within(container.querySelector('.wb-tools') as HTMLElement).getByRole('button', { name: TURN })
+    // the dial, in the rail's view bar (UX sweep M7, 20.10.2026 – it was on the canvas, top-right;
+    // the rail's footer until the bar took the view controls, staging review 06.11.2026)
+    const dial = () => within(container.querySelector('.view-bar') as HTMLElement).getByRole('button', { name: TURN })
     return { onReorient, canvas, dial }
   }
   const isOpen = (dial: HTMLElement) => dial.getAttribute('aria-expanded') === 'true'
 
   // sweep K6 (29.09.2026): a second compass tile opened the same popover a second way. Since
-  // 20.10.2026 (M7) the one door sits where the Karte's compass does – in the rail's footer – and
+  // 20.10.2026 (M7) the one door sits where the Karte's compass does – in the rail's view bar – and
   // the viewport's corner is empty.
-  it('is the ONLY door, in the rail footer like the Karte’s compass', () => {
+  it('is the ONLY door, in the view bar like the Karte’s compass', () => {
     const { dial, canvas } = renderStack()
-    expect(dial().closest('.vrail-nav')).toBeTruthy()
+    expect(dial().closest('.view-bar')).toBeTruthy()
+    // …with the rest of the Plan's view controls, none of them left in the tool rail
+    const bar = within(document.querySelector('.view-bar') as HTMLElement)
+    for (const name of [appConfig.copy.nav.fit, appConfig.copy.nav.zoomOut, appConfig.copy.nav.zoomIn]) expect(bar.getByRole('button', { name })).toBeTruthy()
+    expect(document.querySelector('.wb-tools .vrail-nbtn')).toBeNull()
+    // Einpassen wears its key, as the rail's tools wear theirs (lib/hotkeys · FIT_KEY)
+    expect(bar.getByRole('button', { name: appConfig.copy.nav.fit }).querySelector('.rail-key')?.textContent).toBe('0')
     expect(screen.getAllByRole('button', { name: TURN })).toHaveLength(1)
     expect(within(canvas as HTMLElement).queryByRole('img', { name: appConfig.copy.whiteboard.northTitle })).toBeNull()
   })
@@ -1592,6 +1599,27 @@ describe('das Geschoss einer Leitung ändern', () => {
 
     const saved = onChange.mock.lastCall?.[0]?.find((a: BoardAnno) => a.id === 'l1')
     expect(saved?.pts?.map((p: number[]) => p[2])).toEqual([1, 2])
+  })
+})
+
+// The stack draws its symbols on the Lage's floor (lib/mapView · SYM_MIN): the board slider's 0.7
+// default is sized for Modul sheets and took them to ~20 px, under their own caption plates.
+describe('symbol size on the Gebäude stack', () => {
+  const pin: BoardAnno = { id: 's1', kind: 'symbol', symbol: 'P', x: 0.5, y: 0.5, floor: 0 }
+  const drawnPx = (symMul: number) => {
+    const { container } = render(<Whiteboard
+      plans={[gebaeudeDoc]} activeId="gebaeude" annos={[pin]} onChange={() => {}} symMul={symMul}
+      building={aBuilding} onSelectBuilding={() => {}} onAddFloor={() => {}} onRemoveFloor={() => {}}
+      sym={sym} onRecent={() => {}} log={() => {}} hist={{}} setHist={() => {}} focus={null}
+    />)
+    const px = parseFloat(container.querySelector<HTMLElement>('.ts-plan')!.style.width)
+    cleanup()
+    return px
+  }
+
+  it('never draws under the Lage floor, and still grows with the slider', () => {
+    expect(drawnPx(0.7)).toBe(28)
+    expect(drawnPx(1.5)).toBe(42)
   })
 })
 
@@ -1807,15 +1835,16 @@ describe('gesture contracts of the plan surface', () => {
     it('a Wand dragged onto the storey above goes there with its Durchgang – one step', () => {
       const { container, onCheckpoint } = mount([wand, tuer], twoStoreys)
       const hit = container.querySelector('polyline[stroke="transparent"]')!
-      // +0.15 across: both ends land well clear of the building outline, so nothing snaps
-      // (round 3) and the drop is exact
-      drag(hit, [[200, 300], [200, 250], [260, 100]])
+      // +0.2 across: both ends land well clear of the building outline (≈19 board px on the
+      // ~94 px wide stack this canvas fits, past the 14 px pull), so nothing snaps (round 3) and
+      // the drop is exact
+      drag(hit, [[200, 300], [200, 250], [280, 100]])
       expect(onCheckpoint).toHaveBeenCalledTimes(1)
       expect(find('w1').floor).toBe(1)
-      expect(find('w1').pts![0][0]).toBeCloseTo(0.35, 6)
+      expect(find('w1').pts![0][0]).toBeCloseTo(0.4, 6)
       expect(find('w1').pts![0][1]).toBeCloseTo(0.5, 6)
       expect(find('d1')).toMatchObject({ floor: 1, onWall: 'w1' })
-      expect(find('d1').x).toBeCloseTo(0.55, 6)
+      expect(find('d1').x).toBeCloseTo(0.6, 6)
       act(() => history.current!.undo())
       expect(find('w1')).toEqual(wand)
       expect(find('d1')).toEqual(tuer)
