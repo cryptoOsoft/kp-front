@@ -99,7 +99,7 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
       {
         id: 'tastatur', title: 'Raccourcis clavier', icon: 'type', only: 'keyboard',
         blocks: [
-          { kind: 'lead', text: 'Au clavier, tout est accessible sans souris. Les raccourcis ne font rien pendant la saisie dans un champ, ni derrière une fenêtre ouverte. Quand une case a une touche, sa lettre y est inscrite – dans les deux barres, dans la barre d’affichage en bas à droite et sur «Journal» et «Entrée» en haut.' },
+          { kind: 'lead', text: 'Au clavier, tout est accessible sans souris. Les raccourcis ne font rien pendant la saisie dans un champ, ni derrière une fenêtre ouverte. Quand une case a une touche, sa lettre y est inscrite – dans les deux barres, dans la barre d’affichage en bas à droite et sur «Journal» et «Entrée» en haut (tant que «Afficher les raccourcis clavier» est activé dans les **Réglages**).' },
           { kind: 'sub', text: 'Changer d’espace' },
           { kind: 'list', items: [
             'Les chiffres ouvrent le module de plan portant ce numéro – lesquels existent dépend des modules de ce corps : [[1]] module 1, [[2]] ou [[3]] le module «2/3», [[4]] module 4 …',

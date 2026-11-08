@@ -124,7 +124,7 @@ export const helpCopy = {
       {
         id: 'tastatur', title: 'Tastaturkürzel', icon: 'type', only: 'keyboard',
         blocks: [
-          { kind: 'lead', text: 'Wer mit Tastatur arbeitet, erreicht alles ohne Maus. Kürzel wirken nicht, während in einem Textfeld getippt wird, und nicht hinter einem offenen Fenster. Hat ein Feld eine Taste, steht ihr Buchstabe darauf – in beiden Leisten, in der Ansichtsleiste unten rechts und an «Verlauf» und «Eintrag» oben.' },
+          { kind: 'lead', text: 'Wer mit Tastatur arbeitet, erreicht alles ohne Maus. Kürzel wirken nicht, während in einem Textfeld getippt wird, und nicht hinter einem offenen Fenster. Hat ein Feld eine Taste, steht ihr Buchstabe darauf – in beiden Leisten, in der Ansichtsleiste unten rechts und an «Verlauf» und «Eintrag» oben (solange «Tastenkürzel anzeigen» in den **Einstellungen** an ist).' },
           { kind: 'sub', text: 'Bereiche wechseln' },
           { kind: 'list', items: [
             'Zahlen öffnen das Plan-Modul mit dieser Nummer – welche es gibt, richtet sich nach den Modulen dieser Wehr: [[1]] Modul 1, [[2]] oder [[3]] das Modul «2/3», [[4]] Modul 4 …',

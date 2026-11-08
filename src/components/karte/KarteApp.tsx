@@ -493,7 +493,8 @@ export default function KarteApp({ einsaetze, announceReturn = false, onOpenVisi
       else if (sel && onMapSurface) closePanel()
     },
     on: {
-      map: () => { setSurface(null); setSearchOpen(false) },
+      // the Karte tile's rule: on a phone it also puts the armed tool away
+      map: () => { setSurface(null); setSearchOpen(false); if (phone) setToolState(null) },
       library: openLibrary,
       module: ({ n }) => {
         const d = docs.find((x) => moduleNumbers(x.doc).includes(n))
