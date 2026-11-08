@@ -201,6 +201,7 @@ export const helpCopy = {
             '**Absperrkreis** – von der Mitte zum Rand ziehen setzt den Radius in Metern (Füllung einstellbar).',
             '**Notiz** – freier Text direkt auf die Karte.',
             '**Messen** – Strecke (Distanz + Höhenprofil) oder Fläche (Inhalt + Umfang). Punkte ziehen verschiebt, Tippen auf die Linie setzt Zwischenpunkte, Rechtsklick entfernt einen Punkt.',
+            '**Wassertransport** – unter dem Höhenprofil einer Strecke oder in einer Leitung: Schlauch-Ø, Wassermenge, Quelle (Hydrant, Löschweier, Pumpe) und Eingangsdruck wählen; das Diagramm zeigt den Druck entlang der Leitung, **Alle Pumpen automatisch** setzt die Pumpen. **Als Leitung auf die Karte** behält die Rechnung, **Pumpen auf Karte** zeichnet sie als Symbole.',
           ] },
           { kind: 'sub', text: 'Symbol-Voreinstellungen' },
           { kind: 'lead', text: 'Jedes Symbol bringt nur die sinnvollen Regler mit: **Drehung** bei gerichteten Zeichen (Pfeile, Leitern, Wände), **Anzahl** wo mehrere zählen, **Geschoss** bzw. ein **Geschoss-Bereich** (z. B. Treppe/Lift), **Ausbreitung** bei Schadenlagen – plus passende Eingabefelder (z. B. Name, Stoff, Status).' },
