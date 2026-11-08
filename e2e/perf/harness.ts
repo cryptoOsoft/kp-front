@@ -172,9 +172,13 @@ const KB = 1024
 /** Record what a stretch of network traffic cost: API requests and bytes, static requests.
  *  Static BYTES are not measured here: the bundle budget (scripts/check-bundle-size.mjs) owns
  *  them, and a static request where none belongs (a precache miss, a new chunk) is a count. */
+/** An API request of the app itself – not its diagnostics (/api/diag: the launch timing line and
+ *  the crash sink), which a device sends once per launch or per error, whatever the app does. */
+export const isAppApi = (x: SeenRequest) => x.kind === 'api' && !x.path.startsWith('/api/diag/')
+
 export function recordNetwork(r: Results, prefix: string, reqs: SeenRequest[]) {
   const page = reqs.filter((x) => !x.bySw)
-  const api = page.filter((x) => x.kind === 'api')
+  const api = page.filter(isAppApi)
   r.set(`${prefix}api_requests`, api.length, 'count')
   r.set(`${prefix}api_kb`, api.reduce((a, x) => a + x.bytes, 0) / KB, 'kb')
   r.set(`${prefix}static_requests`, page.filter((x) => x.kind !== 'api' && !x.external).length, 'count')
