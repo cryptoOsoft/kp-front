@@ -113,21 +113,6 @@ function Gate() {
 // Past the budget each falls back to defaults; first paint is guaranteed either way.
 const BOOT_BUDGET_MS = 4_000
 
-/** The entry stylesheet ships as `media="print"` so it never holds the first paint
- *  (vite.config · deferEntryStylesheet). Switched on once loaded – the inline boot CSS covers the
- *  splash until then – and awaited before React replaces the cover, so nothing renders unstyled.
- *  The dev server injects its styles itself: no link, nothing to wait for. */
-function entryStylesheet(): Promise<void> {
-  const link = document.getElementById('kp-entry-css') as HTMLLinkElement | null
-  if (!link) return Promise.resolve()
-  const loaded = link.sheet ? Promise.resolve() : new Promise<void>((done) => {
-    link.addEventListener('load', () => done(), { once: true })
-    link.addEventListener('error', () => done(), { once: true })
-  })
-  return loaded.then(() => { link.media = 'all' })
-}
-const stylesheet = entryStylesheet()
-
 /** Resolve `p`, or `fallback` if it hasn't settled within `ms`. The loser keeps running. */
 function withBudget<T>(p: Promise<T>, ms: number, fallback: T): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined
@@ -203,7 +188,6 @@ void (async () => {
   // The launch's timing line (lib/bootTiming) – the field app only: a link page's session may not
   // post outside its allow-list, and the poster and /admin are not what anyone launches at 3am.
   if (fieldRoute && !isLink) reportBoot((body) => apiBeacon('/api/diag/boot', body), GIT_SHA)
-  await withBudget(stylesheet, BOOT_BUDGET_MS, undefined)
   markBoot('boot')
   // Finish the static cover's 630 ms arrival before replacing it, even on a warm launch.
   // React Splash continues the same clock; a long boot has already finished this entrance.

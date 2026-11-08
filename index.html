@@ -58,8 +58,8 @@
     </script>
     <!--
       Critical CSS for the static boot splash below (#root markup), so it renders correctly with
-      ZERO external resources loaded — the one window where the real stylesheet (a <link> the
-      build ships non-render-blocking, vite.config · deferEntryStylesheet) has not arrived: a cold cache, a stalled asset, or the offline
+      ZERO external resources loaded — the one window where the real stylesheet (a <link>, hence
+      async) cannot be trusted to have arrived: a cold cache, a stalled asset, or the offline
       first-load this splash exists for in the first place. Without this the same window showed
       an unstyled flash of raw German text on white.
 
@@ -141,8 +141,8 @@
       Reported from the field 2026-08-03 as "it looked broken for a few seconds".
 
       Same markup and classes as <Splash>, so React replacing this on mount is invisible. Styled
-      TWICE on purpose: the real stylesheet is a <link> in <head> that does not block this paint
-      (vite.config · deferEntryStylesheet) and cannot be trusted to have resolved yet — this is exactly the window a stalled asset or a cold cache
+      TWICE on purpose: the real stylesheet is a <link> in <head>, which is async and cannot be
+      trusted to have resolved yet — this is exactly the window a stalled asset or a cold cache
       shows up in — so the <style> block above this comment inlines the same rules to render
       correctly with zero external resources loaded, and the real stylesheet simply overrides it
       once it does arrive (see the pointing comments on both sides).
