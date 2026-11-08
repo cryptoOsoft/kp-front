@@ -77,7 +77,7 @@ export const PREFETCH_CAP = 48
 
 /**
  * Ask for `urls` (ahead of need) through the service worker, which keeps a tile for good
- * (`plan-tiles`, CacheFirst — vite.config). Low priority, never more than `PREFETCH_CAP` at a time,
+ * (cache-first, public/sw-tile-store.js). Low priority, never more than `PREFETCH_CAP` at a time,
  * nothing offline, nothing twice. Returns the URLs it asked for.
  */
 export function warmTiles(urls: readonly string[], online = typeof navigator === 'undefined' || navigator.onLine): string[] {

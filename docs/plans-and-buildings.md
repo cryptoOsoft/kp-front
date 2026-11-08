@@ -197,8 +197,8 @@ Sketching a building on the floor stack during an Einsatz (27.10.2026, the owner
   PIXEL, never a constant of the unit square. `lib/planTileRaster · composeTiles` gives the
   Karte backdrop and the ink scan their pixels without a bake, and a
   tiled sheet is never pre-baked. `lib/planTilePrefetch` fetches an object's complete pyramids
-  through the service worker (`plan-tiles` CacheFirst, `plan-tile-manifests` NetworkFirst — both
-  listed BEFORE the reference routes and purged on denial) so a sheet is whole offline. No
+  through the service worker (public/sw-tile-store.js: tiles cache-first, manifests network-first,
+  both in IndexedDB and purged on denial) so a sheet is whole offline. No
   pyramid (unpinned/bundled PDF, >80 pages, PDFium cannot read it, a tile that cannot be had
   offline) ⇒ every caller keeps the pdf.js path unchanged.
 - **The plain reader (`PdfScroller`) has ONE section switcher** (27.10.2026): viewer-only plans

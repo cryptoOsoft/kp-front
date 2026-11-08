@@ -10,6 +10,7 @@ import { providerLabel, type DeploymentSharePointSource } from '../lib/deploymen
 import { Card, StatusBadge, Metric, UsageBar, ProgressBar, EmptyState, ResultChip, ConfirmButton, fmtDateTime, fmtRelTime } from './ui'
 import { useCellLabels } from './useCellLabels'
 import { RosterSnapshotDetail, type RosterSnapshotCounts } from './RosterSnapshotDetail'
+import { clearTiles, countTiles } from '../lib/tileStore'
 import './system.css'
 
 // ─── shapes (plain dict from GET /api/system; resilient — sections may be null) ──
@@ -564,8 +565,12 @@ async function readOfflineCache(): Promise<OfflineState> {
           }
         }),
       )
-      cacheList.sort((a, b) => a.name.localeCompare(b.name))
     } catch { /* leave list empty */ }
+    // the tiles live in IndexedDB (lib/tileStore), one row per kind
+    const kinds = ['map', 'plan', 'manifest'] as const
+    const tiles = await Promise.all(kinds.map(async (kind) => ({ name: `kp-tiles/${kind}`, entries: await countTiles(kind) })))
+    cacheList.push(...tiles.filter((t) => t.entries > 0))
+    cacheList.sort((a, b) => a.name.localeCompare(b.name))
   }
 
   return { kind: 'ok', usage, quota, caches: cacheList }
@@ -594,7 +599,7 @@ function OfflineCacheCard() {
     setCleared(false)
     try {
       const keys = await caches.keys()
-      await Promise.all(keys.map((k) => caches.delete(k)))
+      await Promise.all([...keys.map((k) => caches.delete(k)), clearTiles()])
       setCleared(true)
       await reload()
     } catch {
