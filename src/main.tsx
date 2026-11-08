@@ -17,7 +17,7 @@ import { DemoRibbon } from './components/DemoRibbon'
 import { Splash } from './components/Splash'
 import { lockChromeZoom } from './lib/lockZoom'
 import { loadPrefs, applyTheme, resolveTheme } from './lib/prefs'
-import { bootDeploymentConfig, applyDeploymentBranding } from './lib/deploymentConfig'
+import { bootDeploymentConfig, applyDeploymentBranding, deploymentName } from './lib/deploymentConfig'
 import { loadStationPlanScales, refreshStationPlanScales } from './lib/stationPlanScale'
 import { migrateLocalStorageToIdb } from './lib/storageMigration'
 import { requestPersistentStorage } from './lib/idb'
@@ -26,7 +26,7 @@ import { ensureErg } from './lib/erg'
 import { ensureUnHazard } from './lib/unHazard'
 import { whenIdle } from './lib/idle'
 import { purgeStaleTiles } from './lib/tilePurge'
-import { waitForSnailArrival } from './lib/snailLaunch'
+import { liftBootCover } from './lib/snailLaunch'
 import { apiBeacon } from './lib/api'
 import { GIT_SHA } from './lib/buildInfo'
 
@@ -141,6 +141,10 @@ void (async () => {
     const cfg = await withBudget(bootDeploymentConfig(BOOT_BUDGET_MS, applyDeploymentBranding), BOOT_BUDGET_MS + 1_000, {})
     applyDeploymentBranding(cfg)
     markBoot('cfg')
+    // The static cover now stays up until the app is on screen, so it carries the station name
+    // React's <Splash> used to bring: into the line index.html reserves for it.
+    const wordmark = document.querySelector('.boot-splash .loading-name')
+    if (wordmark) wordmark.textContent = deploymentName()
     // station plan calibration (public, offline-cached) — so plans measure out of the box (#3)
     void loadStationPlanScales()
     // …and re-read it whenever this device comes back to the foreground. The document holds
@@ -188,12 +192,13 @@ void (async () => {
   // The launch's timing line (lib/bootTiming) – the field app only: a link page's session may not
   // post outside its allow-list, and the poster and /admin are not what anyone launches at 3am.
   if (fieldRoute && !isLink) reportBoot((body) => apiBeacon('/api/diag/boot', body), GIT_SHA)
-  markBoot('boot')
-  // Finish the static cover's 630 ms arrival before replacing it, even on a warm launch.
-  // React Splash continues the same clock; a long boot has already finished this entrance.
-  await waitForSnailArrival()
   markBoot('root')
-  createRoot(document.getElementById('root')!).render(
+  // React mounts BENEATH the static cover (index.html), which finishes its 630 ms arrival and
+  // lifts once the app is on screen (lib/snailLaunch · liftBootCover): the app builds during the
+  // entrance instead of after it, and a normal launch never shows React's own loading stages.
+  const rootEl = document.getElementById('root')!
+  void liftBootCover(rootEl)
+  createRoot(rootEl).render(
     <StrictMode>
       {/* Root boundary: login, landing list, overlays, and the admin app used to sit
           OUTSIDE any boundary, so a throw there still white-screened. The inner

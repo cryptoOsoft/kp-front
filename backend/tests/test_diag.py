@@ -196,12 +196,17 @@ async def test_a_boot_report_is_one_bounded_line(client, caplog):
     with caplog.at_level(logging.INFO, logger="kpfront.boot"):
         r = await client.post(
             "/api/diag/boot",
-            json={"nav": "navigate", "standalone": True, "build": "abc@1", "marks": {"fcp": 4100, "evil\nx": 10**9}},
+            json={
+                "nav": "navigate",
+                "standalone": True,
+                "build": "abc@1",
+                "marks": {"fcp": 4100, "swe": -2000, "evil\nx": 10**9},
+            },
             headers={"user-agent": "iPhone"},
         )
     assert r.status_code == 204
     [line] = [rec.getMessage() for rec in caplog.records if rec.getMessage().startswith("boot-timing")]
-    assert "nav=navigate app=1 fcp=4100" in line
+    assert "nav=navigate app=1 fcp=4100 swe=-2000" in line
     assert "evil ⏎ x=600000" in line
     assert line.endswith("ua=iPhone")
     assert "\n" not in line

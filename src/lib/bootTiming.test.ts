@@ -19,7 +19,7 @@ describe('reportBoot', () => {
     document.getElementById('root')!.innerHTML = '<main></main>'
     await Promise.resolve()
     document.getElementById('root')!.innerHTML = '<main>again</main>'
-    await Promise.resolve()
+    await vi.waitFor(() => expect(send).toHaveBeenCalled())
     expect(send).toHaveBeenCalledTimes(1)
     const body = send.mock.calls[0][0]
     expect(body).toMatchObject({ build: 'abc1234', standalone: false, marks: { nosw: 1, upd: 0 } })
@@ -36,9 +36,25 @@ describe('reportBoot', () => {
     visibility.mockReturnValue('visible')
     document.dispatchEvent(new Event('visibilitychange'))
     document.getElementById('root')!.innerHTML = '<main></main>'
-    await Promise.resolve()
+    await vi.waitFor(() => expect(send).toHaveBeenCalled())
     expect(send.mock.calls[0][0].marks.hid).toBe(1)
     visibility.mockRestore()
+  })
+
+  it('places the worker\'s own marks on the page\'s timeline', async () => {
+    const { reportBoot } = await load()
+    const postMessage = vi.fn((_: unknown, [port]: MessagePort[]) => {
+      port.postMessage({ evalAt: performance.timeOrigin - 2_000, navAt: performance.timeOrigin + 40 })
+    })
+    vi.stubGlobal('navigator', { ...navigator, serviceWorker: { controller: { postMessage } } })
+    document.body.innerHTML = '<div id="root"><div class="login splash boot-splash"></div></div>'
+    const send = vi.fn()
+    reportBoot(send, 'x')
+    document.getElementById('root')!.innerHTML = '<main></main>'
+    await vi.waitFor(() => expect(send).toHaveBeenCalled())
+    // a worker already running from an earlier page: started 2 s before this navigation
+    expect(send.mock.calls[0][0].marks).toMatchObject({ swe: -2_000, swn: 40, nosw: 0 })
+    vi.unstubAllGlobals()
   })
 
   it('still reports a launch whose splash never lifts, after 30 s', async () => {
@@ -47,7 +63,7 @@ describe('reportBoot', () => {
     document.body.innerHTML = '<div id="root"><div class="login splash boot-splash"></div></div>'
     const send = vi.fn()
     reportBoot(send, 'x')
-    vi.advanceTimersByTime(30_000)
+    await vi.advanceTimersByTimeAsync(30_000)
     expect(send).toHaveBeenCalledTimes(1)
     expect(send.mock.calls[0][0].marks.lift).toBeUndefined()
   })

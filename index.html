@@ -105,9 +105,10 @@
       html { background: var(--app-bg); }
       .login { position: fixed; inset: 0; display: grid; place-items: center; padding: 24px;
         background: var(--app-bg); color: var(--ink); font-family: system-ui, sans-serif; }
-      /* Paint immediately so the snail's entrance is visible. main.tsx keeps this cover until
-         the arrival finishes; React then continues its clock (same rule in 08-toasts.css). */
-      .boot-splash { animation: none; overflow: hidden; }
+      /* Paint immediately so the snail's entrance is visible. It sits OVER #root, where React
+         mounts beneath it, until the arrival has finished and the app is on screen
+         (lib/snailLaunch · liftBootCover). Same rule in 08-toasts.css. */
+      .boot-splash { animation: none; overflow: hidden; z-index: 2147483000; }
       html[data-snail-resuming] .boot-splash .snail-loader { visibility: hidden; }
       /* Pre-app cards have no fade: it would hide the entrance or blink during handover. */
       .loading-card { display: flex; flex-direction: column; align-items: center; gap: 16px; }
@@ -140,40 +141,43 @@
       until then #root is empty — a blank screen with nothing to look at and nothing to tap.
       Reported from the field 2026-08-03 as "it looked broken for a few seconds".
 
-      Same markup and classes as <Splash>, so React replacing this on mount is invisible. Styled
+      A SIBLING of #root, above it (08.11.2026): React mounts beneath this cover as soon as the
+      boot is ready, and lib/snailLaunch · liftBootCover fades it out once the entrance has played
+      and the app is on screen – a normal launch goes from here straight to the app. Same markup
+      and classes as <Splash>, so a React loading stage it does reveal looks the same. Styled
       TWICE on purpose: the real stylesheet is a <link> in <head>, which is async and cannot be
       trusted to have resolved yet — this is exactly the window a stalled asset or a cold cache
       shows up in — so the <style> block above this comment inlines the same rules to render
       correctly with zero external resources loaded, and the real stylesheet simply overrides it
       once it does arrive (see the pointing comments on both sides).
-      No station wordmark here — that name comes from the deployment config, which is exactly
-      what has not loaded yet, and a placeholder that changes would be worse than none.
+      No station wordmark in the markup — that name comes from the deployment config, which is
+      exactly what has not loaded yet, and a placeholder that changes would be worse than none.
+      main.tsx writes it into the reserved line below once the config is in.
 
       The .boot-hint block is CSS-only (fades in after 12 s, see .boot-hint in 08-toasts.css and
       its inline twin above): if the boot path wedges BEFORE React mounts — an IndexedDB open
       that never answers — this pulse would otherwise run forever with nothing to read and
-      nothing to tap. React replaces the whole markup on mount, so a normal launch never shows
-      it. German inline: the locale is a deployment setting that has not loaded at this point
-      either.
+      nothing to tap. The cover lifts long before it on a normal launch, and never onto an
+      empty #root. German inline: the locale is a deployment setting that has not loaded at
+      this point either.
     -->
-    <div id="root">
-      <div class="login splash boot-splash">
-        <div class="loading-card">
-          <!-- Inlined from public/firefighter-snail-loader.svg by Vite, shared with SnailLoader. -->
-          <!-- kp:snail-loader -->
-          <!-- Reserved, EMPTY text lines — same classes and metrics as <Splash>'s wordmark and
-               status line. The card is vertically centred, so without them React's mount (which
-               adds both lines) pushed the snail up twice: once for the station name, once for
-               «Einsatz wird geöffnet …». The doctrine above still holds — no placeholder TEXT
-               that changes — but the SPACE is knowable now, so the name fades into a line that
-               was always there and the snail never moves (reported 2026-09-09). Keep in sync
-               with components/Splash.tsx, which reserves the sub line the same way. -->
-          <div class="loading-name">&nbsp;</div>
-          <div class="loading-sub">&nbsp;</div>
-          <div class="loading-stuck boot-hint" role="status">
-            <div class="loading-stuck-title">Start dauert länger als gewöhnlich</div>
-            <p class="loading-stuck-hint">App schliessen und neu öffnen. Bleibt es dabei: die Website-Daten dieser App im Browser löschen – Einsätze liegen auf dem Server.</p>
-          </div>
+    <div id="root"></div>
+    <div class="login splash boot-splash">
+      <div class="loading-card">
+        <!-- Inlined from public/firefighter-snail-loader.svg by Vite, shared with SnailLoader. -->
+        <!-- kp:snail-loader -->
+        <!-- Reserved, EMPTY text lines — same classes and metrics as <Splash>'s wordmark and
+             status line. The card is vertically centred, so without them React's mount (which
+             adds both lines) pushed the snail up twice: once for the station name, once for
+             «Einsatz wird geöffnet …». The doctrine above still holds — no placeholder TEXT
+             that changes — but the SPACE is knowable now, so the name fades into a line that
+             was always there and the snail never moves (reported 2026-09-09). Keep in sync
+             with components/Splash.tsx, which reserves the sub line the same way. -->
+        <div class="loading-name">&nbsp;</div>
+        <div class="loading-sub">&nbsp;</div>
+        <div class="loading-stuck boot-hint" role="status">
+          <div class="loading-stuck-title">Start dauert länger als gewöhnlich</div>
+          <p class="loading-stuck-hint">App schliessen und neu öffnen. Bleibt es dabei: die Website-Daten dieser App im Browser löschen – Einsätze liegen auf dem Server.</p>
         </div>
       </div>
     </div>
