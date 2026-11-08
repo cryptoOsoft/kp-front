@@ -189,3 +189,24 @@ async def test_a_forged_log_line_stays_on_its_own_record(client, caplog):
     for ch in ("\n", "\r", "\x1b", "\x7f", "\u2028", "\u2029"):
         assert ch not in line
     assert "boom ⏎ 2026-09-23" in line and "at A ⏎ at B" in line
+
+
+async def test_a_boot_report_is_one_bounded_line(client, caplog):
+    """POST /api/diag/boot (lib/bootTiming): no login, one INFO line, names flattened, values clamped."""
+    with caplog.at_level(logging.INFO, logger="kpfront.boot"):
+        r = await client.post(
+            "/api/diag/boot",
+            json={"nav": "navigate", "standalone": True, "build": "abc@1", "marks": {"fcp": 4100, "evil\nx": 10**9}},
+            headers={"user-agent": "iPhone"},
+        )
+    assert r.status_code == 204
+    [line] = [rec.getMessage() for rec in caplog.records if rec.getMessage().startswith("boot-timing")]
+    assert "nav=navigate app=1 fcp=4100" in line
+    assert "evil ⏎ x=600000" in line
+    assert line.endswith("ua=iPhone")
+    assert "\n" not in line
+
+
+async def test_a_boot_report_with_too_many_marks_is_refused(client):
+    r = await client.post("/api/diag/boot", json={"marks": {f"m{i}": i for i in range(30)}})
+    assert r.status_code == 422
