@@ -455,6 +455,7 @@ for (const locale of config.locales) {
           url: urlOf(locale),
           name: plainText(content.meta.title),
           description: plainText(content.meta.description),
+          primaryImageOfPage: { '@type': 'ImageObject', url: `${config.origin}/${p.screenshot}`, width: 1500, height: 937 },
           inLanguage: locale.hreflang,
           dateModified: modified,
           isPartOf: { '@id': siteId },

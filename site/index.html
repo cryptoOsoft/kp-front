@@ -78,12 +78,18 @@
 <meta property="og:image" content="https://kp-front.ch/shots/lage.jpg">
 <meta property="og:image:width" content="1500">
 <meta property="og:image:height" content="937">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:alt" content="KP Front mit digitaler Lagekarte und taktischen Zeichen für die Einsatzführung.">
 <meta property="og:locale" content="de_CH">
 <meta property="og:locale:alternate" content="fr_CH">
 <meta property="og:locale:alternate" content="it_CH">
 <meta property="og:locale:alternate" content="rm_CH">
 <meta property="og:locale:alternate" content="en_GB">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="KP Front – Digitale Einsatzführung für Feuerwehren">
+<meta name="twitter:description" content="Der digitale Kommandoposten am Einsatzort: Karte, Pläne, Trupps, Verlauf und Rapport – offline-fähig und quelloffen.">
+<meta name="twitter:image" content="https://kp-front.ch/shots/lage.jpg">
+<meta name="twitter:image:alt" content="KP Front mit digitaler Lagekarte und taktischen Zeichen für die Einsatzführung.">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -98,6 +104,7 @@
         "Lagekarte auf swisstopo-Karten mit taktischen Zeichen nach FKS",
         "Atemschutzüberwachung mit Druck, Rückzugszeit, Kontaktuhr und Alarmen",
         "Objekt- und Gebäudepläne als Whiteboard zum Draufzeichnen und Messen",
+        "Wassertransport: Druckverlauf entlang der Schlauchleitung mit automatischer Pumpenplatzierung",
         "Einsatzjournal (Verlauf), das nur ergänzt und nie umgeschrieben wird",
         "Schichtplanung für lange Einsätze mit Übersicht über die Deckung",
         "Einsatzrapport als PDF, aus den Einsatzdaten vorausgefüllt",
@@ -213,8 +220,14 @@
       "url": "https://kp-front.ch/",
       "name": "KP Front – Digitale Einsatzführung für Feuerwehren",
       "description": "KP Front ist der digitale Kommandoposten am Einsatzort: Karte, Pläne, Trupps, Verlauf und Rapport – offline-fähig und quelloffen.",
+      "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "url": "https://kp-front.ch/shots/lage.jpg",
+        "width": 1500,
+        "height": 937
+      },
       "inLanguage": "de-CH",
-      "dateModified": "2026-11-04",
+      "dateModified": "2026-11-08",
       "isPartOf": {
         "@id": "https://kp-front.ch/#website"
       },
@@ -304,7 +317,7 @@
           "name": "Wie fangen wir an?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Mit der Demo, ohne Anmeldung – in Musterdorf brennt es schon, und alle Besucher teilen denselben Einsatz (Neustart um Mitternacht und um Mittag). Danach an einer Übung ausprobieren. Wenn es passt, führt die Einrichtungsanleitung zur eigenen Installation."
+            "text": "Mit der Demo, ohne Anmeldung – in Musterdorf brennt es schon, und alle Besucher teilen denselben Einsatz (Neustart täglich um 00:00 Uhr, Zeitzone Europe/Zurich). Danach an einer Übung ausprobieren. Wenn es passt, führt die Einrichtungsanleitung zur eigenen Installation."
           }
         }
       ]
@@ -710,6 +723,7 @@
           <li>Sektoren, Absperrkreise, Flächen und Freihandzeichnung</li>
           <li>Schlauchleitungen mit FKS-Annotationen, jede einem Trupp zugeordnet</li>
           <li>Messen von Distanz und Fläche, massstabsgetreu auch auf dem Plan</li>
+          <li><strong>Wassertransport</strong>: Druck entlang einer Schlauchleitung aus Höhenprofil, Schlauch-Ø und Wassermenge – die Pumpen setzt die Rechnung selbst, auf Wunsch direkt auf die Karte</li>
           <li>Ebenen: Hydranten, Leitungskataster, kantonale Kartendienste</li>
           <li><strong>Gefahrgut-Nachschlagewerk</strong>: UN-Nummern, Stoffinformationen sowie Hinweise zu Absperr- und Schutzdistanzen, direkt im Einsatz verfügbar</li>
           <li>Wetter- und Windinformationen als Unterstützung für die Lagebeurteilung, dazu das Niederschlagsradar von MeteoSchweiz als Ebene</li>
@@ -880,7 +894,7 @@
         <h3>Wie fangen wir an?</h3>
         <p>Mit der <a href="https://demo.kp-front.ch" target="_blank" rel="noopener">Demo</a>,
           ohne Anmeldung – in Musterdorf brennt es schon, und alle Besucher teilen denselben
-          Einsatz (Neustart um Mitternacht und um Mittag). Danach an einer Übung ausprobieren.
+          Einsatz (Neustart täglich um 00:00 Uhr, Zeitzone Europe/Zurich). Danach an einer Übung ausprobieren.
           Wenn es passt, führt die <a href="https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md" target="_blank" rel="noopener">Einrichtungsanleitung</a> zur eigenen Installation.</p>
       </div>
     </div>

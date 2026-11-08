@@ -78,12 +78,18 @@
 <meta property="og:image" content="https://kp-front.ch/shots/lage.jpg">
 <meta property="og:image:width" content="1500">
 <meta property="og:image:height" content="937">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:alt" content="KP Front avec carte de situation numérique et signes conventionnels pour la conduite d’intervention.">
 <meta property="og:locale" content="fr_CH">
 <meta property="og:locale:alternate" content="de_CH">
 <meta property="og:locale:alternate" content="it_CH">
 <meta property="og:locale:alternate" content="rm_CH">
 <meta property="og:locale:alternate" content="en_GB">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="KP Front – Conduite d’intervention numérique pour les sapeurs-pompiers">
+<meta name="twitter:description" content="Le poste de commandement numérique sur les lieux : carte, plans, binômes, journal et rapport – hors ligne et open source.">
+<meta name="twitter:image" content="https://kp-front.ch/shots/lage.jpg">
+<meta name="twitter:image:alt" content="KP Front avec carte de situation numérique et signes conventionnels pour la conduite d’intervention.">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -98,6 +104,7 @@
         "Carte de situation sur fonds swisstopo avec signes conventionnels selon la CSSP",
         "Surveillance PR avec pression, moment du repli, temps depuis le dernier contact et alarmes",
         "Plans d’objet et de bâtiment comme tableau blanc pour dessiner et mesurer",
+        "Transport d’eau : pression le long de la conduite avec placement automatique des pompes",
         "Journal d’intervention qui ne fait que s’allonger et ne se réécrit jamais",
         "Plan de relève pour les longues interventions, avec vue de la couverture",
         "Rapport d’intervention en PDF, prérempli à partir des données de l’intervention",
@@ -213,8 +220,14 @@
       "url": "https://kp-front.ch/fr/",
       "name": "KP Front – Conduite d’intervention numérique pour les sapeurs-pompiers",
       "description": "KP Front est le poste de commandement numérique sur les lieux : carte, plans, binômes, journal et rapport – hors ligne et open source.",
+      "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "url": "https://kp-front.ch/shots/lage.jpg",
+        "width": 1500,
+        "height": 937
+      },
       "inLanguage": "fr-CH",
-      "dateModified": "2026-11-04",
+      "dateModified": "2026-11-08",
       "isPartOf": {
         "@id": "https://kp-front.ch/#website"
       },
@@ -304,7 +317,7 @@
           "name": "Comment commencer ?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Par la démo, sans inscription – à Musterdorf, le feu est déjà déclaré, et tous les visiteurs partagent la même intervention (elle recommence à minuit et à midi). Ensuite, l’essayer à un exercice. Si cela convient, le guide d’installation mène à votre propre instance."
+            "text": "Par la démo, sans inscription – à Musterdorf, le feu est déjà déclaré, et tous les visiteurs partagent la même intervention (elle redémarre chaque jour à 00 h 00, fuseau horaire Europe/Zurich). Ensuite, l’essayer à un exercice. Si cela convient, le guide d’installation mène à votre propre instance."
           }
         }
       ]
@@ -714,6 +727,7 @@
           <li>Secteurs, zones de barrage, surfaces et dessin à main levée</li>
           <li>Conduites avec annotations CSSP, chacune rattachée à une équipe</li>
           <li>Mesure de distances et de surfaces, à l’échelle également sur le plan</li>
+          <li><strong>Transport d’eau</strong> : pression le long d’une conduite à partir du profil altimétrique, du diamètre du tuyau et du débit – le calcul place lui-même les pompes, et peut les reporter directement sur la carte</li>
           <li>Couches : bornes hydrantes, cadastre des conduites, services cartographiques cantonaux</li>
           <li><strong>Répertoire des matières dangereuses</strong>&nbsp;: numéros ONU, informations sur les substances et indications concernant les distances d’isolation et de protection, disponibles directement pendant l’intervention</li>
           <li>Informations météorologiques et données sur le vent pour soutenir l’appréciation de la situation, ainsi que le radar de précipitations de MétéoSuisse comme couche</li>
@@ -888,7 +902,7 @@
         <h3>Comment commencer ?</h3>
         <p>Par la <a href="https://demo.kp-front.ch" target="_blank" rel="noopener">démo</a>,
           sans inscription – à Musterdorf, le feu est déjà déclaré, et tous les visiteurs partagent
-          la même intervention (elle recommence à minuit et à midi). Ensuite, l’essayer à un
+          la même intervention (elle redémarre chaque jour à 00 h 00, fuseau horaire Europe/Zurich). Ensuite, l’essayer à un
           exercice. Si cela convient, le <a href="https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md" target="_blank" rel="noopener">guide d’installation</a> mène à votre propre instance.</p>
       </div>
     </div>
