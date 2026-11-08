@@ -14,7 +14,7 @@ const MAP = (i: number) => `https://a.basemaps.cartocdn.com/rastertiles/voyager/
 const PLAN = 'https://kp.test/api/reference/plan:a/tiles/3/1/2/0/0'
 const MANIFEST = 'https://kp.test/api/reference/plan:a/tiles?v=3'
 
-function worker({ allowed = true, legacy = {} as Record<string, string[]> } = {}) {
+function worker({ allowed = true, legacy = {} as Record<string, string[]>, legacyDate = new Date().toUTCString() } = {}) {
   const handlers = new Map<string, Handler>()
   const caches = new Map(Object.entries(legacy).map(([name, urls]) => [name, new Map(urls.map((u) => [u, `old ${u}`]))]))
   const cacheStorage = {
@@ -24,7 +24,7 @@ function worker({ allowed = true, legacy = {} as Record<string, string[]> } = {}
       caches.set(name, c)
       const key = (r: RequestInfo) => (typeof r === 'string' ? r : r.url)
       return {
-        match: async (r: RequestInfo) => (c.has(key(r)) ? new Response(c.get(key(r)), { headers: { 'content-type': 'image/png' } }) : undefined),
+        match: async (r: RequestInfo) => (c.has(key(r)) ? new Response(c.get(key(r)), { headers: { 'content-type': 'image/png', date: legacyDate } }) : undefined),
         keys: async () => [...c.keys()].map((u) => new Request(u)),
         delete: async (r: RequestInfo) => c.delete(key(r)),
       }
@@ -37,16 +37,13 @@ function worker({ allowed = true, legacy = {} as Record<string, string[]> } = {}
     if (offline) throw new TypeError('Load failed')
     return new Response(`net-${++n}`, { headers: { 'content-type': 'image/png' } })
   })
-  // the store's 2 s trims, fired by hand
-  const trims: Array<() => void> = []
-  const timer = (fn: () => void, ms: number) => (ms === 2000 ? trims.push(fn) : setTimeout(fn, ms))
   const self = {
     location: { origin: 'https://kp.test' },
     addEventListener: (type: string, h: Handler) => { handlers.set(type, h) },
     kpReferenceCacheAllowed: async () => allowed,
     kpClearTiles: undefined as undefined | ((kinds: string[]) => Promise<void>),
   }
-  new Function('self', 'caches', 'fetch', 'setTimeout', source)(self, cacheStorage, fetchMock, timer)
+  new Function('self', 'caches', 'fetch', source)(self, cacheStorage, fetchMock)
 
   /** One fetch through the worker: its body, or null when the worker let it pass. */
   async function get(url: string): Promise<string | null> {
@@ -71,12 +68,7 @@ function worker({ allowed = true, legacy = {} as Record<string, string[]> } = {}
     await pending
   }
 
-  async function trim() {
-    for (const fn of trims.splice(0)) fn()
-    await new Promise((r) => setTimeout(r, 50))
-  }
-
-  return { get, message, trim, fetchMock, caches, self, goOffline: () => { offline = true } }
+  return { get, message, fetchMock, caches, self, goOffline: () => { offline = true } }
 }
 
 beforeEach(async () => {
@@ -131,7 +123,6 @@ describe('sw-tile-store', () => {
     await seedTiles('map', Array.from({ length: 4000 }, (_, i) => MAP(i)))
     const w = worker()
     await w.get(MAP(9999))
-    await w.trim()
     const held = await tileUrls('map')
     expect(held).toHaveLength(4000)
     expect(held).not.toContain(MAP(0))
@@ -147,6 +138,27 @@ describe('sw-tile-store', () => {
     expect(w.caches.has('plan-tiles')).toBe(false)
     expect((await tileUrls('plan'))?.sort()).toEqual([PLAN, other].sort())
     expect(await w.get(other)).toBe(`old ${other}`)
+  })
+
+  it('keeps a moved tile as old as it was: online it is fetched again', async () => {
+    const w = worker({ legacy: { 'map-tiles': [MAP(1)] }, legacyDate: new Date(Date.now() - 31 * 24 * 3600 * 1000).toUTCString() })
+    await w.message({ type: 'kp-tile-migrate' })
+    expect(await w.get(MAP(1))).toBe('net-1')
+  })
+
+  it('a plan read before a denial is not stored after it', async () => {
+    let release!: () => void
+    const w = worker()
+    w.fetchMock.mockImplementationOnce(async () => {
+      await new Promise<void>((r) => { release = r })
+      return new Response('plan bytes', { headers: { 'content-type': 'image/png' } })
+    })
+    const pending = w.get(PLAN)
+    await new Promise((r) => setTimeout(r, 10))
+    await w.self.kpClearTiles!(['plan', 'manifest'])
+    release()
+    expect(await pending).toBe('plan bytes')
+    expect(await tileUrls('plan')).toEqual([])
   })
 
   it('drops only the station plans on a denial (sw-media-cache · kpClearOnDenial)', async () => {

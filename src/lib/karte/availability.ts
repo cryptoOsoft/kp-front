@@ -26,7 +26,7 @@ import { tilesForBounds, type LngLatBounds } from '../offlineTiles'
 import { referenceUrl } from '../api/reference'
 import { allTileUrls, sourcePages, tileManifestUrl, tileSource, tileUrl, underlayLevel, visibleTiles, type TileManifest, type TileSource } from '../planTiles'
 import type { StationObject, StationPlan } from '../api/stationReference'
-import { readTile, tileUrls as storedUrls, type TileKind } from '../tileStore'
+import { LEGACY_TILE_CACHES, readTile, tileUrls as storedUrls, type TileKind } from '../tileStore'
 
 /** ● on this device · ◐ partly · ○ only online */
 export type Lamp = 'device' | 'part' | 'online'
@@ -280,14 +280,24 @@ async function openProbe(cacheName: string): Promise<CacheProbe | null> {
   }
 }
 
-/** The stored URLs of a tile kind as `pathname + search` (the form tile URLs are built in for
- *  plans), or null when the device cannot tell. ONE read answers every tile asked. */
+/** The URLs a legacy cache still holds (none once the worker moved it over). */
+async function legacyUrls(kind: TileKind): Promise<string[]> {
+  try {
+    const name = LEGACY_TILE_CACHES[kind]
+    if (!(await caches.has(name))) return []
+    return (await (await caches.open(name)).keys()).map((r) => r.url)
+  } catch { return [] }
+}
+
+/** The stored URLs of a tile kind – the store's and a legacy cache's, both of which the worker
+ *  answers from – keyed as `key` says, or null when the device cannot tell. ONE read each
+ *  answers every tile asked. */
 async function storedTiles(kind: TileKind, key: (u: URL) => string): Promise<Set<string> | null> {
   if (!cacheProbeable()) return null
-  const urls = await storedUrls(kind)
+  const [urls, legacy] = await Promise.all([storedUrls(kind), legacyUrls(kind)])
   if (!urls) return null
   const out = new Set<string>()
-  for (const url of urls) {
+  for (const url of [...urls, ...legacy]) {
     try { out.add(key(new URL(url))) } catch { /* not a URL — skip */ }
   }
   return out
@@ -311,7 +321,8 @@ export async function openPlanTilesProbe(): Promise<((p: Pick<StationPlan, 'id' 
     const source = tileSource(planPdfUrl(p))
     if (!source) return null
     try {
-      const body = await readTile(tileManifestUrl(source))
+      const url = tileManifestUrl(source)
+      const body = await readTile(url) ?? await (await caches.match(url, { cacheName: LEGACY_TILE_CACHES.manifest }).catch(() => undefined))?.blob()
       if (!body) return null
       const m = JSON.parse(await body.text()) as TileManifest
       if (!m.pages?.length || !(m.tileSize > 0)) return null

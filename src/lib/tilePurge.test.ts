@@ -9,6 +9,18 @@ beforeEach(() => clearTiles())
 /** The map tiles held now, oldest first. */
 const held = async () => (await tileUrls('map')) ?? []
 
+/** A Cache Storage holding a legacy `map-tiles` cache of these URLs (tiles before 08.11.2026). */
+function legacyCaches(urls: string[]) {
+  const held = new Set(urls)
+  const cache = { keys: async () => [...held].map((url) => ({ url })), delete: async (r: { url: string }) => held.delete(r.url) }
+  vi.stubGlobal('caches', {
+    has: async (n: string) => n === 'map-tiles' && held.size > 0,
+    open: async () => cache,
+    delete: async (n: string) => { if (n !== 'map-tiles') return false; held.clear(); return true },
+  })
+  return held
+}
+
 function fakeStorage(init: Record<string, string> = {}) {
   const m = new Map(Object.entries(init))
   return { m, api: { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => { m.set(k, v) } } }
@@ -30,6 +42,16 @@ describe('purgeStaleTiles', () => {
     await seedTiles('map', [CARTO_DARK], () => 10)
     expect(await purgeStaleTiles({ storage: st.api, online: true })).toBe(0)
     expect(await held()).toContain(CARTO_DARK)
+  })
+
+  it('also purges a legacy map-tile cache the worker has not moved over yet', async () => {
+    const legacy = legacyCaches([CARTO_DARK, OSM])
+    try {
+      await seedTiles('map', [CARTO_DAY])
+      expect(await purgeStaleTiles({ storage: fakeStorage().api, online: true, retina: false })).toBe(2)
+      expect([...legacy]).toEqual([OSM])
+      expect(await held()).toEqual([])
+    } finally { vi.unstubAllGlobals() }
   })
 
   it('never runs offline — an old look beats no map — and runs on the next boot online', async () => {

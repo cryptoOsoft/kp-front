@@ -15,7 +15,9 @@ let dbPromise: Promise<IDBDatabase | null> | null = null
 function tileDb(): Promise<IDBDatabase | null> {
   if (typeof indexedDB === 'undefined') return Promise.resolve(null)
   dbPromise ??= new Promise((resolve) => {
-    const req = indexedDB.open(DB, 1)
+    let req: IDBOpenDBRequest
+    // open() itself can throw (a locked-down context): «no store», not a rejected promise
+    try { req = indexedDB.open(DB, 1) } catch { dbPromise = null; return resolve(null) }
     req.onupgradeneeded = () => req.result.createObjectStore(STORE).createIndex('age', ['kind', 'at'])
     req.onsuccess = () => {
       const db = req.result
@@ -78,7 +80,11 @@ export async function countTiles(kind: TileKind): Promise<number> {
   return (await run('readonly', (store) => store.index('age').count(ofKind(kind)))) ?? 0
 }
 
-/** Drop every stored tile (admin · Offline-Cache leeren). */
-export async function clearTiles(): Promise<void> {
-  await run('readwrite', (store) => store.clear())
+/** Drop every stored tile (admin · Offline-Cache leeren); false when that failed. */
+export async function clearTiles(): Promise<boolean> {
+  return (await run('readwrite', (store) => store.clear())) !== null
 }
+
+/** The Cache Storage caches tiles lived in before 08.11.2026 – read and dropped like the store
+ *  until the worker has moved them over (public/sw-tile-store.js · kpMigrateTiles). */
+export const LEGACY_TILE_CACHES: Record<TileKind, string> = { map: 'map-tiles', plan: 'plan-tiles', manifest: 'plan-tile-manifests' }

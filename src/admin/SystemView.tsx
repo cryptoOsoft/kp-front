@@ -599,7 +599,8 @@ function OfflineCacheCard() {
     setCleared(false)
     try {
       const keys = await caches.keys()
-      await Promise.all([...keys.map((k) => caches.delete(k)), clearTiles()])
+      const [tiles] = await Promise.all([clearTiles(), ...keys.map((k) => caches.delete(k))])
+      if (!tiles) throw new Error('tile store not cleared')
       setCleared(true)
       await reload()
     } catch {

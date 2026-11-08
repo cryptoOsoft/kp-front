@@ -38,7 +38,9 @@ let kpTileDbPromise = null
 /** The shared connection; null when IndexedDB cannot be opened (the tiles then go network-only). */
 function kpTileDb() {
   kpTileDbPromise ??= new Promise((resolve) => {
-    const req = indexedDB.open(KP_TILE_DB, 1)
+    let req
+    // open() itself can throw (a locked-down context): the tiles then go to the network
+    try { req = indexedDB.open(KP_TILE_DB, 1) } catch { kpTileDbPromise = null; return resolve(null) }
     req.onupgradeneeded = () => req.result.createObjectStore(KP_TILE_STORE).createIndex('age', ['kind', 'at'])
     req.onsuccess = () => {
       const db = req.result
@@ -80,7 +82,6 @@ async function kpLegacyMatch(name, url) {
   } catch { return undefined }
 }
 
-const kpTrimTimers = new Map()
 const kpOfKind = (kind) => IDBKeyRange.bound([kind, -Infinity], [kind, Infinity])
 
 async function kpTrimTiles(kind) {
@@ -102,33 +103,47 @@ async function kpTrimTiles(kind) {
 }
 
 /** The record of a 200 response, or null: opaque responses cannot be read into a Blob and stay
- *  network-only. */
-async function kpTileRecord(url, response) {
+ *  network-only. A copy `kept` in a legacy cache keeps its age – its `Date` – so the move does
+ *  not make an old tile fresh again. */
+async function kpTileRecord(url, response, kept = false) {
   if (!response || response.status !== 200 || response.type === 'opaque') return null
   const body = await response.blob()
-  return { url, type: response.headers.get('content-type') ?? body.type, body }
+  const at = (kept && Date.parse(response.headers.get('date') ?? '')) || Date.now()
+  return { url, at, type: response.headers.get('content-type') ?? body.type, body }
 }
 
-/** Store these records in one transaction; false when it failed (quota). */
-async function kpPutTiles(kind, records) {
-  const at = Date.now()
+// Bumped by every denial purge (kpClearTiles): a write whose body was read before it must not
+// commit after it and bring the revoked station's plans back.
+let kpTileEpoch = 0
+// writes per kind in this worker's life: the first one and every 100th trim the kind, inside the
+// event that wrote (a timer would die with an idle worker)
+const kpTileWrites = new Map()
+
+/** Store these records in one transaction; false when it failed (quota) or a denial came between. */
+async function kpPutTiles(kind, records, epoch) {
+  let stale = false
   const done = await kpTileTx('readwrite', (store) => {
-    for (const { url, type, body } of records) store.put({ kind, at, type, body }, url)
+    // checked as the transaction is created: a purge's transaction, created later, runs after it
+    if (epoch !== kpTileEpoch) { stale = true; return }
+    for (const { url, at, type, body } of records) store.put({ kind, at, type, body }, url)
   })
-  // one count per burst of writes, not one per tile
-  if (!kpTrimTimers.has(kind)) {
-    kpTrimTimers.set(kind, setTimeout(() => { kpTrimTimers.delete(kind); void kpTrimTiles(kind) }, 2000))
-  }
-  return done !== null
+  if (done === null || stale) return false
+  const before = kpTileWrites.get(kind)
+  const after = (before ?? 0) + records.length
+  kpTileWrites.set(kind, after)
+  if (before === undefined || Math.floor(after / 100) > Math.floor(before / 100)) await kpTrimTiles(kind)
+  return true
 }
 
-async function kpWriteTile(url, kind, response) {
-  const record = await kpTileRecord(url, response)
-  if (record) await kpPutTiles(kind, [record])
+/** `epoch`: kpTileEpoch when the request STARTED – an answer to a request from before a denial
+ *  arrives after it. */
+async function kpWriteTile(url, kind, response, epoch, kept = false) {
+  const record = await kpTileRecord(url, response, kept)
+  if (record) await kpPutTiles(kind, [record], epoch)
 }
 
 /** The stored copy of `url` (or the legacy cache's), and whether it is past its kind's maxAge. */
-async function kpReadTile(event, url, kind) {
+async function kpReadTile(event, url, kind, epoch) {
   const rec = await kpTileTx('readonly', (store) => store.get(url))
   if (rec && rec.kind === kind) {
     return {
@@ -139,37 +154,38 @@ async function kpReadTile(event, url, kind) {
   const legacy = await kpLegacyMatch(KP_TILE_KINDS[kind].legacy, url)
   if (!legacy) return null
   // moved on read, so the page's probes (lib/tileStore) see it before the migration gets there
-  event.waitUntil(kpWriteTile(url, kind, legacy.clone()).catch(() => {}))
+  event.waitUntil(kpWriteTile(url, kind, legacy.clone(), epoch, true).catch(() => {}))
   return { response: legacy, expired: false }
 }
 
-async function kpFetchTile(event, kind) {
+async function kpFetchTile(event, kind, epoch) {
   const response = await fetch(event.request, KP_TILE_KINDS[kind].fetchOptions)
-  event.waitUntil(kpWriteTile(event.request.url, kind, response.clone()).catch(() => {}))
+  event.waitUntil(kpWriteTile(event.request.url, kind, response.clone(), epoch).catch(() => {}))
   return response
 }
 
 async function kpServeTile(event, kind) {
   const spec = KP_TILE_KINDS[kind]
+  const epoch = kpTileEpoch
   // the plan routes follow the reference session rule of sw-media-cache: a client that is no
   // account asks the server, past this store and the HTTP cache
   if (spec.session && !(await self.kpReferenceCacheAllowed(event, event.request))) {
     return fetch(new Request(event.request, { cache: 'no-store' }))
   }
   if (spec.networkFirstMs) {
-    const network = kpFetchTile(event, kind)
+    const network = kpFetchTile(event, kind, epoch)
     const timedOut = new Promise((resolve) => setTimeout(() => resolve(null), spec.networkFirstMs))
     const first = await Promise.race([network.then((response) => ({ response }), () => null), timedOut])
     if (first) return first.response
-    const held = await kpReadTile(event, event.request.url, kind)
+    const held = await kpReadTile(event, event.request.url, kind, epoch)
     if (!held) return network
     event.waitUntil(network.catch(() => {}))
     return held.response
   }
-  const held = await kpReadTile(event, event.request.url, kind)
+  const held = await kpReadTile(event, event.request.url, kind, epoch)
   if (held && !held.expired) return held.response
   try {
-    return await kpFetchTile(event, kind)
+    return await kpFetchTile(event, kind, epoch)
   } catch (error) {
     // an expired copy still beats no tile without signal
     if (held) return held.response
@@ -202,8 +218,9 @@ async function kpMigrateTiles() {
     // on every launch after
     const keys = (await cache.keys()).slice(-max).filter((req) => !held.has(req.url))
     for (let i = 0; i < keys.length; i += 100) {
-      const batch = await Promise.all(keys.slice(i, i + 100).map(async (req) => kpTileRecord(req.url, await cache.match(req))))
-      if (!(await kpPutTiles(kind, batch.filter(Boolean)))) return
+      const epoch = kpTileEpoch
+      const batch = await Promise.all(keys.slice(i, i + 100).map(async (req) => kpTileRecord(req.url, await cache.match(req), true)))
+      if (!(await kpPutTiles(kind, batch.filter(Boolean), epoch))) return
     }
     await caches.delete(legacy)
     kpLegacyGone.add(legacy)
@@ -212,6 +229,7 @@ async function kpMigrateTiles() {
 
 /** Drop stored tiles of these kinds – sw-media-cache's purge on an explicit denial. */
 self.kpClearTiles = async (kinds) => {
+  kpTileEpoch++
   await kpTileTx('readwrite', (store) => {
     for (const kind of kinds) {
       const cursor = store.index('age').openKeyCursor(kpOfKind(kind))

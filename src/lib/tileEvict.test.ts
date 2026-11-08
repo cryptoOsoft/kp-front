@@ -10,6 +10,18 @@ import { seedTiles } from './tileStore.test-utils'
 const urls = (n: number) => Array.from({ length: n }, (_, i) => `https://a.basemaps.cartocdn.com/t${i}.png`)
 const held = async () => (await tileUrls('map')) ?? []
 
+/** A Cache Storage holding a legacy `map-tiles` cache of these URLs (tiles before 08.11.2026). */
+function legacyCaches(urls: string[]) {
+  const held = new Set(urls)
+  const cache = { keys: async () => [...held].map((url) => ({ url })), delete: async (r: { url: string }) => held.delete(r.url) }
+  vi.stubGlobal('caches', {
+    has: async (n: string) => n === 'map-tiles' && held.size > 0,
+    open: async () => cache,
+    delete: async (n: string) => { if (n !== 'map-tiles') return false; held.clear(); return true },
+  })
+  return held
+}
+
 // The rate limit is module state, so every test starts a full window after the last one — a
 // monotonic clock, because real time would sit behind the fake time the previous test left.
 let clock = Date.now()
@@ -23,6 +35,14 @@ describe('evictOldTiles', () => {
     await seedTiles('map', urls(10), (i) => 100 - i)
     expect(await evictOldTiles(3)).toBe(3)
     expect(await held()).toEqual(urls(7).reverse())
+  })
+
+  it('drops a legacy map-tile cache first, whole – it is older than everything stored', async () => {
+    const legacy = legacyCaches(['https://a.basemaps.cartocdn.com/old0.png', 'https://a.basemaps.cartocdn.com/old1.png'])
+    await seedTiles('map', urls(3))
+    expect(await evictOldTiles()).toBe(2)
+    expect(legacy.size).toBe(0)
+    expect(await held()).toHaveLength(3)
   })
 
   it('leaves plan tiles alone – they are station records', async () => {

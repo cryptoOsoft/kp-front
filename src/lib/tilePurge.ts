@@ -17,7 +17,7 @@
 // and never twice (the done ids are a tiny device flag in localStorage, docs/sync-and-offline.md).
 // A provider changes its look again → add an entry; never edit or reuse an id.
 
-import { deleteTiles, tileUrls } from './tileStore'
+import { deleteTiles, LEGACY_TILE_CACHES, tileUrls } from './tileStore'
 
 export interface TilePurge {
   /** stable, never reused: it is what a device remembers as done */
@@ -75,10 +75,24 @@ export async function purgeStaleTiles(env: {
   const done = readDone(storage)
   const todo = purges.filter((p) => !done.has(p.id) && (!p.when || p.when({ retina })))
   if (!todo.length) return 0
-  const stale = (await tileUrls('map'))?.filter((url) => todo.some((p) => p.match.test(url)))
+  const isStale = (url: string) => todo.some((p) => p.match.test(url))
+  const stale = (await tileUrls('map'))?.filter(isStale)
+  const legacy = await purgeLegacy(isStale)
   const removed = stale ? await deleteTiles(stale) : 0
-  if (!stale || removed < stale.length) return 0 // not marked done: the next boot tries again
+  // not marked done: the next boot tries again
+  if (!stale || legacy === null || removed < stale.length) return 0
   for (const p of todo) done.add(p.id)
   try { storage.setItem(DONE_KEY, JSON.stringify([...done])) } catch { /* asked again next boot */ }
-  return removed
+  return removed + legacy
+}
+
+/** …and from a legacy `map-tiles` cache not moved over yet (lib/tileStore), so the worker
+ *  neither serves nor moves them; null when it could not be read. */
+async function purgeLegacy(isStale: (url: string) => boolean): Promise<number | null> {
+  try {
+    if (typeof caches === 'undefined' || !(await caches.has(LEGACY_TILE_CACHES.map))) return 0
+    const cache = await caches.open(LEGACY_TILE_CACHES.map)
+    const gone = await Promise.all((await cache.keys()).filter((r) => isStale(r.url)).map((r) => cache.delete(r)))
+    return gone.filter(Boolean).length
+  } catch { return null }
 }
