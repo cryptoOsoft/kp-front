@@ -26,6 +26,21 @@ describe('reportBoot', () => {
     expect(Object.keys(body.marks)).toEqual(expect.arrayContaining(['entry', 'root', 'lift']))
   })
 
+  it('flags a launch that went to the background before its line went out', async () => {
+    const { reportBoot } = await load()
+    document.body.innerHTML = '<div id="root"><div class="login splash boot-splash"></div></div>'
+    const send = vi.fn()
+    reportBoot(send, 'x')
+    const visibility = vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden')
+    document.dispatchEvent(new Event('visibilitychange'))
+    visibility.mockReturnValue('visible')
+    document.dispatchEvent(new Event('visibilitychange'))
+    document.getElementById('root')!.innerHTML = '<main></main>'
+    await Promise.resolve()
+    expect(send.mock.calls[0][0].marks.hid).toBe(1)
+    visibility.mockRestore()
+  })
+
   it('still reports a launch whose splash never lifts, after 30 s', async () => {
     const { reportBoot } = await load()
     vi.useFakeTimers()

@@ -13,6 +13,12 @@
 
 const marks: Record<string, number> = { entry: Math.round(performance.now()) }
 
+// hidden at ANY point between the bundle starting and the line going out: such a launch's
+// timings ran (partly) in the background and must not pass for a visible one
+let wasHidden = document.visibilityState === 'hidden'
+const onVisibility = () => { if (document.visibilityState === 'hidden') wasHidden = true }
+document.addEventListener('visibilitychange', onVisibility)
+
 /** Record a boot milestone (first call per name wins). */
 export function markBoot(name: string): void {
   marks[name] ??= Math.round(performance.now())
@@ -30,9 +36,10 @@ function browserMarks(): Record<string, number> {
     out.di = nav.domInteractive
     out.dcl = nav.domContentLoadedEventEnd
   }
-  const css = performance.getEntriesByType('resource')
-    .find((r) => (r as PerformanceResourceTiming).initiatorType === 'link' && r.name.endsWith('.css'))
-  if (css) out.css = (css as PerformanceResourceTiming).responseEnd
+  // the entry stylesheet (index.html's own link), not a lazy chunk's that loaded since
+  const href = document.querySelector<HTMLLinkElement>('head link[rel="stylesheet"]')?.href
+  const css = href ? performance.getEntriesByName(href)[0] as PerformanceResourceTiming | undefined : undefined
+  if (css) out.css = css.responseEnd
   const fcp = performance.getEntriesByName('first-contentful-paint')[0]
   if (fcp) out.fcp = fcp.startTime
   for (const k of Object.keys(out)) out[k] = Math.round(out[k])
@@ -47,7 +54,6 @@ export function reportBoot(send: (body: unknown) => void, build: string): void {
     nosw: navigator.serviceWorker?.controller ? 0 : 1,
     // the boot cover continues a previous page's clock: this load IS an automatic update reload
     upd: document.querySelector('[data-snail-offset]') ? 1 : 0,
-    hid: document.visibilityState === 'hidden' ? 1 : 0,
   }
   const standalone = window.matchMedia?.('(display-mode: standalone)').matches === true
     || (navigator as Navigator & { standalone?: boolean }).standalone === true
@@ -57,8 +63,9 @@ export function reportBoot(send: (body: unknown) => void, build: string): void {
     sent = true
     observer.disconnect()
     clearTimeout(cap)
+    document.removeEventListener('visibilitychange', onVisibility)
     const nav = (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined)?.type ?? '?'
-    send({ nav, build, standalone, marks: { ...browserMarks(), ...marks, ...flags } })
+    send({ nav, build, standalone, marks: { ...browserMarks(), ...marks, ...flags, hid: wasHidden ? 1 : 0 } })
   }
   const lifted = () => {
     if (document.querySelector('.splash, .boot-splash')) return

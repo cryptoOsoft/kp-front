@@ -23,9 +23,13 @@ export function splashGradients(html) {
   const grab = (selector) => {
     const block = html.match(new RegExp(`${selector}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
     const g = block.match(/--app-bg:\s*radial-gradient\(120% 90% at 50% -10%,([^;]+)\);/)?.[1]
-    const stops = [...(g ?? '').matchAll(/#([0-9a-f]{6})\s+(\d+(?:\.\d+)?)%/gi)]
-      .map(([, hex, at]) => ({ rgb: [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16)), at: Number(at) / 100 }))
-    if (stops.length < 2) throw new Error(`startup-images: no --app-bg radial gradient under ${selector} in index.html – did the boot CSS change shape?`)
+    if (!g) throw new Error(`startup-images: no --app-bg radial gradient under ${selector} in index.html – did the boot CSS change shape?`)
+    // every stop must be «#rrggbb N%»: one in another notation would otherwise just drop out
+    const stops = g.split(',').map((stop) => {
+      const m = stop.trim().match(/^#([0-9a-f]{6})\s+(\d+(?:\.\d+)?)%$/i)
+      if (!m) throw new Error(`startup-images: unsupported --app-bg stop «${stop.trim()}» under ${selector} in index.html – write it as #rrggbb N%`)
+      return { rgb: [0, 2, 4].map((i) => parseInt(m[1].slice(i, i + 2), 16)), at: Number(m[2]) / 100 }
+    })
     return stops
   }
   return { day: grab(':root'), night: grab(':root\\[data-theme="night"\\]') }

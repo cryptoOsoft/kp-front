@@ -21,6 +21,11 @@ describe('iOS startup images', () => {
     expect(gradients.night.at(-1).rgb).toEqual([0x0d, 0x11, 0x18])
   })
 
+  it('refuse a stop they cannot read instead of dropping it', () => {
+    const html = readFileSync(new URL('../index.html', import.meta.url), 'utf-8').replace('#e7edf2 45%', '#f00 45%')
+    expect(() => splashGradients(html)).toThrow(/unsupported --app-bg stop «#f00 45%»/)
+  })
+
   it('paint the splash gradient: the CSS ellipse at the top centre, the last stop in the bottom corner', () => {
     const { night } = gradientPngs(120, 260, gradients)
     expect([night.readUInt32BE(16), night.readUInt32BE(20)]).toEqual([120, 260])
@@ -30,6 +35,15 @@ describe('iOS startup images', () => {
     const f = (0.5 + 26) / 234 / c1.at
     expect(near(pixel(night, 60, 0), c0.rgb.map((v, k) => v + (c1.rgb[k] - v) * f))).toBe(true)
     expect(near(pixel(night, 119, 259), gradients.night.at(-1).rgb)).toBe(true)
+  })
+
+  it('paint the day image from the day stops', () => {
+    const { day } = gradientPngs(120, 260, gradients)
+    const near = (a, b) => a.every((v, k) => Math.abs(v - b[k]) <= 1)
+    // the same ellipse as the night image above; the day stops #eef3f7 → #e7edf2 → #e1e8ee
+    const f = (0.5 + 26) / 234 / 0.45
+    expect(near(pixel(day, 60, 0), [0xee, 0xf3, 0xf7].map((v, k) => v + ([0xe7, 0xed, 0xf2][k] - v) * f))).toBe(true)
+    expect(pixel(day, 119, 259)).toEqual([0xe1, 0xe8, 0xee])
   })
 
   it('cover the owner\'s iPhone in both appearances, one file each', () => {
