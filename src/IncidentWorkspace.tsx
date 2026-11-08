@@ -183,7 +183,8 @@ import { useMediaOutbox } from './workspace/useMediaOutbox'
 import { useLifecycleElsewhere } from './workspace/useLifecycleElsewhere'
 import { PresentationContext, usePresentation } from './workspace/usePresentation'
 import { MapRings, PresentationPill } from './components/Presentation'
-import { useTutorialSession } from './lib/tutorials/session'
+import { startTutorial, useTutorialSession } from './lib/tutorials/session'
+import { loadProgress as loadTutorialProgress, resumeFor } from './lib/tutorials/progress'
 import { tutorialEvent } from './lib/tutorials/bus'
 import { TutorialRunner } from './components/tutorial/lazy'
 
@@ -2916,6 +2917,15 @@ export function IncidentWorkspace({
    * The phone's FAB yields to the done card, so the runner says when that card stands. */
   const tutorialSession = useTutorialSession()
   const [tutorialEndCard, setTutorialEndCard] = useState(false)
+  // A Lern-Übung opened again without its run – a new tab, the PWA relaunched, another device –
+  // picks it up (lib/tutorials/progress · resumeFor; owner, 08.11.2026), in front only: nothing
+  // starts behind «Karte & Objekte». Safe to re-ask whenever the run goes: a pause, a finished or
+  // ended run leaves progress that `resumeFor` answers with null.
+  useEffect(() => {
+    if (tutorialSession || linkScoped || roleReadOnly || covered) return
+    const r = resumeFor(loadTutorialProgress(), incidentMeta)
+    if (r) startTutorial(r.id, { step: r.step, incidentId: incidentMeta.id })
+  }, [tutorialSession, linkScoped, roleReadOnly, covered, incidentMeta])
   const tutorialRunner = (layer: boolean) => tutorialSession && !linkScoped && (
     <Suspense fallback={null}>
       <TutorialRunner layer={layer} onEndCard={layer ? setTutorialEndCard : undefined} enabled

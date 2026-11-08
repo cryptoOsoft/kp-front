@@ -77,10 +77,13 @@ export function useTutorialSession(): TutorialSession | null {
 }
 
 /** What only the App shell can do for a run: open another Einsatz (the Lern-Übung the door
- *  returned) and leave the one in front (after the done card deleted it). App registers it once;
- *  without it (a test, a shell that never registered) the runner stays on the open Einsatz. */
+ *  returned) IN FRONT, bring the open one forward from behind «Karte & Objekte» when a run binds
+ *  to it there (a run started on home must be seen, 08.11.2026), and leave the one in front
+ *  (after the done card deleted it). App registers it once; without it (a test, a shell that
+ *  never registered) the runner stays on the open Einsatz. */
 export interface TutorialHost {
   open: (incidentId: string) => void
+  reveal: () => void
   leave: () => void
 }
 
