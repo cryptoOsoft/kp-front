@@ -16,6 +16,7 @@ import { defineConfig, loadEnv, type Plugin, type Rollup } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA, type VitePWAOptions } from 'vite-plugin-pwa'
 import { resolveCustomMedia } from './src/lib/breakpoints.ts'
+import { gradientPngs, splashGradients, startupImages } from './scripts/startup-images.mjs'
 
 type RuntimeCache = NonNullable<NonNullable<VitePWAOptions['workbox']>['runtimeCaching']>[number]
 type RuntimePlugin = NonNullable<NonNullable<RuntimeCache['options']>['plugins']>[number]
@@ -69,6 +70,55 @@ function inlineSnailLoader(): Plugin {
       if (!html.includes(marker)) throw new Error('Boot splash is missing the snail loader marker')
       const artwork = readFileSync(new URL('./public/firefighter-snail-loader.svg', import.meta.url), 'utf-8')
       return html.replace(marker, `<div class="snail-loader" aria-hidden="true">${artwork}</div>`)
+    },
+  }
+}
+
+// The entry stylesheet (the whole field app's CSS, ~480 KB) must not hold the first paint: a
+// `<link rel=stylesheet>` in <head> is render-blocking, and on an iPhone cold launch iOS keeps
+// its black launch screen up until that first paint (owner's recording 08.11.2026: ~4 s black).
+// The boot cover never needed it – index.html inlines its critical CSS for exactly the window
+// before this sheet arrives. So the link ships as `media="print"` (downloaded, never blocking)
+// and main.tsx · entryStylesheet switches it to `all` once loaded, before React replaces the
+// cover. Not the `onload="this.media='all'"` idiom: the CSP hashes inline scripts, and an
+// event-handler attribute is not one. Loud if Vite's injected shape changes.
+function deferEntryStylesheet(): Plugin {
+  const LINK = /<link rel="stylesheet" crossorigin href="(\/assets\/index-[^"]+\.css)">/g
+  return {
+    name: 'kp-defer-entry-stylesheet',
+    apply: 'build',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html, context) {
+        if (context.filename !== resolve('index.html')) return html
+        const n = html.match(LINK)?.length ?? 0
+        if (n !== 1) throw new Error(`kp-defer-entry-stylesheet: expected one entry stylesheet link, found ${n}`)
+        return html.replace(LINK, '<link rel="stylesheet" crossorigin href="$1" media="print" id="kp-entry-css">')
+      },
+    },
+  }
+}
+
+// iOS launch images: the splash background instead of black while iOS starts the installed app
+// (scripts/startup-images.mjs has the why). Build only, emitted as plain files outside the
+// precache (no png in globPatterns) – iOS fetches the one matching its screen itself.
+function iosStartupImages(): Plugin {
+  const screens = startupImages()
+  return {
+    name: 'kp-ios-startup-images',
+    apply: 'build',
+    transformIndexHtml(html, context) {
+      if (context.filename !== resolve('index.html')) return html
+      return screens.flatMap(({ files }) => Object.values(files)).map(({ file, media }) => (
+        { tag: 'link', attrs: { rel: 'apple-touch-startup-image', media, href: `/${file}` }, injectTo: 'head' as const }
+      ))
+    },
+    generateBundle() {
+      const gradients = splashGradients(readFileSync(resolve('index.html'), 'utf-8'))
+      for (const { w, h, files } of screens) {
+        const pngs = gradientPngs(w, h, gradients)
+        for (const [scheme, { file }] of Object.entries(files)) this.emitFile({ type: 'asset', fileName: file, source: pngs[scheme] })
+      }
     },
   }
 }
@@ -245,6 +295,8 @@ export default defineConfig(({ mode }) => {
     css: { postcss: { plugins: [customMedia()] } },
     plugins: [
       inlineSnailLoader(),
+      deferEntryStylesheet(),
+      iosStartupImages(),
       buildStampMeta(),
       customMediaResolved(),
       react(),
