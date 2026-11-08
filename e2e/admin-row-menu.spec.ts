@@ -19,6 +19,9 @@ test.describe('admin row action menu', () => {
 
   test('the row menu is on top and its actions fire', async ({ page }) => {
     await page.goto('/admin')
+    // the admin is inert under the boot cover until it lifts (lib/snailLaunch · liftBootCover), and
+    // a `fill` – unlike a click – does not wait for it: the secret just vanished (CI 08.11.2026)
+    await expect(page.locator('.boot-splash')).toHaveCount(0)
 
     // Admin gate: the deployment ADMIN_SECRET (no kiosk login needed).
     await page.locator('#adm-secret').fill(ADMIN_SECRET!)
