@@ -52,10 +52,10 @@ import { pickTrouble, readTrouble, recordTrouble, type TroubleEvent } from './li
 import { onStorageDegraded } from './lib/idb'
 import { loadRoster } from './lib/usePersonnel'
 import { HelpOverlay } from './components/HelpOverlay'
-import { UebenSheet } from './components/tutorial/lazy'
+import { TutorialLauncher, UebenSheet } from './components/tutorial/lazy'
 import { offeredTutorials } from './lib/tutorials/offer'
 import { installHoldTooltip } from './lib/holdTooltip'
-import { setTutorialHost } from './lib/tutorials/session'
+import { setTutorialHost, useTutorialSession } from './lib/tutorials/session'
 
 // Objektbesuche (/besuche…, docs/object-visits.md): its own lazy chunk — precached with the field
 // app, so the surface opens offline — mounted in place of home while its route is on.
@@ -272,6 +272,9 @@ export default function App() {
   // what this session may practise (none on a link: the «Üben» row is not drawn then)
   const tutorials = offeredTutorials({ role: user?.role, linkScoped })
   const openUeben = tutorials.length > 0 ? () => setLandingSheet('ueben') : undefined
+  // a run that has no Einsatz yet – the launcher's cue (below, where nothing else carries it)
+  const tutorialSession = useTutorialSession()
+  const tutorialWaits = !!tutorialSession && !tutorialSession.host && !tutorialSession.incidentId
   // Rückmeldung: something went wrong recently and the cooldown has passed → ask on the
   // LAUNCHER, never inside an incident. Read once at mount; the log only grows during an
   // incident, and by then this branch isn't rendered anyway.
@@ -480,11 +483,14 @@ export default function App() {
   }, [selectIncident])
 
   // «Üben» (lib/tutorials/session · TutorialHost): the runner opens the Lern-Übung the door handed
-  // out, and the done card's «Übung löschen» leaves it before it is deleted – the same hard leave
-  // as «Zurück» from an archived view, minus the «Alle Einsätze» it lands on.
+  // out IN FRONT – «Karte & Objekte» over another Einsatz steps aside, or the run would bind behind
+  // it and show nothing (08.11.2026) – and `reveal` brings a covered Einsatz forward when a run
+  // binds to it. The done card's «Übung löschen» leaves it before it is deleted – the same hard
+  // leave as «Zurück» from an archived view, minus the «Alle Einsätze» it lands on.
   useEffect(() => {
     setTutorialHost({
-      open: (id) => { void openIncident(id) },
+      open: (id) => { uncoverEinsatz(); void openIncident(id) },
+      reveal: uncoverEinsatz,
       leave: () => {
         if (syncRef.current) { syncRef.current.dispose(); syncRef.current = null }
         savePrefs({ ...loadPrefs(), incidentId: undefined })
@@ -493,7 +499,7 @@ export default function App() {
       },
     })
     return () => setTutorialHost(null)
-  }, [openIncident, refreshList])
+  }, [openIncident, refreshList, uncoverEinsatz])
 
   // boot: list → migrate legacy localStorage if empty → open remembered/first incident.
   // Offline (network error), fall back to the cached list so the last incident reopens
@@ -715,6 +721,9 @@ export default function App() {
   })
   /** a surface stands in front of the open Einsatz, which stays mounted behind it (covered) */
   const einsatzBehind = screen === 'karte' || screen === 'visits'
+  /** an Einsatz is open (in front or covered, or on its way): its workspace's runner carries a
+   *  run – the «Üben» launcher below is only for when there is none */
+  const einsatzCarriesRuns = !!activeId && (screen === 'einsatz' || (einsatzBehind && !linkScoped))
 
   // Objektbesuche: the whole screen, home or not — and it does not wait for the Einsatz list.
   // The Meldeleiste and the toast/confirm host stay, the surface's own dialogs need them.
@@ -936,6 +945,9 @@ export default function App() {
       {/* on every screen: the Einsatz menu opens it too, and a tap starts the tutorial there (its
           own chunk, components/tutorial/lazy) */}
       {landingSheet === 'ueben' && <Suspense fallback={null}><UebenSheet tutorials={tutorials} onClose={() => setLandingSheet(null)} /></Suspense>}
+      {/* «Üben» started with no Einsatz mounted to carry it (home): the launcher opens its Lern-Übung,
+          whose workspace then runs it (components/tutorial/TutorialRunner · TutorialLauncher) */}
+      {tutorialWaits && !einsatzCarriesRuns && !linkScoped && <Suspense fallback={null}><TutorialLauncher /></Suspense>}
       {screen !== 'einsatz' && landingSheet === 'install' && <InstallGuide onClose={() => setLandingSheet(null)} />}
       {screen !== 'einsatz' && feedbackFor && (
         <FeedbackSheet

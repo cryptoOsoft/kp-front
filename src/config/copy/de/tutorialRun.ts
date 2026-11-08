@@ -37,6 +37,8 @@ export const tutorialRunCopy = {
     sandboxFailed: 'Lern-Übung konnte nicht angelegt werden – geübt wird auf dieser Übung.',
     /** …and the open Einsatz is a real one: nothing is practised on it */
     sandboxRefused: 'Lern-Übung konnte nicht angelegt werden. Geübt wird nur auf einer Übung – bitte später nochmals.',
+    /** a row whose tutorial has no steps yet (Round 1: all but T2) – instead of a tap that does nothing */
+    notYet: '«{title}» ist noch in Arbeit – bald hier.',
     done: {
       title: 'Geschafft – {title}',
       /** «Beenden» before the last step */

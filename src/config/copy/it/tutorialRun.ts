@@ -22,6 +22,7 @@ export const tutorialRunCopy: Localizable<Pick<Copy, 'tutorialRun'>> = {
     skippedTag: 'saltato',
     sandboxFailed: 'Impossibile creare l\'esercitazione di apprendimento – ci si esercita su questa esercitazione.',
     sandboxRefused: 'Impossibile creare l\'esercitazione di apprendimento. Ci si esercita solo su un\'esercitazione – riprova più tardi.',
+    notYet: '«{title}» è ancora in preparazione – presto qui.',
     done: {
       title: 'Fatto – {title}',
       ended: 'Terminato – {title}',

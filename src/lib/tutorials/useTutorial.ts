@@ -15,6 +15,8 @@
 //
 // Guards: nothing runs in a link session (`enabled` false); a DIFFERENT Einsatz opening ends the
 // run silently – the progress keeps the step, the «Üben» sheet offers «Fortsetzen».
+// A run started with no Einsatz mounted (home) is opened by components/tutorial/TutorialRunner ·
+// TutorialLauncher instead – the same door, then App opens the Übung and this hook binds there.
 // The UI is components/tutorial/TutorialLayer; this hook returns what it shows and its actions.
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
@@ -23,6 +25,7 @@ import type { WorkspaceMode } from '../../workspace/types'
 import { appConfig } from '../../config/appConfig'
 import { isDemoMode } from '../deploymentConfig'
 import { toast } from '../ui'
+import { fillTemplate } from '../format'
 import { TUTORIALS, tutorialMeta, type TutorialId } from './catalogue'
 import { clearStep, markDone, markStep } from './progress'
 import { deleteLernUebung, openLernUebung, renameLernUebung } from './sandbox'
@@ -92,6 +95,15 @@ const NO_EVENTS: readonly TutorialEvent[] = []
 const noSubscribe = () => () => {}
 const noEvents = () => NO_EVENTS
 
+/** a tutorial this build can run: inside an Einsatz, with steps (Round 1: T2 only) */
+export const canRunInEinsatz = (id: TutorialId): boolean => tutorialMeta(id).surface === 'einsatz' && runnable(id)
+
+/** a row whose run cannot start yet: said once, and the session goes */
+export function notYet(id: TutorialId): void {
+  toast(fillTemplate(appConfig.copy.tutorialRun.notYet, { title: appConfig.copy.tutorials.titles[id] }), { icon: 'info' })
+  setTutorialSession(null)
+}
+
 /** the next tutorial after `id` that runs inside an Einsatz and has steps (Round 1: none) */
 export function nextTutorialAfter(id: TutorialId): TutorialId | null {
   const i = TUTORIALS.findIndex((t) => t.id === id)
@@ -143,13 +155,16 @@ export function useTutorial(input: TutorialInput): TutorialRun | null {
     // the door handed out another Einsatz and App is opening it – that mount binds
     if (session.incidentId && session.incidentId !== incident.id) return
     const meta = tutorialMeta(session.id)
-    // not a run this surface can carry (Round 2: the Karte home, the Objektbesuche)
-    if (meta.surface !== 'einsatz' || !runnable(session.id)) return
+    // not a run any surface can carry yet (Round 2: its steps, the Karte home, the Objektbesuche):
+    // say so instead of a tap that does nothing (08.11.2026)
+    if (!canRunInEinsatz(session.id)) { notYet(session.id); return }
     const bind = (lern?: string) => {
       setTutorialSession({ ...session, host: incident.id, incidentId: lern, startedAt: session.startedAt ?? Date.now() })
-      markStep(session.id, session.step)
+      markStep(session.id, session.step, { lern })
       const first = stepsOf(session.id)[session.step]?.surface
       if (first) setMode(first)
+      // bound while «Karte & Objekte» covers this Einsatz: the run must be SEEN (08.11.2026)
+      getTutorialHost()?.reveal()
     }
     if (session.incidentId === incident.id || meta.sandbox !== 'uebung') { bind(session.incidentId); return }
     let stale = false
@@ -229,7 +244,7 @@ export function useTutorial(input: TutorialInput): TutorialRun | null {
     confirm: () => go(advanced(s)),
     goTo: (i) => go({ ...s, step: Math.max(0, Math.min(total - 1, i)) }),
     pause: () => {
-      markStep(s.id, s.step)
+      markStep(s.id, s.step, { paused: true })
       setTutorialSession(null)
       toast(appConfig.copy.tutorialRun.paused)
     },

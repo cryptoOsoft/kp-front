@@ -33,6 +33,7 @@ const NOT_COPY = new Map<string, string>([
   ['Vor dem nächsten Einsatz nötig?', 'a checklist item of the place template object-visits.spec uploads itself'],
   ['Hydrant · Neuer Hydrant fehlt im Plan', 'the answers object-visits.spec gives the place template, as the visit card sums them up'],
   ['Perf Meldung 10', 'the Meldung the performance journeys type in themselves (e2e/journeys.journey.ts)'],
+  ['Lernen · Karte – die Lage zeichnen', 'the Lern-Übung\'s title, composed by the server from «Lernen · » and the tutorial\'s title (backend tutorial_seed · lern_title; both halves are copy)'],
 ])
 
 /** Locator calls that take a user-visible string. `locator('text=…')` is included
