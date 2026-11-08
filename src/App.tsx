@@ -888,6 +888,10 @@ export default function App() {
             onOpenVisits={openVisitsFromKarte}
             running={runningNow}
             onOpenIncident={openOrUncover}
+            onSettings={home.onSettings}
+            onHelp={home.onHelp}
+            // App's sheets and dialogs over the viewer own the keyboard (KarteApp · useKarteKeys)
+            keysOff={landingSheet !== null || feedbackFor !== null || overlay !== null || showWelcome}
           />
         </Suspense>
       ) : screen === 'launcher' ? (

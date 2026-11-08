@@ -45,12 +45,17 @@
   .maplibregl-ctrl-attrib-button::after { content: ''; position: absolute; inset: calc((var(--tap) - 24px) / -2); }
 }
 /* …and on a tablet or laptop it steps LEFT of the view bar that holds that corner (07-toolrail ·
-   .view-bar, staging review 06.11.2026 S2): 8px of air to the bar's left edge (`--view-bar-w`,
-   measured by ToolRail) and centred on its height. The control's own 16px margin (above) is the
-   inset, so the corner box moves by the bar alone. A phone hides the ⓘ in `.app` (15-mobile). */
+   .view-bar, staging review 06.11.2026 S2): the bar's own inset, its width (`--view-bar-w`,
+   measured by ToolRail) and 8px of air, centred on its height. A phone hides the ⓘ in `.app`
+   (15-mobile).
+   ⚠️ The inset is in `right`, not the control's 16px margin: the rail rules above zero that margin,
+   and with them on it the ⓘ stood 8px INSIDE the bar's left edge (owner, 07.11.2026). ⚠️ And
+   this rule must OUT-RANK the rail-axis ones – the labelled rail's is six classes deep, and with
+   «Beschriftung» on it won and parked the ⓘ under the bar. `:has(.tool-rail + .view-bar)` makes
+   it seven and says what it is for: the map rail's own bar. */
 @media (--not-phone) {
-  :root:has(.view-bar) .app > .maplibregl-map .maplibregl-ctrl-bottom-right {
-    right: calc(var(--view-bar-w, 0px) + var(--float-gap));
+  :root:has(.view-bar) .app:has(.tool-rail + .view-bar) > .maplibregl-map .maplibregl-ctrl-bottom-right {
+    right: calc(max(16px, env(safe-area-inset-right)) + var(--view-bar-w, 0px) + var(--float-gap));
     bottom: calc((var(--view-bar-h) - 24px) / 2); }
 }
 /* The Lage map's twin of the plan canvas's tool cursors (.wb-canvas.tool-* below). `.placing`

@@ -44,6 +44,10 @@ import { cx } from '../../lib/cx'
 import { fillTemplate } from '../../lib/format'
 import { useAuth } from '../../lib/auth'
 import { useIsPhone } from '../../lib/useIsPhone'
+import { useRailLabels } from '../../lib/useDevicePrefs'
+import { PANEL_KEY } from '../../lib/hotkeys'
+import { karteToolKey } from '../../lib/karte/hotkeys'
+import { moduleNumbers } from '../../lib/navRail'
 import { useOnline } from '../../lib/useOnline'
 import { useViewportPan } from '../../lib/useViewportPan'
 import { noPanTouchEnd, useTypingLock } from '../../lib/iosKeyboard'
@@ -74,7 +78,7 @@ import { MapView } from '../MapView'
 import { LayerPanel } from '../LayerPanel'
 import { MapHint, MeasurePanel } from '../MeasurePanel'
 import { ToolDock } from '../ToolDock'
-import { ToolRail } from '../ToolRail'
+import { RailKey, ToolRail } from '../ToolRail'
 import { MapViewsButton } from '../MapViewsMenu'
 import { WeatherBadge } from '../TopBar'
 import { WeatherRadarControls } from '../weatherLazy'
@@ -84,7 +88,7 @@ import { KartePanel, type PanelLevel, type PanelSel } from './KartePanel'
 import { KarteSearch } from './KarteSearch'
 import { KarteGefahrgut } from './KarteGefahrgut'
 import { KarteKeySheet } from './KarteKeySheet'
-import { KarteNavRail, KarteSurface } from './KartePlans'
+import { KarteNavRail, KarteSurface, type ReaderHandles } from './KartePlans'
 import { KarteDevice } from './KarteDevice'
 import { AlarmNudgeCard } from './AlarmReadiness'
 import { useBasemapOffline, usePlansHeld } from './useKarteOffline'
@@ -96,6 +100,7 @@ import { useKarteTools, type Tool } from './useKarteTools'
 import { useKarteAddress, useKeepKarteView, useReturnToasts } from './useKarteSession'
 import { useKarteMenu } from './useKarteMenu'
 import { useKarteSearch } from './useKarteSearch'
+import { useKarteKeys } from './useKarteKeys'
 import { useCompassViews, useFrameOnReturn, useKarteCamera } from './useKarteCamera'
 import { useFrameHydrant, useHitStreet, useHydrantShown, useHydrants, useNearby, useObjectVisits, usePinAddress, useRegister } from './useKartePlace'
 import { useMapHover, useMapPress } from './useKartePointer'
@@ -121,9 +126,14 @@ export interface KarteAppProps {
   /** the open Einsätze, the newest first (the red chip names the first real one — see `runningChip`) */
   running: IncidentMeta[]
   onOpenIncident: (i: IncidentMeta) => void
+  /** ⌘ , and ? (useKarteKeys): App's own Einstellungen and Hilfe, the menu's rows */
+  onSettings: () => void
+  onHelp: () => void
+  /** one of App's sheets stands over the viewer (Einstellungen, Hilfe, a dialog): no keys reach it */
+  keysOff?: boolean
 }
 
-export default function KarteApp({ einsaetze, announceReturn = false, onOpenVisits, running, onOpenIncident }: KarteAppProps) {
+export default function KarteApp({ einsaetze, announceReturn = false, onOpenVisits, running, onOpenIncident, onSettings, onHelp, keysOff = false }: KarteAppProps) {
   const C = appConfig.copy.karte
   const { user } = useAuth()
   const phone = useIsPhone()
@@ -456,6 +466,57 @@ export default function KarteApp({ einsaetze, announceReturn = false, onOpenVisi
     { id: 'measure', icon: 'measure', label: C.tools.measure },
     { id: 'erg', icon: 'warn', label: C.tools.erg },
   ]
+  // «Beschriftung» from the Einstellungen, live (App's settings sheet sits over this surface): the
+  // word under the glyph on all three bars and the view bar, as in an Einsatz (owner, 07.11.2026)
+  const railLabels = useRailLabels(phone)
+
+  // ── the keyboard (lib/karte/hotkeys · useKarteKeys) ───────────────────────────────────────
+  // the bar's field, whichever it is (the map's search or, on the Checkliste, the library's)
+  const barFieldRef = useRef<HTMLInputElement>(null)
+  // the open plan's reader: Einpassen and zoom, the keys an Einsatz's Plan answers to
+  const [reader] = useState<ReaderHandles>(() => ({ fitRef: { current: null }, keysRef: { current: null } }))
+  /** a tool by its key: back to the map with it armed (the phone bar's rule), or put away */
+  const keyTool = (t: 'pin' | 'measure' | 'erg' | 'layers') => {
+    setSurface(null)
+    if (phone && t !== 'pin') openPhoneTool(t)
+    else setTool(t)
+  }
+  useKarteKeys({
+    off: keysOff || sheetOpen || deviceOpen,
+    // one layer per press, back towards the plain map: the search, the compass menu, the armed
+    // tool, the open plan, then the selection
+    escape: () => {
+      if (searchOpen) setSearchOpen(false)
+      else if (viewsOpen) setViewsOpen(false)
+      else if (tool) setTool(tool)
+      else if (openDoc) setSurface(null)
+      else if (sel && onMapSurface) closePanel()
+    },
+    on: {
+      // the Karte tile's rule: on a phone it also puts the armed tool away
+      map: () => { setSurface(null); setSearchOpen(false); if (phone) setToolState(null) },
+      library: openLibrary,
+      module: ({ n }) => {
+        const d = docs.find((x) => moduleNumbers(x.doc).includes(n))
+        if (d) { setSurface(d.doc.id); setToolState(null); setSearchOpen(false) }
+      },
+      tool: ({ tool: t }) => keyTool(t),
+      layers: () => keyTool('layers'),
+      search: () => {
+        if (phone && !onLibrary) openPhoneSearch()
+        else barFieldRef.current?.focus()
+      },
+      zoom: ({ dir }) => {
+        if (openDoc) reader.keysRef.current?.zoom(dir === 'in' ? 1.3 : 1 / 1.3)
+        else if (onMapSurface) { if (dir === 'in') mapRef.current?.zoomIn(); else mapRef.current?.zoomOut() }
+      },
+      fit: () => { if (openDoc) reader.fitRef.current?.(); else if (onMapSurface) viewsApi.onFit() },
+      locate: () => { if (onMapSurface) viewsApi.onLocate() },
+      settings: onSettings,
+      help: onHelp,
+    },
+  })
+
   const approxAt = sel?.kind === 'object' && selObj && !coordOf(selObj) ? sel.approxAt ?? null : null
 
   // ── which objects carry their name tag (lib/karte/labels) ─────────────────────────────────
@@ -568,7 +629,7 @@ export default function KarteApp({ einsaetze, announceReturn = false, onOpenVisi
           <KarteSurface
             obj={selObj} doc={openDoc} phone={phone} sym={sym}
             offline={!online} held={openHeld} gebaeude={avail?.gebaeude ?? null}
-            onMap={() => setSurface(null)}
+            onMap={() => setSurface(null)} reader={reader} labels={railLabels}
           />
         )}
 
@@ -606,6 +667,7 @@ export default function KarteApp({ einsaetze, announceReturn = false, onOpenVisi
             <SearchField
               {...typingFieldProps('search', 'karte-checkliste')}
               key="library"
+              ref={barFieldRef}
               className={cx(s.search, phone && s.libSearch)}
               value={libQuery}
               onChange={setLibQuery}
@@ -618,6 +680,7 @@ export default function KarteApp({ einsaetze, announceReturn = false, onOpenVisi
             <SearchField
               {...typingFieldProps('search', 'karte')}
               key="map"
+              ref={barFieldRef}
               className={s.search}
               value={query}
               onChange={(v) => { setQuery(v); setSearchOpen(true) }}
@@ -685,7 +748,8 @@ export default function KarteApp({ einsaetze, announceReturn = false, onOpenVisi
         {railShown && (
           <KarteNavRail obj={selObj} docs={docs} active={onLibrary ? 'library' : openDoc ? { doc: openDoc.doc.id } : 'map'}
             onMap={() => setSurface(null)} onLibrary={openLibrary} onDoc={(id) => { setSurface(id); setToolState(null) }}
-            notHeld={!online ? new Set(docs.filter((d) => docHeld(d) === false).map((d) => d.doc.id)) : null} />
+            notHeld={!online ? new Set(docs.filter((d) => docHeld(d) === false).map((d) => d.doc.id)) : null}
+            labels={railLabels} />
         )}
 
         {panelShown && panelSel && (
@@ -722,13 +786,14 @@ export default function KarteApp({ einsaetze, announceReturn = false, onOpenVisi
             className="tool-rail"
             primary={{ id: '__none', icon: 'plus', label: '' }}
             tools={tabletTools}
-            hotkeys={false} // the viewer has no keyboard layer: no letters on Pin · Messen · ERG
+            labels={railLabels}
+            toolKey={karteToolKey} // P · D · U – the viewer's own keys (lib/karte/hotkeys)
             active={tool === 'layers' ? '' : tool ?? ''}
             onPick={(id) => setTool(id as Tool)}
             controls={(
               <>
                 <button className={cx('vrail-nbtn vrail-layers', tool === 'layers' && 'on')} title={C.tools.layers} aria-label={C.tools.layers} aria-pressed={tool === 'layers'} onClick={() => setTool('layers')}>
-                  <span className="vrail-glyph"><Icon id="layers" /></span><span className="vrail-label">{C.tools.layers}</span>
+                  <span className="vrail-glyph"><Icon id="layers" /></span><span className="vrail-label">{C.tools.layers}</span><RailKey k={PANEL_KEY.layers} />
                 </button>
                 <MapViewsButton api={viewsApi} bearing={view.bearing} readOnly variant="rail" btnClassName="vrail-nbtn vrail-views" activeClassName="on" glyphClassName="vrail-compass"
                   label={appConfig.copy.mapViews.title} open={viewsOpen} onOpenChange={(o) => { setViewsOpen(o); if (o && tool === 'layers') setToolState(null) }} />
@@ -744,18 +809,19 @@ export default function KarteApp({ einsaetze, announceReturn = false, onOpenVisi
             «Zur Karte» chip or the Karte tab */}
         {phone && (
           <>
-            <nav className="navrail rail folded labelled" aria-label={C.title}>
+            <nav className={cx('navrail rail folded', railLabels === 'short' && 'labelled')} aria-label={C.title}>
               <div className="rail-scroll-wrap"><div className="nav-scroll rail-scroll">
-                <button type="button" className={cx('nav-item', onMapSurface && !tool && 'on')} onClick={() => { setSurface(null); setToolState(null) }}>
+                {/* each tile names itself (aria-label): with «Beschriftung» off its word is not shown */}
+                <button type="button" className={cx('nav-item', onMapSurface && !tool && 'on')} aria-label={C.tools.map} onClick={() => { setSurface(null); setToolState(null) }}>
                   <span className="nav-glyph"><Icon id="map" /></span><span className="nav-label">{C.tools.map}</span>
                 </button>
-                <button type="button" className={cx('nav-item', onLibrary && 'on')} aria-pressed={onLibrary} onClick={openLibrary} data-karte-library="">
+                <button type="button" className={cx('nav-item', onLibrary && 'on')} aria-pressed={onLibrary} aria-label={appConfig.copy.modes.checklists} onClick={openLibrary} data-karte-library="">
                   <span className="nav-glyph"><Icon id="checklist" /></span><span className="nav-label">{appConfig.copy.modes.checklists}</span>
                 </button>
                 {/* the surfaces │ the map's tools */}
                 <div className={cx('nav-sep', s.barSep)} aria-hidden />
                 {(['measure', 'erg', 'layers'] as const).map((t) => (
-                  <button key={t} type="button" className={cx('nav-item', tool === t && 'on')} aria-pressed={tool === t} onClick={() => openPhoneTool(t)}>
+                  <button key={t} type="button" className={cx('nav-item', tool === t && 'on')} aria-pressed={tool === t} aria-label={C.tools[t]} onClick={() => openPhoneTool(t)}>
                     <span className="nav-glyph"><Icon id={t === 'erg' ? 'warn' : t} /></span><span className="nav-label">{C.tools[t]}</span>
                   </button>
                 ))}

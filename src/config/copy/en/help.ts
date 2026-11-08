@@ -29,6 +29,38 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
         ],
       },
       {
+        id: 'karte-objekte', title: 'Map & objects – no incident', icon: 'pin',
+        blocks: [
+          { kind: 'lead', text: 'With no incident open, KP Front lands here: the brigade’s map with all its objects, to look things up and prepare. This is not an incident – measuring, marking and looking things up happens on this device only, and none of it is saved.' },
+          { kind: 'sub', text: 'Search & objects' },
+          { kind: 'list', items: [
+            'The field at the top searches **addresses and objects**. A hit opens its details: hazards, hydrants nearby and the **object plans**.',
+            'Every object is outlined on the map with its buildings and carries its name; tap it to open it. Tapping another building shows what the register knows about it.',
+            'The selected object’s plans stand in the left rail and open in the same plan reader as in an incident – read-only. The button at the bottom left leads back to the object.',
+          ], only: 'wide' },
+          { kind: 'list', items: [
+            'The search at the top right finds **addresses and objects**. A hit opens its details: hazards, hydrants nearby and the **object plans**.',
+            'Every object is outlined on the map with its buildings and carries its name; tap it to open it. Tapping another building shows what the register knows about it.',
+            'The plans are rows in the object’s details and open in the same plan reader as in an incident – read-only. «Back» at the bottom leads to the map.',
+          ], only: 'phone' },
+          { kind: 'list', items: [
+            '**Object visit** and **Report** in the details start the capture, where the brigade has set it up.',
+          ] },
+          { kind: 'sub', text: 'Tools' },
+          { kind: 'list', items: [
+            '**Drop pin** – a point with its address and coordinates (LV95 + WGS84) to copy. A long press on free map drops one too.',
+            '**Measure** – distance or area.',
+            '**Dangerous goods** – enter the UN number: the ADR/ERG facts and the distances as rings around the chosen point.',
+            '**Layers** – utilities, hydrants, weather radar and the station data; a setting of its own, independent of any incident.',
+            '**Checklist** – the brigade’s checklists and device guides to read, with their own search.',
+          ] },
+          { kind: 'list', only: 'keyboard', items: [
+            'With a keyboard: every shortcut of this view is under **Keyboard shortcuts** › «Map & objects».',
+          ] },
+          { kind: 'note', text: 'When an incident is running it stands in the bar at the top – red, amber for an exercise – and a tap opens it. A dispatch is shown but never opened by itself.' },
+        ],
+      },
+      {
         id: 'navigation', title: 'Navigation & interface', icon: 'cursor',
         blocks: [
           { kind: 'lead', text: 'Three fixed zones: the area rail on the left, the incident bar on top, the tool rail on the right.', only: 'wide' },
@@ -42,7 +74,6 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
           { kind: 'sub', text: 'Left rail', only: 'wide' },
           { kind: 'list', items: [
             'Switches the work area: **Map** (Situation), the **Plans** (Modules/buildings), **Checklist**, **SCBA**.',
-            'In Situation mode, **Layers** and the **Map** toggle are pinned at the bottom – always visible.',
             'Dragging the right edge of the rail expands it with labels, or collapses it again.',
           ], only: 'wide' },
           { kind: 'sub', text: 'Top incident bar' },
@@ -62,14 +93,15 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
           ] },
           { kind: 'sub', text: 'Right tool rail', only: 'wide' },
           { kind: 'list', items: [
-            'The drawing and placement tools; pinned at the bottom, map navigation (zoom, fit, coordinates).',
+            'The drawing and placement tools.',
+            'Below them, in the bottom-right corner, the **view bar** – always visible, even when the tools scroll: on the map **Layers** and **Views** (the compass), on the plan **Fit** and the north arrow; with a mouse also **−** and **+**.',
           ], only: 'wide' },
         ],
       },
       {
         id: 'tastatur', title: 'Keyboard shortcuts', icon: 'type', only: 'keyboard',
         blocks: [
-          { kind: 'lead', text: 'With a keyboard everything is reachable without a mouse. Shortcuts do nothing while you are typing in a text field. Where a tile in either rail, or «Log» and «Entry» at the top, has a key, that key is printed on it.' },
+          { kind: 'lead', text: 'With a keyboard everything is reachable without a mouse. Shortcuts do nothing while you are typing in a text field, nor behind an open window. Where a tile has a key, its letter is printed on it – in both rails, in the view bar at the bottom right and on «Log» and «Entry» at the top (while «Show keyboard shortcuts» is on in **Settings**).' },
           { kind: 'sub', text: 'Switching areas' },
           { kind: 'list', items: [
             'Numbers open the plan module with that number – which ones exist depends on this brigade’s modules: [[1]] module 1, [[2]] or [[3]] the «2/3» module, [[4]] module 4 …',
@@ -78,17 +110,24 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
           ] },
           { kind: 'sub', text: 'Tools (identical in Situation and Plan)' },
           { kind: 'list', items: [
-            '[[V]] Select · [[W]] Multi-select · [[S]] Symbol · [[L]] Line · [[F]] Area · [[U]] Cordon · [[N]] Note · [[T]] Team · [[D]] Measure (map only).',
+            '[[V]] Select · [[W]] Multi-select · [[S]] Symbol · [[L]] Line · [[F]] Area · [[U]] Cordon · [[N]] Note · [[T]] Team · [[D]] Measure.',
           ] },
           { kind: 'sub', text: 'Editing' },
           { kind: 'list', items: [
-            '[[⌘]] [[Z]] Undo · [[⌘]] [[⇧]] [[Z]] Redo · [[⌘]] [[D]] Duplicate.',
-            '[[Esc]] closes in order: tool → open panel → selection. [[⌫]] deletes the selection.',
+            '[[⌘]] [[Z]] Undo · [[⌘]] [[⇧]] [[Z]] Redo · [[⌘]] [[D]] Duplicate · [[⌫]] deletes the selection.',
+            '[[Esc]] takes back one layer per press until the map is clear: a symbol being placed → capturing coordinates → Layers / Views → the tool → the note panel → the selection. In a field [[Esc]] only leaves the field; it closes the **Entry** and keeps its text for the next time.',
           ] },
           { kind: 'sub', text: 'View & panels' },
           { kind: 'list', items: [
             '[[+]] / [[−]] Zoom · [[0]] Fit · [[G]] My location · [[X]] Coordinate format. «Face north» has no key – that is what the compass is for, always visible and turning with the map.',
             '[[J]] Log · [[E]] Entry · [[B]] Layers · [[⌘]] [[,]] Settings · [[?]] this help.',
+            'On the **board**, [[PgUp]] / [[PgDn]] page through its sheets.',
+          ] },
+          { kind: 'sub', text: 'Map & objects (no incident)' },
+          { kind: 'list', items: [
+            'The same keys where the same thing exists: [[K]] Map · [[C]] Checklist · numbers the modules of the selected object · [[D]] Measure · [[B]] Layers · [[G]] My location · [[0]] Fit · [[+]] / [[−]] Zoom · [[⌘]] [[,]] Settings · [[?]] this help.',
+            'Plus what only exists here: [[P]] Drop pin (P as in Punkt) · [[U]] Dangerous goods (U as in UN number) · [[/]] or [[⌘]] [[K]] the search.',
+            '[[Esc]] steps back towards the map: search → Views → tool → open plan → selection.',
           ] },
         ],
       },
@@ -98,7 +137,7 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
           { kind: 'lead', text: 'The tactical map over the real map background (operational area and surroundings).' },
           { kind: 'list', items: [
             '**Base map** (top of the layers panel) switches the background: Carto, OpenStreetMap or satellite.',
-            '**Zoom in/out**, **Fit** and **Capture coordinates** at the bottom of the right rail. When capturing, tap the map to fix a point (LV95 + WGS84); the compass re-aligns to north.',
+            '**Views** – the compass at the bottom right – holds **Face north**, **Fit**, **My location**, **Capture coordinates** and the saved views; with a mouse **−** and **+** stand beside it. When capturing, tap the map to fix a point (LV95 + WGS84).',
             '**Wind** is shown continuously (direction + temperature) so the spread direction is immediately clear.',
             '**Vehicles** appear live via GPS (name + heading), your own position as a calm blue dot.',
             '**Building info** at the bottom left names the hazards of the building at the incident address (⚠ gas · PV) and opens its card: hazards, **Immediate measures** and Remarks at the top, the register facts below. The first time this device opens the incident, the card opens by itself so it gets read – the map stays usable. ✕ closes it; after that the chip opens it. A different address or object with content shows it once more.',
@@ -352,7 +391,7 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
           ] },
           { kind: 'sub', text: 'Keys', only: 'keyboard' },
           { kind: 'list', only: 'keyboard', items: [
-            '[[Esc]] cancels the active tool or clears the selection.',
+            '[[Esc]] takes back one layer – tool, open panel, selection (the full order is under **Keyboard shortcuts**).',
             '[[Del]] / [[Backspace]] deletes the selection (not while typing in a field).',
           ] },
           { kind: 'sub', text: 'Day / night' },

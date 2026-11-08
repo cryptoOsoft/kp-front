@@ -25,7 +25,8 @@
 // where a shortcut nobody can guess is worth less than none.
 // Bare letters are also the tools/panels/view; Cmd/Ctrl is reserved for the doc-level ops
 // (undo/redo/duplicate) and the OS-conventional Einstellungen (Cmd+,). The cheatsheet lives in
-// appConfig.copy.help ("Tastaturkürzel") — keep the three (here, SURFACE_KEY, help) in sync.
+// appConfig.copy.help ("Tastaturkürzel", all four languages) — keep the three (here, SURFACE_KEY,
+// help) in sync.
 //
 // The letters are SHOWN on the rails (31.10.2026, owner: «clear, uniform and configurable»): a
 // small badge on every tile of the left NavRail (SURFACE_KEY) and of the right ToolRail
@@ -39,6 +40,11 @@
 // key: the Karte's Ebenen (B) and the Plan's Einpassen (FIT_KEY · 0). Zoom − / + wear none – their
 // keys ARE their glyphs. Every badge source is a constant the keyboard decodes (SURFACE_KEY,
 // TOOL_KEY, PANEL_KEY, FIT_KEY), so a badge cannot name a letter that does nothing.
+//
+// «Karte & Objekte» (the viewer outside an Einsatz) has a keyboard layer of its own on top of this
+// decoder (lib/karte/hotkeys, 07.11.2026): every key it shares with the Einsatz means the same
+// thing there, and only P (Punkt setzen), U (Gefahrgut) and / · ⌘K (Suche) are its own. A change
+// here reaches it – keep its table and the help's «Karte & Objekte» block in step.
 
 export type ToolCmd =
   | 'select' | 'lasso' | 'symbol' | 'line' | 'area' | 'circle' | 'note' | 'team' | 'measure'

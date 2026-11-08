@@ -52,6 +52,38 @@ export const helpCopy = {
         ],
       },
       {
+        id: 'karte-objekte', title: 'Karte & Objekte – ohne Einsatz', icon: 'pin',
+        blocks: [
+          { kind: 'lead', text: 'Ohne offenen Einsatz landet KP Front hier: die Karte der Wehr mit allen Objekten, zum Nachschlagen und Vorbereiten. Das ist kein Einsatz – gemessen, markiert und nachgeschaut wird nur auf diesem Gerät, und gespeichert wird nichts davon.' },
+          { kind: 'sub', text: 'Suchen & Objekte' },
+          { kind: 'list', items: [
+            'Das Feld oben sucht **Adressen und Objekte**. Ein Treffer öffnet seine Angaben: Gefahren, Hydranten in der Nähe und die **Objektpläne**.',
+            'Jedes Objekt ist mit seinen Gebäuden auf der Karte umrandet und trägt seinen Namen; antippen öffnet es. Ein anderes Gebäude antippen zeigt, was das Register darüber weiss.',
+            'Die Pläne des gewählten Objekts stehen in der linken Leiste und öffnen sich im selben Planleser wie im Einsatz – nur zum Lesen. Der Knopf unten links führt zurück zum Objekt.',
+          ], only: 'wide' },
+          { kind: 'list', items: [
+            'Die Suche oben rechts findet **Adressen und Objekte**. Ein Treffer öffnet seine Angaben: Gefahren, Hydranten in der Nähe und die **Objektpläne**.',
+            'Jedes Objekt ist mit seinen Gebäuden auf der Karte umrandet und trägt seinen Namen; antippen öffnet es. Ein anderes Gebäude antippen zeigt, was das Register darüber weiss.',
+            'Die Pläne stehen als Zeilen in den Angaben des Objekts und öffnen sich im selben Planleser wie im Einsatz – nur zum Lesen. «Zurück» unten führt zur Karte.',
+          ], only: 'phone' },
+          { kind: 'list', items: [
+            '**Objektbesuch** und **Melden** in den Angaben starten die Erfassung, wo die Wehr sie eingerichtet hat.',
+          ] },
+          { kind: 'sub', text: 'Werkzeuge' },
+          { kind: 'list', items: [
+            '**Punkt setzen** – ein Punkt mit Adresse und Koordinaten (LV95 + WGS84) zum Kopieren. Auch langes Drücken auf die freie Karte setzt ihn.',
+            '**Messen** – Strecke oder Fläche.',
+            '**Gefahrgut** – UN-Nummer eingeben: die Angaben nach ADR/ERG und die Abstände als Kreise um den gewählten Punkt.',
+            '**Ebenen** – Leitungen, Hydranten, Wetter-Radar und die Stationsdaten; eine eigene Einstellung, unabhängig von jedem Einsatz.',
+            '**Checkliste** – die Checklisten und Geräte-Anleitungen der Wehr zum Lesen, mit eigener Suche.',
+          ] },
+          { kind: 'list', only: 'keyboard', items: [
+            'Mit Tastatur: alle Kürzel dieser Ansicht unter **Tastaturkürzel** › «Karte & Objekte».',
+          ] },
+          { kind: 'note', text: 'Läuft ein Einsatz, steht er oben in der Leiste – rot, bei einer Übung orange –, und ein Tipp öffnet ihn. Ein Alarm wird angezeigt, aber nie von selbst geöffnet.' },
+        ],
+      },
+      {
         id: 'navigation', title: 'Navigation & Oberfläche', icon: 'cursor',
         blocks: [
           { kind: 'lead', text: 'Drei feste Zonen: die Bereichsleiste links, die Einsatzleiste oben, die Werkzeugleiste rechts.', only: 'wide' },
@@ -65,7 +97,6 @@ export const helpCopy = {
           { kind: 'sub', text: 'Linke Leiste', only: 'wide' },
           { kind: 'list', items: [
             'Mit Tastatur und Maus steht an den Feldern der linken und der rechten Leiste, die ein Tastaturkürzel haben, der Buchstabe dazu – ebenso an «Verlauf» und «Eintrag» oben (abschaltbar in den **Einstellungen**: «Tastenkürzel anzeigen»). Alle Kürzel stehen unter **Tastaturkürzel**.',
-            'Im Kartenbereich sind **Ebenen** und der **Karten**-Umschalter unten angeheftet – immer sichtbar.',
             'Am rechten Rand der Leiste ziehen klappt sie mit Beschriftungen auf bzw. wieder zu.',
           ], only: 'wide' },
           { kind: 'sub', text: 'Obere Einsatzleiste' },
@@ -85,14 +116,15 @@ export const helpCopy = {
           ] },
           { kind: 'sub', text: 'Rechte Werkzeugleiste', only: 'wide' },
           { kind: 'list', items: [
-            'Die Zeichen- und Platzierwerkzeuge; unten angeheftet die Karten-Navigation (Zoom, Einpassen, Koordinaten).',
+            'Die Zeichen- und Platzierwerkzeuge.',
+            'Darunter, in der Ecke unten rechts, die **Ansichtsleiste** – immer sichtbar, auch wenn die Werkzeuge scrollen: auf der Karte **Ebenen** und **Ansichten** (der Kompass), im Plan **Einpassen** und der Nordpfeil; mit der Maus dazu **−** und **+**.',
           ], only: 'wide' },
         ],
       },
       {
         id: 'tastatur', title: 'Tastaturkürzel', icon: 'type', only: 'keyboard',
         blocks: [
-          { kind: 'lead', text: 'Wer mit Tastatur arbeitet, erreicht alles ohne Maus. Kürzel wirken nicht, während in einem Textfeld getippt wird. Hat ein Feld in einer der beiden Leisten eine Taste, steht sie darauf – ebenso an «Verlauf» und «Eintrag» oben.' },
+          { kind: 'lead', text: 'Wer mit Tastatur arbeitet, erreicht alles ohne Maus. Kürzel wirken nicht, während in einem Textfeld getippt wird, und nicht hinter einem offenen Fenster. Hat ein Feld eine Taste, steht ihr Buchstabe darauf – in beiden Leisten, in der Ansichtsleiste unten rechts und an «Verlauf» und «Eintrag» oben (solange «Tastenkürzel anzeigen» in den **Einstellungen** an ist).' },
           { kind: 'sub', text: 'Bereiche wechseln' },
           { kind: 'list', items: [
             'Zahlen öffnen das Plan-Modul mit dieser Nummer – welche es gibt, richtet sich nach den Modulen dieser Wehr: [[1]] Modul 1, [[2]] oder [[3]] das Modul «2/3», [[4]] Modul 4 …',
@@ -101,17 +133,24 @@ export const helpCopy = {
           ] },
           { kind: 'sub', text: 'Werkzeuge (Karte & Plan gleich)' },
           { kind: 'list', items: [
-            '[[V]] Auswahl · [[W]] Mehrfach wählen · [[S]] Symbol · [[L]] Linie · [[F]] Fläche · [[U]] Umkreis · [[N]] Notiz · [[T]] Trupp · [[D]] Messen (nur Karte).',
+            '[[V]] Auswahl · [[W]] Mehrfach wählen · [[S]] Symbol · [[L]] Linie · [[F]] Fläche · [[U]] Umkreis · [[N]] Notiz · [[T]] Trupp · [[D]] Messen.',
           ] },
           { kind: 'sub', text: 'Bearbeiten' },
           { kind: 'list', items: [
-            '[[⌘]] [[Z]] Rückgängig · [[⌘]] [[⇧]] [[Z]] Wiederherstellen · [[⌘]] [[D]] Duplizieren.',
-            '[[Esc]] schliesst der Reihe nach: Werkzeug → offenes Panel → Auswahl. [[⌫]] löscht die Auswahl.',
+            '[[⌘]] [[Z]] Rückgängig · [[⌘]] [[⇧]] [[Z]] Wiederherstellen · [[⌘]] [[D]] Duplizieren · [[⌫]] löscht die Auswahl.',
+            '[[Esc]] nimmt pro Druck eine Schicht zurück, bis die Karte wieder frei ist: ein Symbol, das gerade gesetzt wird → Koordinaten abgreifen → Ebenen / Ansichten → das Werkzeug → das Notiz-Panel → die Auswahl. In einem Feld verlässt [[Esc]] nur das Feld; den **Eintrag** schliesst es, der Text bleibt für das nächste Öffnen.',
           ] },
           { kind: 'sub', text: 'Ansicht & Panels' },
           { kind: 'list', items: [
             '[[+]] / [[−]] Zoom · [[0]] Einpassen · [[G]] Mein Standort · [[X]] Koordinaten-Format. «Nach Norden» hat keine Taste – dafür ist der Kompass da, der immer sichtbar ist und mitdreht.',
             '[[J]] Verlauf · [[E]] Eintrag · [[B]] Ebenen · [[⌘]] [[,]] Einstellungen · [[?]] diese Hilfe.',
+            'Auf der **Tafel** blättern [[Bild↑]] / [[Bild↓]] durch ihre Seiten.',
+          ] },
+          { kind: 'sub', text: 'Karte & Objekte (ohne Einsatz)' },
+          { kind: 'list', items: [
+            'Dieselben Tasten, wo es dasselbe gibt: [[K]] Karte · [[C]] Checkliste · Zahlen die Module des gewählten Objekts · [[D]] Messen · [[B]] Ebenen · [[G]] Mein Standort · [[0]] Einpassen · [[+]] / [[−]] Zoom · [[⌘]] [[,]] Einstellungen · [[?]] diese Hilfe.',
+            'Dazu, was es nur hier gibt: [[P]] Punkt setzen · [[U]] Gefahrgut (U wie UN-Nummer) · [[/]] oder [[⌘]] [[K]] die Suche.',
+            '[[Esc]] geht Schritt für Schritt zurück zur Karte: Suche → Ansichten → Werkzeug → offener Plan → Auswahl.',
           ] },
         ],
       },
@@ -121,7 +160,7 @@ export const helpCopy = {
           { kind: 'lead', text: 'Die taktische Karte über dem realen Kartenhintergrund (Einsatzgebiet und Umgebung).' },
           { kind: 'list', items: [
             '**Grundkarte** (zuoberst im Ebenen-Panel) wechselt den Hintergrund: Carto, OpenStreetMap oder Satellit.',
-            '**Vergrössern/Verkleinern**, **Einpassen** und **Koordinaten abgreifen** in der rechten Leiste unten. Beim Abgreifen auf die Karte tippen, um einen Punkt (LV95 + WGS84) festzuhalten; der Kompass richtet wieder nach Norden aus.',
+            '**Ansichten** – der Kompass unten rechts – hat **Nach Norden**, **Einpassen**, **Mein Standort**, **Koordinaten abgreifen** und die gespeicherten Ansichten; mit der Maus stehen **−** und **+** daneben. Beim Abgreifen auf die Karte tippen, um einen Punkt (LV95 + WGS84) festzuhalten.',
             '**Wind** wird laufend angezeigt (Richtung + Temperatur), damit die Ausbreitungsrichtung sofort ersichtlich ist.',
             '**Fahrzeuge** erscheinen live per GPS (Name + Ausrichtung), die eigene Position als ruhiger blauer Punkt.',
             '**Gebäude-Info** unten links nennt, was das Gebäude am Einsatzort an Gefahren hat (⚠ Gas · PV), und öffnet den Steckbrief: Gefahren, **Sofortmassnahmen** und Bemerkungen zuoberst, darunter die Register-Angaben. Beim ersten Öffnen des Einsatzes auf diesem Gerät geht er von selbst auf, damit er gelesen wird – die Karte bleibt bedienbar. ✕ schliesst ihn; danach öffnet ihn der Chip. Bei einem anderen Einsatzort oder Objekt mit Inhalt erscheint er nochmals.',
@@ -388,12 +427,12 @@ export const helpCopy = {
           ] },
           { kind: 'sub', text: 'Tasten', only: 'keyboard' },
           { kind: 'list', only: 'keyboard', items: [
-            '[[Esc]] bricht das aktive Werkzeug ab bzw. hebt die Auswahl auf.',
+            '[[Esc]] nimmt eine Schicht zurück – Werkzeug, offenes Panel, Auswahl (die ganze Reihenfolge unter **Tastaturkürzel**).',
             '[[Entf]] / [[Backspace]] löscht die Auswahl (nicht beim Tippen in ein Feld).',
           ] },
           { kind: 'sub', text: 'Beschriftete Leisten' },
           { kind: 'list', items: [
-            'In den **Einstellungen** ([[⌘]] [[,]]) unter «Beschriftung der Werkzeugleisten»: **Ein** schreibt unter jedes Zeichen der beiden Leisten sein Wort. Für alle, die die Symbole noch nicht auswendig kennen – die Leiste wird dafür etwas breiter, und «Ausklappen» braucht es dann nicht mehr. Auf dem **Telefon** ist sie von Anfang an ein.',
+            'In den **Einstellungen** ([[⌘]] [[,]]) unter «Beschriftung der Werkzeugleisten»: **Ein** schreibt unter jedes Zeichen sein Wort – in der linken und der rechten Leiste und in der Ansichtsleiste unten rechts, im Einsatz wie auf «Karte & Objekte». **Aus** lässt überall nur die Zeichen stehen. Für alle, die die Symbole noch nicht auswendig kennen – die Leisten werden dafür etwas breiter, und im Einsatz braucht es «Ausklappen» dann nicht mehr. Auf dem **Telefon** ist sie von Anfang an ein.',
             'Ist sie aus, bleibt es beim Zeichen; ein Tipp auf **Ausklappen** zeigt die Namen für so lange, wie die Leiste offen bleibt.',
             'Überall sonst gilt: einen Knopf, auf dem nur ein Zeichen steht, **gedrückt halten** – nach einem kurzen Moment steht sein Wort als Blase darüber, auf Touch mit einem kurzen Summen. Das Loslassen löst den Knopf dabei **nicht** aus: fragen, was etwas ist, darf es nicht gleich auch tun. An der Maus genügt Draufzeigen.',
           ] },

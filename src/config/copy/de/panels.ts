@@ -145,7 +145,7 @@ export const panelsCopy = {
     symbolCaptions: 'Beschriftungen',
     symbolCaptionsSub: 'Kennwert unter dem Symbol',
     railLabels: 'Beschriftung der Werkzeugleisten',
-    railLabelsSub: 'Wort unter jedem Zeichen in den beiden Leisten',
+    railLabelsSub: 'Wort unter jedem Zeichen in allen Leisten',
     // Gerätepräferenz, Standard AN (lib/prefs · keyHints): der Buchstabe auf jedem Feld beider Leisten
     keyHints: 'Tastenkürzel anzeigen',
     keyHintsSub: 'Buchstaben an den Werkzeugleisten – nur auf Geräten mit Tastatur und Maus.',
