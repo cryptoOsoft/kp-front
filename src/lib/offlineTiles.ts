@@ -1,5 +1,5 @@
 // Pre-download a map area for offline use. We just `fetch()` each tile URL — the service
-// worker's `map-tiles` runtimeCache (see vite.config.ts) stores the responses, so the
+// worker's tile store (public/sw-tile-store.js) keeps the responses, so the
 // base map renders later with no signal. Downloads stay CORS-only because opaque responses are
 // padded heavily in iOS Cache Storage; supported raster hosts must therefore send CORS headers.
 

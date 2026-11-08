@@ -84,6 +84,9 @@ async function openSurface(page: Page) {
   await expect(page).toHaveURL(/\/besuche$/)
   // the catalogue is on the device once its search and «In der Nähe» are drawn
   await expect(page.getByRole('button', { name: /In der Nähe/ })).toBeVisible()
+  // …beneath the boot cover after a `goto`: the app is inert until it lifts (lib/snailLaunch ·
+  // liftBootCover), and a `fill` – unlike a click – does not wait for it, the text just vanishes
+  await expect(page.locator('.boot-splash')).toHaveCount(0)
   await page.evaluate(async () => { await navigator.serviceWorker.ready })
 }
 

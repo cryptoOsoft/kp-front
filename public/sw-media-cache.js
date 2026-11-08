@@ -15,7 +15,8 @@ const KP_REFERENCE_CACHE = 'reference-data'
 // …and the pinned plan revisions, cached separately because they are PDFs of tens of megabytes
 // (vite.config · reference-plans). Same rule: a revoked device keeps nothing of the station.
 const KP_REFERENCE_PLAN_CACHE = 'reference-plans'
-// …and the same sheets as tiles, with their manifests (vite.config · plan-tiles).
+// …and the same sheets as tiles, with their manifests (sw-tile-store.js), plus the Cache Storage
+// copies of releases before 08.11.2026 that are not moved over yet.
 const KP_PLAN_TILE_CACHES = ['plan-tiles', 'plan-tile-manifests']
 // …and the checklist images: Anleitung step pictures + playbook diagrams (vite.config · checklist-assets).
 const KP_CHECKLIST_ASSET_CACHE = 'checklist-assets'
@@ -87,6 +88,7 @@ async function kpClearOnDenial() {
     caches.delete(KP_REFERENCE_CACHE),
     caches.delete(KP_REFERENCE_PLAN_CACHE),
     ...KP_PLAN_TILE_CACHES.map((name) => caches.delete(name)),
+    self.kpClearTiles?.(['plan', 'manifest']),
     caches.delete(KP_CHECKLIST_ASSET_CACHE),
   ])
 }

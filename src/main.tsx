@@ -172,6 +172,9 @@ void (async () => {
     // idle callback fires in the first quiet moment after first paint (2 s at the latest), and
     // both files are precached, so offline they land exactly as before.
     if (fieldRoute) whenIdle(() => { void ensureUnHazard(); void ensureErg() })
+    // Tiles cached by releases before 08.11.2026 move from Cache Storage into the worker's tile
+    // store (public/sw-tile-store.js), asked on every launch until it is done – well after the boot.
+    setTimeout(() => navigator.serviceWorker?.controller?.postMessage({ type: 'kp-tile-migrate' }), 10_000)
   } catch (e) {
     // Boot init must never white-screen the kiosk: fall through to defaults and render.
     console.error('Boot init failed (continuing with defaults):', e)

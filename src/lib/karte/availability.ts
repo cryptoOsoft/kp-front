@@ -5,20 +5,20 @@
 //   · the catalogue and the register answers of buildings looked at: IndexedDB
 //     (lib/api/stationReference — one catalogue entry, one entry per building asked for);
 //   · a plan: its PDF in the service worker's `reference-plans` cache (lib/pdfBytes · one plain GET
-//     per pinned revision) OR its tile pyramid — the manifest in `plan-tile-manifests`, the tiles in
-//     `plan-tiles`, which the reader fetches whole once a sheet is open online
+//     per pinned revision) OR its tile pyramid — manifest and tiles in the worker's tile store
+//     (lib/tileStore), which the reader fetches whole once a sheet is open online
 //     (lib/planTilePrefetch). ⚠️ A TILED sheet opened online never fetches its PDF (review round 3:
 //     the Karte then said «PDF nicht gespeichert» offline for a plan that opens perfectly from its
 //     tiles). The rule is what the reader that will open it needs: the PDF (pdf.js), or the
 //     tiles (`planLamp`) — never an extra PDF download to make a lamp green;
 //   · the Gebäude storeys and the aligned plan: that PDF plus the revision's alignment metadata
 //     (lib/api/reference · getApprovedPlanAlignments keeps it in IndexedDB);
-//   · the base map: the service worker's `map-tiles` cache — what was looked at, plus what an
+//   · the base map: the worker's tile store (lib/tileStore) — what was looked at, plus what an
 //     Einsatz's Offline-Vorbereitung warmed around its scene. No whole-station download (owner,
 //     16.10.2026: that would be several GB).
 //
 // ⚠️ A lamp says «● auf diesem Gerät» ONLY for what a probe actually found. Without a service
-// worker controlling the page (a dev server, a first visit) nothing is served from Cache Storage
+// worker controlling the page (a dev server, a first visit) nothing is served from the device
 // once the network is gone, so every cache-backed thing reads «nur online» — never a guess.
 
 import type { LngLat } from '../../types'
@@ -26,6 +26,7 @@ import { tilesForBounds, type LngLatBounds } from '../offlineTiles'
 import { referenceUrl } from '../api/reference'
 import { allTileUrls, sourcePages, tileManifestUrl, tileSource, tileUrl, underlayLevel, visibleTiles, type TileManifest, type TileSource } from '../planTiles'
 import type { StationObject, StationPlan } from '../api/stationReference'
+import { LEGACY_TILE_CACHES, readTile, tileUrls as storedUrls, type TileKind } from '../tileStore'
 
 /** ● on this device · ◐ partly · ○ only online */
 export type Lamp = 'device' | 'part' | 'online'
@@ -259,18 +260,16 @@ export function deviceRows(f: DeviceFacts, C: DeviceCopy, fmt: { day: (iso: stri
 
 // ── the probes (thin; the decisions above are what the tests pin) ───────────────────────────
 
-/** The base-map tile cache (vite.config · runtimeCaching `map-tiles`). */
-export const TILE_CACHE = 'map-tiles'
 const PLAN_CACHE = 'reference-plans'
 
-/** Cache Storage is only worth asking when a service worker serves it back offline. */
+/** Offline copies are only worth asking about when a service worker serves them back offline. */
 export function cacheProbeable(): boolean {
   return typeof caches !== 'undefined' && typeof navigator !== 'undefined' && !!navigator.serviceWorker?.controller
 }
 
 /** A probe into ONE named cache, or null when the device cannot tell. A missing cache answers
  *  «not held» for everything. */
-export async function openProbe(cacheName: string): Promise<CacheProbe | null> {
+async function openProbe(cacheName: string): Promise<CacheProbe | null> {
   if (!cacheProbeable()) return null
   try {
     if (!(await caches.has(cacheName))) return async () => false
@@ -281,40 +280,56 @@ export async function openProbe(cacheName: string): Promise<CacheProbe | null> {
   }
 }
 
-export const openTileProbe = () => openProbe(TILE_CACHE)
+/** The URLs a legacy cache still holds (none once the worker moved it over). */
+async function legacyUrls(kind: TileKind): Promise<string[]> {
+  try {
+    const name = LEGACY_TILE_CACHES[kind]
+    if (!(await caches.has(name))) return []
+    return (await (await caches.open(name)).keys()).map((r) => r.url)
+  } catch { return [] }
+}
+
+/** The stored URLs of a tile kind – the store's and a legacy cache's, both of which the worker
+ *  answers from – keyed as `key` says, or null when the device cannot tell. ONE read each
+ *  answers every tile asked. */
+async function storedTiles(kind: TileKind, key: (u: URL) => string): Promise<Set<string> | null> {
+  if (!cacheProbeable()) return null
+  // the legacy cache FIRST: a tile the worker moves in between is then seen on one side or the other
+  const legacy = await legacyUrls(kind)
+  const urls = await storedUrls(kind)
+  if (!urls) return null
+  const out = new Set<string>()
+  for (const url of [...urls, ...legacy]) {
+    try { out.add(key(new URL(url))) } catch { /* not a URL — skip */ }
+  }
+  return out
+}
+
+/** The base map's stored tiles (lib/tileStore, kind `map`). */
+export async function openTileProbe(): Promise<CacheProbe | null> {
+  const stored = await storedTiles('map', (u) => u.href)
+  // parsed like the stored keys, as Cache Storage's `match` did
+  return stored && (async (url) => { try { return stored.has(new URL(url).href) } catch { return false } })
+}
+
 export const openPlanProbe = () => openProbe(PLAN_CACHE)
 
-/** The plan tile caches (vite.config · `plan-tiles`, `plan-tile-manifests`). */
-const PLAN_TILE_CACHE = 'plan-tiles'
-const PLAN_MANIFEST_CACHE = 'plan-tile-manifests'
-
-/** What the device holds of a plan's pyramid, or null when the device cannot tell. ONE
- *  `keys()` of the tile cache answers every tile of every plan asked (a dense A1 is ~1 500
- *  tiles — not 1 500 lookups); each manifest is one lookup. */
+/** What the device holds of a plan's pyramid, or null when the device cannot tell. The tiles
+ *  and manifests are lib/tileStore's `plan` and `manifest` kinds. */
 export async function openPlanTilesProbe(): Promise<((p: Pick<StationPlan, 'id' | 'version'>) => Promise<TilesHeld>) | null> {
-  if (!cacheProbeable()) return null
-  try {
-    const [hasTiles, hasManifests] = await Promise.all([caches.has(PLAN_TILE_CACHE), caches.has(PLAN_MANIFEST_CACHE)])
-    if (!hasManifests) return async () => null
-    const manifests = await caches.open(PLAN_MANIFEST_CACHE)
-    const stored = new Set<string>()
-    if (hasTiles) {
-      for (const req of await (await caches.open(PLAN_TILE_CACHE)).keys()) {
-        try { const u = new URL(req.url); stored.add(u.pathname + u.search) } catch { /* not a URL — skip */ }
-      }
-    }
-    return async (p) => {
-      const source = tileSource(planPdfUrl(p))
-      if (!source) return null
-      try {
-        const res = await manifests.match(tileManifestUrl(source))
-        if (!res) return null
-        const m = (await res.json()) as TileManifest
-        if (!m.pages?.length || !(m.tileSize > 0)) return null
-        return tilesHeld(m, source, (url) => stored.has(url))
-      } catch { return null }
-    }
-  } catch {
-    return null
+  const stored = await storedTiles('plan', (u) => u.pathname + u.search)
+  if (!stored) return null
+  return async (p) => {
+    const source = tileSource(planPdfUrl(p))
+    if (!source) return null
+    try {
+      const url = tileManifestUrl(source)
+      // the legacy copy FIRST, as in storedTiles: a manifest moved in between is then in the store
+      const body = await (await caches.match(url, { cacheName: LEGACY_TILE_CACHES.manifest }).catch(() => undefined))?.blob() ?? await readTile(url)
+      if (!body) return null
+      const m = JSON.parse(await body.text()) as TileManifest
+      if (!m.pages?.length || !(m.tileSize > 0)) return null
+      return tilesHeld(m, source, (url) => stored.has(url))
+    } catch { return null }
   }
 }

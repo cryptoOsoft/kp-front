@@ -418,7 +418,7 @@ The rules that are easy to break:
   Ansicht nur mit Netz» when a tile could not be had offline, «Schärfere Ansicht konnte nicht
   geladen werden» online. Once the view is sharp and the device online, the reader fetches the
   tiles a 2× zoom of the SAME area would ask for (at most 48, low priority, each once — never a
-  whole plan), so a quick zoom is sharp sooner; the service worker keeps them (`plan-tiles`). The
+  whole plan), so a quick zoom is sharp sooner; the service worker keeps them (its tile store). The
   Einsatz's Plan surface provides no context: no chip, no fetching ahead there.
 - **The finger's hold answers what a mouse answers on hover** (owner, review round 7, 20.10.2026:
   «also on mobile highlight the building outlines on hold so we know what we're pressing before we
@@ -1021,9 +1021,9 @@ and `KarteDevice.tsx` probe). No «ganze Station herunterladen»: that would be 
 | object catalogue | IndexedDB `kp-front-station-objects` (one entry) | every online open of `/karte` |
 | register facts of a building | IndexedDB `kp-front-station-building:<where>`, the last 300 kept (index `kp-front-station-building-index`) | every building / object looked at online |
 | plan PDF | the service worker's `reference-plans` cache, per revision URL | opening an untiled plan once online |
-| plan tiles | `plan-tile-manifests` (the manifest) + `plan-tiles` (every tile), per revision | opening a tiled plan once online (the reader fetches the whole pyramid, `lib/planTilePrefetch`) |
+| plan tiles | the service worker's tile store, IndexedDB `kp-tiles` (kinds `manifest` + `plan`), per revision | opening a tiled plan once online (the reader fetches the whole pyramid, `lib/planTilePrefetch`) |
 | Gebäude storeys, aligned plan | the plan's pages (PDF or tiles) + the revision's alignment metadata (IndexedDB, `lib/api/reference`) | opening Gebäude / the aligned plan once online |
-| base map | the service worker's `map-tiles` cache | looking at the area, or an Einsatz's Offline-Vorbereitung |
+| base map | the service worker's tile store, IndexedDB `kp-tiles` (kind `map`) | looking at the area, or an Einsatz's Offline-Vorbereitung |
 | Unterirdische Bauten | IndexedDB `kp-front-station-underground` (one entry, ~250 KB for FWO) | opening the Karte or an Einsatz once online with the row on (the default) |
 | the houses a building tap selects | IndexedDB `kp-front-station-houses` (one entry, ~1.5 MB for FWO) | opening the Karte once online |
 | Gefahrgut (UN/ADR) | bundled with the app | — |
@@ -1052,8 +1052,8 @@ What the surface shows offline:
   page — the whole sheet opens, a deeper zoom says «Schärfere Ansicht nur mit Netz»; ○ neither.
   ⚠️ A TILED plan opened online fetches its tiles and never its PDF (review round 3: the Karte said
   «PDF nicht gespeichert» offline for a plan its tiles open perfectly), so the PDF alone is never
-  the rule, and no PDF is downloaded to make a lamp green. The probe reads the manifest from
-  `plan-tile-manifests` and the tile cache's keys ONCE (`openPlanTilesProbe`), never one lookup per
+  the rule, and no PDF is downloaded to make a lamp green. The probe reads the stored manifest and
+  the stored plan tiles' keys ONCE (`openPlanTilesProbe`, lib/tileStore), never one lookup per
   tile; `tilesHeld` decides.
 - **The plan tiles** carry ●/◐/○ after the words; a plan the device does not hold is dimmed
   (its label says «Nicht auf diesem Gerät gespeichert»), but stays tappable – the surface then says
@@ -1070,12 +1070,12 @@ What the surface shows offline:
   (`NoBasemapMeldung`, here with its action «Verfügbarkeit»), once per visit, withdrawn when the
   link is back.
 - **A base map in two looks is a stale cache, not two maps** (the «seam», review 17.10.2026). The
-  `map-tiles` cache is cache-first for 30 days under the tile's URL; when a provider re-renders
+  stored base map is cache-first for 30 days under the tile's URL; when a provider re-renders
   under the same URL (CARTO's GL-rendered Dark Matter, autumn 2026: buildings now LIGHTER than the
   ground, blue-grey roads), a device shows old tiles where it holds them and new ones elsewhere,
   with a sharp edge at the tile border. `lib/tilePurge` names each such change and deletes its
   tiles once per device, on the first boot ONLINE (offline the old look beats no map); a miss is
-  fetched past the HTTP cache (`fetchOptions: { cache: 'no-cache' }`, vite.config) so CARTO's
+  fetched past the HTTP cache (`cache: 'no-cache'`, public/sw-tile-store.js) so CARTO's
   `immutable` answer cannot bring the old tile straight back. A provider changes its look again →
   add a purge entry.
 - **A sharp base map on a retina screen** (owner, review round 4: «check why the map is so
