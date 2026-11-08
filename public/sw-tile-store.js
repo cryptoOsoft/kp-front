@@ -209,7 +209,11 @@ let kpMigrating = null
  *  base map comes back from the internet. Resumable: a worker stopped half-way copies only what
  *  the store does not hold yet; a failed write (quota) keeps the cache for the next launch. */
 async function kpMigrateTiles() {
+  // one epoch for the whole run: a denial anywhere in it ends the run – a Cache object already
+  // open still reads after the purge deleted its cache
+  const epoch = kpTileEpoch
   for (const kind of ['manifest', 'plan', 'map']) {
+    if (epoch !== kpTileEpoch) return
     const { legacy, max } = KP_TILE_KINDS[kind]
     if (!(await caches.has(legacy))) { kpLegacyGone.add(legacy); continue }
     const cache = await caches.open(legacy)
@@ -218,7 +222,6 @@ async function kpMigrateTiles() {
     // on every launch after
     const keys = (await cache.keys()).slice(-max).filter((req) => !held.has(req.url))
     for (let i = 0; i < keys.length; i += 100) {
-      const epoch = kpTileEpoch
       const batch = await Promise.all(keys.slice(i, i + 100).map(async (req) => kpTileRecord(req.url, await cache.match(req), true)))
       if (!(await kpPutTiles(kind, batch.filter(Boolean), epoch))) return
     }

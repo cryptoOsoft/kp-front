@@ -14,7 +14,7 @@ const MAP = (i: number) => `https://a.basemaps.cartocdn.com/rastertiles/voyager/
 const PLAN = 'https://kp.test/api/reference/plan:a/tiles/3/1/2/0/0'
 const MANIFEST = 'https://kp.test/api/reference/plan:a/tiles?v=3'
 
-function worker({ allowed = true, legacy = {} as Record<string, string[]>, legacyDate = new Date().toUTCString() } = {}) {
+function worker({ allowed = true, legacy = {} as Record<string, string[]>, legacyDate = new Date().toUTCString(), legacyRead = Promise.resolve() } = {}) {
   const handlers = new Map<string, Handler>()
   const caches = new Map(Object.entries(legacy).map(([name, urls]) => [name, new Map(urls.map((u) => [u, `old ${u}`]))]))
   const cacheStorage = {
@@ -25,7 +25,7 @@ function worker({ allowed = true, legacy = {} as Record<string, string[]>, legac
       const key = (r: RequestInfo) => (typeof r === 'string' ? r : r.url)
       return {
         match: async (r: RequestInfo) => (c.has(key(r)) ? new Response(c.get(key(r)), { headers: { 'content-type': 'image/png', date: legacyDate } }) : undefined),
-        keys: async () => [...c.keys()].map((u) => new Request(u)),
+        keys: async () => { await legacyRead; return [...c.keys()].map((u) => new Request(u)) },
         delete: async (r: RequestInfo) => c.delete(key(r)),
       }
     },
@@ -158,6 +158,17 @@ describe('sw-tile-store', () => {
     await w.self.kpClearTiles!(['plan', 'manifest'])
     release()
     expect(await pending).toBe('plan bytes')
+    expect(await tileUrls('plan')).toEqual([])
+  })
+
+  it('a move-over under way when a denial comes stores none of the plans it read', async () => {
+    let release!: () => void
+    const w = worker({ legacy: { 'plan-tiles': [PLAN] }, legacyRead: new Promise<void>((r) => { release = r }) })
+    const moving = w.message({ type: 'kp-tile-migrate' })
+    await new Promise((r) => setTimeout(r, 10))
+    await w.self.kpClearTiles!(['plan', 'manifest'])
+    release()
+    await moving
     expect(await tileUrls('plan')).toEqual([])
   })
 
