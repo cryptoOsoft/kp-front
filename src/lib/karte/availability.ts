@@ -294,7 +294,9 @@ async function legacyUrls(kind: TileKind): Promise<string[]> {
  *  answers every tile asked. */
 async function storedTiles(kind: TileKind, key: (u: URL) => string): Promise<Set<string> | null> {
   if (!cacheProbeable()) return null
-  const [urls, legacy] = await Promise.all([storedUrls(kind), legacyUrls(kind)])
+  // the legacy cache FIRST: a tile the worker moves in between is then seen on one side or the other
+  const legacy = await legacyUrls(kind)
+  const urls = await storedUrls(kind)
   if (!urls) return null
   const out = new Set<string>()
   for (const url of [...urls, ...legacy]) {

@@ -76,8 +76,9 @@ export async function purgeStaleTiles(env: {
   const todo = purges.filter((p) => !done.has(p.id) && (!p.when || p.when({ retina })))
   if (!todo.length) return 0
   const isStale = (url: string) => todo.some((p) => p.match.test(url))
-  const stale = (await tileUrls('map'))?.filter(isStale)
+  // the legacy cache FIRST, so a tile the worker moves over in between is in the store's read
   const legacy = await purgeLegacy(isStale)
+  const stale = (await tileUrls('map'))?.filter(isStale)
   const removed = stale ? await deleteTiles(stale) : 0
   // not marked done: the next boot tries again
   if (!stale || legacy === null || removed < stale.length) return 0

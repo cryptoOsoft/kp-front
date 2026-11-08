@@ -213,6 +213,8 @@ let kpMigrating = null
  *  base map comes back from the internet. Resumable: a worker stopped half-way copies only what
  *  the store does not hold yet; a failed write (quota) keeps the cache for the next launch. */
 async function kpMigrateTiles() {
+  // a run asked for during a denial purge starts after it, and finds the plan caches gone
+  await kpClearing
   // one epoch for the whole run: a denial anywhere in it ends the run – a Cache object already
   // open still reads after the purge deleted its cache
   const epoch = kpTileEpoch
@@ -234,9 +236,20 @@ async function kpMigrateTiles() {
   }
 }
 
-/** Drop stored tiles of these kinds – sw-media-cache's purge on an explicit denial. */
-self.kpClearTiles = async (kinds) => {
+// the denial purge under way, if any (kpMigrateTiles waits for it)
+let kpClearing = Promise.resolve()
+
+/** Drop stored tiles of these kinds and their legacy caches – sw-media-cache's purge on an
+ *  explicit denial. */
+self.kpClearTiles = (kinds) => {
   kpTileEpoch++
+  const clear = kpClearing.then(() => kpClearKinds(kinds))
+  kpClearing = clear.catch(() => {})
+  return clear
+}
+
+async function kpClearKinds(kinds) {
+  await Promise.all(kinds.map((kind) => caches.delete(KP_TILE_KINDS[kind].legacy)))
   await kpTileTx('readwrite', (store) => {
     for (const kind of kinds) {
       const cursor = store.index('age').openKeyCursor(kpOfKind(kind))

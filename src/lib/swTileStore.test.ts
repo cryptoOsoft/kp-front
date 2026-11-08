@@ -184,6 +184,15 @@ describe('sw-tile-store', () => {
     expect(await tileUrls('plan')).toEqual([])
   })
 
+  it('a move-over asked for during a denial purge moves none of the plans', async () => {
+    const w = worker({ legacy: { 'plan-tiles': [PLAN] } })
+    const clearing = w.self.kpClearTiles!(['plan', 'manifest'])
+    await w.message({ type: 'kp-tile-migrate' })
+    await clearing
+    expect(await tileUrls('plan')).toEqual([])
+    expect(w.caches.has('plan-tiles')).toBe(false)
+  })
+
   it('drops only the station plans on a denial (sw-media-cache · kpClearOnDenial)', async () => {
     await seedTiles('map', [MAP(1)])
     await seedTiles('plan', [PLAN])
