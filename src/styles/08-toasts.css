@@ -537,17 +537,19 @@
    because there the card genuinely appears over new ground. */
 .login .loading-card { animation: none; }
 /* The Einsatz's opening cover lifts off the finished workspace (lib/bootCover · BOOT_COVER_FADE_MS,
-   keep in step). It never fades IN: it takes over from a Splash already on screen. */
+   keep in step), and so does the static boot cover off the app (lib/snailLaunch · liftBootCover).
+   It never fades IN: it takes over from a Splash already on screen. */
 .login.splash.leaving { opacity: 0; transition: opacity .24s var(--ease); pointer-events: none; }
-/* Static pre-React boot splash (markup in index.html). Paint immediately so the snail's
-   entrance is visible. main.tsx holds it through the 630 ms arrival even on a warm launch,
-   then React's snail continues the same clock instead of replaying it.
+/* Static pre-React boot splash (markup in index.html, a sibling ABOVE #root). Paint immediately
+   so the snail's entrance is visible. React mounts beneath it; lib/snailLaunch · liftBootCover
+   lifts it after the full 630 ms arrival once the app is on screen, and a React loading stage
+   it reveals continues the same clock instead of replaying it.
    ⚠️ index.html inlines this rule (plus .login/.loading-card/.loading-stuck/.boot-hint
    below and the --ink/--accent/--app-bg tokens they use) in a <style> block, so the splash still
    renders before this stylesheet — or if it never arrives — has loaded. Keep both copies in
    sync; same selectors there on purpose, so this rule simply overrides the inline one once it
    loads (equal specificity, later in the cascade). */
-.boot-splash { animation: none; overflow: hidden; }
+.boot-splash { animation: none; overflow: hidden; z-index: 2147483000; }
 /* The firefighter snail's sizing and animation live in its SVG. Vite inlines the same source
    in the boot splash; components/SnailLoader uses it once React has mounted. */
 .loading-name { font-size: var(--fs-3); font-weight: var(--fw-bold); letter-spacing: .14em; text-transform: uppercase; color: var(--ink); }

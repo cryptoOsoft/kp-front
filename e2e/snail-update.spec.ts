@@ -82,6 +82,9 @@ test('a startup worker update continues the snail instead of replaying its entra
     await page.evaluate(() => sessionStorage.setItem('snail-update-observations', '[]'))
     await page.reload()
     await expect(page.locator('.login-state')).toBeVisible()
+    // the login renders BENEATH the cover (lib/snailLaunch · liftBootCover): the entrance has
+    // ended once the cover is gone
+    await expect(page.locator('.boot-splash')).toHaveCount(0)
     version++ // discover only after this entrance ends, still inside the untouched boot window
     await page.evaluate(async () => { await (await navigator.serviceWorker.getRegistration())?.update() }).catch(error => {
       if (!String(error).includes('Execution context was destroyed')) throw error
@@ -98,7 +101,11 @@ test('a startup worker update continues the snail instead of replaying its entra
     expect(arrivals).toHaveLength(2)
     expect(arrivals[0].elapsed).toBe(0)
     expect(arrivals[1].elapsed, 'the update reload must not replay the 630 ms entrance').toBeGreaterThanOrEqual(0.63)
-    const reactArrivals = (await observations()).filter(entry => entry.event === 'react-arrival')
+    // React's loaders on the RELOADED page only: on the first one React mounts beneath the cover
+    // mid-entrance, in step with it (lib/snailLaunch · liftBootCover), so its progress is <1 there
+    const all = await observations()
+    const reloaded = all.slice(all.map(entry => entry.event).lastIndexOf('document'))
+    const reactArrivals = reloaded.filter(entry => entry.event === 'react-arrival')
     expect(reactArrivals.length).toBeGreaterThan(0)
     for (const arrival of reactArrivals) expect(arrival.progress, 'React must also continue past the entrance').toBe(1)
 

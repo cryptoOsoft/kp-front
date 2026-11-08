@@ -153,6 +153,65 @@ describe('snail launch', () => {
     expect(next.animations.map(a => a.currentTime)).toEqual([2_400, 2_400, 2_400])
   })
 
+  it('gives a React loader mounted BENEATH the cover the cover\'s clock, not its own fresh one', async () => {
+    boot(300)
+    const { continueSnailAnimation } = await import('./snailLaunch')
+    const beneath = reactSvg()
+    continueSnailAnimation(beneath.svg)
+    expect(beneath.animations.map(a => a.currentTime)).toEqual([300, 300, 300])
+  })
+
+  describe('liftBootCover', () => {
+    function app() {
+      const root = document.createElement('div')
+      document.body.prepend(root)
+      return root
+    }
+
+    it('lifts after the full entrance, once React shows the app rather than a splash of its own', async () => {
+      const { finish } = boot()
+      const root = app()
+      const { liftBootCover } = await import('./snailLaunch')
+      const lifting = liftBootCover(root)
+      root.innerHTML = '<div class="login splash"></div>' // React's auth stage, beneath the cover
+      await vi.advanceTimersByTimeAsync(630)
+      finish()
+      await vi.advanceTimersByTimeAsync(100)
+      expect(document.querySelector('.boot-splash')?.classList.contains('leaving')).toBe(false)
+      root.innerHTML = '<main class="app"></main>'
+      await lifting
+      expect(document.querySelector('.boot-splash')?.classList.contains('leaving')).toBe(true)
+      await vi.advanceTimersByTimeAsync(240)
+      expect(document.querySelector('.boot-splash')).toBeNull()
+    })
+
+    it('reveals a React loading stage still up two seconds after the entrance', async () => {
+      boot(2_000)
+      const root = app()
+      root.innerHTML = '<div class="login splash"></div>'
+      const { liftBootCover, COVER_HOLD_MAX_MS } = await import('./snailLaunch')
+      const lifting = liftBootCover(root)
+      await vi.advanceTimersByTimeAsync(COVER_HOLD_MAX_MS - 100)
+      expect(document.querySelector('.boot-splash.leaving')).toBeNull()
+      await vi.advanceTimersByTimeAsync(100)
+      await lifting
+      expect(document.querySelector('.boot-splash.leaving')).not.toBeNull()
+    })
+
+    it('never lifts onto an empty root: a wedged boot keeps the cover and its hint', async () => {
+      boot(2_000)
+      const root = app()
+      const { liftBootCover } = await import('./snailLaunch')
+      let lifted = false
+      void liftBootCover(root).then(() => { lifted = true })
+      await vi.advanceTimersByTimeAsync(10_000)
+      expect(lifted).toBe(false)
+      root.innerHTML = '<main></main>'
+      await vi.advanceTimersByTimeAsync(0)
+      expect(lifted).toBe(true)
+    })
+  })
+
   it('uses the running idle clock after the one-shot has stopped at its end', async () => {
     const { svg, animation } = boot(630)
     Object.defineProperty(svg, 'getAnimations', { value: vi.fn(() => [animation, { animationName: 'fs-shell', currentTime: 2_800 }]) })

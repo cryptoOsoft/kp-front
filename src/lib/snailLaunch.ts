@@ -1,5 +1,9 @@
 /**
  * One animation clock for the static boot cover and all pre-app React loading stages.
+ * The cover sits OVER #root (index.html) and React mounts beneath it as soon as the boot is
+ * ready; `liftBootCover` takes it away once its entrance has played and React shows the app
+ * (08.11.2026 – before, React waited out the 630 ms entrance, then revealed its own splashes one
+ * after another, and on the owner's iPhone one of those handovers replayed the entrance).
  * An automatic worker-update reload carries it through sessionStorage, written only as the
  * reload commits. index.html consumes that one-shot before paint and seeds this page's clock;
  * a surrendered reload retires it, and ordinary opens/reloads still show the entrance.
@@ -42,11 +46,14 @@ function launchClock(svg: Element) {
 function elapsed(svg: Element, settle = true) {
   let start = startedAt
   if (start === undefined) {
+    // While the static cover is up it owns the clock: a React loader mounted beneath it continues
+    // the cover's, not the fresh one it just started.
+    const source = document.querySelector('.boot-splash .firefighter-snail') ?? svg
     // The static cover may already be continuing a previous page's clock via negative CSS
     // delays. Its new animation.startTime alone would lose that offset and replay in React.
-    const resumed = Number(svg.getAttribute('data-snail-offset'))
+    const resumed = Number(source.getAttribute('data-snail-offset'))
     const offset = Number.isFinite(resumed) ? Math.max(0, resumed) : 0
-    const clock = launchClock(svg)
+    const clock = launchClock(source)
     // ⚠️ The animation's `startTime`, not `now - currentTime`: `currentTime` is the clock of the
     // LAST frame and stands still until the next one, so on a loaded device that placed the zero
     // too late by however long the frame was overdue and React rewound its copy of the entrance
@@ -107,6 +114,44 @@ export async function waitForSnailArrival() {
   })
   // Fix the launch clock while the cover still exists: React's copy continues it.
   elapsed(svg)
+}
+
+/** Longest the cover stays up after its entrance while React is still on a loading stage of its
+ *  own: past it the operator should read that stage (its status line, its «Neu laden» hint). */
+export const COVER_HOLD_MAX_MS = 2_000
+/** …and it lifts with the Einsatz cover's fade (lib/bootCover · BOOT_COVER_FADE_MS). */
+const COVER_FADE_MS = 240
+
+/**
+ * Take the static boot cover away once (a) its entrance has played in full and (b) React shows
+ * the app – something in `root` and no React splash left on screen – so a normal launch goes
+ * from the cover straight to the app. A React splash still up `COVER_HOLD_MAX_MS` after the
+ * entrance is revealed instead (it continues the cover's clock). Never lifts onto an empty
+ * root: a boot wedged before React rendered keeps the cover and its 12 s hint.
+ */
+export async function liftBootCover(root: Element) {
+  await waitForSnailArrival()
+  const cover = document.querySelector('.boot-splash')
+  if (!cover) return
+  const arrivedAt = performance.now()
+  await new Promise<void>(resolve => {
+    const ready = () => root.childElementCount > 0 && (
+      performance.now() - arrivedAt >= COVER_HOLD_MAX_MS
+      || !document.querySelector('.splash:not(.boot-splash):not(.leaving)'))
+    if (ready()) return resolve()
+    const observer = new MutationObserver(check)
+    const timer = setTimeout(check, COVER_HOLD_MAX_MS)
+    function check() {
+      if (!ready()) return
+      observer.disconnect()
+      clearTimeout(timer)
+      resolve()
+    }
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] })
+  })
+  cover.classList.add('leaving')
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches
+  setTimeout(() => cover.remove(), still ? 0 : COVER_FADE_MS)
 }
 
 /** Continue before paint so a remount cannot replay the entrance or reset the idle. */
