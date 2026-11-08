@@ -46,6 +46,26 @@ function browserMarks(): Record<string, number> {
   return out
 }
 
+/** The worker's half (public/sw-boot-timing.js): `swe` when its script started evaluating
+ *  (negative: it was already running), `swn` when this page's navigation reached it. Nothing
+ *  without a controlling worker or an answer within 500 ms. */
+function workerMarks(): Promise<Record<string, number>> {
+  const worker = navigator.serviceWorker?.controller
+  if (!worker) return Promise.resolve({})
+  return new Promise((resolve) => {
+    const channel = new MessageChannel()
+    const timer = setTimeout(() => resolve({}), 500)
+    channel.port1.onmessage = ({ data }: MessageEvent<{ evalAt?: number; navAt?: number }>) => {
+      clearTimeout(timer)
+      const out: Record<string, number> = {}
+      if (typeof data?.evalAt === 'number') out.swe = Math.round(data.evalAt - performance.timeOrigin)
+      if (typeof data?.navAt === 'number') out.swn = Math.round(data.navAt - performance.timeOrigin)
+      resolve(out)
+    }
+    worker.postMessage({ type: 'kp-boot-timing' }, [channel.port2])
+  })
+}
+
 /** Send the launch's line once the boot splash is gone (or after 30 s, whatever it shows then).
  *  `send` is the app's beacon, passed in so this module stays import-free. */
 export function reportBoot(send: (body: unknown) => void, build: string): void {
@@ -65,7 +85,9 @@ export function reportBoot(send: (body: unknown) => void, build: string): void {
     clearTimeout(cap)
     document.removeEventListener('visibilitychange', onVisibility)
     const nav = (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined)?.type ?? '?'
-    send({ nav, build, standalone, marks: { ...browserMarks(), ...marks, ...flags, hid: wasHidden ? 1 : 0 } })
+    void workerMarks().then((sw) => {
+      send({ nav, build, standalone, marks: { ...browserMarks(), ...sw, ...marks, ...flags, hid: wasHidden ? 1 : 0 } })
+    })
   }
   const lifted = () => {
     if (document.querySelector('.splash, .boot-splash')) return
@@ -73,6 +95,6 @@ export function reportBoot(send: (body: unknown) => void, build: string): void {
     finish()
   }
   const observer = new MutationObserver(lifted)
-  observer.observe(document.getElementById('root') ?? document.body, { childList: true, subtree: true })
+  observer.observe(document.body, { childList: true, subtree: true })
   const cap = setTimeout(finish, 30_000)
 }

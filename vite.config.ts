@@ -352,9 +352,10 @@ export default defineConfig(({ mode }) => {
           // for it but not the `hidden` part, so sw.js and workbox-*.js came out POINTING at maps
           // of Workbox's own code, which nobody will ever need to symbolicate.
           sourcemap: false,
-          // Notification routing plus the auth-aware incident-media cache. Imported before
-          // Workbox registers routes; sw-media-cache owns /api/media/* itself.
-          importScripts: ['sw-notify.js', 'sw-media-cache.js'],
+          // The worker's half of the launch timing line, notification routing, and the auth-aware
+          // incident-media cache. Imported before Workbox registers routes; sw-media-cache owns
+          // /api/media/* itself.
+          importScripts: ['sw-boot-timing.js', 'sw-notify.js', 'sw-media-cache.js'],
           // maplibre + pdf.worker chunks are large; precache them so the shell works offline.
           maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
           navigateFallback: '/index.html',
