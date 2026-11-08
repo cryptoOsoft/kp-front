@@ -114,7 +114,7 @@ test.describe('loading snail', () => {
     /** The boot cover's entrance at the moment it starts to lift (lib/snailLaunch · liftBootCover):
      *  its own clock then (performance time since the animation's `startTime`), its length, its
      *  play state, the idle loop's clock, and what it lifts onto. */
-    handover?: { clock: number; duration: number; playState: string; idleClock?: number; onto: { app: boolean; reactSplash: boolean; reactClock?: number } }
+    handover?: { clock: number; duration: number; playState: string; idleClock?: number; onto: { app: boolean; reactSplash: boolean; reactLag?: number } }
   }
 
   async function prepareLaunch(page: Page, { configDelay = 0, meDelay = 500 } = {}) {
@@ -145,11 +145,6 @@ test.describe('loading snail', () => {
           .find(animation => (animation as CSSAnimation).animationName.endsWith('-shell'))
         const now = performance.now()
         const duration = Number(arrival.effect?.getComputedTiming().duration)
-        // React's loader on the same footing: performance time since ITS shell's start (the
-        // shell's delay equals the entrance, so both sides read «time since launch»)
-        const reactShell = document.querySelector('#root .snail-loader svg')?.getAnimations({ subtree: true })
-          .find(animation => (animation as CSSAnimation).animationName.endsWith('-shell'))
-        const reactClock = typeof reactShell?.startTime === 'number' ? now - reactShell.startTime : undefined
         state.handover = {
           clock: now - arrival.startTime - Number(arrival.effect?.getTiming().delay || 0),
           duration,
@@ -161,9 +156,20 @@ test.describe('loading snail', () => {
           onto: {
             app: !!document.querySelector('#root .login-state'),
             reactSplash: !!document.querySelector('#root .splash'),
-            reactClock,
           },
         }
+        // A React stage it reveals: how far its loader's loop STARTS after the cover's, on the
+        // shared timeline – a frame or so when it continues the clock, its whole mount time when
+        // it replays. Read once the loader has a start time (it may have mounted this very frame).
+        const onto = state.handover.onto
+        const coverStart = shell?.startTime
+        const readLag = (frames: number) => {
+          const reactShell = document.querySelector('#root .snail-loader svg')?.getAnimations({ subtree: true })
+            .find(animation => (animation as CSSAnimation).animationName.endsWith('-shell'))
+          if (typeof reactShell?.startTime === 'number' && typeof coverStart === 'number') onto.reactLag = reactShell.startTime - coverStart
+          else if (reactShell && frames > 0) requestAnimationFrame(() => readLag(frames - 1))
+        }
+        readLag(30)
       }
       new MutationObserver(records => {
         for (const r of records) if (r.target instanceof Element && r.target.matches('.boot-splash.leaving')) handover(r.target)
@@ -172,6 +178,11 @@ test.describe('loading snail', () => {
   }
 
   const observation = (page: Page) => page.evaluate(() => Reflect.get(window, '__snailLaunch') as Launch)
+  /** how far a revealed React loader's loop starts after the cover's (see `readLag`) */
+  async function reactLag(page: Page): Promise<number> {
+    await expect.poll(async () => (await observation(page)).handover?.onto.reactLag).toBeDefined()
+    return (await observation(page)).handover?.onto.reactLag ?? NaN
+  }
   /** the cover's state at the moment it started to lift, once it has */
   async function lifted(page: Page, timeout = 5_000): Promise<NonNullable<Launch['handover']>> {
     await expect.poll(async () => (await observation(page)).handover, { timeout }).toBeDefined()
@@ -196,12 +207,14 @@ test.describe('loading snail', () => {
     await expect(page.locator('.login-state')).toBeVisible()
   })
 
-  test('a slow boot keeps the cover idling and still lifts onto the app', async ({ page }) => {
-    await prepareLaunch(page, { configDelay: 2_500 })
+  test('a slow boot reveals React\'s first stage at once, on the cover\'s clock', async ({ page }) => {
+    // the entrance ended ~2.4 s before React mounts: its 2 s hold is long over, so the cover lifts
+    // with React's first render (the auth stage, /me still pending) instead of hiding it longer
+    await prepareLaunch(page, { configDelay: 3_000 })
     await page.goto('/')
     const handover = await lifted(page)
-    expect(handover.idleClock).toBeGreaterThan(2_500)
-    expect(handover.onto).toMatchObject({ app: true, reactSplash: false })
+    expect(handover.onto.reactSplash).toBe(true)
+    expect(Math.abs(await reactLag(page))).toBeLessThanOrEqual(250)
     await expect(page.locator('.login-state')).toBeVisible()
     await expect(page.locator('.boot-splash')).toHaveCount(0)
   })
@@ -216,7 +229,7 @@ test.describe('loading snail', () => {
     // still on the auth stage two seconds after the entrance: the cover reveals it (its status
     // and its «Neu laden» hint must be readable), and its snail is on the cover's clock
     expect(handover.onto.reactSplash).toBe(true)
-    expect(handover.onto.reactClock).toBeGreaterThanOrEqual((handover.idleClock ?? Infinity) - 250)
+    expect(Math.abs(await reactLag(page))).toBeLessThanOrEqual(250)
     await expect(page.locator('.login-state')).toBeVisible()
   })
 

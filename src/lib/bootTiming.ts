@@ -83,9 +83,10 @@ export function reportBoot(send: (body: unknown) => void, build: string): void {
     sent = true
     observer.disconnect()
     clearTimeout(cap)
-    document.removeEventListener('visibilitychange', onVisibility)
     const nav = (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined)?.type ?? '?'
+    // visibility counts until the line goes out, the worker's answer included
     void workerMarks().then((sw) => {
+      document.removeEventListener('visibilitychange', onVisibility)
       send({ nav, build, standalone, marks: { ...browserMarks(), ...sw, ...marks, ...flags, hid: wasHidden ? 1 : 0 } })
     })
   }

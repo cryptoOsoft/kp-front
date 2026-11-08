@@ -129,29 +129,40 @@ const COVER_FADE_MS = 240
  * Take the static boot cover away once (a) its entrance has played in full and (b) React shows
  * the app – something in `root` and no React splash left on screen – so a normal launch goes
  * from the cover straight to the app. A React splash still up `COVER_HOLD_MAX_MS` after the
- * entrance is revealed instead (it continues the cover's clock). Never lifts onto an empty
- * root: a boot wedged before React rendered keeps the cover and its 12 s hint.
+ * entrance ENDED (on its own clock: a slow boot mounts React long after it) is revealed instead
+ * – it continues the cover's clock. Never lifts onto an empty root: a boot wedged before React
+ * rendered keeps the cover and its 12 s hint. `root` is inert until then: nothing the cover hides
+ * can take focus or a screen reader's attention.
  */
-export async function liftBootCover(root: Element) {
+export async function liftBootCover(root: HTMLElement) {
+  root.inert = true
   await waitForSnailArrival()
   const cover = document.querySelector('.boot-splash')
-  if (!cover) return
-  const arrivedAt = performance.now()
+  if (!cover) { root.inert = false; return }
+  const svg = cover.querySelector('.firefighter-snail')
+  const holdUntil = performance.now() + COVER_HOLD_MAX_MS - (svg ? Math.max(0, elapsed(svg) - duration(svg)) : 0)
   await new Promise<void>(resolve => {
     const ready = () => root.childElementCount > 0 && (
-      performance.now() - arrivedAt >= COVER_HOLD_MAX_MS
+      performance.now() >= holdUntil
       || !document.querySelector('.splash:not(.boot-splash):not(.leaving)'))
     if (ready()) return resolve()
     const observer = new MutationObserver(check)
-    const timer = setTimeout(check, COVER_HOLD_MAX_MS)
+    // re-armed while the hold lasts: a timer may fire a hair before `holdUntil` by
+    // performance.now()'s reckoning, and nothing else would look again until React next renders
+    let timer = setTimeout(check, Math.max(0, holdUntil - performance.now()))
     function check() {
-      if (!ready()) return
+      if (!ready()) {
+        clearTimeout(timer)
+        if (performance.now() < holdUntil) timer = setTimeout(check, Math.max(1, holdUntil - performance.now()))
+        return
+      }
       observer.disconnect()
       clearTimeout(timer)
       resolve()
     }
     observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] })
   })
+  root.inert = false
   cover.classList.add('leaving')
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches
   setTimeout(() => cover.remove(), still ? 0 : COVER_FADE_MS)

@@ -205,7 +205,7 @@ describe('snail launch', () => {
     })
 
     it('reveals a React loading stage still up two seconds after the entrance', async () => {
-      boot(2_000)
+      boot(630) // the entrance ends right now
       const root = app()
       root.innerHTML = '<div class="login splash"></div>'
       const { liftBootCover, COVER_HOLD_MAX_MS } = await import('./snailLaunch')
@@ -215,6 +215,28 @@ describe('snail launch', () => {
       await vi.advanceTimersByTimeAsync(100)
       await lifting
       expect(document.querySelector('.boot-splash.leaving')).not.toBeNull()
+    })
+
+    it('counts those two seconds from the entrance\'s end, not from a slow boot\'s React mount', async () => {
+      boot(3_000) // the entrance ended 2.37 s ago: the config took that long
+      const root = app()
+      root.innerHTML = '<div class="login splash">Einsatz wird geöffnet …</div>'
+      const { liftBootCover } = await import('./snailLaunch')
+      await liftBootCover(root)
+      expect(document.querySelector('.boot-splash.leaving')).not.toBeNull()
+    })
+
+    it('keeps what it covers inert until it lifts', async () => {
+      const { finish } = boot()
+      const root = app()
+      const { liftBootCover } = await import('./snailLaunch')
+      const lifting = liftBootCover(root)
+      expect(root.inert).toBe(true)
+      root.innerHTML = '<main></main>'
+      await vi.advanceTimersByTimeAsync(630)
+      finish()
+      await lifting
+      expect(root.inert).toBe(false)
     })
 
     it('never lifts onto an empty root: a wedged boot keeps the cover and its hint', async () => {

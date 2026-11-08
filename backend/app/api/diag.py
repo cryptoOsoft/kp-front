@@ -139,8 +139,9 @@ async def report_boot(payload: BootTiming, request: Request) -> None:
     wait = boot_limiter.check(client_ip(request))
     if wait:
         raise HTTPException(status_code=429, detail="Zu viele Startberichte", headers={"Retry-After": str(wait)})
-    # names are the client's, so they go through the same flattening as every other field
-    marks = " ".join(f"{_one_line(name, 16)}={max(-1, min(ms, 600_000))}" for name, ms in payload.marks.items())
+    # names are the client's, so they go through the same flattening as every other field; values
+    # are signed: the worker's own marks are negative when it was already running before the page
+    marks = " ".join(f"{_one_line(name, 16)}={max(-600_000, min(ms, 600_000))}" for name, ms in payload.marks.items())
     try:  # noqa: SIM105 — same as the sink: a diagnostics route must never raise
         logger_boot.info(
             "boot-timing build=%s srv=%s nav=%s app=%d %s ua=%s",
