@@ -7,10 +7,12 @@ on:
   # release.yml runs this whole gate against the tag before publishing an image.
   workflow_call:
 
-# Cancel superseded runs on the same ref (saves CI minutes on rapid pushes).
+# A PR's superseded runs are cancelled (saves CI minutes on rapid pushes). `main` is different:
+# prod deploys from it, so every commit that lands there gets its own verdict – a group per
+# commit, because a shared group would still drop a run that waits behind a running one.
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.ref }}${{ github.ref == 'refs/heads/main' && format('-{0}', github.sha) || '' }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 permissions:
   contents: read
