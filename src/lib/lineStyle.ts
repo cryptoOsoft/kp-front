@@ -188,8 +188,11 @@ export const MARKER_GLYPHS: Record<string, LineMarkerGlyph> = {
 export const markerGlyph = (marker?: string): LineMarkerGlyph | undefined =>
   (marker ? MARKER_GLYPHS[marker] : undefined)
 
-/** The rhythm this marker repeats at — its glyph's own, else the letter spacing. */
-export const markerSpacing = (marker?: string): number => markerGlyph(marker)?.spacing ?? MARKER_SPACING_PX
+/** The rhythm this marker repeats at — its glyph's own, else the letter spacing once per
+ *  character: a «WT» at the one-letter rhythm left barely a letter's gap between repeats and read
+ *  as a dotted band (Manuel 09.11.2026); «R» keeps its 46 px. Both surfaces read this one number. */
+export const markerSpacing = (marker?: string): number =>
+  markerGlyph(marker)?.spacing ?? MARKER_SPACING_PX * Math.max(1, [...(marker ?? '')].length)
 
 /** Walk a polyline given in PIXEL space and return a parametric position `{seg, t, deg}` every
  *  `spacing` px (seg = segment start index, t = 0..1 along it, deg = that segment's screen
