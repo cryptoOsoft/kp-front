@@ -8,9 +8,11 @@
    (no fill: a known hazard is a fact, not an alarm). */
 .hazard svg:first-child { color: var(--amber-strong); }
 .words { color: var(--amber-strong); font-weight: var(--fw-heavy); }
-.measures { display: inline-flex; align-items: center; gap: var(--sp-1); padding-left: var(--sp-2);
-  border-left: 1px solid var(--glass-line); color: var(--ink-dim); }
-.measures svg { width: 14px; height: 14px; }
+/* the Sofortmassnahmen's count: the ONE count badge (05-navrail · .nav-count – 16px, 11/800,
+   --r-xs, a plain count is INK), inline after the label, so the chip stays one action */
+.count { flex: none; min-width: 16px; height: 16px; padding: 0 4px; box-sizing: border-box; border-radius: var(--r-xs);
+  background: var(--ink-fill); color: var(--on-accent-ink); font: var(--fw-heavy) var(--fs-micro) var(--body);
+  line-height: 16px; text-align: center; }
 /* docked one --float-gap above the row, like the Passung over its chip; the map stays live. One
    card of the row at a time (lib/floatCards). */
 .pop { position: absolute; left: 0; bottom: calc(100% + var(--float-gap)); z-index: 1;

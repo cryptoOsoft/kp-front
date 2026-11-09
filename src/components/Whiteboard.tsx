@@ -2000,7 +2000,7 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
   // Objekt chip's name, and the stack drops that chip – the building chip beside it is the read-out
   // that truncates (09-whiteboard · .wb-building-named), so nothing there loses its answer.
   const buildingFloat = (stack || (!isPhone && !objectChipHidden && (objectName || objectAddress)))
-    ? <BuildingFloat info={buildingInfo ?? null} compact />
+    ? <BuildingFloat info={buildingInfo ?? null} />
     : null
 
 
