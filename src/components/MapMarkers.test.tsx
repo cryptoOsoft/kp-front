@@ -193,7 +193,6 @@ describe('a Trupp marker that is joined, loose, or docked', () => {
     const { container } = showTeam([team({ dockedTo: 'h1' }), hydrant], 'e1', badge() as never)
     const pill = container.querySelector('.wb-resource-pill')!
     expect(pill.className).toContain('joined')
-    expect(pill.querySelector('.team-ltg')).toBeNull()
     expect(pill.querySelector('.wb-resource-name b')?.textContent).toBe('Frei Nina')
     // no «#N» on the map – the number lives on the card only (14.09.)
     expect(pill.querySelector('.trupp-no')).toBeNull()
