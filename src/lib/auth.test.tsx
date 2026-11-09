@@ -90,6 +90,23 @@ describe('AuthProvider — the boot probe re-reads a config the anonymous boot f
   })
 })
 
+describe('AuthProvider — station plan calibration', () => {
+  // GET /api/plan-scales needs a session, so nothing may ask for it before one is known
+  it('is loaded once the account is known, never for a signed-out device', async () => {
+    vi.spyOn(deploymentConfig, 'isDemoMode').mockReturnValue(false)
+    vi.spyOn(deploymentConfig, 'getDeploymentConfig').mockReturnValue({ integrations: { cartoBasemapKey: 'k' } })
+    apiGet.mockRejectedValue(new ApiError(401, 'Nicht angemeldet'))
+    const { result } = renderHook(() => useAuth(), { wrapper })
+    await waitFor(() => expect(result.current.loading).toBe(false))
+    expect(apiGet).not.toHaveBeenCalledWith('/api/plan-scales')
+
+    apiPost.mockResolvedValue(EDITOR_USER)
+    vi.spyOn(deploymentConfig, 'loadDeploymentConfig').mockResolvedValue({})
+    await act(() => result.current.login('ed-1', '135790'))
+    await waitFor(() => expect(apiGet).toHaveBeenCalledWith('/api/plan-scales'))
+  })
+})
+
 describe('AuthProvider — demo auto-login', () => {
   it('refreshes session-only config before mounting the field app', async () => {
     vi.spyOn(deploymentConfig, 'isDemoMode').mockReturnValue(true)

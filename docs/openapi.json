@@ -1193,8 +1193,42 @@
           "plan-scales"
         ],
         "summary": "Get Plan Scales",
-        "description": "PUBLIC — needed to measure on plans (viewers included) and cached offline at boot.\nNever raises: whatever in the stored blob does not validate is dropped entry-wise, the rest\nis served — with the `version` the caller sends back as `If-Match` when it writes.",
+        "description": "Any session (viewers measure on plans too), never an anonymous caller — see the module\ndocstring. Never raises on the stored document: whatever in the stored blob does not validate is dropped entry-wise, the rest\nis served — with the `version` the caller sends back as `If-Match` when it writes.",
         "operationId": "get_plan_scales_api_plan_scales_get",
+        "parameters": [
+          {
+            "name": "access_token",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Access Token"
+            }
+          },
+          {
+            "name": "admin_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Admin Session"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -1202,6 +1236,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PlanScalesOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
