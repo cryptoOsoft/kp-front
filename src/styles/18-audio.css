@@ -276,7 +276,7 @@
      that is simply absent on some engines. So the label carries ONE soft hyphen at the compound
      seam (copy · entryTypesWrap → «Sofort­massnahme»), `manual` keeps the engine from inventing
      others, and a narrow chip reads «Sofort-massnahme». Verified with the app's own Sora at 460px
-     and 331px — mockups/journal-erinnerung-layoutprobe.html. */
+     and 331px. */
   -webkit-hyphens: manual; hyphens: manual;
 }
 /* ⚠️ Whenever the ○ switch is in the row it takes 44px + a gutter, and the three chips pay for
@@ -491,7 +491,7 @@
    and the two round controls — which is where a gap belongs anyway: those answer a different
    question than the three. The long one may still shrink (`minmax(0, …)`) on a narrow phone,
    where it wraps at the authored break point.
-   Measured with the app's own Sora at 460px and 331px — mockups/journal-erinnerung-layoutprobe.html. */
+   Measured with the app's own Sora at 460px and 331px. */
 .jc-meta-row:has(.jc-due-btn) {
   grid-template-columns: max-content max-content minmax(0, max-content) 1fr var(--tap) var(--tap); }
 /* …and with the row no longer fighting for every pixel, the chips get their ordinary air back
@@ -509,7 +509,7 @@
    the two 44px controls already want more than there is, so the slack track goes and the long
    chip takes what is left (where it wraps at its authored break point). Equal padding is a
    luxury of having room; below this width the choice is between a readable long chip and a
-   pretty one. Measured at 390px — mockups/journal-erinnerung-layoutprobe.html. */
+   pretty one. Measured at 390px. */
 @media (max-width: 480px) {
   .jc-meta-row:has(.jc-due-btn) {
     grid-template-columns: max-content max-content minmax(0, 1fr) var(--tap) var(--tap); }

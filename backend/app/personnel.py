@@ -391,7 +391,7 @@ def suggest_rank(value: str, ranks: Sequence[dict]) -> str | None:
     """The known rank key whose key/label/abbr is spelled closest to ``value`` — or None.
 
     A proposal only, never applied on its own: the operator sees it preselected in the mapping
-    sheet and can overrule it (mockups/admin-csv-b-zuordnung.html)."""
+    sheet and can overrule it."""
     needle = normalize_name(value)
     if not needle:
         return None
