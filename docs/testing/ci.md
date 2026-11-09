@@ -182,7 +182,7 @@ check` against the models); image, secrets, e2e, visual and perf stay CI's.
   24.09.2026). A spec imports `test` from `e2e/helpers`, never from `@playwright/test` (eslint
   enforces it). A report a test provokes on purpose is listed with `expectedClientErrors`;
   nothing turns the guard off.
-- **The look is gated too.** CI's «Visual» job shoots nine frozen states and compares them with
+- **The look is gated too.** CI's «Visual» job shoots fourteen frozen states and compares them with
   `e2e/visual/baseline/` (`maxDiffPixels: 20`). A changed pixel you did not mean is a regression;
   a look you changed on purpose gets new baselines from CI (`just visual-accept <run-id>`) in its
   own commit, saying why – never to turn the check green, never shot on a laptop

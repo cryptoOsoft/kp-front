@@ -3,7 +3,7 @@
 **Status:** CI job «Visual», since 2026-10-09 – a required check since 2026-10-10 (owner decision)
 **Audience:** anyone whose PR turns the «Visual» check red, and whoever accepts a new baseline
 
-Every PR shoots nine frozen states of the app and compares them pixel by pixel with the baselines
+Every PR shoots fourteen frozen states of the app and compares them pixel by pixel with the baselines
 committed in `e2e/visual/baseline/`. Unit tests and the e2e specs assert what someone thought to
 name; a screenshot catches the rest: a merged visual pass that a later merge silently undid (#231
 was lost from staging that way, 26.09.2026), a token that changed under a surface, a bar that
@@ -26,6 +26,11 @@ five hours in.
 | `trupps-phone` | 390×844 | the Trupps board on a phone |
 | `verlauf-phone` | 390×844 | the Verlauf drawer: Pendenzen, rows, the replay strip |
 | `rapport-tablet` | 1180×820 | the Einsatzrapport preflight |
+| `trupps-phone-night` | 390×844 | the Trupps board on a phone at night |
+| `rapport-phone-night` | 390×844 | the Einsatzrapport preflight on a phone at night |
+| `trupp-anmelden-phone` | 390×844 | an open bottom sheet: «Trupp anmelden» over the Trupps board |
+| `trupp-anmelden-phone-night` | 390×844 | the same sheet at night |
+| `symbol-editor-tablet` | 1180×820 | a selected symbol on the Karte with its editor open |
 | `kiosk-tablet` | 1180×820 | the kiosk login (signed out) |
 
 ## Keeping it deterministic
@@ -133,7 +138,8 @@ point `LD_LIBRARY_PATH` at Chromium's missing libraries.
   the theme, and what to wait for or tap once it is open. Prefer a state a crew actually sees over
   a dialog nobody opens.
 - Keep the list short. Every state costs a few seconds and one more picture to review on a
-  deliberate change; nine cover every surface and both form factors.
+  deliberate change. Nine covered every surface and both form factors; five more (09.11.2026)
+  cover what those could not show: night on a phone, an open sheet in both themes, an editor.
 - Its baseline comes from «Visual baselines» on the PR (label `visual-update`).
 
 ## CI cost

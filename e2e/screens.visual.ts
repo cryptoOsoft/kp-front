@@ -16,6 +16,13 @@ test.describe.configure({ retries: 0 })
 
 interface State { name: string; device: typeof TABLET | typeof PHONE; surface: Surface; theme?: 'day' | 'night'; then?: (page: Page) => Promise<void> }
 
+const rapportOpen = async (page: Page) => { await page.locator('.report-preflight-body').waitFor() }
+/** the Trupps board's «Trupp anmelden» sheet – the one bottom sheet a phone opens most */
+const truppAnmelden = async (page: Page) => {
+  await page.getByRole('button', { name: 'Trupp anmelden', exact: true }).click()
+  await page.getByRole('dialog', { name: 'Trupp anmelden' }).waitFor()
+}
+
 const STATES: State[] = [
   { name: 'lage-tablet', device: TABLET, surface: 'map', then: mapDrawn },
   { name: 'lage-tablet-night', device: TABLET, surface: 'map', theme: 'night', then: mapDrawn },
@@ -29,7 +36,20 @@ const STATES: State[] = [
     await page.locator('button.tb-act[aria-pressed]').first().click()
     await page.locator('.journal-drawer').waitFor()
   } },
-  { name: 'rapport-tablet', device: TABLET, surface: 'rapport', then: async (page) => { await page.locator('.report-preflight-body').waitFor() } },
+  { name: 'rapport-tablet', device: TABLET, surface: 'rapport', then: rapportOpen },
+  // night on a phone, an open sheet in both themes, an editor: a token that breaks one of them
+  // changes none of the states above (UI sweep 09.11.2026)
+  { name: 'trupps-phone-night', device: PHONE, surface: 'atemschutz', theme: 'night' },
+  { name: 'rapport-phone-night', device: PHONE, surface: 'rapport', theme: 'night', then: rapportOpen },
+  { name: 'trupp-anmelden-phone', device: PHONE, surface: 'atemschutz', then: truppAnmelden },
+  { name: 'trupp-anmelden-phone-night', device: PHONE, surface: 'atemschutz', theme: 'night', then: truppAnmelden },
+  { name: 'symbol-editor-tablet', device: TABLET, surface: 'map', then: async (page) => {
+    await mapDrawn(page)
+    // the first symbol the fat incident places; a tap on it opens its editor
+    await page.locator('.maplibregl-marker > .marker:not(.marker-note):not(.marker-shape)').first().click()
+    await page.locator('.ctx-done:visible').first().waitFor()
+    await mapDrawn(page)
+  } },
 ]
 
 for (const state of STATES) {

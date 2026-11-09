@@ -611,8 +611,8 @@ jobs:
         run: docker compose down -v
 
   # --- Visual: screenshot regression tests against committed baselines ---------------------
-  # Nine frozen states of the production container (Lage, Plan, Trupps, Verlauf, Rapport, kiosk;
-  # tablet and phone, one night) compared pixel by pixel with e2e/visual/baseline/
+  # Fourteen frozen states of the production container (Lage, Plan, Trupps, Verlauf, Rapport, kiosk,
+  # an open sheet, an editor; tablet and phone, day and night) compared pixel by pixel with e2e/visual/baseline/
   # (e2e/screens.visual.ts, docs/testing/visual-regression.md). It catches what no assertion
   # names: a merged visual pass that a later merge silently undid (#231). Its own runner loads
   # the shared image alongside the browser and performance suites; a required check since
