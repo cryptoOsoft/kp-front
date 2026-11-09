@@ -238,6 +238,7 @@ export const reportCopy: Localizable<Pick<Copy, 'auswertung' | 'report' | 'print
     toggleGebaeude: 'Bâtiment – étages ({n})',
     toggleErsteFuehrung: 'Première Conduite',
     toggleRapportPage: 'Rapport (ordre du jour)',
+    toggleTafelPage: '{title} ({n})',
     toggleTafelSkizze: 'Tableau – croquis',
     plansAll: 'Tous les plans',
     toggleAtemschutz: 'Surveillance ARI ({n})',

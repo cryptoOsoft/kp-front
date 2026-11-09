@@ -238,6 +238,7 @@ export const reportCopy: Localizable<Pick<Copy, 'auswertung' | 'report' | 'print
     toggleGebaeude: 'Building – storeys ({n})',
     toggleErsteFuehrung: 'First command',
     toggleRapportPage: 'Briefing (agenda)',
+    toggleTafelPage: '{title} ({n})',
     toggleTafelSkizze: 'Board – sketch',
     plansAll: 'All plans',
     toggleAtemschutz: 'SCBA monitoring ({n})',

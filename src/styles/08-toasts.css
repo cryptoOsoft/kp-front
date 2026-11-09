@@ -937,7 +937,7 @@ textarea.note-pill-input { resize: none; overflow: hidden; display: block; line-
 .present-ring-name { position: absolute; left: 28px; top: -13px; display: inline-flex; align-items: center; gap: var(--sp-1);
   padding: 2px var(--sp-2); border-radius: var(--r-pill); background: var(--tone);
   color: var(--on-accent-ink); font-size: var(--fs-1); font-weight: var(--fw-bold); white-space: nowrap; box-shadow: var(--e1); }
-.present-ring-name:has(.present-unmark) { top: -15px; padding-right: 3px; }
+.present-ring-name:has(.present-unmark) { top: -15px; padding-right: var(--sp-1); }
 /* the × on a mark's name (Presentation · UnmarkX): small on the tag, a 44px target around it */
 .present-unmark { position: relative; pointer-events: auto; display: grid; place-items: center; width: 22px; height: 22px; padding: 0;
   border: none; border-radius: 50%; background: color-mix(in srgb, #000 22%, transparent); color: inherit; cursor: pointer; }

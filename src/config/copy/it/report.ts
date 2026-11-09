@@ -238,6 +238,7 @@ export const reportCopy: Localizable<Pick<Copy, 'auswertung' | 'report' | 'print
     toggleGebaeude: 'Edificio – piani ({n})',
     toggleErsteFuehrung: 'Prima coordinazione',
     toggleRapportPage: 'Rapporto (trattande)',
+    toggleTafelPage: '{title} ({n})',
     toggleTafelSkizze: 'Lavagna – schizzo',
     plansAll: 'Tutti i piani',
     toggleAtemschutz: 'Sorveglianza autoprotezione ({n})',
