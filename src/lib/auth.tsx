@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import { apiGet, apiPost, ApiError, isDenial, isUnverifiable, SESSION_EXPIRED_EVENT } from './api'
 import { idbGet, idbSet, idbDel } from './idb'
 import { getDeploymentConfig, isDemoMode, loadDeploymentConfig } from './deploymentConfig'
-import { loadStationPlanScales } from './stationPlanScale'
+import { notifyAccountKnown } from './accountKnown'
 import { syncMediaCacheAuth } from './authMediaCache'
 import { denyWorkspaceCache, setWorkspaceCacheOwner } from './api/workspaceSync'
 import { linkPageOwnsSession } from './linkMode'
@@ -309,12 +309,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => { alive = false; window.removeEventListener(SESSION_EXPIRED_EVENT, onExpired) }
   }, [adoptUser, denySession]) // stable: one listener for the page's life
 
-  // The station's plan calibration (Massstäbe, Georeferenzen) needs a session, so it is loaded
-  // HERE, once per account on this page: after the boot probe, a login, the demo's auto-login,
-  // a link page's own `/me`. Offline it falls back to its IndexedDB copy by itself.
+  // Whoever needs the session to load something says so through lib/accountKnown.
   const userId = user?.id
   useEffect(() => {
-    if (userId) void loadStationPlanScales()
+    if (userId) notifyAccountKnown()
   }, [userId])
 
   // Protected media is cached only for a known real-user client. Do not signal during the

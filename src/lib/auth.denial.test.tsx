@@ -21,8 +21,6 @@ const { denyWorkspaceCache, setWorkspaceCacheOwner } = vi.hoisted(() => ({
   denyWorkspaceCache: vi.fn(), setWorkspaceCacheOwner: vi.fn(),
 }))
 vi.mock('./api/workspaceSync', () => ({ denyWorkspaceCache, setWorkspaceCacheOwner }))
-// the account's plan calibration load is its own GET; this file counts the session's requests
-vi.mock('./stationPlanScale', () => ({ loadStationPlanScales: vi.fn() }))
 
 import { ApiError, SESSION_EXPIRED_EVENT } from './api'
 import * as deploymentConfig from './deploymentConfig'

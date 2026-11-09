@@ -19,6 +19,7 @@ import { idbGet } from './idb'
 import * as deploymentConfig from './deploymentConfig'
 import * as linkMode from './linkMode'
 import type { DeploymentConfig } from './deploymentConfig'
+import { onAccountKnown } from './accountKnown'
 import { AuthProvider, useAuth } from './auth'
 
 const EDITOR = { id: 'ed-1', display_name: 'FU', role: 'editor', color: null }
@@ -90,20 +91,23 @@ describe('AuthProvider — the boot probe re-reads a config the anonymous boot f
   })
 })
 
-describe('AuthProvider — station plan calibration', () => {
-  // GET /api/plan-scales needs a session, so nothing may ask for it before one is known
-  it('is loaded once the account is known, never for a signed-out device', async () => {
+describe('AuthProvider — onAccountKnown', () => {
+  // main.tsx hangs the station plan calibration on this: its route needs a session
+  it('fires once the account is known, never for a signed-out device', async () => {
     vi.spyOn(deploymentConfig, 'isDemoMode').mockReturnValue(false)
     vi.spyOn(deploymentConfig, 'getDeploymentConfig').mockReturnValue({ integrations: { cartoBasemapKey: 'k' } })
+    const known = vi.fn()
+    onAccountKnown(known)
     apiGet.mockRejectedValue(new ApiError(401, 'Nicht angemeldet'))
     const { result } = renderHook(() => useAuth(), { wrapper })
     await waitFor(() => expect(result.current.loading).toBe(false))
-    expect(apiGet).not.toHaveBeenCalledWith('/api/plan-scales')
+    expect(known).not.toHaveBeenCalled()
 
     apiPost.mockResolvedValue(EDITOR_USER)
     vi.spyOn(deploymentConfig, 'loadDeploymentConfig').mockResolvedValue({})
     await act(() => result.current.login('ed-1', '135790'))
-    await waitFor(() => expect(apiGet).toHaveBeenCalledWith('/api/plan-scales'))
+    await waitFor(() => expect(known).toHaveBeenCalledTimes(1))
+    onAccountKnown(() => {})
   })
 })
 
