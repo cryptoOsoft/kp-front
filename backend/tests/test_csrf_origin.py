@@ -240,6 +240,13 @@ async def test_security_headers_are_on_app_responses(client, path):
     assert "frame-ancestors 'self'" in r.headers["content-security-policy"]
 
 
+async def test_hsts_is_sent_in_production_only(client, monkeypatch):
+    """Production is HTTPS only; a dev stack on http://localhost must not pin itself to it."""
+    assert "strict-transport-security" not in (await client.get("/api/health")).headers
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    assert (await client.get("/api/health")).headers["strict-transport-security"] == "max-age=31536000"
+
+
 async def test_branding_keeps_its_own_stricter_csp(client, editor, admin_login, tmp_path, monkeypatch):
     """The global header must not overwrite a route that already decided something stricter."""
     import app.storage as storage_mod

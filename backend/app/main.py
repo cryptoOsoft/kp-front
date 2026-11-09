@@ -354,11 +354,10 @@ class LimitRequestBody:
 # frontend (large workspace saves). Request inflation enforces a decompressed-size cap so a
 # gzip bomb can't expand past the JSON body limit; LimitRequestBody above it bounds the wire
 # size. No streaming/SSE endpoints exist, so response gzip is safe globally.
-from starlette.middleware.gzip import GZipMiddleware
-
 from .gzip_request import GzipRequestMiddleware
+from .gzip_response import SelectiveGZipMiddleware
 
-app.add_middleware(GZipMiddleware, minimum_size=1024)
+app.add_middleware(SelectiveGZipMiddleware, minimum_size=1024)
 app.add_middleware(GzipRequestMiddleware, max_decompressed_bytes=settings.max_json_body_mb * 1024 * 1024)
 # ⚠️ ADDED AFTER the gzip pair, and that is what puts it OUTSIDE them: `add_middleware`
 # prepends, so the last one added is the outermost. It must see the bytes as they came off
@@ -595,7 +594,7 @@ async def security_headers(request: Request, call_next):
     `nosniff` so a response's declared type is its only type; a referrer policy so an incident
     URL (which carries an incident id, and on the link pages a token) does not travel to a
     third-party host; `frame-ancestors 'self'` — with `X-Frame-Options` for the browsers
-    that still only read that — so the app cannot be framed and clickjacked.
+    that still only read that — so the app cannot be framed and clickjacked; HSTS in production.
 
     Since 06.09. also the script half (app/csp.py): `script-src 'self'` + the hashed inline
     boot script + `'wasm-unsafe-eval'` (pdf.js codecs), `worker-src 'self' blob:` (MapLibre
@@ -619,6 +618,11 @@ async def security_headers(request: Request, call_next):
     response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
     response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
     response.headers.setdefault("Content-Security-Policy", csp_for(Path(spa_index_path())))
+    if settings.is_production:
+        # Production is HTTPS only. Without this a tablet on a hostile or captive Wi-Fi that
+        # asks for `http://…` can be kept there and shown a look-alike PIN pad. No
+        # `includeSubDomains`: the station's other hosts are not ours to decide for.
+        response.headers.setdefault("Strict-Transport-Security", "max-age=31536000")
     return response
 
 
