@@ -23,8 +23,19 @@ export async function expectNoCrash(page: Page, where: string) {
   ).toHaveCount(0)
 }
 
+/**
+ * Open `path` and wait until the boot cover has lifted (lib/snailLaunch · liftBootCover). The app
+ * is inert beneath the cover, and a `fill` or a key press – unlike a click – does not wait for
+ * it: the text just vanishes (the admin secret, CI 08.11.2026). Every spec that navigates and
+ * then types opens the app through this; only the boot-cover timing tests use a bare `goto`.
+ */
+export async function openApp(page: Page, path: string) {
+  await page.goto(path)
+  await expect(page.locator('.boot-splash'), 'the boot cover must lift').toHaveCount(0)
+}
+
 export async function login(page: Page) {
-  await page.goto('/')
+  await openApp(page, '/')
   // A station starts on kiosk login; the public demo auto-authenticates and lands directly in
   // its prepared incident. Accept both so the same production-image smoke covers both entryways.
   // ⚠️ ONE locator, not `Promise.race` over two `waitFor`s: the loser of that race stays

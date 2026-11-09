@@ -117,7 +117,11 @@ test.describe('loading snail', () => {
     handover?: { clock: number; duration: number; playState: string; idleClock?: number; onto: { app: boolean; reactSplash: boolean; reactLag?: number } }
   }
 
-  async function prepareLaunch(page: Page, { configDelay = 0, meDelay = 500 } = {}) {
+  /** `meDelay`: how long `/api/auth/me` stays pending, so React's first Splash stays mounted beneath
+   *  the cover – a number of ms, or a promise the test resolves itself (`held`). A case that
+   *  asserts the cover lifts ONTO that Splash holds it: against a fixed delay a slow runner lifted
+   *  the cover after the answer, and the case failed and passed on retry (CI run 42492513971). */
+  async function prepareLaunch(page: Page, { configDelay = 0, meDelay = 500 }: { configDelay?: number; meDelay?: number | Promise<void> } = {}) {
     await page.emulateMedia({ reducedMotion: 'no-preference' })
     await page.route('**/api/config', async route => {
       if (configDelay) await new Promise(resolve => setTimeout(resolve, configDelay))
@@ -125,8 +129,7 @@ test.describe('loading snail', () => {
     })
     await page.route('**/api/plan-scales', route => route.fulfill({ json: {} }))
     await page.route('**/api/auth/me', async route => {
-      // Keeps React's first Splash mounted beneath the cover for a while.
-      await new Promise(resolve => setTimeout(resolve, meDelay))
+      await (typeof meDelay === 'number' ? new Promise(resolve => setTimeout(resolve, meDelay)) : meDelay)
       await route.fulfill({ status: 401, json: { detail: 'Not authenticated' } })
     })
     await page.route('**/api/auth/refresh', route => route.fulfill({ status: 401, json: { detail: 'Not authenticated' } }))
@@ -177,6 +180,13 @@ test.describe('loading snail', () => {
     })
   }
 
+  /** a promise that stays pending until `release()` */
+  function held() {
+    let release = () => {}
+    const pending = new Promise<void>(resolve => { release = resolve })
+    return { pending, release }
+  }
+
   const observation = (page: Page) => page.evaluate(() => Reflect.get(window, '__snailLaunch') as Launch)
   /** how far a revealed React loader's loop starts after the cover's (see `readLag`) */
   async function reactLag(page: Page): Promise<number> {
@@ -210,11 +220,13 @@ test.describe('loading snail', () => {
   test('a slow boot reveals React\'s first stage at once, on the cover\'s clock', async ({ page }) => {
     // the entrance ended ~2.4 s before React mounts: its 2 s hold is long over, so the cover lifts
     // with React's first render (the auth stage, /me still pending) instead of hiding it longer
-    await prepareLaunch(page, { configDelay: 3_000 })
+    const me = held()
+    await prepareLaunch(page, { configDelay: 3_000, meDelay: me.pending })
     await page.goto('/')
     const handover = await lifted(page)
     expect(handover.onto.reactSplash).toBe(true)
     expect(Math.abs(await reactLag(page))).toBeLessThanOrEqual(250)
+    me.release()
     await expect(page.locator('.login-state')).toBeVisible()
     await expect(page.locator('.boot-splash')).toHaveCount(0)
   })
@@ -223,13 +235,15 @@ test.describe('loading snail', () => {
     // React mounts ≥ 800 ms into the launch: a replayed loader would trail the cover by that much,
     // a continued one only by the frame a fresh animation takes to start (up to ~100 ms on a
     // loaded runner)
-    await prepareLaunch(page, { configDelay: 800, meDelay: 4_000 })
+    const me = held()
+    await prepareLaunch(page, { configDelay: 800, meDelay: me.pending })
     await page.goto('/')
     const handover = await lifted(page, 10_000)
     // still on the auth stage two seconds after the entrance: the cover reveals it (its status
     // and its «Neu laden» hint must be readable), and its snail is on the cover's clock
     expect(handover.onto.reactSplash).toBe(true)
     expect(Math.abs(await reactLag(page))).toBeLessThanOrEqual(250)
+    me.release()
     await expect(page.locator('.login-state')).toBeVisible()
   })
 

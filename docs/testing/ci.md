@@ -264,7 +264,9 @@ Azure node can keep sending data without tripping apt's stall timeout
 timeout, browser inventory and test checks remain unchanged.
 
 Every suite retains the client-error/render-storm guard, the field scenario's no-retry policy,
-and the browser's own observation windows. Parallelize by isolated stacks, not additional
+and the browser's own observation windows. The other specs get one retry in CI; a test that
+needed it is named in the job summary and as a warning on the run («Flaky tests», from
+Playwright's JSON report) – fix it then, a flake and a regression look the same once it is red. Parallelize by isolated stacks, not additional
 workers mutating one shared incident or fleet.
 
 ## Measure the delivery path

@@ -478,6 +478,12 @@ jobs:
           E2E_FLEET_SECRET: ${{ env.ALARM_WEBHOOK_SECRET }}  # parks the fake TLF (field scenario)
         run: pnpm exec playwright test
 
+      # `retries: 1` turns a flake into a green run; this names every test that needed the retry
+      # in the job summary and as a warning, so it is seen before it becomes a red `main`.
+      - name: Flaky tests (passed only on a retry)
+        if: always()
+        run: node .github/scripts/flaky-summary.mjs test-results/report.json
+
       - name: Upload Playwright report (on failure)
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7

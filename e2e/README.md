@@ -84,6 +84,10 @@ fetches showed up as `requestfailed`. Such a report is decided when the test end
 into `client-errors-expected.json` with an `excused` note. Any other «Load failed» still fails
 the test.
 
+**Open the app with `openApp(page, path)`** (`helpers.ts`; `login` does) when the next step
+types: the app is inert beneath the boot cover, and a `fill` or a key press – unlike a click –
+does not wait for it to lift. Only the boot-cover timing cases use a bare `goto`.
+
 A test that needs more devices asks for `openDevice('device 2')`. That gives another browser
 context with the same base URL and viewport, guarded the same way.
 
