@@ -3082,7 +3082,7 @@
           "presentation"
         ],
         "summary": "Presentation Signal",
-        "description": "Join, leave, the presenter's view, a pointer or a line. Ephemeral by construction – see the\nmodule docstring. 409 when the presentation it names is not the one running (ended,\ntaken over): the client drops back to «no presentation» on its next poll.",
+        "description": "Join, leave, the presenter's view, a pointer or a line, a mark taken away or all of them.\nEphemeral by construction – see the\nmodule docstring. 409 when the presentation it names is not the one running (ended,\ntaken over): the client drops back to «no presentation» on its next poll.",
         "operationId": "presentation_signal_api_incidents__incident_id__presentation_signal_post",
         "parameters": [
           {
@@ -22049,6 +22049,26 @@
         "title": "PresentationChecklist",
         "description": "The open Checkliste (components/ChecklistsView · Sel)."
       },
+      "PresentationClearMessage": {
+        "properties": {
+          "seq": {
+            "type": "integer",
+            "title": "Seq"
+          },
+          "kind": {
+            "type": "string",
+            "const": "clear",
+            "title": "Kind"
+          }
+        },
+        "type": "object",
+        "required": [
+          "seq",
+          "kind"
+        ],
+        "title": "PresentationClearMessage",
+        "description": "The presenter switched «Zeigen» off: every mark goes."
+      },
       "PresentationMapView": {
         "properties": {
           "lng": {
@@ -22112,6 +22132,29 @@
         ],
         "title": "PresentationMapView",
         "description": "The presenter's free map area (its own side panel left out): the centre, zoom, bearing and\nthe area's size in px – a follower fits that whole area into its own (components/Presentation\n· fitZoom), so a portrait phone zooms out instead of cutting it off."
+      },
+      "PresentationMarkRef": {
+        "properties": {
+          "client": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 4,
+            "title": "Client"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{4,40}$",
+            "title": "Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "client",
+          "id"
+        ],
+        "title": "PresentationMarkRef",
+        "description": "One ring or line, as the × on its name takes it away: whose it is, and its id."
       },
       "PresentationPerson": {
         "properties": {
@@ -22309,6 +22352,18 @@
                 "type": "null"
               }
             ]
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]{4,40}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
           }
         },
         "additionalProperties": false,
@@ -22378,7 +22433,9 @@
               "leave",
               "view",
               "pointer",
-              "stroke"
+              "stroke",
+              "unmark",
+              "clear"
             ],
             "title": "Kind"
           },
@@ -22418,6 +22475,16 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/PresentationStroke"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mark": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PresentationMarkRef"
               },
               {
                 "type": "null"
@@ -22522,13 +22589,21 @@
                 },
                 {
                   "$ref": "#/components/schemas/PresentationStrokeMessage"
+                },
+                {
+                  "$ref": "#/components/schemas/PresentationUnmarkMessage"
+                },
+                {
+                  "$ref": "#/components/schemas/PresentationClearMessage"
                 }
               ],
               "discriminator": {
                 "propertyName": "kind",
                 "mapping": {
+                  "clear": "#/components/schemas/PresentationClearMessage",
                   "pointer": "#/components/schemas/PresentationPointerMessage",
                   "stroke": "#/components/schemas/PresentationStrokeMessage",
+                  "unmark": "#/components/schemas/PresentationUnmarkMessage",
                   "view": "#/components/schemas/PresentationViewMessage"
                 }
               }
@@ -22680,6 +22755,36 @@
           "stroke"
         ],
         "title": "PresentationStrokeMessage"
+      },
+      "PresentationUnmarkMessage": {
+        "properties": {
+          "seq": {
+            "type": "integer",
+            "title": "Seq"
+          },
+          "kind": {
+            "type": "string",
+            "const": "unmark",
+            "title": "Kind"
+          },
+          "client": {
+            "type": "string",
+            "title": "Client"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "seq",
+          "kind",
+          "client",
+          "id"
+        ],
+        "title": "PresentationUnmarkMessage",
+        "description": "A ring or line taken away (the × on its name): `client`/`id` name the MARK, not who tapped."
       },
       "PresentationView": {
         "properties": {

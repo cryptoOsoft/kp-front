@@ -966,7 +966,8 @@ export interface paths {
         put?: never;
         /**
          * Presentation Signal
-         * @description Join, leave, the presenter's view, a pointer or a line. Ephemeral by construction – see the
+         * @description Join, leave, the presenter's view, a pointer or a line, a mark taken away or all of them.
+         *     Ephemeral by construction – see the
          *     module docstring. 409 when the presentation it names is not the one running (ended,
          *     taken over): the client drops back to «no presentation» on its next poll.
          */
@@ -6779,6 +6780,19 @@ export interface components {
             id: string;
         };
         /**
+         * PresentationClearMessage
+         * @description The presenter switched «Zeigen» off: every mark goes.
+         */
+        PresentationClearMessage: {
+            /** Seq */
+            seq: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "clear";
+        };
+        /**
          * PresentationMapView
          * @description The presenter's free map area (its own side panel left out): the centre, zoom, bearing and
          *     the area's size in px – a follower fits that whole area into its own (components/Presentation
@@ -6797,6 +6811,16 @@ export interface components {
             w?: number | null;
             /** H */
             h?: number | null;
+        };
+        /**
+         * PresentationMarkRef
+         * @description One ring or line, as the × on its name takes it away: whose it is, and its id.
+         */
+        PresentationMarkRef: {
+            /** Client */
+            client: string;
+            /** Id */
+            id: string;
         };
         /** PresentationPerson */
         PresentationPerson: {
@@ -6856,6 +6880,8 @@ export interface components {
             /** Floor */
             floor?: number | null;
             anchor?: components["schemas"]["PresentationAnchor"] | null;
+            /** Id */
+            id?: string | null;
         };
         /** PresentationPointerMessage */
         PresentationPointerMessage: {
@@ -6884,12 +6910,13 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "join" | "leave" | "view" | "pointer" | "stroke";
+            kind: "join" | "leave" | "view" | "pointer" | "stroke" | "unmark" | "clear";
             /** Name */
             name?: string | null;
             view?: components["schemas"]["PresentationView"] | null;
             at?: components["schemas"]["PresentationPointerAt"] | null;
             stroke?: components["schemas"]["PresentationStroke"] | null;
+            mark?: components["schemas"]["PresentationMarkRef"] | null;
         };
         /** PresentationStart */
         PresentationStart: {
@@ -6923,7 +6950,7 @@ export interface components {
              * Messages
              * @default []
              */
-            messages?: (components["schemas"]["PresentationViewMessage"] | components["schemas"]["PresentationPointerMessage"] | components["schemas"]["PresentationStrokeMessage"])[];
+            messages?: (components["schemas"]["PresentationViewMessage"] | components["schemas"]["PresentationPointerMessage"] | components["schemas"]["PresentationStrokeMessage"] | components["schemas"]["PresentationUnmarkMessage"] | components["schemas"]["PresentationClearMessage"])[];
         };
         /**
          * PresentationStroke
@@ -6973,6 +7000,23 @@ export interface components {
             /** Link */
             link: boolean;
             stroke: components["schemas"]["PresentationStroke"];
+        };
+        /**
+         * PresentationUnmarkMessage
+         * @description A ring or line taken away (the × on its name): `client`/`id` name the MARK, not who tapped.
+         */
+        PresentationUnmarkMessage: {
+            /** Seq */
+            seq: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "unmark";
+            /** Client */
+            client: string;
+            /** Id */
+            id: string;
         };
         /** PresentationView */
         PresentationView: {

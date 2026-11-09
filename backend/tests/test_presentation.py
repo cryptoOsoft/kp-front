@@ -395,20 +395,47 @@ async def test_a_client_id_belongs_to_the_session_that_registered_it(client, sec
     assert (await _texts(db_session, inc))[-1] == "Präsentation beendet (Cmd – Verbindung verloren)"
 
 
-async def test_a_faded_pointer_is_no_news(client, second, editor, viewer, monkeypatch):
-    """A tab back from the background, or a device that just looked, gets no rings from before."""
+async def test_a_mark_stands_until_it_is_taken_away(client, second, editor, viewer, monkeypatch):
+    """«Zeigen» A (owner, 09.11.2026): no fade. A tab back from the background still gets the ring
+    made meanwhile – and the × that took a line away, in order; a device that had not looked yet
+    gets none of the marks from before it looked."""
     await _login(client, editor)
     await _login(second, viewer)
     inc = await _incident(client)
     pid = (await _start(client, inc))["id"]
-    await _signal(client, inc, pid, PRESENTER, "pointer", at=POINT)
+    await _signal(second, inc, pid, FOLLOWER, "join")
+    await _signal(client, inc, pid, PRESENTER, "pointer", at={**POINT, "id": "r1-abc"})
+    await _signal(client, inc, pid, PRESENTER, "stroke", stroke=_line(n=3, done=True))
     url = f"/api/incidents/{inc}/presentation?client={FOLLOWER}"
     assert (await second.get(url)).json()["messages"] == []  # had not looked yet
-    assert len((await second.get(f"{url}&known={pid}")).json()["messages"]) == 1
-    later = time.monotonic() + broker.POINTER_TTL_S + 1
+    later = time.monotonic() + 600
     monkeypatch.setattr(broker, "_now", lambda: later)
     broker.current(uuid.UUID(inc)).presenter.seen = later  # the presenter is still there
-    assert (await second.get(f"{url}&known={pid}")).json()["messages"] == []
+    broker.current(uuid.UUID(inc)).participants[FOLLOWER].seen = later
+    got = (await second.get(f"{url}&known={pid}")).json()["messages"]
+    assert [(m["kind"], m.get("at", {}).get("id")) for m in got] == [("pointer", "r1-abc"), ("stroke", None)]
+
+    # anybody joined takes a line away with its ×: off the stroke buffer, and said to everyone
+    line_id = got[1]["stroke"]["id"]
+    mark = {"client": PRESENTER, "id": line_id}
+    assert (await _signal(second, inc, pid, FOLLOWER, "unmark", mark=mark)).status_code == 204
+    after = (await second.get(f"{url}&known={pid}")).json()["messages"]
+    assert [m["kind"] for m in after] == ["pointer", "unmark"]
+    assert (after[1]["client"], after[1]["id"]) == (PRESENTER, line_id)
+
+
+async def test_only_the_presenter_clears_every_mark(client, second, editor, viewer):
+    await _login(client, editor)
+    await _login(second, viewer)
+    inc = await _incident(client)
+    pid = (await _start(client, inc))["id"]
+    await _signal(second, inc, pid, FOLLOWER, "join")
+    await _signal(client, inc, pid, PRESENTER, "stroke", stroke=_line(n=3, done=True))
+    assert (await _signal(second, inc, pid, FOLLOWER, "clear")).status_code == 403
+    assert (await _signal(client, inc, pid, PRESENTER, "clear")).status_code == 204
+    got = (await second.get(f"/api/incidents/{inc}/presentation?client={FOLLOWER}&known={pid}")).json()["messages"]
+    # the line left the stroke buffer with the clear: a late poll never draws it again
+    assert [m["kind"] for m in got] == ["clear"]
 
 
 # --- review 06.11.2026 --------------------------------------------------------------------

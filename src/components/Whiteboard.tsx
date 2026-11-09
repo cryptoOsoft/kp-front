@@ -2270,7 +2270,7 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
             style={{ width: sW || undefined, height: sH || undefined, transform: `translate(-50%, -50%) translate(${pos.x + (side.l - side.r) / 2}px, ${pos.y + vShift}px)`, pointerEvents: previewing ? 'none' : undefined }}
           >
             {/* the Präsentationsmodus' fading rings, in plan space (z above every anno) */}
-            {presentation && <BoardRings rings={presentation.rings} strokes={presentation.strokes} presenter={presentation.presenter} mapY={mapY} size={{ w: sW, h: sH }} />}
+            {presentation && <BoardRings rings={presentation.rings} strokes={presentation.strokes} presenter={presentation.presenter} mapY={mapY} size={{ w: sW, h: sH }} onUnmark={presentation.onUnmark} />}
             {stack && building ? (
               <>
               {/* what is folded away, as a strip where the storey belongs – «+2 · 2. OG
