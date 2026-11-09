@@ -17,7 +17,7 @@ That is a website, not the app — see [The project website](#the-project-websit
 
 ## Map and address services are a separate matter
 
-Nothing above is about the **map**. Drawing a map means asking somebody for map data, and five
+Nothing above is about the **map**. Drawing a map means asking somebody for map data, and most
 of those requests carry a location:
 
 | Service | What leaves | Who it goes to | Turn it off |
@@ -28,6 +28,7 @@ of those requests carry a location:
 | A station object's buildings («Karte & Objekte») | the coordinate of a station object (never an incident's), once per object, and a box around its parcel | swisstopo's vector tiles (vectortiles.geo.admin.ch), the geocoder host (parcel) and geodienste.ch's open cadastral-survey WFS, **from the server** (scheduler) | `FOOTPRINT_AREA_TILES=` or `FOOTPRINT_BUILDINGS_WFS=` (either empty switches it off; the map then draws the OSM building the object's point lies in) |
 | The Einsatzgebiet's houses and underground buildings («Karte & Objekte»: a building tap, «Unterirdische Bauten») | the municipality numbers, the map centre and a box around every station object — never an incident's coordinate; weekly | swisstopo's municipality boundaries (the geocoder host) and geodienste.ch's open cadastral-survey WFS, **from the server** (scheduler) | `HOUSES_WFS=` / `UNDERGROUND_WFS=` (empty switches each off; a building tap then opens the OSM outline) |
 | Address search / geocoding, Gebäude-Steckbrief | the text you type, a clicked coordinate, or the incident point for the federal building registers (GWR, BFE) | the configured geocoder host (swisstopo's geo.admin.ch by default), **from the server** | `GEOCODER_URL` |
+| Höhenprofil (Messen › Strecke, a Leitung, Wassertransport) | the points of the line you drew or measured, as LV95 coordinates | swisstopo's elevation service (`api3.geo.admin.ch`), **from the browser** – the one lookup that is not proxied by the server | no switch – it is asked only for a measured Strecke or a Leitung whose profile or pressure the app works out; without an answer the line shows its distance only and a Wassertransport is calculated without slope |
 | Weather layer (radar) | nothing about you: the backend downloads the nationwide MeteoSwiss radar files | [MeteoSwiss open data](https://opendatadocs.meteoswiss.ch/), **from the server** | `WEATHER_LAYER_ENABLED=false` |
 | Weather / wind | the incident coordinate for the point-based weather code and fallback; MeteoSwiss observation downloads themselves are national, not point queries | [Open-Meteo](https://open-meteo.com/), **from the server** | `OPEN_METEO_URL=` (empty disables weather) |
 

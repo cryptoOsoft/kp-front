@@ -13,6 +13,7 @@ site/
   shots/                ← screenshots from a real instance (generated, WebP)
   capture.mjs           ← re-captures shots/
   build.mjs             ← builds the pages from template + texts
+  llms.txt              ← product facts for language models – written by hand, not built
 
   index.html            ← built, checked in, what gets served
   fr|it|rm|en/index.html ← ditto
@@ -60,10 +61,11 @@ Decided deliberately, not accidental:
   setting sends them to `/fr/` is worse than a switcher they can see.
 - **The screenshots stay German, on every language version.** They come from a real
   instance; staged images would be a claim. The other language pages say so in one line.
-- **The app's languages are stated in exactly two places, apart from the website's:** the FAQ
-  «In welchen Sprachen ist KP Front verfügbar?» (German only today) and `product.inLanguage`
-  (`config.json`, → `SoftwareApplication.inLanguage`). Whoever ships another app language
-  updates both, in all five texts. The website's languages go on `WebSite`/`WebPage`.
+- **The app's languages are stated in exactly three places, apart from the website's:** the FAQ
+  «In welchen Sprachen ist KP Front verfügbar?», `product.inLanguage`
+  (`config.json`, → `SoftwareApplication.inLanguage`) and `llms.txt` («Product facts»), which
+  `build.mjs` does not touch. Whoever ships another app language updates all three, the FAQ in
+  all five texts. The website's languages go on `WebSite`/`WebPage`.
 - **A translation that no fire-service person of that language has read says so at the top
   of the page** (`notice` in `fr.json`, `it.json` and `rm.json`). That line disappears once someone has
   proofread it – it is not decoration.
@@ -128,7 +130,7 @@ against a local instance.
 ## Contact
 
 Three channels, all without a backend of our own: two pre-filled GitHub issue templates
-(`.github/ISSUE_TEMPLATE/bug_report.md` and `feature_request.md`) and a form that posts to
+(`.github/ISSUE_TEMPLATE/bug_report.yml` and `feature_request.md`) and a form that posts to
 an external form service. Without JavaScript the form remains an ordinary POST.
 
 Whoever renames the templates must update the `?template=…` links in `index.template.html`

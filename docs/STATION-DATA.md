@@ -22,6 +22,11 @@ reviewable source of truth for configuration and licensed or operational data.
 > export, or when you want the change reviewed before it is live. The two doors write the same
 > rows, so you can mix them.
 
+**What you need:** a workstation with a checkout of this repository and
+[`uv`](https://docs.astral.sh/uv/), because every command below is `cd backend && uv run python -m
+app.admin_*`. The station server needs neither – it stays Docker-only and receives the data over
+HTTPS with `push` ([Load it](#load-it--push-to-a-station-load-on-a-developer-machine)).
+
 ## Start from the synthetic example
 
 [`examples/demo-data/`](../examples/demo-data/) is the public, working example of the same
@@ -41,7 +46,8 @@ kp-front-data-muster/
   checklists/
   tafel.manifest.json      the Tafel's pages (board-template/1) – the example points at the bundled
                            FKS set in src/data/boardTemplates/; your copy names its own page files
-  load.sh                  the whole sequence, in order (copy examples/demo-data/load.sh)
+  load.sh                  the whole sequence, in order – the example's `load`s into a dev
+                           database; a station's own script runs the same steps with `push`
   gen_water.py             optional source-specific importer, beside what it writes
   incident.workspace.json  demo only: the live demo's baked Lage/Plan scene (app.demo_reset)
   README.md                what each file is and which CLI loads it
@@ -117,14 +123,15 @@ Important boundaries:
   (`backend/app/admin_objects.py` · `ObjectEntry.id`). Hand-maintained manifests use `key`.
 - Only data that the station may redistribute to its operators should be loaded.
 
-## Load it – `load` server-side, `push` from anywhere
+## Load it – `push` to a station, `load` on a developer machine
 
 **The order matters in one place: branding after the config, never before** – why, in
 [`CONFIGURATION.md` §9a](CONFIGURATION.md#9a-what-all-of-them-share). Everything after that is
 independent.
 
 [`examples/demo-data/load.sh`](../examples/demo-data/load.sh) is the worked version of exactly
-this sequence – copy it as the skeleton of your station's own load script:
+this sequence, written with `load` against a dev database. A station's own script is the same
+steps in the same order with `push` (below):
 
 ```text
 1  admin_config      config.json
@@ -142,28 +149,17 @@ Anwesenheit and Schichtenplanung. It reads nothing from your repository and ther
 station-data equivalent of it: a real crew arrives from the roster provider, a CSV import on
 **Personal**, or the Arbeitsmappe – [`CONFIGURATION.md` §4](CONFIGURATION.md). It is additive and
 harmless (existing names are left alone, nothing is deleted), but running it against a station
-deployment puts 28 invented people in the roster. Leave it out of your own `load.sh`.
+deployment puts 28 invented people in the roster. Leave it out of your own script.
 
 Which verb belongs where is [`CONFIGURATION.md`
 §9a](CONFIGURATION.md#9a-what-all-of-them-share); below is what each one looks like.
 
-### On the deployment host (`load`)
+### To a station, from a workstation (`push`)
 
-```bash
-cd backend
-uv run python -m app.admin_config     load ../../kp-front-data-muster/config.json
-uv run python -m app.admin_branding   load logo       ../../kp-front-data-muster/report-logo.png
-uv run python -m app.admin_branding   load reportLogo ../../kp-front-data-muster/report-logo.png
-uv run python -m app.admin_geodata    load ../../kp-front-data-muster/geodata.manifest.json
-uv run python -m app.admin_objects    load ../../kp-front-data-muster/objects.manifest.json
-uv run python -m app.admin_checklists load ../../kp-front-data-muster/checklists.manifest.json
-uv run python -m app.admin_board_templates load ../../kp-front-data-muster/tafel.manifest.json
-```
-
-### From a workstation (`push`)
-
-**Postgres is deliberately not reachable from outside the compose network**, so there is no
-"connect to the deployment database from your laptop" path. Use `push` – all six CLIs have it.
+This is the way to load a station deployment. **Postgres is deliberately not reachable from
+outside the compose network**, so there is no "connect to the deployment database from your
+laptop" path, and the server needs no toolchain: `push` sends the files to the running
+deployment's API. All six CLIs have it.
 
 ```bash
 export KP_BASE_URL=https://kp-front.example.ch
@@ -193,13 +189,34 @@ like – and `--force` is how you say you meant it. Every write keeps the docume
 the deployment has, while it already has objects – that push would duplicate every one of them
 (a manifest from another id scheme) – and `--allow-create` is how you say they really are new.
 
+### On a developer machine or a dev database (`load`)
+
+`load` writes straight to the database in `DATABASE_URL` and to the local media folder. That
+fits `just dev` and the demo. It does **not** fit a Docker-only station server: the host has no
+`uv`, and inside the container your files are not there
+([`DEPLOYMENT.md` §4](DEPLOYMENT.md#running-the-clis-on-a-host-that-has-only-docker)). Use `push`
+for a station.
+
+```bash
+cd backend
+uv run python -m app.admin_config     load ../../kp-front-data-muster/config.json
+uv run python -m app.admin_branding   load logo       ../../kp-front-data-muster/report-logo.png
+uv run python -m app.admin_branding   load reportLogo ../../kp-front-data-muster/report-logo.png
+uv run python -m app.admin_geodata    load ../../kp-front-data-muster/geodata.manifest.json
+uv run python -m app.admin_objects    load ../../kp-front-data-muster/objects.manifest.json
+uv run python -m app.admin_checklists load ../../kp-front-data-muster/checklists.manifest.json
+uv run python -m app.admin_board_templates load ../../kp-front-data-muster/tafel.manifest.json
+```
+
 `/admin` writes the same rows through forms and uploads, and most stations do everything there.
-Object plans, geodata and checklists are **no longer terminal-only** – each has its own admin page
+Object plans, geodata and checklists are **not terminal-only** – each has its own admin page
 for a single item, and the two doors are interchangeable. This repository is for the parts that
 want to be reviewable and repeatable: the whole library in one run, a manifest an importer
 regenerates, a second deployment that has to come up identically, and the handful of fields no
 form exposes (a layer's `nightColor` / `opacity` / `maxzoom` / `symbol` / `autoActivate`,
-`mittel.units`, `alarmKeywords`, `mittel.catalogue[].when`, `fleet.vehicles[].winfapAlias`).
+`mittel.units`, `alarmKeywords`, `roster.source`, `mittel.catalogue[].when`,
+`fleet.vehicles[].winfapAlias` – where the form-less ones are set:
+[`SETUP.md` §3](SETUP.md#what-still-needs-a-file)).
 Never commit database URLs, admin secrets, API credentials, personal rosters, or operational data
 to the public repository.
 
@@ -218,7 +235,9 @@ A technical owner should be able to confirm all of the following:
 - A known hydrant or reference feature appears at the expected location.
 - An incident at a known object offers the correct plans.
 - Station checklists open and remain available after preparing the device for offline use.
-- The initial editor PIN and `ADMIN_SECRET` have been changed from setup defaults.
+- The seeded account's PIN (`SEED_PIN`) has been changed after the first login, and
+  `ADMIN_SECRET` – generated by `setup.sh`, there is no default – is kept where the station's
+  admins can find it.
 - Data provenance, permissions, refresh commands, and recovery ownership are documented privately.
 
 This is the same boundary used by an operational station deployment: public application code,

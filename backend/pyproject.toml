@@ -3,7 +3,7 @@ name = "kp-front-backend"
 version = "0.12.0"
 description = "Standalone FastAPI backend for the kp-front operational Lagekarte"
 license = "AGPL-3.0-or-later"
-authors = [{ name = "Bastian Eichenberger", email = "bastian@eichenbergers.ch" }]
+authors = [{ name = "Bastian Eichenberger", email = "bastian.eichenberger@feuerwehr-oberwil.ch" }]
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115.0",
