@@ -5,20 +5,19 @@
 // shared symbol pack), the plan pages (pdfium) and loads journal photos from its own media
 // store; nothing is captured or uploaded from the browser anymore.
 
-import { downloadBlob } from './download'
+import { downloadBlob, downloadPdf } from './download'
 import { linkSessionHeaders } from './linkMode'
 
-// Mirror api.ts's base so a cross-origin deployment still resolves (Vite proxies /api in dev).
-const BASE = import.meta.env.VITE_KP_RUECK_URL ?? ''
-
-/** POST the payload to the composer, then download the returned PDF. Throws on a non-2xx
- *  response so the caller can surface an error toast. */
+/** Another way to reach the composer than the signed-in app's: the capture view's poster-token
+ *  route, on a phone that has no session. */
 export interface ReportTransport {
-  /** override endpoint (e.g. the capture view's poster-token route) */
+  /** override endpoint (a path on this origin) */
   url: string
   headers?: Record<string, string>
 }
 
+/** POST the payload to the composer, then download the returned PDF. Throws on a non-2xx
+ *  response so the caller can surface an error toast. */
 export async function downloadReportPdf(
   incidentId: string,
   payload: unknown,
@@ -27,20 +26,21 @@ export async function downloadReportPdf(
 ): Promise<void> {
   const form = new FormData()
   form.append('payload', JSON.stringify(payload))
+  const filename = `Einsatzrapport_${filenameHint || 'Einsatz'}.pdf`
+  if (!transport) return downloadPdf(`/api/incidents/${encodeURIComponent(incidentId)}/report/pdf`, form, filename)
 
-  const res = await fetch(transport?.url ?? `${BASE}/api/incidents/${encodeURIComponent(incidentId)}/report/pdf`, {
+  // The capture view stays on a bare `fetch`: its poster token is the whole authentication, so
+  // there is no session for the API client to renew, and a 401 there must not be read as «this
+  // device's login expired». Its caller bounds the request (CaptureApp · printRapport). The
+  // session-mode header the client adds for free rides by hand, ahead of the transport's own.
+  const res = await fetch(transport.url, {
     method: 'POST',
     credentials: 'include',
-    // A bare `fetch` (the answer is a PDF blob, not JSON), so the session-mode header the api
-    // client adds for free has to be spread by hand — see api · rawFetch for the invariant.
-    // Ahead of the transport's own headers, which carry the capture poster token and never this.
-    headers: { ...linkSessionHeaders(), ...transport?.headers },
+    headers: { ...linkSessionHeaders(), ...transport.headers },
     body: form,
   })
   if (!res.ok) throw new Error(`Rapport-PDF fehlgeschlagen (${res.status})`)
-
-  const blob = await res.blob()
-  downloadBlob(blob, `Einsatzrapport_${filenameHint || 'Einsatz'}.pdf`)
+  downloadBlob(await res.blob(), filename)
 }
 
 /** Sanitise an incident title into a safe filename fragment (mirrors the server side). */

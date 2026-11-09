@@ -21,7 +21,7 @@ describe('the Tafel prints its own pages', () => {
   })
 
   it('posts to the Tafel endpoint and hands the PDF to the browser', async () => {
-    const fetch = vi.fn(async () => ({ ok: true, status: 200, blob: async () => new Blob(['%PDF']) }))
+    const fetch = vi.fn(async () => new Response('%PDF', { status: 200 }))
     vi.stubGlobal('fetch', fetch)
     URL.createObjectURL = vi.fn(() => 'blob:x')
     URL.revokeObjectURL = vi.fn()

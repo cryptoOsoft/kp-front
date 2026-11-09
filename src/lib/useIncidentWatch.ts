@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { listIncidentsResilient, type IncidentMeta } from './incidents'
+import { listIncidentsShared, type IncidentMeta } from './incidents'
 import { freshAlarmCandidate, loadDismissedIncidents, saveDismissedIncident } from './incidentAlerts'
 import { useResumingPoll, WATCH_POLL_MS, WATCH_RESUME_GAP_MS } from './useResumingPoll'
 
@@ -20,10 +20,15 @@ export function useIncidentWatch(
   // cold-start pick already handled them), only mid-session arrivals do.
   const baseline = useRef<Set<string> | null>(null)
 
+  // Read through a ref: as a dependency of `refresh` it rebuilt the poll on every Einsatz open or
+  // switch, and a rebuilt poll starts with a round of its own (09.11.2026).
+  const activeIdRef = useRef(activeId)
+  useEffect(() => { activeIdRef.current = activeId }, [activeId])
+
   // The cadence, the foreground resume and the one-round-at-a-time guard are useResumingPoll's;
-  // this is only what a round does.
+  // this is only what a round does. The first round shares the boot's request (listIncidentsShared).
   const refresh = useCallback(async () => {
-    const { list } = await listIncidentsResilient()
+    const { list } = await listIncidentsShared()
     onList(list)
     if (baseline.current === null) {
       baseline.current = new Set(list.map((i) => i.id))
@@ -31,13 +36,13 @@ export function useIncidentWatch(
     }
     setFresh(
       freshAlarmCandidate(list, {
-        activeId,
+        activeId: activeIdRef.current,
         baselineIds: baseline.current,
         dismissed: loadDismissedIncidents(),
         now: Date.now(),
       }),
     )
-  }, [activeId, onList])
+  }, [onList])
 
   useResumingPoll(enabled, refresh, { pollMs: WATCH_POLL_MS, resumeGapMs: WATCH_RESUME_GAP_MS })
 

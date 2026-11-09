@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import type React from 'react'
-import type { BoardAnno, BoardPoint } from '../types'
+import type { BoardAnno, BoardPoint, BoardTool } from '../types'
 import { DRAG_DEADZONE_PX } from '../lib/useHoldToDrag'
 import { formatTime } from '../lib/format'
 import { serverNow } from '../lib/serverClock'
@@ -10,7 +10,7 @@ import { DOOR_SNAP_PX, isDoor, nearestWall, seatDoor } from '../lib/grundriss'
 
 interface Args {
   /** the ARMED tool as the board reads it (a select-only surface reads 'pan') */
-  tool: string
+  tool: BoardTool
   readOnly: boolean
   annos: BoardAnno[]
   editId: string | null

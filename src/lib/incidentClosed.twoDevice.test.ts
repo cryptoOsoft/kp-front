@@ -107,6 +107,7 @@ async function fakeFetch(input: string, init: RequestInit = {}): Promise<Respons
   return json(404, { detail: 'Einsatz nicht gefunden' })
 }
 
+const { serverRoundTrip } = await import('./jsonb.test-utils')
 const { __resetIdbForTests } = await import('./idb')
 const { WorkspaceSync } = await import('./api/workspaceSync')
 const { pollWorkspaceSince } = await import('./api/workspace')
@@ -212,6 +213,46 @@ describe('a close on phone A reaches phone B, and B’s late Tafel writes are re
     audit.stop()
     journal.dispose()
     off()
+  })
+})
+
+describe('a refused save sends the record part only when the record changed', () => {
+  // sweep 09.11.2026 · CODE.6: the server keeps the blob as JSONB and hands every object back with
+  // its keys re-sorted. The park compared by `JSON.stringify`, so a record slice this device
+  // never touched read as «changed» and was PUT again to the closed Einsatz.
+  it('the same reportMeta in another key order is not a change', async () => {
+    const reportMeta = { kurzbericht: 'Brand gelöscht', einsatzleiter: 'Meier' }
+    server.ws = { ...server.ws, reportMeta: serverRoundTrip(reportMeta) }
+    const sync = new WorkspaceSync(INC, { debounceMs: 60_000 })
+    const { workspace } = await sync.init()
+
+    // offline: a Kontakt, with the record slice as this device's own code orders its keys
+    server.online = false
+    sync.save({ ...workspace, trupps: [{ ...TRUPP, lastContactTime: LATE }], reportMeta: { einsatzleiter: 'Meier', kurzbericht: 'Brand gelöscht' } })
+    await sync.flush()
+    server.online = true
+    await archiveIncident(INC)
+    await sync.flush()
+
+    expect(sync.refusedCount).toBe(1) // the Kontakt was refused and parked …
+    expect(server.recordPuts).toBe(0) // … and nothing of the record was sent again
+    expect(server.rev).toBe(1)
+    sync.dispose()
+  })
+
+  it('a record slice that did change still lands', async () => {
+    const sync = new WorkspaceSync(INC, { debounceMs: 60_000 })
+    const { workspace } = await sync.init()
+    server.online = false
+    sync.save({ ...workspace, trupps: [{ ...TRUPP, lastContactTime: LATE }], reportMeta: { kurzbericht: 'Brand gelöscht, Nachkontrolle 16:00' } })
+    await sync.flush()
+    server.online = true
+    await archiveIncident(INC)
+    await sync.flush()
+
+    expect(server.recordPuts).toBe(1)
+    expect(server.ws.reportMeta).toEqual({ kurzbericht: 'Brand gelöscht, Nachkontrolle 16:00' })
+    sync.dispose()
   })
 })
 

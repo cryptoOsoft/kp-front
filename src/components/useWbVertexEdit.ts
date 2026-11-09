@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import type React from 'react'
-import type { BoardAnno, BoardPoint, LineAttachment, LineEndpoint } from '../types'
+import type { BoardAnno, BoardPoint, BoardTool, LineAttachment, LineEndpoint } from '../types'
 import { buzz } from '../lib/haptics'
 import { advanceDwell, detachProgress, dwellFor, EMPTY_DWELL, nextFreePort, stickyMagneticTarget, type AttachableLine, type DwellState, type MagneticTarget } from '../lib/lineAttachments'
 import { carryDoors, doorsOn } from '../lib/grundriss'
@@ -14,7 +14,7 @@ interface Args {
   annos: BoardAnno[]
   selId: string | null
   /** the ARMED tool as the board reads it (a select-only surface reads 'pan') */
-  tool: string
+  tool: BoardTool
   readOnly: boolean
   /** floor-stack document: a Linie's node follows the pointer's storey */
   stack: boolean

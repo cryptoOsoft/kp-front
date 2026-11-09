@@ -9,7 +9,7 @@ import { shiftsFor, sortBands } from './shifts'
 import { rankAbbr, rankLabel } from './rank'
 import { intervalsOf } from './attendanceIntervals'
 import { editorPrintTransport, enqueuePrint } from './printRelay'
-import { linkSessionHeaders } from './linkMode'
+import { downloadPdf } from './download'
 
 const BASE = import.meta.env.VITE_KP_RUECK_URL ?? ''
 
@@ -98,26 +98,10 @@ export function buildZeitplanPayload(
 export async function downloadZeitplanPdf(incidentId: string, payload: ZeitplanPrintPayload): Promise<void> {
   const form = new FormData()
   form.append('payload', JSON.stringify(payload))
-  const res = await fetch(`${BASE}/api/incidents/${encodeURIComponent(incidentId)}/zeitplan/pdf`, {
-    method: 'POST',
-    credentials: 'include',
-    // bare `fetch` for the blob, so the session-mode header rides by hand (api · rawFetch)
-    headers: linkSessionHeaders(),
-    body: form,
-  })
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  const blob = await res.blob()
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
   // named after the SHEET: two downloads on one name means the second silently replaces the
   // first in a Downloads folder somebody is about to print from
-  a.download = payload.sheet === 'schichtplan' ? 'Schichtplan.pdf' : 'Verfuegbarkeiten.pdf'
-  document.body.appendChild(a)
-  a.click()
-  a.remove()
-  // let the download start before the object URL goes away
-  setTimeout(() => URL.revokeObjectURL(url), 10_000)
+  const filename = payload.sheet === 'schichtplan' ? 'Schichtplan.pdf' : 'Verfuegbarkeiten.pdf'
+  await downloadPdf(`/api/incidents/${encodeURIComponent(incidentId)}/zeitplan/pdf`, form, filename)
 }
 
 /** Queue the sheet on the station printer; resolves to the job id (for the live toast). */

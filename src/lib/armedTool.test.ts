@@ -26,11 +26,11 @@ describe('armedToolName – the readout pill\'s word', () => {
   it('the glyph is the rail tile\'s icon', () => {
     expect(armedToolIcon('line', map)).toBe('pen')
     expect(armedToolIcon('lasso', plan)).toBe('marquee')
-    expect(armedToolIcon('nope', map)).toBeNull()
+    expect(armedToolIcon('scale', map)).toBeNull() // a Plan tool the Karte's rail does not carry
   })
 
-  it('the rest state and an unknown id are no pill', () => {
+  it('the rest state and a tool the rail does not carry are no pill', () => {
     expect(armedToolName('select', map)).toBe('Auswahl') // the caller gates on the rest state
-    expect(armedToolName('nope', map)).toBeNull()
+    expect(armedToolName('scale', map)).toBeNull()
   })
 })

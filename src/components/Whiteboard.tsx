@@ -120,7 +120,7 @@ import { armedToolIcon, armedToolName } from '../lib/armedTool'
 import { PlanCompass } from './PlanCompass'
 import { OrientSlider } from './OrientSlider'
 import { RailKey, ToolRail } from './ToolRail'
-import { FIT_KEY } from '../lib/hotkeys'
+import { FIT_KEY, type ToolCmd } from '../lib/hotkeys'
 import { TafelPageStrip } from './TafelPageStrip'
 import { TafelFormPage } from './TafelFormPage'
 import type { PendenzenPort } from '../lib/pendenzenPage'
@@ -243,7 +243,7 @@ interface Props {
   fitRef?: React.MutableRefObject<(() => void) | null>
   /** expose tool-pick + zoom so the global keyboard-shortcut layer (App) can drive the Plan
    *  surface, keeping Lage↔Plan shortcut parity. Semantic tool ids map to Plan tools inside. */
-  keysRef?: React.MutableRefObject<{ pickTool: (tool: string) => void; zoom: (f: number) => void; duplicate: () => void } | null>
+  keysRef?: React.MutableRefObject<{ pickTool: (tool: ToolCmd) => void; zoom: (f: number) => void; duplicate: () => void } | null>
   /** a Verlauf row asked to revisit a plan point — center + select on arrival. */
   /** `flash` shows the anno (a few-second outline) instead of selecting it — see the focus effect */
   /** `scale` (the Präsentationsmodus following a presenter) also sets the zoom, «eingepasst» = 1;
@@ -985,7 +985,7 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
   // 'team'→'resource'. No dep array (mirrors fitRef) so the handle always closes over live state.
   useEffect(() => {
     if (!keysRef) return
-    const MAP: Record<string, BoardTool> = { select: 'pan', lasso: 'lasso', line: 'line', area: 'area', circle: 'circle', note: 'text', team: 'resource', measure: 'measure' }
+    const MAP: Partial<Record<ToolCmd, BoardTool>> = { select: 'pan', lasso: 'lasso', line: 'line', area: 'area', circle: 'circle', note: 'text', team: 'resource', measure: 'measure' }
     keysRef.current = {
       pickTool: (cmd) => {
         if (formOpen) return // a Tafel PAGE is a form: no tool to arm on it

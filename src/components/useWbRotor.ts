@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type React from 'react'
-import type { BoardAnno } from '../types'
+import type { BoardAnno, BoardTool } from '../types'
 import { appConfig } from '../config/appConfig'
 import { buzz } from '../lib/haptics'
 import { MAGNET_DWELL_MS, MAGNET_RADIUS_PX } from '../lib/lineAttachments'
@@ -14,7 +14,7 @@ export const CIRCLE_MAX_N = 2
 
 interface Args {
   /** the ARMED tool as the board reads it (a select-only surface reads 'pan') */
-  tool: string
+  tool: BoardTool
   readOnly: boolean
   annos: BoardAnno[]
   boardRef: React.RefObject<HTMLDivElement | null>
