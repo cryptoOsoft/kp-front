@@ -220,6 +220,11 @@ describe('forPaper', () => {
     })
   })
 
+  // «☑» printed as a black box (09.11.2026); «✔» is ZapfDingbats', which ReportLab falls back to
+  it('ticks a checklist row with a glyph the paper has', () => {
+    expect(forPaper({ text: '☑ Absprache mit Einsatzleitung' })).toEqual({ text: '✔ Absprache mit Einsatzleitung' })
+  })
+
   it('leaves everything else exactly as it was — numbers, nulls, plain text', () => {
     const payload = { n: 3, ok: true, nothing: null, s: 'Hauptstrasse 4 – 2. OG', list: ['a', 'b'] }
     expect(forPaper(payload)).toEqual(payload)
