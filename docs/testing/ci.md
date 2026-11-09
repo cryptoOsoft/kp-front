@@ -165,10 +165,12 @@ check` against the models); image, secrets, e2e, visual and perf stay CI's.
   way to pass. The gzipped entry, App, maplibre, pdf-worker and CSS chunks have a +5 % budget
   against `scripts/bundle-baseline.json` (`scripts/check-bundle-size.mjs`, CI); a deliberate
   growth is an `--update` in its own commit, with the reason.
-- **`jsdom` is held on 30.0.x** (`~30.0.1`, Dependabot ignores 30.1): 30.1's blob URLs cannot
-  read the Node `Blob` Vitest supplies, so maplibre-gl 4.7 fails at import and MapView, mapTwist
-  and the IncidentWorkspace harness stop loading. Lift it with a jsdom past 30.1 or MapLibre 6
-  (#193) – never by mocking MapLibre away in those tests.
+- **`jsdom` is held on 30.0.x** (`~30.0.1`, Dependabot ignores everything from 30.1.0): since
+  30.1 its blob URLs cannot read the Node `Blob` Vitest supplies, so maplibre-gl fails at import
+  and MapView, mapTwist and the IncidentWorkspace harness stop loading. MapLibre 6 did not fix
+  it: jsdom 31.0.0 on maplibre-gl 6.14 still fails that way, plus five `JournalComposer` cases
+  (#557, 08.11.2026). Lift it with a jsdom release that passes the whole suite, in a PR that also
+  removes the Dependabot rule – never by mocking MapLibre away in those tests.
 - **CLI subprocess tests run outside `backend/`**: pydantic reads `.env` from the cwd, so a
   station's `backend/.env` would leak into them (`tests/test_admin_cli_output.py` · `_run`).
 - **e2e** runs on the production image in CI ([`e2e/README.md`](../../e2e/README.md)). ⚠️
