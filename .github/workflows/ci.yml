@@ -130,10 +130,16 @@ jobs:
         run: |
           [ -f coverage/coverage-summary.json ] || exit 0
           node -e '
-            const t = require("./coverage/coverage-summary.json").total
+            const { total: t, ...files } = require("./coverage/coverage-summary.json")
             const f = require("./scripts/coverage-floor.json").floor
             const rows = ["statements", "branches", "functions", "lines"].map((m) => `| ${m} | ${t[m].pct.toFixed(2)} % | ${f[m]} % |`)
             console.log(["### Frontend coverage (vitest)", "", "| | measured | floor |", "|---|---|---|", ...rows].join("\n"))
+            // where the untested code is: the floor is one global number and says nothing per file
+            const worst = Object.entries(files)
+              .map(([file, { statements: s }]) => ({ file: file.replace(process.cwd() + "/", ""), uncovered: s.total - s.covered, pct: s.pct }))
+              .sort((a, b) => b.uncovered - a.uncovered).slice(0, 15)
+              .map((x) => `| \`${x.file}\` | ${x.uncovered} | ${x.pct.toFixed(1)} % |`)
+            console.log(["", "#### The 15 files with the most uncovered statements", "", "| file | uncovered | covered |", "|---|---:|---:|", ...worst].join("\n"))
           ' >> "$GITHUB_STEP_SUMMARY"
 
   # Preserve the required check's name. Failed, cancelled or skipped children never pass it.
