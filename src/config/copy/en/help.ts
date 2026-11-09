@@ -185,6 +185,44 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
         ],
       },
       {
+        id: 'wassertransport', title: 'Water relay', icon: 'drop',
+        blocks: [
+          { kind: 'lead', text: 'Calculates a relay line: how much pressure arrives where, and where the pumps have to stand. A **planning aid** – the sources of the numbers are behind the **ⓘ** in the header (AGV, FKS).' },
+          { kind: 'sub', text: 'Drawing the line' },
+          { kind: 'list', items: [
+            'Draw a **Line** along the road, **from the source to the incident** – the water runs from the first point to the last. Tap the line, open **Measurement** and tap **Calculate water relay**.',
+            'Or try it first: **Measure › Distance**, then **Calculate water relay** below the elevation profile. **Put on the map as a line** keeps the distance with the whole calculation.',
+            'Wrong direction? **⇄** in the header reverses it; the drawing stays. The letter at the start of the line (**H**, **W**, **P**) shows where the source is.',
+          ] },
+          { kind: 'sub', text: 'Source, water, inlet pressure' },
+          { kind: 'list', items: [
+            '**Hose Ø** (in a line, its **Hose** row) – 55, 75, 2× 75 or 110 mm; the friction comes from the AGV table.',
+            '**Water** – the flow that should arrive at the end (l/min). Pick a preset or type another amount.',
+            '**Source** – hydrant, pond or pump. **Inlet pressure** is the pressure the line starts with there: the static pressure at a hydrant, the outlet pressure of a pump. A pond has none – the first pump stands at the source.',
+          ] },
+          { kind: 'sub', text: 'Reading the chart' },
+          { kind: 'list', items: [
+            'The black line is the **pressure** along the line, the **terrain** below it. The bands: green **good** above 3 bar, yellow **tight** 2–3 bar, red **too low** below 2 bar.',
+            'The dots **P1**, **P2** … are the pumps – placed automatically where the pressure falls to 2 bar (FKS: a pump needs at least 2 bar inlet pressure). On the map they carry the same names.',
+            'Hovering over the chart or touching it shows the pressure at that spot – the map marks the point.',
+            'Below it **ascent/descent** and **pressure at the end**. **Hoses** names the reserve separately, e.g. «34 + 3 spare × 20 m».',
+          ] },
+          { kind: 'sub', text: 'Moving pumps' },
+          { kind: 'list', items: [
+            'Tapping a pump shows where it stands, its **inlet pressure** and its **outlet pressure** (set with **−**/**+**).',
+            '**Dragging** a pump – sideways in the chart, or along the line on the map – fixes it there («by hand»); the pumps after it are recalculated. **All pumps automatic** resets everything.',
+            '**On map** draws the pumps as motor pumps on the map and on the printed sketch. Tapping a pump on the map opens the line with **Measurement** open.',
+          ] },
+          { kind: 'sub', text: 'Warnings' },
+          { kind: 'list', items: [
+            '**Pump 1: inlet pressure below 2 bar** – a pump set by hand stands too far down the line; drag it closer to the source or tap **All pumps automatic**. **No pressure**: no water arrives there at all.',
+            '**More than usual** – a lot of pumps; next to it, how many another hose Ø would need.',
+            '**Calculated without elevation profile** (offline, outside Switzerland) and **outside the AGV table** – the numbers are estimates.',
+            'A pump warning is noted once in the **log** when it appears, and so reaches the report.',
+          ] },
+        ],
+      },
+      {
         id: 'plan', title: 'Plan – modules & buildings', icon: 'doc',
         blocks: [
           { kind: 'lead', text: 'One whiteboard per object over the module/building plans. Storey by storey, with its own tools.' },

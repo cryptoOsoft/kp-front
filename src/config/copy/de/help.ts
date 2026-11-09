@@ -208,6 +208,44 @@ export const helpCopy = {
         ],
       },
       {
+        id: 'wassertransport', title: 'Wassertransport', icon: 'drop',
+        blocks: [
+          { kind: 'lead', text: 'Rechnet eine Transportleitung durch: wie viel Druck wo ankommt und wo die Pumpen stehen müssen. Eine **Planungshilfe** – die Quellen der Zahlen stehen hinter dem **ⓘ** im Kopf (AGV, FKS).' },
+          { kind: 'sub', text: 'Leitung zeichnen' },
+          { kind: 'list', items: [
+            'Mit **Linie** der Strasse entlang zeichnen, **von der Quelle zum Einsatzort** – das Wasser läuft vom ersten zum letzten Punkt. Die Leitung antippen, **Messung** öffnen und **Wassertransport berechnen** tippen.',
+            'Oder zuerst ausprobieren: **Messen › Strecke**, unter dem Höhenprofil **Wassertransport berechnen**. **Als Leitung auf die Karte** übernimmt die Strecke mit der ganzen Rechnung.',
+            'Falsche Richtung? **⇄** im Kopf kehrt sie um, die Zeichnung bleibt. Der Buchstabe am Anfang der Leitung (**H**, **W**, **P**) zeigt, wo die Quelle ist.',
+          ] },
+          { kind: 'sub', text: 'Quelle, Wasser, Eingangsdruck' },
+          { kind: 'list', items: [
+            '**Schlauch-Ø** (in einer Leitung die Zeile **Schlauch**) – 55, 75, 2× 75 oder 110 mm; die Reibung kommt aus der AGV-Tabelle.',
+            '**Wasser** – die Menge, die am Ende ankommen soll (l/min). Vorschläge wählen oder eine andere Menge eintippen.',
+            '**Quelle** – Hydrant, Löschweier oder Pumpe. **Eingangsdruck** ist der Druck, mit dem die Leitung dort beginnt: beim Hydranten der Ruhedruck, bei der Pumpe ihr Ausgangsdruck. Ein Löschweier hat keinen Vordruck – die erste Pumpe steht an der Quelle.',
+          ] },
+          { kind: 'sub', text: 'Das Diagramm lesen' },
+          { kind: 'list', items: [
+            'Die schwarze Linie ist der **Druck** entlang der Leitung, darunter das **Gelände**. Die Bänder: grün **gut** über 3 bar, gelb **knapp** 2–3 bar, rot **zu wenig** unter 2 bar.',
+            'Die Punkte **P1**, **P2** … sind die Pumpen – automatisch dort gesetzt, wo der Druck auf 2 bar fällt (FKS: eine Pumpe braucht mindestens 2 bar Eingangsdruck). Auf der Karte tragen sie dieselben Namen.',
+            'Über das Diagramm fahren oder mit dem Finger darauf tippen zeigt den Druck an dieser Stelle – auf der Karte erscheint der Punkt dazu.',
+            'Darunter **Aufstieg/Abstieg** und **Druck am Ende**. Bei **Schläuche** steht die Reserve separat, z. B. «34 + 3 Reserve × 20 m».',
+          ] },
+          { kind: 'sub', text: 'Pumpen verschieben' },
+          { kind: 'list', items: [
+            'Eine Pumpe antippen zeigt, wo sie steht, ihren **Eingangsdruck** und den **Ausgangsdruck** (mit **−**/**+** einstellbar).',
+            'Eine Pumpe **ziehen** – im Diagramm seitwärts oder auf der Karte der Leitung entlang – stellt sie an einen festen Platz («von Hand»); die Pumpen danach werden neu gerechnet. **Alle Pumpen automatisch** setzt alles zurück.',
+            '**Auf Karte** zeichnet die Pumpen als Motorspritzen auf die Karte und in den gedruckten Kroki. Eine Pumpe auf der Karte antippen öffnet die Leitung mit offener **Messung**.',
+          ] },
+          { kind: 'sub', text: 'Warnungen' },
+          { kind: 'list', items: [
+            '**Pumpe 1: Eingangsdruck unter 2 bar** – eine von Hand gesetzte Pumpe steht zu weit hinten; näher zur Quelle ziehen oder **Alle Pumpen automatisch**. **Kein Druck**: dort kommt gar kein Wasser mehr an.',
+            '**Mehr als üblich** – sehr viele Pumpen; daneben steht, wie viele ein anderer Schlauch-Ø bräuchte.',
+            '**Ohne Höhenprofil gerechnet** (offline, ausserhalb der Schweiz) und **ausserhalb der AGV-Tabelle** – die Zahlen sind geschätzt.',
+            'Eine Pumpenwarnung wird beim Auftauchen einmal im **Verlauf** notiert und erscheint damit im Rapport.',
+          ] },
+        ],
+      },
+      {
         id: 'plan', title: 'Plan – Module & Gebäude', icon: 'doc',
         blocks: [
           { kind: 'lead', text: 'Pro Objekt eine Arbeitsfläche über den Modul- und Gebäudeplänen – geschossweise, mit eigenen Werkzeugen.' },

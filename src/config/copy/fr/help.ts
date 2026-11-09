@@ -183,6 +183,44 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
         ],
       },
       {
+        id: 'wassertransport', title: 'Transport d’eau', icon: 'drop',
+        blocks: [
+          { kind: 'lead', text: 'Calcule une conduite de transport : quelle pression arrive où, et où les pompes doivent se trouver. Une **aide à la planification** – les sources des chiffres sont derrière le **ⓘ** de l’en-tête (AGV, FKS).' },
+          { kind: 'sub', text: 'Dessiner la conduite' },
+          { kind: 'list', items: [
+            'Dessiner une **Ligne** le long de la route, **de la source jusqu’à l’intervention** – l’eau va du premier au dernier point. Toucher la conduite, ouvrir **Mesure** et toucher **Calculer le transport d’eau**.',
+            'Ou d’abord essayer : **Mesurer › Distance**, puis **Calculer le transport d’eau** sous le profil altimétrique. **Mettre sur la carte comme conduite** reprend la distance avec tout le calcul.',
+            'Mauvais sens ? **⇄** dans l’en-tête l’inverse, le dessin reste. La lettre au début de la conduite (**H**, **W**, **P**) montre où est la source.',
+          ] },
+          { kind: 'sub', text: 'Source, eau, pression d’entrée' },
+          { kind: 'list', items: [
+            '**Ø du tuyau** (dans une conduite, sa ligne **Tuyau**) – 55, 75, 2× 75 ou 110 mm ; la perte de charge vient de la table AGV.',
+            '**Eau** – le débit qui doit arriver au bout (l/min). Choisir une proposition ou saisir une autre quantité.',
+            '**Source** – hydrante, étang ou pompe. La **pression d’entrée** est celle avec laquelle la conduite y commence : la pression statique à l’hydrante, la pression de sortie d’une pompe. Un étang n’en a pas – la première pompe se trouve à la source.',
+          ] },
+          { kind: 'sub', text: 'Lire le diagramme' },
+          { kind: 'list', items: [
+            'La ligne noire est la **pression** le long de la conduite, le **terrain** en dessous. Les bandes : vert **bon** au-dessus de 3 bar, jaune **juste** 2–3 bar, rouge **trop peu** sous 2 bar.',
+            'Les points **P1**, **P2** … sont les pompes – placées automatiquement là où la pression tombe à 2 bar (FKS : une pompe a besoin d’au moins 2 bar de pression d’entrée). Sur la carte, elles portent les mêmes noms.',
+            'Survoler le diagramme ou le toucher montre la pression à cet endroit – la carte marque le point.',
+            'En dessous, **montée/descente** et **pression à l’arrivée**. **Tuyaux** indique la réserve à part, p. ex. « 34 + 3 de réserve × 20 m ».',
+          ] },
+          { kind: 'sub', text: 'Déplacer les pompes' },
+          { kind: 'list', items: [
+            'Toucher une pompe montre où elle se trouve, sa **pression d’entrée** et sa **pression de sortie** (réglable avec **−**/**+**).',
+            '**Glisser** une pompe – latéralement dans le diagramme ou le long de la conduite sur la carte – la fixe à cet endroit (« à la main ») ; les pompes suivantes sont recalculées. **Toutes les pompes automatiques** remet tout à zéro.',
+            '**Sur la carte** dessine les pompes comme motopompes sur la carte et sur le croquis imprimé. Toucher une pompe sur la carte ouvre la conduite avec la **Mesure** ouverte.',
+          ] },
+          { kind: 'sub', text: 'Avertissements' },
+          { kind: 'list', items: [
+            '**Pompe 1 : pression d’entrée sous 2 bar** – une pompe placée à la main est trop loin ; la rapprocher de la source ou toucher **Toutes les pompes automatiques**. **Pas de pression** : plus aucune eau n’y arrive.',
+            '**Plus que d’habitude** – beaucoup de pompes ; à côté, combien il en faudrait avec un autre Ø de tuyau.',
+            '**Calculé sans profil altimétrique** (hors ligne, hors de Suisse) et **hors de la table AGV** – les chiffres sont estimés.',
+            'Un avertissement de pompe est noté une fois dans le **journal** quand il apparaît, et figure ainsi au rapport.',
+          ] },
+        ],
+      },
+      {
         id: 'plan', title: 'Plan – modules et bâtiments', icon: 'doc',
         blocks: [
           { kind: 'lead', text: 'Un tableau blanc par objet par-dessus les plans de module/bâtiment. Étage par étage, avec ses propres outils.' },
