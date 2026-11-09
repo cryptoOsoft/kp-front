@@ -13,7 +13,7 @@ vi.mock('./api', async () => {
 
 import { ApiError } from './api'
 import { __resetIdbForTests, idbSet } from './idb'
-import { WorkspaceSync, cacheIncidentList, getObjectResilient, listIncidentsResilient, objectsNearIncidentResilient, readCachedIncidentList, type IncidentMeta } from './incidents'
+import { WorkspaceSync, cacheIncidentList, getObjectResilient, listIncidentsResilient, listIncidentsShared, objectsNearIncidentResilient, readCachedIncidentList, type IncidentMeta } from './incidents'
 
 const ID = '11111111-1111-1111-1111-111111111111'
 const wsPut = (rev: number) => ({ workspace: null, workspace_rev: rev })
@@ -486,5 +486,30 @@ describe('listIncidentsResilient — silence vs. refusal', () => {
     await idbSet('kp-front-incidents', { not: 'a list' })
     await flushIdb()
     await expect(readCachedIncidentList()).resolves.toEqual([])
+  })
+})
+
+describe('listIncidentsShared — boot and the watch ask once', () => {
+  it('answers every caller of the same moment from one request, and asks again afterwards', async () => {
+    let land!: (list: IncidentMeta[]) => void
+    apiGet.mockReturnValueOnce(new Promise<IncidentMeta[]>((resolve) => { land = resolve }))
+    const boot = listIncidentsShared()
+    const watch = listIncidentsShared()
+    land([{ id: 'a' } as IncidentMeta])
+    await expect(boot).resolves.toEqual({ list: [{ id: 'a' }], offline: false })
+    await expect(watch).resolves.toEqual({ list: [{ id: 'a' }], offline: false })
+    expect(apiGet).toHaveBeenCalledTimes(1)
+
+    // nothing is kept: the next round is a request of its own
+    apiGet.mockResolvedValueOnce([{ id: 'a' }, { id: 'b' }])
+    await expect(listIncidentsShared()).resolves.toMatchObject({ list: [{ id: 'a' }, { id: 'b' }] })
+    expect(apiGet).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not hold on to a refusal', async () => {
+    apiGet.mockRejectedValueOnce(new ApiError(500, 'Serverfehler'))
+    await expect(listIncidentsShared()).rejects.toMatchObject({ status: 500 })
+    apiGet.mockResolvedValueOnce([])
+    await expect(listIncidentsShared()).resolves.toEqual({ list: [], offline: false })
   })
 })

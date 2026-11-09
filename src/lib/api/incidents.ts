@@ -74,6 +74,17 @@ export async function listIncidentsResilient(): Promise<{ list: IncidentMeta[]; 
   })
   return { list: value, offline: source !== 'network' }
 }
+/** `listIncidentsResilient` for the callers that ask at the same moment: the boot list and the
+ *  watch's first round start in one commit and used to send two identical requests. While a
+ *  round is in flight every caller gets its answer; nothing is kept once it has landed.
+ *
+ *  ⚠️ Not for a list read AFTER a write (a take, a create, the legacy migration): that one must
+ *  be sent after the write, so it calls `listIncidentsResilient` itself. */
+let listInFlight: ReturnType<typeof listIncidentsResilient> | null = null
+export function listIncidentsShared(): ReturnType<typeof listIncidentsResilient> {
+  listInFlight ??= listIncidentsResilient().finally(() => { listInFlight = null })
+  return listInFlight
+}
 export const getIncident = (id: string) => apiGet<IncidentFull>(`/api/incidents/${id}`)
 export const createIncident = (body: IncidentCreate) => apiPost<IncidentFull>('/api/incidents', body)
 // `text` (Meldungstext / Alarmmeldung) is not part of IncidentMeta but the backend PATCH
