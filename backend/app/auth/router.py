@@ -9,7 +9,6 @@ import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
-import anyio
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
 from jwt import InvalidTokenError as JWTError
 from sqlalchemy import delete, func, select, update
@@ -18,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..config import settings
 from ..database import get_db
 from ..models import PushSubscription, User
+from ..push import notify_login_lock
 from ..schemas import (
     LoginRequest,
     PinReset,
@@ -36,7 +36,8 @@ from .cookies import (
     set_auth_cookies,
 )
 from .dependencies import AUTH_GENERATION_CLAIM, CurrentAdmin, CurrentUser, OptionalUser, token_generation
-from .pin_limiter import AGGREGATE_THRESHOLD, login_aggregate, pin_limiter
+from .known_device import DEVICE_COOKIE, read_known_device, remember_device
+from .pin_limiter import new_device_budget, pin_limiter
 from .security import (
     TRIVIAL_PINS,
     create_access_token,
@@ -53,13 +54,29 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 logger = logging.getLogger(__name__)
 
 
-async def _throttle_delay(seconds: float) -> None:
-    """The aggregate slowdown's sleep, behind one seam so tests observe it instead of waiting.
-
-    `anyio.sleep` yields the event loop — the delay costs the ATTACKER wall-clock time and an
-    open connection per attempt without stalling anyone else's request.
-    """
-    await anyio.sleep(seconds)
+async def _refuse_new_device(db: AsyncSession, account: str, wait: int, engaged: int) -> HTTPException:
+    """The 429 for a device the account does not know, while its new-device budget is spent
+    (pin_limiter · NewDeviceBudget). On the call that ENGAGES a lock it also says so: a log
+    line every time, and a push to the editors for the first lock of an episode — somebody is
+    guessing at an account, and a colleague with a new phone is about to ask why it says no."""
+    minutes = max(1, round(wait / 60))
+    if engaged:
+        logger.warning("New-device login lock engaged: user=%s lock=%d for %d min", account, engaged, minutes)
+    if engaged == 1:
+        try:
+            user = (await db.execute(select(User).where(User.id == uuid.UUID(account)))).scalar_one_or_none()
+        except ValueError:
+            user = None
+        if user is not None and user.is_active:
+            notify_login_lock(db, display_name=user.display_name, minutes=minutes, tag=f"login-lock:{account}")
+    return HTTPException(
+        status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+        detail=(
+            f"Zu viele falsche PINs von neuen Geräten. Auf einem neuen Gerät ist die Anmeldung für dieses "
+            f"Konto noch {minutes} min gesperrt. Bereits angemeldete Geräte sind nicht betroffen."
+        ),
+        headers={"Retry-After": str(wait)},
+    )
 
 
 def _refuse_cross_site(request: Request) -> None:
@@ -153,81 +170,75 @@ async def roster(request: Request, db: AsyncSession = Depends(get_db)) -> list[U
 
 @router.post("/login", response_model=UserOut)
 async def login(
-    body: LoginRequest, request: Request, response: Response, db: AsyncSession = Depends(get_db)
+    body: LoginRequest,
+    request: Request,
+    response: Response,
+    known_device: Annotated[str | None, Cookie(alias=DEVICE_COOKIE)] = None,
+    db: AsyncSession = Depends(get_db),
 ) -> UserOut:
-    # Per (account, source): a cooldown shared by every caller of one account would be a remote
-    # switch for locking the Einsatzleiter out of their own tile (pin_limiter's docstring).
-    source = client_ip(request)
+    """PIN login behind two throttles, both taken BEFORE the first await (a concurrent burst is
+    counted, not waved past a check nobody has failed yet — SEC-08 round 1):
+
+    · the cooldown ladder per (account, device or source) — pin_limiter · PinLimiter;
+    · for a device the account does not know, the account's new-device budget — NewDeviceBudget.
+
+    A throttled attempt is REFUSED before the verify, a correct PIN included: verifying while
+    throttled is what made the PIN space brute-forceable once (SEC-08 round 3). Both blocks are
+    bounded and neither deepens while it stands, so the operator always gets a window — and a
+    device the account knows is never behind the budget at all.
+    """
     account = str(body.user_id)
+    device = read_known_device(known_device)
+    claims_known = device is not None and device.knows(account)
+    # A known device is its own source: two tablets behind the station's one address must not
+    # share a ladder, and a stolen cookie gains nothing by changing address.
+    source = f"device:{device.id}" if device is not None and claims_known else client_ip(request)
     bucket = pin_limiter.key(account, source)
 
-    # Reserved, not checked: the slot is taken in the same synchronous step that decides to
-    # admit the attempt, BEFORE the first await, so a concurrent burst is counted rather than
-    # slipping past a check nobody has yet failed (SEC-08 round 1). A bucket already IN COOLDOWN
-    # is REJECTED here, before the verify — a wrong guess AND a correct one. Rejecting the
-    # correct guess too is the whole point: it is what actually throttles guessing. Round 3
-    # verified even while throttled ("a correct PIN always wins"), so an attacker who exhausted
-    # the bucket could keep bcrypt-checking candidates and the moment one hit it returned 200 —
-    # the 6-digit space was brute-forceable (SEC-08 round 3 regression). So: cooldown ⇒ no verify.
-    #
-    # This is safe against locking the operator out because the cooldown is BOUNDED and
-    # NON-EXTENDING. `pin_cooldown_steps_seconds` caps the ladder (currently at 120s), and
-    # `pin_limiter.reserve` counts nothing while a bucket is blocked — attempts made DURING a
-    # cooldown do not deepen it. So the block always elapses, opening a recovery window in which
-    # the operator's correct PIN gets in. Under a sustained flood on the SAME source bucket
-    # (a shared NAT/proxy, or the default TRUSTED_FORWARDED_HOPS=0) the operator faces periodic
-    # bounded cooldowns and competes for those windows — never a permanent lockout. Per (account,
-    # source) keying means an operator on their own address is never blocked by someone else's.
+    budgeted = not claims_known
+    if budgeted:
+        wait, engaged = new_device_budget.reserve(account)
+        if wait:
+            raise await _refuse_new_device(db, account, wait, engaged)
     wait = pin_limiter.reserve(bucket)
     if wait:
+        if budgeted:
+            new_device_budget.release(account)  # refused before the verify: not a guess
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail=f"Zu viele Fehlversuche. Bitte {wait}s warten.",
             headers={"Retry-After": str(wait)},
         )
 
-    # M1a — aggregate slowdown. The per-(account, source) ladder above is availability-first,
-    # so an attacker rotating source addresses mints fresh buckets at will; once the ACCOUNT's
-    # failure tally across all sources is abusive (no crew ever gets near it), every verify is
-    # preceded by a small sleep. Slows, NEVER refuses — there is no 4xx on this path — and a
-    # correct PIN behind the delay still logs in. Applied after the 429 gate (a refused attempt
-    # needs no slowing) and before the DB fetch, so the unknown-user path pays it too.
-    delay = login_aggregate.delay(account)
-    if delay:
-        await _throttle_delay(delay)
-
     user = (await db.execute(select(User).where(User.id == body.user_id))).scalar_one_or_none()
+    if device is not None and claims_known and (user is None or not device.is_current(user)):
+        # The cookie names the account but under an older generation: the PIN was reset or the
+        # account switched off since. That device is a stranger again. Its ladder slot above
+        # bounds a burst here, so taking the budget after the fetch does not reopen the race.
+        budgeted = True
+        wait, engaged = new_device_budget.reserve(account)
+        if wait:
+            raise await _refuse_new_device(db, account, wait, engaged)
+
     # Spelled out rather than via an `ok` flag so the None-check actually narrows `user` for
     # everything below; short-circuiting keeps bcrypt off the unknown-user path as before.
     if user is None or not user.is_active or not await verify_pin_async(body.pin, user.pin_hash):
-        aggregate_failures = login_aggregate.record_failure(account)
-        if aggregate_failures == AGGREGATE_THRESHOLD:
-            # Exactly-at-threshold fires once per window — the moment worth alerting on.
-            logger.warning(
-                "Aggregate PIN throttle engaged: user=%s, %d failures across all sources this window",
-                body.user_id,
-                aggregate_failures,
-            )
         # user UUID and limiter source key only — never the PIN or anything derived from it.
-        logger.warning(
-            "PIN login failed: user=%s source=%s aggregate_failures=%d",
-            body.user_id,
-            source,
-            aggregate_failures,
-        )
+        logger.warning("PIN login failed: user=%s source=%s new_device=%s", body.user_id, source, budgeted)
         cooldown = pin_limiter.retry_after(bucket)  # installed by the reservation above
         detail = "Falsche PIN" if cooldown == 0 else f"Falsche PIN. Nächster Versuch in {cooldown}s."
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail)
 
-    # Knowing the PIN gives the reserved slot back and clears any cooldown the bucket was
+    # Knowing the PIN gives both reserved slots back and clears any cooldown the bucket was
     # carrying, so an operator's own mistyping never follows them in once they type it right.
-    # The aggregate tally clears too — see LoginAggregate's docstring for the trade-off.
     pin_limiter.record_success(bucket)
-    login_aggregate.record_success(account)
+    if budgeted:
+        new_device_budget.release(account)
     user.last_login = datetime.now(UTC)
 
     claims = _claims(user)
     set_auth_cookies(response, create_access_token(claims), create_refresh_token(claims))
+    remember_device(response, device, user)
     return _with_session(user, _refresh_until())
 
 
@@ -235,6 +246,7 @@ async def login(
 async def refresh(
     response: Response,
     refresh_token: Annotated[str | None, Cookie(alias=REFRESH_COOKIE)] = None,
+    known_device: Annotated[str | None, Cookie(alias=DEVICE_COOKIE)] = None,
     db: AsyncSession = Depends(get_db),
 ) -> UserOut:
     if not refresh_token:
@@ -288,6 +300,9 @@ async def refresh(
         logger.info("Refresh re-delivered: a rotation's answer was lost (user=%s)", user_id)
     claims = _claims(user)
     set_auth_cookies(response, create_access_token(claims), create_refresh_token(claims, jti=successor))
+    # A live session proves an earlier PIN login here. This is also how the devices that were
+    # signed in before the known-device cookie existed became known, without anyone noticing.
+    remember_device(response, read_known_device(known_device), user)
     return _with_session(user, _refresh_until())
 
 

@@ -734,6 +734,30 @@ async def notify_new_alarm(
     return 1
 
 
+def notify_login_lock(db: AsyncSession, *, display_name: str, minutes: int, tag: str) -> None:
+    """Tell the editors that new devices are now refused for one account (auth/router ·
+    `_refuse_new_device`): somebody is guessing at its PIN. Scheduled at once, on its own
+    session — the request that noticed is about to answer 429 and commits nothing."""
+    if not push_enabled():
+        return
+    factory = async_sessionmaker(db.bind, class_=AsyncSession, expire_on_commit=False, autoflush=False)
+    task = asyncio.create_task(
+        _broadcast_committed(
+            factory,
+            title="Anmeldung gesperrt",
+            body=(
+                f"{display_name}: zu viele falsche PINs von unbekannten Geräten. "
+                f"Neue Geräte sind für dieses Konto {minutes} min gesperrt."
+            ),
+            tag=tag,
+            target=None,
+            audience=_new_alarm_recipients,
+        )
+    )
+    _inflight.add(task)
+    task.add_done_callback(_inflight.discard)
+
+
 async def _broadcast_committed(
     factory: async_sessionmaker[AsyncSession],
     *,

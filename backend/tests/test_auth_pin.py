@@ -5,8 +5,15 @@ Pure functions + in-memory limiter — no DB, no live server. Run with `uv run p
 
 import pytest
 
-from app.auth import pin_limiter as pin_limiter_module
-from app.auth.pin_limiter import PinLimiter
+from app.auth.client_ip import _normalize
+from app.auth.pin_limiter import (
+    MAX_BUDGET_ACCOUNTS,
+    NEW_DEVICE_FREE_FAILURES,
+    NEW_DEVICE_LOCK_STEPS_SECONDS,
+    NEW_DEVICE_QUIET_SECONDS,
+    NewDeviceBudget,
+    PinLimiter,
+)
 from app.auth.security import hash_pin, verify_pin
 from app.config import settings
 
@@ -101,72 +108,62 @@ def test_limiter_is_per_user():
     assert lim.retry_after("b") == 0  # unrelated user unaffected
 
 
-# --- LoginAggregate slowdown (M1a) ------------------------------------------------
+# --- NewDeviceBudget ---------------------------------------------------------------
 
 
-def test_aggregate_below_threshold_never_delays():
-    agg = pin_limiter_module.LoginAggregate()
-    for _ in range(pin_limiter_module.AGGREGATE_THRESHOLD - 1):
-        agg.record_failure("acct")
-    assert agg.delay("acct") == 0.0
-    assert agg.delay("other-acct") == 0.0  # unrelated account unaffected
+def _spend(budget: NewDeviceBudget, account: str = "u") -> None:
+    for _ in range(NEW_DEVICE_FREE_FAILURES):
+        assert budget.reserve(account) == (0, 0)
 
 
-def test_aggregate_delay_engages_grows_and_is_capped():
-    agg = pin_limiter_module.LoginAggregate()
-    threshold = pin_limiter_module.AGGREGATE_THRESHOLD
-    for _ in range(threshold):
-        agg.record_failure("acct")
-    assert agg.delay("acct") == pin_limiter_module.AGGREGATE_BASE_DELAY_SECONDS
-
-    # Sustained abuse deepens the delay modestly — and never past the hard cap: the delay is
-    # a slowdown, not a lockout, however long the flood runs.
-    for _ in range(threshold * 10):
-        agg.record_failure("acct")
-        d = agg.delay("acct")
-        assert pin_limiter_module.AGGREGATE_BASE_DELAY_SECONDS <= d <= pin_limiter_module.AGGREGATE_MAX_DELAY_SECONDS
-    assert agg.delay("acct") == pin_limiter_module.AGGREGATE_MAX_DELAY_SECONDS
+def test_budget_locks_on_the_attempt_that_arrives_at_a_full_one():
+    budget = NewDeviceBudget()
+    _spend(budget)
+    first = NEW_DEVICE_LOCK_STEPS_SECONDS[0]
+    assert budget.reserve("u") == (first, 1)  # engages — and says so exactly once
+    wait, engaged = budget.reserve("u")
+    assert 0 < wait <= first and engaged == 0
+    assert budget.locked().keys() == {"u"}
+    assert budget.reserve("someone-else") == (0, 0)  # per account
 
 
-def test_aggregate_success_clears_the_account():
-    """The documented trade-off: a success (only the PIN's owner can produce one) clears the
-    tally, so the operator is not throttled for the rest of the window after logging in."""
-    agg = pin_limiter_module.LoginAggregate()
-    for _ in range(pin_limiter_module.AGGREGATE_THRESHOLD + 5):
-        agg.record_failure("acct")
-    assert agg.delay("acct") > 0
-    agg.record_success("acct")
-    assert agg.delay("acct") == 0.0
-    assert agg.failures("acct") == 0
+def test_budget_lock_deepens_while_the_guessing_goes_on(monkeypatch):
+    budget = NewDeviceBudget()
+    clock = [1000.0]
+    monkeypatch.setattr("app.auth.pin_limiter.time.monotonic", lambda: clock[0])
+    seen = []
+    for _ in range(len(NEW_DEVICE_LOCK_STEPS_SECONDS) + 1):
+        _spend(budget)
+        wait, _engaged = budget.reserve("u")
+        seen.append(wait)
+        clock[0] += wait + 1  # the lock elapses; the guesser carries on at once
+    assert seen == [*NEW_DEVICE_LOCK_STEPS_SECONDS, NEW_DEVICE_LOCK_STEPS_SECONDS[-1]]
 
 
-def test_aggregate_window_expires(monkeypatch):
-    from types import SimpleNamespace
-
-    clock = {"t": 1000.0}
-    # Swap the whole `time` reference, not `time.monotonic`: the latter mutates the shared stdlib
-    # module that asyncio's event loop also reads (loop.time()), which corrupts loop timing.
-    monkeypatch.setattr(pin_limiter_module, "time", SimpleNamespace(monotonic=lambda: clock["t"]))
-    agg = pin_limiter_module.LoginAggregate()
-    for _ in range(pin_limiter_module.AGGREGATE_THRESHOLD):
-        agg.record_failure("acct")
-    assert agg.delay("acct") > 0
-
-    clock["t"] += pin_limiter_module.AGGREGATE_WINDOW_SECONDS + 1
-    assert agg.delay("acct") == 0.0
+def test_budget_forgets_an_account_left_alone_for_a_day(monkeypatch):
+    budget = NewDeviceBudget()
+    clock = [1000.0]
+    monkeypatch.setattr("app.auth.pin_limiter.time.monotonic", lambda: clock[0])
+    _spend(budget)
+    clock[0] += NEW_DEVICE_QUIET_SECONDS + 1
+    assert budget.reserve("u") == (0, 0)  # a fresh budget, not a lock
 
 
-def test_aggregate_eviction_keeps_the_hot_account_throttled():
-    """A flood of invented account ids must neither grow the map unboundedly nor evict the one
-    genuinely-abused account — eviction sheds low tallies first, so it never meaningfully
-    re-grants capacity to the account under attack."""
-    agg = pin_limiter_module.LoginAggregate()
-    for _ in range(pin_limiter_module.AGGREGATE_THRESHOLD):
-        agg.record_failure("hot")
-    for i in range(pin_limiter_module.MAX_AGGREGATE_ACCOUNTS + 500):
-        agg.record_failure(f"invented-{i}")
-    assert agg.account_count() <= pin_limiter_module.MAX_AGGREGATE_ACCOUNTS
-    assert agg.delay("hot") > 0
+def test_budget_gives_a_slot_back_to_whoever_knew_the_pin():
+    budget = NewDeviceBudget()
+    for _ in range(NEW_DEVICE_FREE_FAILURES * 3):
+        assert budget.reserve("u") == (0, 0)
+        budget.release("u")
+
+
+def test_budget_eviction_never_drops_a_live_lock():
+    budget = NewDeviceBudget()
+    _spend(budget, "hot")
+    budget.reserve("hot")
+    for i in range(MAX_BUDGET_ACCOUNTS + 1):
+        budget.reserve(f"cold-{i}")
+    assert budget.account_count() <= MAX_BUDGET_ACCOUNTS
+    assert "hot" in budget.locked()
 
 
 def test_settings_refuse_an_inverted_pin_range():
@@ -178,3 +175,10 @@ def test_settings_refuse_an_inverted_pin_range():
 
     with pytest.raises(ValidationError, match="PIN_MIN_LENGTH"):
         Settings(pin_min_length=10, pin_max_length=8)
+
+
+def test_an_ipv6_source_is_its_subscribers_prefix():
+    """One home line hands out a /64; keyed on the full address it was an endless supply."""
+    assert _normalize("2001:db8:1:2:aaaa::1") == _normalize("2001:db8:1:2:bbbb::2") == "2001:db8:1:2::/64"
+    assert _normalize("2001:db8:1:3::1") != _normalize("2001:db8:1:2::1")
+    assert _normalize("::ffff:198.51.100.4") == "198.51.100.4"
