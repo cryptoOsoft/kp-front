@@ -12,8 +12,9 @@ import { buildingAlreadyRead, isolateFromOutside, retire, seedIncident, signIn, 
 //     weeks ahead);
 //   - the DATA: the `real` fat incident (src/lib/fatIncident — seeded RNG, the same Einsatz
 //     every time), started five hours before SHOT, three Trupps inside, on a fresh stack;
-//   - the OUTSIDE WORLD: basemap tiles are one flat PNG, weather and building outlines canned
-//     (perf/harness · isolateFromOutside) — nothing on screen comes from the internet;
+//   - the OUTSIDE WORLD: basemap tiles are one flat PNG (a dark one at night), weather and
+//     building outlines canned (perf/harness · isolateFromOutside) — nothing on screen comes from
+//     the internet;
 //   - the DEVICE: fixed viewport, DPR 1, de-CH / Europe/Zurich, reduced motion, an explicit
 //     day/night theme (the default «auto» follows daylight), no service worker.
 

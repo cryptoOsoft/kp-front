@@ -44,7 +44,9 @@ pinned (`e2e/visual/harness.ts`):
 - **The data.** The fat incident is generated from a seeded RNG, so it is the same Einsatz every
   time, and each state gets a fresh one on a fresh stack. The theme is set explicitly (the default
   «auto» follows daylight), and so is the surface (the prefs cookie).
-- **The outside world.** Basemap tiles are one flat PNG; the weather, the building outlines and the Gebäude card
+- **The outside world.** Basemap tiles are one flat PNG – a dark one for a night basemap, as
+  Dark Matter's ground is: with the light tile the night paint lifted the map to white under dark
+  chrome, a picture no crew sees (until 09.11.2026); the weather, the building outlines and the Gebäude card
   (`/api/incidents/{id}/building`, whose registers the SERVER asks) are
   canned (`perf/harness · isolateFromOutside`, shared with the performance journeys). Nothing on
   screen comes from the internet.
