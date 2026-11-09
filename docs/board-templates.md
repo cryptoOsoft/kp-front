@@ -236,6 +236,11 @@ Einsatz-Link session cannot print it (the pages carry names, like the Rapport).
   twice (`reportPdfDirect · tafelPayload`). «Drucken» on the page always prints it. The Erste Führung prints as the A3 poster on A4 portrait, which has the same
   proportions. Sheet 8.1 prints landscape.
 - **Empty boxes** print as ruled empty boxes, so the paper can still be filled in by hand.
+- **Midnight.** A «Wann» column holds a clock time only, so where it passes midnight a grey date
+  row («Di., 10.11.2026») stands before the first entry of the new day – on paper and on the
+  Tafel alike (owner pick 09.11.2026, mock `nov09-mitternacht` B; `lib/formDays`). The day is
+  inferred from the page's creation and the order of the entries (an entry up to 6 h earlier than
+  the one above stays on its day). On the fixed rulings a date row takes one of them.
 - **Overflow.** Nothing written is cut off. A box shrinks its type down to 6.5 pt, and whatever
   still does not fit continues in a «Fortsetzung» table that flows over as many pages as it
   needs (`report_board · Continuation`).

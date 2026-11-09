@@ -1,4 +1,5 @@
-import { fillTemplate, localeDateTime } from './format'
+import { fillTemplate, localeDate, localeDateTime } from './format'
+import { dayBreaks } from './formDays'
 import { newId } from './ids'
 import { compareOrder, isOrderKey, keyBetween, keysFor } from './orderKey'
 import {
@@ -590,24 +591,32 @@ export function formForPdf(d: BoardFormData, words: TrendWords, locale?: string,
       if (s.type === 'table') {
         const cols = shownColumns(s)
         const fixed = new Map((s.fixedRows ?? []).map((r) => [r.id, r]))
+        const rows = tableRows(d, s)
+        const timeCol = cols.find((c) => c.type === 'time')
+        const breaks = timeCol ? dayBreaks(rows.map((r) => r.cells[timeCol.id]), d.at) : []
         return {
           ...base, done: !!s.done, adds: tableAddsRows(s),
           // an `area` column prints as the words of its choice – a text column to the paper
           columns: cols.map((c) => ({ label: L(c.label), kind: c.type === 'area' ? 'text' : c.type ?? 'text', w: c.w ?? 1 })),
-          // the fixed rows, then the written ones in their order
-          rows: tableRows(d, s).map((r) => ({
-            fixed: fixed.has(r.id),
-            done: !!r.done,
-            cells: cols.map((c) => {
-              if (c.fixed && fixed.has(r.id)) {
-                const x = fixed.get(r.id)?.cells[c.id]
-                return c.type === 'symbol' ? (typeof x === 'string' ? x : L(x)) : L(x)
-              }
-              const x = r.cells[c.id] ?? ''
-              if (c.type === 'area') return L(c.options?.find((o) => o.id === x)?.label) || x
-              return c.type === 'trend' ? trendWord(x) : x
-            }),
-          })),
+          // the fixed rows, then the written ones in their order – and where a «Wann» column runs
+          // past midnight, a date row before the first entry of the new day (lib/formDays)
+          rows: rows.flatMap((r, i) => {
+            const row = {
+              fixed: fixed.has(r.id),
+              done: !!r.done,
+              cells: cols.map((c) => {
+                if (c.fixed && fixed.has(r.id)) {
+                  const x = fixed.get(r.id)?.cells[c.id]
+                  return c.type === 'symbol' ? (typeof x === 'string' ? x : L(x)) : L(x)
+                }
+                const x = r.cells[c.id] ?? ''
+                if (c.type === 'area') return L(c.options?.find((o) => o.id === x)?.label) || x
+                return c.type === 'trend' ? trendWord(x) : x
+              }),
+            }
+            const newDay = breaks[i]
+            return newDay ? [{ sep: localeDate(newDay, { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' }), cells: [] }, row] : [row]
+          }),
         }
       }
       if (s.type === 'text') {
