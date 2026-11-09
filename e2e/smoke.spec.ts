@@ -10,7 +10,7 @@ import { readFile } from 'node:fs/promises'
 // Runs against a live, seeded stack (see playwright.config.ts). The German strings
 // below mirror src/config/copy/de.ts (the default de-CH deployment locale).
 
-import { test, expect, expectNoCrash, login, ensureIncidentOpen, OFFLINE_FETCH_FAILURE } from './helpers'
+import { test, expect, expectNoCrash, login, ensureIncidentOpen, openApp, adminContext, ADMIN_SECRET, OFFLINE_FETCH_FAILURE } from './helpers'
 
 test('core surfaces render and survive reload', async ({ page }) => {
   await login(page)
@@ -50,6 +50,50 @@ test('core surfaces render and survive reload', async ({ page }) => {
   await page.reload()
   await expect(page.locator('nav.navrail'), 'still authenticated and in an incident after reload').toBeVisible()
   await expectNoCrash(page, 'after reload')
+})
+
+// «Karte & Objekte» – the home every launch without an Einsatz lands on (docs/karte-objekte.md).
+// Until 09.11.2026 the specs only clicked its menu on the way to an Einsatz, so a white Karte home
+// passed the gate. One object of this test's own goes in through the admin API (a fresh stack has
+// no catalogue); it stays on the disposable stack, as the Objektbesuche spec's does.
+test.describe('Karte & Objekte', () => {
+  test.skip(!ADMIN_SECRET, 'set E2E_ADMIN_SECRET to the deployment ADMIN_SECRET to run this')
+
+  test('the map mounts, the search finds a station object, its panel opens and closes', async ({ page, baseURL }) => {
+    // the Karte draws through software WebGL in CI: every step on it takes a second or more
+    test.setTimeout(120_000)
+    const name = `E2E Karte ${Date.now()}`
+    const admin = await adminContext(baseURL)
+    const created = await admin.post('/api/objects', { data: { name, address: 'Teststrasse 7', lat: 47.5142, lng: 7.5561 } })
+    expect(created.ok(), `object: ${created.status()}`).toBe(true)
+    const { id } = await created.json() as { id: string }
+    await admin.dispose()
+
+    await login(page)
+    // by its route: an Einsatz another case left open would take the launch
+    await openApp(page, '/karte')
+    const karte = page.locator('[data-karte]')
+    const canvas = karte.locator('canvas.maplibregl-canvas').first()
+    await expect(canvas).toBeVisible()
+    await expectNoCrash(page, 'Karte & Objekte')
+
+    // the search answers from the catalogue on the device, by name
+    await karte.locator('.topbar input').first().fill(name)
+    await page.getByRole('option', { name }).click()
+
+    // the pick opens the object: its panel, its address in the URL, its name tag on the map
+    const panel = page.locator('[data-karte-panel]')
+    await expect(panel).toContainText(name)
+    await expect(page).toHaveURL(new RegExp(`/karte\\?objekt=${id}$`))
+    await expect(karte.locator('.maplibregl-marker').getByRole('button', { name })).toBeVisible()
+    await expectNoCrash(page, 'Karte & Objekte · object panel')
+
+    // back: the panel's ✕ leaves the map standing
+    await panel.locator('button.ip-x').click()
+    await expect(panel).toHaveCount(0)
+    await expect(canvas).toBeVisible()
+    await expectNoCrash(page, 'Karte & Objekte · after closing the object')
+  })
 })
 
 async function enterJournalRow(page: Page, text: string) {

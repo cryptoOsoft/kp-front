@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from './helpers'
-import { closeFrozen, frozenContext, mapDrawn, openIncident, PHONE, retireIncident, settled, startClock, TABLET, type Surface } from './visual/harness'
+import { closeFrozen, frozenContext, mapDrawn, openIncident, openKarte, PHONE, retireIncident, settled, startClock, TABLET, type Surface } from './visual/harness'
 
 // Screenshot regression tests — a handful of frozen states, compared pixel by pixel against the
 // baselines in e2e/visual/baseline/. They catch what no assertion names: a merged visual pass that
@@ -14,7 +14,9 @@ test.skip(!process.env.VISUAL, 'screenshot tests are opt-in (VISUAL=1) — run `
 // a retry that passes would hide a flaky shot, and a flaky shot is a bug of this file
 test.describe.configure({ retries: 0 })
 
-interface State { name: string; device: typeof TABLET | typeof PHONE; surface: Surface; theme?: 'day' | 'night'; then?: (page: Page) => Promise<void> }
+/** `surface`: where the app opens – a surface of the seeded Einsatz, or 'karte' for «Karte & Objekte»,
+ *  the home outside an Einsatz (no Einsatz is seeded then). */
+interface State { name: string; device: typeof TABLET | typeof PHONE; surface: Surface | 'karte'; theme?: 'day' | 'night'; then?: (page: Page) => Promise<void> }
 
 const rapportOpen = async (page: Page) => { await page.locator('.report-preflight-body').waitFor() }
 /** the Trupps board's «Trupp anmelden» sheet – the one bottom sheet a phone opens most */
@@ -50,20 +52,24 @@ const STATES: State[] = [
     await page.locator('.ctx-done:visible').first().waitFor()
     await mapDrawn(page)
   } },
+  // «Karte & Objekte» – where every launch without an Einsatz lands
+  { name: 'karte-home-tablet', device: TABLET, surface: 'karte', then: mapDrawn },
+  { name: 'karte-home-phone', device: PHONE, surface: 'karte', then: mapDrawn },
 ]
 
 for (const state of STATES) {
   test(state.name, async ({ browser, baseURL }) => {
     const context = await frozenContext(browser, baseURL!, state.device)
     const page = await context.newPage()
-    const seeded = await openIncident(page, baseURL!, { surface: state.surface, theme: state.theme })
+    const seeded = state.surface === 'karte' ? null : await openIncident(page, baseURL!, { surface: state.surface, theme: state.theme })
     try {
+      if (state.surface === 'karte') await openKarte(page, state.theme)
       await state.then?.(page)
       await settled(page)
       await expect(page).toHaveScreenshot(`${state.name}.png`)
     } finally {
       await closeFrozen(context)
-      await retireIncident(baseURL!, seeded.id)
+      if (seeded) await retireIncident(baseURL!, seeded.id)
     }
   })
 }

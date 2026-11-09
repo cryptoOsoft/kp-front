@@ -1,5 +1,5 @@
-import { request as pwRequest, type APIRequestContext, type Page } from '@playwright/test'
-import { expect, expectNoCrash, login, OFFLINE_FETCH_FAILURE, openApp, test } from './helpers'
+import type { APIRequestContext, Page } from '@playwright/test'
+import { ADMIN_SECRET, adminContext, expect, expectNoCrash, login, OFFLINE_FETCH_FAILURE, openApp, test } from './helpers'
 
 // Objektbesuche on a phone, offline first (docs/object-visits.md · Device):
 //
@@ -13,7 +13,6 @@ import { expect, expectNoCrash, login, OFFLINE_FETCH_FAILURE, openApp, test } fr
 // one object + one visit checklist are put in through the admin API. Writes to its own object
 // and checklist; restores the `objectVisits` section afterwards. Never run it against a station
 // in use.
-const ADMIN_SECRET = process.env.E2E_ADMIN_SECRET
 /** a visit's save point this long after the last change (src/components/objectVisits/VisitPage · QUIET_SAVE_MS) */
 const QUIET_SAVE_MS = 20_000
 
@@ -32,13 +31,6 @@ const template = {
       { id: 'gereinigt', text: 'Grob gereinigt', input: 'yesno' },
     ],
   }],
-}
-
-async function adminContext(baseURL: string): Promise<APIRequestContext> {
-  const api = await pwRequest.newContext({ baseURL, extraHTTPHeaders: { 'X-Incident-Link': 'off' } })
-  const r = await api.post('/api/admin/login', { data: { secret: ADMIN_SECRET } })
-  expect(r.ok(), `admin login: ${r.status()}`).toBe(true)
-  return api
 }
 
 /** PUT the config with one section changed (the full-document PUT wants the version). */

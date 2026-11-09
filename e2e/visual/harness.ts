@@ -1,4 +1,6 @@
 import { request as apiRequest, type Browser, type BrowserContext, type Page } from '@playwright/test'
+import type { StationObjects } from '../../src/lib/api/stationReference'
+import type { KarteView } from '../../src/lib/karte/session'
 import { buildingAlreadyRead, isolateFromOutside, retire, seedIncident, signIn, waitForWorkspace, POLL_MS, type Seeded } from '../perf/harness'
 
 // The freezing half of the screenshot regression tests (e2e/screens.visual.ts,
@@ -121,6 +123,55 @@ export async function openIncident(page: Page, baseURL: string, { surface, theme
   await page.goto('/')
   await waitForWorkspace(page)
   return seeded
+}
+
+// ── «Karte & Objekte», the home outside an Einsatz ───────────────────────────────────────────
+// The station catalogue is canned like the outside world: the server fills an object's footprint
+// and the region's houses from registers on the internet, minutes after the object was created,
+// so a real catalogue would draw a different map from one run to the next.
+
+/** where the Karte home stands in the shots: the fat incident's village, the same frame every
+ *  time, with the three catalogue objects inside a phone's width */
+const KARTE_VIEW: KarteView = { center: [7.5557, 47.5138], zoom: 16.4, bearing: 0, objectId: null, surface: 'karte' }
+
+/** a rectangular footprint of `w` × `h` metres around a point */
+function footprint([lng, lat]: [number, number], w: number, h: number): NonNullable<StationObjects['objects'][number]['footprint']> {
+  const dx = w / 2 / (111_320 * Math.cos((lat * Math.PI) / 180)), dy = h / 2 / 111_320
+  return { type: 'MultiPolygon', coordinates: [[[[lng - dx, lat - dy], [lng + dx, lat - dy], [lng + dx, lat + dy], [lng - dx, lat + dy], [lng - dx, lat - dy]]]] }
+}
+
+const stationObject = (n: number, name: string, kind: 'einsatzobjekt' | 'objekt', address: string, at: [number, number], size: [number, number]): StationObjects['objects'][number] => ({
+  id: `00000000-0000-4000-8000-00000000000${n}`, name, kind, address, lng: at[0], lat: at[1],
+  aliases: [], plans: [], floors: [], egid: null, footprint: footprint(at, ...size), lastVisit: null,
+})
+
+const CATALOGUE: StationObjects = {
+  generatedAt: new Date(SHOT).toISOString(),
+  objects: [
+    stationObject(1, 'Schulhaus Musterdorf', 'einsatzobjekt', 'Schulstrasse 4, 9999 Musterdorf', [7.5551, 47.5142], [46, 22]),
+    stationObject(2, 'Alterszentrum Lindenhof', 'einsatzobjekt', 'Lindenweg 12, 9999 Musterdorf', [7.5564, 47.5134], [38, 30]),
+    stationObject(3, 'Werkhof', 'objekt', 'Industriestrasse 9, 9999 Musterdorf', [7.5559, 47.5147], [28, 18]),
+  ],
+}
+
+/** Sign the context in and open «Karte & Objekte» in `theme`, on the canned catalogue. The stack
+ *  must have no open Einsatz (every state retires its own) or the bar would show it running. */
+export async function openKarte(page: Page, theme: 'day' | 'night' = 'day') {
+  const context = page.context()
+  await context.route('**/api/reference/objects', (route) => route.fulfill({ json: CATALOGUE }))
+  for (const set of ['houses', 'underground']) await context.route(`**/api/reference/${set}*`, (route) => route.fulfill({ json: { enabled: false } }))
+  // what the device remembers, written before any app code runs: its theme (lib/prefs, the prefs
+  // cookie) and where the Karte was looking (lib/karte/session)
+  await context.addInitScript(([prefs, view]) => {
+    document.cookie = `kp-front-prefs=${encodeURIComponent(prefs)}; path=/`
+    sessionStorage.setItem('kp.karte.view', view)
+  }, [JSON.stringify({ theme }), JSON.stringify(KARTE_VIEW)] as const)
+  await signIn(context.request)
+  await startClock(page)
+  await page.goto('/karte')
+  await page.locator('[data-karte]').waitFor({ state: 'visible', timeout: 60_000 })
+  // every catalogue object has its mark on the map
+  await page.waitForFunction((n) => document.querySelectorAll('[data-karte] .maplibregl-marker').length >= n, CATALOGUE.objects.length, { polling: POLL_MS, timeout: 30_000 })
 }
 
 /** Archive the Einsatz again, so the next state starts on a stack with no open incident. */

@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test'
+import { request as apiRequest, type APIRequestContext, type Page } from '@playwright/test'
 import { expect } from './guard'
 
 // Specs take `test` and `expect` from here: `test` carries the client-error guard (./guard.ts).
@@ -11,6 +11,18 @@ export { test, expect, expectNoClientErrors, OFFLINE_FETCH_FAILURE, type ClientE
 // Seed kiosk PIN — the committed dev seed (backend/app/seed_users.json). Override
 // with E2E_PIN if a deployment seeds a different one.
 export const PIN = process.env.E2E_PIN || '000000'
+
+/** The deployment's ADMIN_SECRET – the admin API is gated on it alone. A spec that prepares
+ *  station data (an object, a checklist, a config section) skips without it; CI always sets it. */
+export const ADMIN_SECRET = process.env.E2E_ADMIN_SECRET
+
+/** An admin API session of its own (never the page's cookie jar). Dispose it when done. */
+export async function adminContext(baseURL: string | undefined): Promise<APIRequestContext> {
+  const api = await apiRequest.newContext({ baseURL, extraHTTPHeaders: { 'X-Incident-Link': 'off' } })
+  const r = await api.post('/api/admin/login', { data: { secret: ADMIN_SECRET } })
+  expect(r.ok(), `admin login: ${r.status()}`).toBe(true)
+  return api
+}
 
 // The ErrorBoundary render-throw fallback (copy/de/session.ts → errorBoundary.title). If this
 // is on screen a surface crashed on mount — the exact failure this smoke exists to catch.
