@@ -36,7 +36,7 @@
 
 /* ── one cell: an auto-growing textarea with no chrome of its own — the ruling is the frame ── */
 .cellWrap { position: relative; display: flex; flex: 1 1 auto; min-width: 0; }
-/* the touch floor (AGENTS · 3am tenet): every cell is at least --tap tall */
+/* the touch floor (the 3am tenet): every cell is at least --tap tall */
 .cell {
   display: block; box-sizing: border-box; width: 100%; min-height: var(--tap); margin: 0;
   padding: var(--sp-2) var(--sp-2); resize: none; overflow: hidden;
