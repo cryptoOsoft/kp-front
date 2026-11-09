@@ -363,7 +363,8 @@ def render_base(
                     continue
                 try:
                     tile = Image.open(io.BytesIO(data)).convert("RGB")
-                except Exception:  # noqa: BLE001, S112 — one corrupt tile must not sink the map
+                except Exception:  # noqa: BLE001 — one corrupt tile must not sink the map
+                    logger.warning("kroki: tile %s/%s could not be decoded and is left blank", tx, ty, exc_info=True)
                     continue
                 img.paste(tile, (int(tx * TILE - x0), int(ty * TILE - y0)))
     finally:

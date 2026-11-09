@@ -16,6 +16,7 @@ an empty box to sketch in by hand, as on the poster.
 from __future__ import annotations
 
 import io
+import logging
 from dataclasses import dataclass, field
 
 from pydantic import BaseModel
@@ -24,6 +25,8 @@ from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.platypus import Flowable
+
+logger = logging.getLogger(__name__)
 
 # ----------------------------------------------------------------------------- payload
 
@@ -484,6 +487,7 @@ class BoardPageFlowable(Flowable):
             img = ImageReader(io.BytesIO(self.map_png))
             iw, ih = img.getSize()
         except Exception:  # noqa: BLE001 — a broken render leaves the box to sketch in
+            logger.warning("report: the Tafel's map render could not be decoded; its box stays empty", exc_info=True)
             return
         # cover the box (the render is framed on the Lage with room around it), clipped to it
         k = max(bw / iw, bh / ih)
