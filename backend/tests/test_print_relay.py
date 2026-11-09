@@ -329,3 +329,19 @@ async def test_a_short_agent_secret_is_refused(client, admin_login):
     url = "/api/integrations/credentials/print_agent_secret"
     assert (await client.put(url, json={"value": "kurz"})).status_code == 422
     assert (await client.put(url, json={"value": "a" * 48})).status_code == 200
+
+
+async def test_an_einsatz_cannot_queue_without_end(client, editor, relay_secret):
+    """Every account may print and each job stores a whole PDF: past the ceiling a new job is
+    refused, and a cancelled one makes room again."""
+    from app.api.print_relay import MAX_QUEUED_PER_INCIDENT
+
+    await _login(client, editor)
+    inc = await _create_incident(client)
+    jobs = [await _enqueue(client, inc) for _ in range(MAX_QUEUED_PER_INCIDENT)]
+
+    data = {"payload": json.dumps(_payload(inc))}
+    assert (await client.post(f"/api/incidents/{inc}/report/print", data=data)).status_code == 429
+
+    assert (await client.delete(f"/api/print-jobs/{jobs[0]}")).status_code == 200
+    await _enqueue(client, inc)
