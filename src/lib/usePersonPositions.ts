@@ -74,6 +74,10 @@ export const PERSON_STALE_AFTER_MS = 5 * 60_000
  *  (an older backend). Neither answer changes by asking again, so the poll stops for good. */
 const POSITIONS_DEAD_STATUSES = [403, 404] as const
 
+/** While the last answer held nobody, only every n-th cadence tick asks: 45 s at the 15 s
+ *  cadence. A tick count, not a second timer, so the poll itself is never rebuilt. */
+export const EMPTY_POLL_EVERY = 3
+
 /** How old a fix reads as, in whole minutes ("vor 12 min"); 0 = just now. */
 export const ageMinutes = (at: number, now: number): number => Math.max(0, Math.floor((now - at) / 60_000))
 
@@ -190,12 +194,26 @@ export function usePersonPositions(incidentId: string | null, enabled: boolean, 
     if (!polling) lastSig.current = ''
   }, [polling])
 
+  // Nobody sharing is the normal case, and asking every 15 s for it was a third of an idle
+  // device's requests (perf sweep 09.11.2026). After an EMPTY answer only every
+  // EMPTY_POLL_EVERY-th tick asks; the first answer with a position is back on every tick.
+  // Per incident: a newly opened Einsatz starts on the fast cadence.
+  const quiet = useRef({ empty: false, ticks: 0 })
+  useEffect(() => { quiet.current = { empty: false, ticks: 0 } }, [incidentId, polling])
+
   useFeedPoll<PersonPositionDto[]>({
     path: `/api/incidents/${incidentId}/positions`,
     pollMs: cfg.pollMs,
     enabled: polling,
     deadStatuses: POSITIONS_DEAD_STATUSES,
+    skipRound: () => {
+      const q = quiet.current
+      if (!q.empty) return false
+      q.ticks = (q.ticks + 1) % EMPTY_POLL_EVERY
+      return q.ticks !== 0
+    },
     onData: (data) => {
+      quiet.current.empty = data.length === 0
       const list: LivePerson[] = data.map((p) => ({
         personId: p.person_id,
         displayName: p.display_name,
