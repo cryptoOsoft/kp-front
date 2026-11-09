@@ -326,7 +326,7 @@ export function initials(name: string): string {
 }
 
 /** A person's ring and avatar colour (`--present-1` … `--present-6`): the presenter's is always
- *  the first (the pill's own magenta), everybody else's is stable for their client id. */
+ *  the first (the pill's own FW red), everybody else's is stable for their client id. */
 export function personTone(client: string, presenter: string | null | undefined): number {
   if (client === presenter) return 1
   let h = 0
