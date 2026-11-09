@@ -41,6 +41,7 @@ import { resolvePlanAnnos } from './lineAttachments'
 import type { JournalLink } from './journalLinks'
 import { TAFEL_ID, findForms, formForPdf, pageStamp, pageTitles } from './boardForm'
 import { problemView, type ProblemSource } from './problemLink'
+import { tafelKindPrints, tafelPrintKinds } from './tafelPicks'
 import type { LiveSection } from './boardTemplate'
 import { isPendenzenPage, pendenzenForPdf } from './pendenzenPage'
 import { isDrawnBoardKind } from './workspace'
@@ -448,19 +449,24 @@ export function tafelPayload(
   caption: string,
   problems?: ProblemSource,
   pendenzen: { timeline: readonly TimelineEvent[]; inRapport: boolean } = { timeline: [], inRapport: false },
+  print: { pages?: Readonly<Record<string, boolean>>; skizze?: boolean } = {},
 ): { boardPages: Record<string, unknown>[]; boardMap?: unknown; skizze?: Record<string, unknown> } {
   const annos = board?.[TAFEL_ID] ?? []
   const T = appConfig.copy.tafel
   const titles = pageTitles(annos)
   // each page as the Tafel draws it: a problem section with every problem of the Einsatz, the
-  // checklist's ticks included (lib/problemLink · problemView); the «Aufträge / Pendenzen» page
-  // only while the Rapport's own section does not print the same list (see above)
+  // checklist's ticks included (lib/problemLink · problemView); only the kinds of page the print
+  // menu has ticked (lib/tafelPicks – the Rapport sheet is off unless asked for, an empty page
+  // never prints); the «Aufträge / Pendenzen» page only while the Rapport's own section does not
+  // print the same list (see above)
   const forms = findForms(annos)
+  const kinds = new Map(tafelPrintKinds(annos, problems).map((k) => [k.id, k]))
+  const printed = forms.filter((a) => tafelKindPrints(kinds.get(a.form.page.id), print.pages))
   const live = (s: LiveSection, base: Record<string, unknown>) => pendenzenForPdf(s, base, pendenzen.timeline, Date.now())
-  const pages = forms
+  const pages = printed
     .filter((a) => !(pendenzen.inRapport && isPendenzenPage(a.form)))
     .map((a) => formForPdf(problemView(a, forms, problems), { up: T.trendUp, same: T.trendSame, down: T.trendDown }, undefined, T.head, titles.get(a.id), pageStamp(a.form, T), live))
-  const wantsMap = findForms(annos).some((a) => a.form.page.sections.some((x) => x.type === 'map' && !x.hidden))
+  const wantsMap = printed.some((a) => a.form.page.sections.some((x) => x.type === 'map' && !x.hidden))
   const map = wantsMap && scene
     ? buildKrokiPayload({
         entities: scene.entities, drawings: scene.drawings.map((d) => ({ ...d, label: undefined })), layers: scene.layers,
@@ -469,7 +475,7 @@ export function tafelPayload(
     : null
   const ink = annos.filter((a) => isDrawnBoardKind(a.kind))
   const tafel = plans.find((p) => p.id === TAFEL_ID)
-  const skizze = tafel && hasVisiblePlanAnnotation({ [TAFEL_ID]: ink }, TAFEL_ID)
+  const skizze = print.skizze !== false && tafel && hasVisiblePlanAnnotation({ [TAFEL_ID]: ink }, TAFEL_ID)
     ? {
         label: `${tafel.code} · ${T.skizze}`, caption,
         // the blank sheet's own A4 shape (useMeasuredSheet · seed): h/w of a landscape sheet
@@ -570,11 +576,10 @@ export function buildDirectReportPayload(args: DirectReportArgs): Record<string,
     }
   }
 
-  // the Tafel — its own switch, ON unless the operator took it off (an older draft has none)
-  const tafel = draft.options.tafel !== false
-    ? tafelPayload(board, plans, scene, trupps, figureCaption, args.checklists && args.checklistTemplates ? { checklists: args.checklists, templates: args.checklistTemplates } : undefined,
-      { timeline: events, inRapport: !!draft.options.pendenzen })
-    : { boardPages: [] as Record<string, unknown>[] }
+  // the Tafel — a tick per kind of page (lib/tafelPicks) and one for its Skizze, which is ON
+  // unless the operator took it off (an older draft has neither)
+  const tafel = tafelPayload(board, plans, scene, trupps, figureCaption, args.checklists && args.checklistTemplates ? { checklists: args.checklists, templates: args.checklistTemplates } : undefined,
+    { timeline: events, inRapport: !!draft.options.pendenzen }, { pages: draft.options.tafelPages, skizze: draft.options.tafel !== false })
   if (tafel.skizze) planPages.unshift(tafel.skizze)
 
   const cfg = getDeploymentConfig()

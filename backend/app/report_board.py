@@ -611,12 +611,12 @@ class BoardPageFlowable(Flowable):
             if col.kind == "index":
                 if not v:
                     continue
-                rad = min(h, w) * 0.28
-                c.setFillColor(SIG)
-                c.circle(x + w / 2, y_top - h / 2, rad, stroke=0, fill=1)
-                c.setFillColor(colors.white)
-                c.setFont(BOLD, rad * 1.2)
-                c.drawCentredString(x + w / 2, y_top - h / 2 - rad * 0.42, printable(v))
+                # the bare number, large and bold in black (owner, 09.11.2026): the blue disc was the
+                # only colour on the page and ran to a blot on a poor copy
+                fs = min(h, w) * 0.45
+                c.setFillColor(RULE)
+                c.setFont(BOLD, fs)
+                c.drawCentredString(x + w / 2, y_top - h / 2 - fs * 0.35, printable(v))
                 continue
             font = FONT
             if r.fixed:

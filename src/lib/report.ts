@@ -60,10 +60,15 @@ export interface ReportOptions {
   /** the «Auswertung» Beilage — key figures, swimlanes, Lehren (lib/auswertung). Internal: it
    *  prints on its own landscape sheet at the very end, after everything that gets signed. */
   auswertung: boolean
-  /** the Tafel's pages (10.10.2026): every board-template page in its own layout, and the
-   *  Skizze when it carries ink. Optional, because a draft saved before it existed lacks it —
-   *  absent reads as ON (reportPdfDirect · `tafel !== false`). */
+  /** the Tafel's Skizze, when it carries ink (10.10.2026). Until 09.11.2026 this one switch also
+   *  carried every page of the Tafel; the pages have their own ticks now (`tafelPages`). Optional,
+   *  because a draft saved before it existed lacks it — absent reads as ON (reportPdfDirect ·
+   *  `tafel !== false`). */
   tafel?: boolean
+  /** the Tafel's pages, one tick per kind of page by its template page id («ef», «rapport» …):
+   *  only the operator's own picks — an absent id prints by the default (lib/tafelPicks ·
+   *  tafelKindPrints: a page with something on it, never the Rapport sheet unless ticked). */
+  tafelPages?: Record<string, boolean>
 }
 
 export const defaultReportOptions: ReportOptions = {
@@ -104,8 +109,9 @@ export const defaultReportOptions: ReportOptions = {
   // ASK for. Its own last sheet, so the signed part goes out without it; the operator's own tick
   // is kept per Einsatz (ReportPreflight · optionOverrides). The QR-Erfassung's PDF has it off too.
   auswertung: false,
-  // ON: the Erste Führung is the Einsatz's own work, like the Gebäude; a Tafel with nothing on it
-  // simply carries no page (reportPdfDirect · tafelPayload)
+  // ON: the Skizze is the Einsatz's own work, like the Gebäude; a Tafel with nothing drawn on it
+  // simply carries no page (reportPdfDirect · tafelPayload). The pages default per kind, from
+  // the data (lib/tafelPicks), so `tafelPages` starts empty.
   tafel: true,
 }
 

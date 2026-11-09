@@ -216,7 +216,8 @@ Einsatz-Link session cannot print it (the pages carry names, like the Rapport).
 
 ## Exports
 
-- **The Rapport PDF** carries every page («Tafel – Seiten» in the print menu, on by default).
+- **The Rapport PDF** carries the pages ticked in the print menu – one entry per kind of page
+  (below, «Switch»).
 - **«Einträge sichern»** carries the workspace saves a closed Einsatz refused — the pages ride
   in them like every other part of the workspace — and the audit rows, each Tafel edit as the
   cells it changed (`board.edit` · `form.delta`).
@@ -241,8 +242,15 @@ Einsatz-Link session cannot print it (the pages carry names, like the Rapport).
 - **Header** labels (Einsatz, Adresse …) print in the report's language.
 - **The Skizze** prints as a blank-base plan page when it carries ink. That closes the old «the
   Tafel's ink never reaches paper» gap.
-- **Switch.** Everything above sits behind one entry in the print menu, «Tafel – Seiten (n)»,
-  which is on by default.
+- **Switch.** Each kind of page is its own entry in the print menu (owner, 09.11.2026, mock
+  `nov09-fks-blaetter` B; `lib/tafelPicks`): «Erste Führung» first and «Rapport (Traktanden)»
+  last, both always listed, any other kind («Konzept (2)») between them while it is on the
+  Tafel; the Skizze is «Tafel – Skizze» while it carries ink. A page with something on it (as
+  drawn – a ticked checklist problem counts, a live list always) is on by default; an empty one
+  is disabled and does not print. The Rapport sheet is the agenda for the NEXT rapport, so it is
+  offered whenever it is on the Tafel but off until ticked.
+- **Black and white.** The Rapport's Traktanden numbers print as plain bold black digits (owner,
+  09.11.2026 – the blue disc was the only colour on the page). The trend arrows stay red/green.
 - **Fonts.** Trend arrows (➚ = ➘) are drawn as vector arrows, because Helvetica has no glyph for them.
 - **Heads** take the lines they need (up to three), every line printed. A label keeps a symbol
   group together with no-break spaces (`➚\u00a0=\u00a0➘`) and breaks a long word at its soft
