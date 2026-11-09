@@ -27,7 +27,18 @@ logger = logging.getLogger(__name__)
 # sw-media-cache.js is an importScripts of sw.js: with the default `updateViaCache: 'imports'`
 # the browser fetches it THROUGH the HTTP cache, so a new sw.js could install with an hour-old
 # import. Same rule as sw-notify.js.
-_NO_CACHE_FILES = {"index.html", "sw.js", "sw-notify.js", "sw-media-cache.js", "manifest.webmanifest", "registerSW.js"}
+# Every script the worker imports (vite.config · workbox.importScripts) belongs here: with an
+# hour of HTTP cache a NEW worker installs with an OLD import (tests/test_spa_cache.py compares).
+_NO_CACHE_FILES = {
+    "index.html",
+    "sw.js",
+    "sw-boot-timing.js",
+    "sw-notify.js",
+    "sw-media-cache.js",
+    "sw-tile-store.js",
+    "manifest.webmanifest",
+    "registerSW.js",
+}
 
 
 def _cache_control(basename: str) -> str:

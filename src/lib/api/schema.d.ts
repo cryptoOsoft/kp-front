@@ -495,8 +495,8 @@ export interface paths {
         };
         /**
          * Get Plan Scales
-         * @description PUBLIC — needed to measure on plans (viewers included) and cached offline at boot.
-         *     Never raises: whatever in the stored blob does not validate is dropped entry-wise, the rest
+         * @description Any session (viewers measure on plans too), never an anonymous caller — see the module
+         *     docstring. Never raises on the stored document: whatever in the stored blob does not validate is dropped entry-wise, the rest
          *     is served — with the `version` the caller sends back as `If-Match` when it writes.
          */
         get: operations["get_plan_scales_api_plan_scales_get"];
@@ -8734,7 +8734,10 @@ export interface operations {
             query?: never;
             header?: never;
             path?: never;
-            cookie?: never;
+            cookie?: {
+                access_token?: string | null;
+                admin_session?: string | null;
+            };
         };
         requestBody?: never;
         responses: {
@@ -8745,6 +8748,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlanScalesOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

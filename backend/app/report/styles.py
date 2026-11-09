@@ -783,6 +783,8 @@ def _fit_image(data: bytes | None, max_w: float, max_h: float) -> Image | None:
     try:
         iw, ih = ImageReader(io.BytesIO(data)).getSize()
     except Exception:  # noqa: BLE001 — unreadable image → no image, never a failed rapport
+        # …but never a silent one: a photo missing from a signed Rapport has to be explainable.
+        logger.warning("report: a picture could not be decoded and is left out", exc_info=True)
         return None
     if iw <= 0 or ih <= 0:
         return None

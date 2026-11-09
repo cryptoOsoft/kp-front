@@ -12,12 +12,12 @@ from typing import Annotated
 import anyio
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
 from jwt import InvalidTokenError as JWTError
-from sqlalchemy import func, select, update
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..config import settings
 from ..database import get_db
-from ..models import User
+from ..models import PushSubscription, User
 from ..schemas import (
     LoginRequest,
     PinReset,
@@ -469,6 +469,10 @@ async def reset_pin(
     # The whole point of resetting a PIN is that the old one stops working — for the sessions
     # it already opened too, not just for the login screen.
     await revoke_sessions(db, user)
+    # …and for the lock screens. Push rows belong to the ACCOUNT and renew without a session, so
+    # a lost phone kept showing «Neuer Einsatz – Titel – Adresse» after the reset that signed it
+    # out. A device that signs in with the new PIN registers again on its own.
+    await db.execute(delete(PushSubscription).where(PushSubscription.user_id == user.id))
     await db.flush()
     await db.refresh(user)
     return user
