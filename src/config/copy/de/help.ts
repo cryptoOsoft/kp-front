@@ -439,7 +439,7 @@ export const helpCopy = {
           ] },
           { kind: 'sub', text: 'Tag / Nacht' },
           { kind: 'list', items: [
-            'In den **Einstellungen** ([[⌘]] [[,]]) unter «Farbschema»: Automatisch (folgt dem Tageslicht), Tag oder Nacht. Der Nachtmodus dämpft Karte und Oberfläche fürs Dunkle.',
+            'In den **Einstellungen** ([[⌘]] [[,]]) unter «Farbschema»: Automatisch (folgt dem Tageslicht), Gerät (folgt dem Hell/Dunkel des Tablets oder Telefons), Tag oder Nacht. Der Nachtmodus dämpft Karte und Oberfläche fürs Dunkle.',
           ] },
         ],
       },
