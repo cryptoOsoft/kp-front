@@ -94,7 +94,7 @@
   box-shadow: var(--e4); animation: ml-in .16s var(--ease); }
 @keyframes ml-in { from { opacity: 0; transform: translateY(-8px); } }
 /* NO tone edge on any row (29.09.2026, follow-ups; the alarm lost its red bar in sweep 3 T13):
-   a row's tone is its leading glyph's colour and nothing else (AGENTS · «ONE message surface» —
+   a row's tone is its leading glyph's colour and nothing else (docs/ui-conventions.md · «Messages – ONE surface» –
    «never an edge»). Every Meldung carries an `icon` (lib/meldungen · required), so no row is left
    without its tone. Calm is the default glyph ink. */
 .ml-row { display: flex; align-items: center; gap: var(--sp-3); min-height: 52px; padding: var(--sp-1) var(--sp-2) var(--sp-1) var(--sp-4); }

@@ -108,8 +108,8 @@ it never overwrites a pair the station has since set or rotated, and never one t
 value again, and the run says which one it replaced.
 
 `PRINT_AGENT_SECRET` is deliberately *not* minted, and the reason is not a background job: the
-print sweep is registered either way and returns on its first line when no secret is set. It is
-that **the secret is the switch**. Setting it renders «An Stationsdrucker» on the Rapport and on
+print-job sweep is registered either way and finds nothing to delete while no relay runs. It is
+that **the secret is the switch**. Setting it renders «Ausdrucken» on the Rapport and on
 the capture poster for every station that owns no printer, and parks a permanently offline
 connector on the System card. The agent lives on a second machine that is provisioned at a
 terminal anyway (§5).
@@ -422,8 +422,19 @@ you are running, and on a station server that command needs no toolchain –
 form and it is not. Nothing breaks without it – §4's degradation table is exact – but a station
 that meant to add «Rolle» to the unit list some evening will not find the screen.
 
-One browser route gets around the first three, and it is worth knowing: **Sicherung → Import.**
-Export the config, edit the JSON in a text editor, import it back. That covers every field in the
+**Where `alarmKeywords` and `roster.source` are set.** Neither has a form in `/admin`. Both are
+keys of the config document, and there are exactly two places to write them:
+
+- **In the browser:** `/admin` → Sicherung → Export, edit the key in the JSON, Sicherung →
+  Import. No toolchain, works on a Docker-only station.
+- **As a file:** in the `config.json` of your station-data repository, published from a
+  workstation with `admin_config push` ([`STATION-DATA.md`](STATION-DATA.md)).
+
+The shapes are in [`CONFIGURATION.md` §1a](CONFIGURATION.md#1a-alarmkeywords--the-stations-own-alarm-vocabulary)
+(`alarmKeywords`) and [§4](CONFIGURATION.md#4-roster--personnel) (`roster.source`).
+
+The same browser route, **Sicherung → Import**, covers `mittel.units`: export the config, edit
+the JSON in a text editor, import it back. That covers every field in the
 document, including the ones with no form. It is a **full-document replace** with exactly the
 footgun described below – so the browser downloads a `kp-front-config-vorher.json` rollback file
 first, and asks you to confirm
@@ -751,9 +762,9 @@ Full list and formats in [`.env.example`](../.env.example); the API is in
 - **Monitoring** – `HEALTHCHECK_PING_URL`, the dead-man's switch. It is the «Überwachung» row on
   the «Einrichtung» card, and [`DEPLOYMENT.md` §5.5](DEPLOYMENT.md#55-knowing-when-it-is-down) is
   what to point it at.
-- **Station printer** – `PRINT_AGENT_SECRET` plus the polling agent, which now lives in
+- **Station printer** – `PRINT_AGENT_SECRET` plus the polling agent, which lives in
   kp-rueck and serves both systems: see [`tools/PRINT-AGENT.md`](../tools/PRINT-AGENT.md).
-  ⚠️ Setting this secret is what turns «An Stationsdrucker» on, so set it when the agent exists –
+  ⚠️ Setting this secret is what turns «Ausdrucken» (the station printer button) on, so set it when the agent exists –
   not before (§1).
 
 ## 6. Backups, before you rely on any of it

@@ -28,9 +28,9 @@ export default tseslint.config(
       // rules-of-hooks is the non-negotiable correctness rule → stays an error.
       'react-hooks/rules-of-hooks': 'error',
       // exhaustive-deps + the React-Compiler static rules (immutability, purity,
-      // set-state-in-effect, refs, preserve-manual-memoization) flag real cleanup that
-      // is exactly the Phase 2/3 component refactor. Surface them as warnings now so the
-      // lint gate is green and the signal is visible, then burn them down during the split.
+      // set-state-in-effect, refs, preserve-manual-memoization) flag real cleanup. They are
+      // warnings, and the per-rule ratchet holds their counts (scripts/lint-ratchet.mjs ·
+      // scripts/eslint-baseline.json): a count may go down, never up.
       'react-hooks/exhaustive-deps': 'warn',
       'react-hooks/immutability': 'warn',
       'react-hooks/purity': 'warn',
@@ -44,7 +44,7 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-expressions': ['error', { allowShortCircuit: true, allowTernary: true }],
       // only flag when EVERY destructured binding could be const (some share a let reassignment).
       'prefer-const': ['error', { destructuring: 'all' }],
-      // pragmatic for an in-flight refactor — surface, don't block.
+      // a warning the ratchet counts (scripts/eslint-baseline.json) – surface, don't block.
       '@typescript-eslint/no-explicit-any': 'warn',
       // a `!` is a cast the compiler cannot check; lint is not type-aware, so nothing else counts
       // them – the ratchet holds the number (sweep 23.10.2026, B.13). Tests are exempt below.

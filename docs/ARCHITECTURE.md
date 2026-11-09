@@ -256,8 +256,11 @@ the registrations).
 | `plan_alignments` · `plan_tiles` | 10 s · 15 s, idle once done | CV alignment of each plan revision; tile pyramids per plan PDF |
 | `auto_archive` | hourly | archives untouched auto-opened and stale Einsätze and idle Übungen (`alarms.autoArchiveDays`, `alarms.staleIncidentDays`, `alarms.exerciseAutoCloseHours`) |
 | `positions_sweep` · `visit_hashes_sweep` | hourly · daily | deletes expired shared positions and visit-dedup rows (privacy promises, always on) |
+| `print_jobs_sweep` | hourly | deletes station-printer jobs (each holds a Rapport PDF) after 7 days, relay configured or not |
+| `object_footprints` | 120 s, idle once every object is asked | «Karte & Objekte»: the buildings of each station object, the Einsatzgebiet's houses and the underground buildings from the official sources ([`karte-objekte.md`](karte-objekte.md)) |
 | `credentials_refresh` · `telemetry_flush` | 30 s · minutes | keeps the credential snapshot fresh; sends opt-in telemetry |
 | `weather_radar` | 5 min, every process | the radar display cache – not leader-only, records nothing |
+| `demo_reset` | `DEMO_RESET_CRON` (Europe/Zurich), or every `DEMO_RESET_SECONDS` | the public demo only: wipes and reseeds the synthetic incident and roster – registered only when one of the two is set |
 
 ## Configuration: four layers
 

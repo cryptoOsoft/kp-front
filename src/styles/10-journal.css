@@ -684,7 +684,7 @@
 /* ⚠️ WHICH item a Meldung answers. Without it three «PENDENZ» rows in a row are three unrelated
    sentences: the Verlauf is chronological, so each link has to carry its own anchor. Quiet and
    truncated — it is a reference, not the content of the row. */
-/* ⚠️ 12.5px, the interactive floor (AGENTS · the 3am tenet) — it is a real jump-link, not a
+/* ⚠️ 12.5px, the interactive floor (the 3am tenet) – it is a real jump-link, not a
    caption. It sat at 11.5px until 23.08. */
 /* ⚠️ The cap is in px, not the 40% it was: in the trailing group a percentage resolves against a
    box whose width the anchor itself is deciding, which sizes to whatever the item was called. */

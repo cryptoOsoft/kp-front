@@ -165,7 +165,7 @@ function dropManifestFromPrecache(): Plugin {
 // still answered by the PRECACHED index.html of whatever build the device's worker holds — and
 // under registerType 'prompt' that is legitimately an old one — which then imports an AdminApp
 // hash the server no longer has: a 404 on every device that had not restarted since the deploy
-// (the pdf.worker story, AGENTS.md). Going to the network for the shell means /admin always boots
+// (the pdf.worker story). Going to the network for the shell means /admin always boots
 // the deploy it talks to. Offline, /admin is the browser's own offline page; accepted.
 //
 // Deliberately LOUD like the plugin above: no AdminApp chunk, or no AdminApp entry in the

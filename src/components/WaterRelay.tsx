@@ -35,7 +35,7 @@ import s from './WaterRelay.module.css'
 // «Pumpen als Symbole setzen», which dropped another set of symbols on every tap). WIDE (the
 // Messen panel off a phone): the chart down the left, inputs, result and actions down the right;
 // ONE column (a phone, the Leitung editor): heading, inputs, chart, result.
-// Approved design: mockups/wt-nov04-m4b.html, refined by round 3 mock F-A, 04.11.2026; the pump
+// Approved design: mock M4b, refined by round 3 mock F-A, 04.11.2026; the pump
 // card became the bubble on the device test that evening (owner: «one number you rarely change»),
 // and round 4 (device test 04.11.2026) dropped «Planungshilfe» from the heading, moved the sources
 // into a popover and the bubble out of the panel's flow.
