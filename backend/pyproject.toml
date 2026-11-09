@@ -121,9 +121,8 @@ extend-immutable-calls = [
 # came in with the report_pdf.py split the same day, and tafel.py/schema.py hold pydantic models). Moving an import
 # under TYPE_CHECKING is not cosmetic here: FastAPI and pydantic resolve annotations at RUNTIME, so
 # in a router or a model module the «typing-only» import is the one the app needs. Each module is
-# checked by hand when it is next worked on and then leaves this list; the telemetry modules are
-# byte-identical with kp-rueck (shared/MANIFEST.json) and stay.
-"app/{admin_cli,alarms,api/integrations,api/object_visits,api/object_visits_admin,api/station_reference,auth/microsoft,credentials,houses,mvt,object_footprints,object_visit_delivery,object_visits,observations,plan_alignment_compute,plan_alignment_worker,plan_approval,plan_floors,plan_markers,reference_buildings,report/auswertung,report/compose,report/schema,report/styles,report/tafel,roster_snapshot_ingest,roster_snapshot_sync,services/station_workbook,sharepoint_sync,station_index,telemetry/consent,telemetry/forwarder,telemetry/outbox,underground,vehicle_presence,visit_programmes,visits,weather_radar}.py" = ["TC001", "TC002", "TC003"]
+# checked by hand when it is next worked on and then leaves this list.
+"app/{admin_cli,alarms,api/integrations,api/object_visits,api/object_visits_admin,api/station_reference,auth/microsoft,credentials,houses,mvt,object_footprints,object_visit_delivery,object_visits,observations,plan_alignment_compute,plan_alignment_worker,plan_approval,plan_floors,plan_markers,reference_buildings,report/auswertung,report/compose,report/schema,report/styles,report/tafel,roster_snapshot_ingest,roster_snapshot_sync,services/station_workbook,sharepoint_sync,station_index,underground,vehicle_presence,visit_programmes,visits,weather_radar}.py" = ["TC001", "TC002", "TC003"]
 # Alembic revisions are generated files: the boilerplate header and import order are the
 # tool's, not ours, and rewriting them by hand invites merge pain for zero benefit.
 "alembic/versions/**" = ["I001", "W291", "E402", "UP035", "UP006"]
@@ -167,13 +166,11 @@ warn_unused_ignores = true
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-# The vendored telemetry modules are byte-identical with kp-rueck's copies and pinned by
-# checksum (shared/MANIFEST.json). The fixes they'd need — a typed DML helper,
-# a widened ctx dict — cannot be shared, because the two apps have different database
-# modules, so annotating them here would break the identity the checksum protects.
-# kp-rueck excludes them for the same reason (its docs/plans/14-typing-debt.md). Their
+# The vendored sanitiser is byte-identical with kp-rueck's copy and pinned by checksum
+# (shared/MANIFEST.json), so annotating it here would break the identity the checksum
+# protects. kp-rueck excludes it for the same reason (its docs/plans/14-typing-debt.md). Its
 # guarantee comes from the 39 absence-based sanitiser tests and the checksum, not from mypy.
-module = ["app.telemetry.scrub", "app.telemetry.envelope", "app.telemetry.outbox", "app.telemetry.forwarder"]
+module = ["app.telemetry.scrub"]
 ignore_errors = true
 
 [[tool.mypy.overrides]]

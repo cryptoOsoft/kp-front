@@ -69,10 +69,8 @@ the latest tagged release (or `main`) and update promptly – see [`docs/DEPLOYM
   `openssl rand -hex 32`) – it signs JWTs, peppers PINs, and seals that credential store, so
   rotating it invalidates sessions and PIN hashes and makes stored integration credentials
   unreadable. `just init-env` generates the required host secrets for a fresh `.env`.
-- **No telemetry credential ships:** the default DSN in `backend/app/telemetry/dsn.py` is the
-  empty string, since the maintainer's ingest was retired. `KP_TELEMETRY_DSN` stays empty – and
-  nothing is forwarded – unless a deployer sets it to an ingest of their own;
-  `KP_TELEMETRY_ENABLED=0` vetoes the forwarder outright. See [`PRIVACY.md`](PRIVACY.md).
+- **No telemetry:** the app forwards no crash reports anywhere. Crashes stay in the server log
+  and an in-memory buffer an operator can export by hand. See [`PRIVACY.md`](PRIVACY.md).
 
 ## Accepted single-station deployment constraints
 

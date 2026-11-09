@@ -301,10 +301,10 @@ async def test_the_surface_is_admin_only(client, blank_env):
 
 
 async def test_settings_not_on_the_list_have_no_door_here(client, admin_login, blank_env):
-    """SECRET_KEY, ADMIN_SECRET and the telemetry veto are `.env`-only ON PURPOSE — each one
+    """SECRET_KEY, ADMIN_SECRET and REQUIRE_PLAN_DIGEST are `.env`-only ON PURPOSE — each one
     would be self-defeating in the database it gates. There must be no path to them."""
     await admin_login(client)
-    for name in ("secret_key", "admin_secret", "telemetry_enabled", "telemetry_dsn", "require_plan_digest"):
+    for name in ("secret_key", "admin_secret", "require_plan_digest"):
         assert name not in creds.BY_NAME
         r = await client.put(f"/api/integrations/credentials/{name}", json={"value": "x"})
         assert r.status_code == 404

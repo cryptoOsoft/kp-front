@@ -15,8 +15,6 @@ import json
 import pytest
 
 from app.telemetry import scrub
-from app.telemetry.dsn import UPSTREAM_DSN, parse_dsn
-from app.telemetry.envelope import build_event, serialise_envelope
 
 # --- Free-text scrubbing --------------------------------------------------------------
 
@@ -83,8 +81,8 @@ def test_personal_and_secret_shapes_never_survive(raw: str, gone: str):
 
 
 def test_scrubbing_is_idempotent():
-    # The manual channel scrubs on the way in and the forwarder scrubs again on the way out.
-    # If a second pass changed the text, the operator's preview would stop matching the wire.
+    # A second pass must not change the text, or the operator's preview would stop matching
+    # the file they attach.
     once = scrub.scrub_text("crash at /Users/x/a.ts near Hauptstrasse 12, mail a@b.ch")
     assert scrub.scrub_text(once) == once
 
@@ -151,33 +149,31 @@ def test_report_trouble_kind_is_an_enum_not_free_text():
     assert scrub.build_report(message="x", trouble_kind="crash", trouble_at=None)["trouble"] == "crash"
 
 
-# --- End to end: a realistic leak must not reach the wire -----------------------------
+# --- End to end: a realistic leak must not reach the Diagnose-Datei --------------------
 
 
-def _wire(event: dict) -> str:
-    """What actually goes over the socket, as text, for substring assertions."""
-    return serialise_envelope(event).decode()
+def _wire(*parts: dict) -> str:
+    """The scrubbed parts as the JSON text they become in the export, for substring assertions."""
+    return json.dumps(parts, ensure_ascii=False)
 
 
 def test_a_realistic_crash_leaks_nothing():
     # The shape this app really produces: a render throw whose message carries the Einsatzort,
     # a stack through the deployer's home directory, and a route carrying the incident id.
-    event = build_event(
-        channel="error",
-        context=scrub.build_context(
+    wire = _wire(
+        scrub.build_context(
             install_id="11111111-1111-1111-1111-111111111111",
             app="kp-front",
             release="0.2.0+a1b2c3d",
             user_agent="Mozilla/5.0 (iPad; CPU OS 17_5) Safari/604.1",
         ),
-        error=scrub.build_error(
+        scrub.build_error(
             kind="render",
             message="TypeError: cannot read 'lat' of Einsatz Hauptstrasse 12, 4104 Oberwil",
             stack="at MapView (/Users/beichenberger/Github/kp-front/src/components/MapView.tsx:88)",
             path="/incident/3f2504e0-4f89-11d3-9a0c-0305e82c3301",
         ),
     )
-    wire = _wire(event)
     for forbidden in (
         "Hauptstrasse 12",
         "beichenberger",
@@ -189,105 +185,32 @@ def test_a_realistic_crash_leaks_nothing():
     # ...while the parts that make it a usable bug report survive
     assert "TypeError" in wire
     assert "MapView.tsx" in wire
-    assert "kp-front@0.2.0+a1b2c3d" in wire
+    assert "0.2.0+a1b2c3d" in wire
 
 
 def test_a_helpful_operator_cannot_leak_by_being_helpful():
     # The most likely real leak in the whole feature: someone types the useful details in.
-    event = build_event(
-        channel="report",
-        context=scrub.build_context(install_id="i", app="kp-front", release="0.2.0"),
-        report=scrub.build_report(
+    wire = _wire(
+        scrub.build_report(
             message=(
                 "Beim Einsatz Bahnhofstrasse 4 ist der Bildschirm weg. Rückruf 079 123 45 67 oder wache@oberwil.ch"
             ),
             trouble_kind="crash",
             trouble_at="2026-07-25T02:14:00Z",
-        ),
+        )
     )
-    wire = _wire(event)
     for forbidden in ("Bahnhofstrasse 4", "079 123 45 67", "wache@oberwil.ch"):
         assert forbidden not in wire
     # The sentence still reads as a bug report, which is the entire value of this channel
     assert "Bildschirm weg" in wire
 
 
-def test_no_user_object_and_no_ip_field_anywhere():
-    # Sentry SDKs put the client IP in `user.ip_address`. We never build a `user` object at
-    # all, so there is no field for an IP to appear in later.
-    event = build_event(
-        channel="error",
-        context=scrub.build_context(install_id="i", app="kp-front", release="0.2.0"),
-        error=scrub.build_error(kind="error", message="boom"),
-    )
-    assert "user" not in event
-    assert "ip_address" not in _wire(event)
-
-
 def test_never_included_fields_are_absent_from_every_payload():
-    # The list is the contract; this asserts it against both channels at once.
-    events = [
-        build_event(
-            channel="error",
-            context=scrub.build_context(install_id="i", app="kp-front", release="0.2.0"),
-            error=scrub.build_error(kind="error", message="boom"),
-        ),
-        build_event(
-            channel="report",
-            context=scrub.build_context(install_id="i", app="kp-front", release="0.2.0"),
-            report=scrub.build_report(message="kaputt", trouble_kind=None, trouble_at=None),
-        ),
-    ]
-    for event in events:
-        wire = _wire(event)
-        for field in scrub.NEVER_INCLUDED:
-            assert f'"{field}"' not in wire
-
-
-# --- Envelope + DSN -------------------------------------------------------------------
-
-
-def test_envelope_length_header_counts_bytes_not_characters():
-    # Umlauts are the trap here: a character count would desync the frame and the ingest
-    # would reject every German-language report, which is all of them.
-    event = build_event(
-        channel="report",
-        context=scrub.build_context(install_id="i", app="kp-front", release="0.2.0"),
-        report=scrub.build_report(message="Übermässig grüne Fläche", trouble_kind=None, trouble_at=None),
+    # The list is the contract; this asserts it against every builder at once.
+    wire = _wire(
+        scrub.build_context(install_id="i", app="kp-front", release="0.2.0", user_agent="Mozilla/5.0 (iPad)"),
+        scrub.build_error(kind="error", message="boom"),
+        scrub.build_report(message="kaputt", trouble_kind=None, trouble_at=None),
     )
-    header, item, body = serialise_envelope(event).split(b"\n")[:3]
-    assert json.loads(item)["length"] == len(body)
-    assert json.loads(header)["event_id"] == event["event_id"]
-
-
-def test_exception_type_is_split_out_so_the_ingest_can_group():
-    event = build_event(
-        channel="error",
-        context=scrub.build_context(install_id="i", app="kp-front", release="0.2.0"),
-        error=scrub.build_error(kind="error", message="RangeError: invalid array length"),
-    )
-    assert event["exception"]["values"][0]["type"] == "RangeError"
-    assert event["exception"]["values"][0]["value"] == "invalid array length"
-
-
-def test_shipped_dsn_is_empty_so_a_fresh_install_has_nowhere_to_send():
-    # The maintainer's ingest was retired and the guard inverts back: the shipped default must
-    # be EMPTY and must parse to None, which is the single "off" signal the forwarder reads.
-    # This is the test that would fail if someone re-introduced an upstream address by
-    # accident — PRIVACY.md promises a fresh install has no destination at all, and this is
-    # the line that keeps that promise true.
-    assert UPSTREAM_DSN == ""
-    assert parse_dsn(UPSTREAM_DSN) is None
-
-
-@pytest.mark.parametrize("bad", [None, "", "not-a-dsn", "https://ingest.example.ch/1", "ftp://k@h/1"])
-def test_malformed_dsn_degrades_to_off_rather_than_raising(bad):
-    assert parse_dsn(bad) is None
-
-
-def test_auth_header_carries_the_public_key_and_no_secret():
-    dsn = parse_dsn("https://abc123@ingest.example.ch/7")
-    assert dsn is not None
-    assert dsn.envelope_url == "https://ingest.example.ch/api/7/envelope/"
-    assert "sentry_key=abc123" in dsn.auth_header
-    assert "secret" not in dsn.auth_header.lower()
+    for field in (*scrub.NEVER_INCLUDED, "user", "ip_address"):
+        assert f'"{field}"' not in wire

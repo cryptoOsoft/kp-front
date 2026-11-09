@@ -94,7 +94,6 @@ PIN-kiosk flow issuing JWTs as **httpOnly cookies** (single-origin, so no tokens
 | `/api/diag/client-error` | client error sink (bounded, logged at WARNING) | none |
 | `/api/diag/boot` | one log line per app launch with the device's own boot timings – throttled per source, bounded, logged only, nothing stored | none |
 | `/api/diag/export` | the Diagnose-Datei: the last 50 sanitised crashes, to attach to a bug report | auth (never a link session) |
-| `/api/diag/telemetry*` | telemetry status (incl. the queued payloads verbatim), consent on/off, install-id rotation | admin |
 | `/api/hit`, `/api/admin/visits` | visit statistics, counting only with `VISIT_STATS=true` (the public demo): `POST /api/hit` is the beacon – a kind and a key from a closed allow-list, always 204, the one route that answers allow-listed landing-page origins cross-origin, and not in `openapi.json`; `GET /api/admin/visits?days=` reads the daily aggregates ([`PRIVACY.md`](../PRIVACY.md#counting-visitors-without-recognising-them)) | none (`/hit`) · admin (read) |
 
 The exact request/response shapes are in [`openapi.json`](openapi.json) / the live `/docs`.

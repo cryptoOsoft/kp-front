@@ -9,10 +9,8 @@ import secrets
 import sys
 from datetime import timedelta
 
-from pydantic import AliasChoices, Field, field_validator, model_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
-from .telemetry.dsn import UPSTREAM_DSN
 
 
 def is_production() -> bool:
@@ -458,45 +456,6 @@ class Settings(BaseSettings):
     # scheduler; a building tap in the Karte selects the house under the finger, not OSM's block of
     # terraced houses. Empty = off (the Karte then taps the OSM outlines, as before).
     houses_wfs: str = "https://geodienste.ch/db/av_0/deu"
-
-    # --- Telemetry (opt-in; see app/telemetry/) ---
-    # The DEPLOYER's half of the switch, above whatever an admin later clicks in the UI:
-    # KP_TELEMETRY_ENABLED=0 (or a blank DSN) compiles the forwarder out of this process, so
-    # a station whose IT policy forbids outbound traffic can enforce that in the compose file
-    # rather than trusting that nobody ticks a box. Consent is the SECOND gate, not the first.
-    # These three are the ONLY settings read under a KP_ prefix. Settings has no env_prefix,
-    # so every other field binds to its bare upper-cased name; without the explicit alias
-    # below, KP_TELEMETRY_ENABLED would bind to nothing at all and the deployer veto that
-    # PRIVACY.md promises would silently do nothing. The bare names stay accepted so any
-    # existing .env keeps working. docker-compose.yml must ALSO pass the variable into the
-    # container — compose's own .env is interpolation-only and does not reach the process.
-    # test_telemetry_env_veto.py pins both spellings — do not collapse these to plain fields.
-    telemetry_enabled: bool = Field(
-        default=True,
-        validation_alias=AliasChoices("KP_TELEMETRY_ENABLED", "TELEMETRY_ENABLED"),
-    )
-    # Empty by default: there is no upstream ingest any more, and diagnostics stop in this
-    # deployment's own log and outbox (app/telemetry/dsn.py). Set it to your own GlitchTip
-    # and the same machinery starts delivering there.
-    telemetry_dsn: str = Field(
-        default=UPSTREAM_DSN,
-        validation_alias=AliasChoices("KP_TELEMETRY_DSN", "TELEMETRY_DSN"),
-    )
-    # Minutes between flush attempts. Nothing waits on this; it exists so an offline station
-    # drains its queue eventually, not so a crash reaches us quickly.
-    telemetry_flush_minutes: int = Field(
-        default=5,
-        validation_alias=AliasChoices("KP_TELEMETRY_FLUSH_MINUTES", "TELEMETRY_FLUSH_MINUTES"),
-    )
-
-    @field_validator("telemetry_enabled", mode="before")
-    @classmethod
-    def _empty_telemetry_flag_is_false(cls, v: object) -> object:
-        # Same compose-passthrough trap as EXPOSE_API_DOCS — but here blank must mean OFF
-        # rather than crashing the boot, because the safe reading of "unset" is "don't send".
-        if isinstance(v, str) and v.strip() == "":
-            return False
-        return v
 
     # --- Visit statistics (PUBLIC DEMO ONLY; see app/visits.py) ---
     # Counts landing-page visits, demo visits and coarse demo feature usage into two aggregate

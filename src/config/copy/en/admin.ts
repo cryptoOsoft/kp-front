@@ -534,7 +534,6 @@ export const adminCopy: Localizable<Pick<Copy, 'admin'>> = {
         items: [
           { name: 'SECRET_KEY', why: 'encrypts the PINs and the values on this page – it cannot live in the database it protects.' },
           { name: 'ADMIN_SECRET', why: 'opens this very administration. Whoever can open it could otherwise grant themselves new access.' },
-          { name: 'KP_TELEMETRY_ENABLED / _DSN', why: 'is the deployer’s veto over the administration. A veto the administration can change is not one.' },
           { name: 'DATABASE_URL, POSTGRES_*', why: 'are needed before a database connection exists at all.' },
           { name: 'APP_PORT, DOMAIN, KP_FRONT_TAG', why: 'are read by Docker Compose, not by the app – a restart is unavoidable here.' },
         ],

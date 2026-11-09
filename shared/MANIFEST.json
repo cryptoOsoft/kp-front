@@ -23,24 +23,8 @@
       "question": "Could one app leak what the other strips?",
       "files": [
         {
-          "path": "backend/app/telemetry/__init__.py",
-          "sha256": "cd0d97593af95eb29dff1ee00ffbac6cfd01cc8b183d0a1de3faa5bf8cbc7a56"
-        },
-        {
           "path": "backend/app/telemetry/scrub.py",
           "sha256": "fd650be000b92ad14087378e047391ca945b5401dcf6f32edaf29d78c1261121"
-        },
-        {
-          "path": "backend/app/telemetry/envelope.py",
-          "sha256": "fa581ba2ec4224426ce67750c4e575c6d44a12a5cc63a81498da2e245430995f"
-        },
-        {
-          "path": "backend/app/telemetry/outbox.py",
-          "sha256": "e59113482ba07ff52fcbe4f8cc318d1b3143993e88367298fbccc503facc428a"
-        },
-        {
-          "path": "backend/app/telemetry/forwarder.py",
-          "sha256": "7256d10b5c25c4b9056836b6c53862ece0b2836e41e1684738fa91daf0cfee13"
         },
         {
           "path": "backend/app/telemetry/recent.py",
@@ -157,7 +141,7 @@
         },
         {
           "path": "shared/README.md",
-          "sha256": "f1bfd124145d6afcfad78ec2103e051d231bdfb56f33e229ecf1c301abb6279a"
+          "sha256": "6ac1bcf96aaaebedb58300b95234d417e8ac9eadb10df92c66ec27011595dba6"
         },
         {
           "path": "backend/tests/test_shared_files.py",
