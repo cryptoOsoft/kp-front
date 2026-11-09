@@ -75,16 +75,35 @@
           "auth"
         ],
         "summary": "Login",
+        "description": "PIN login behind two throttles, both taken BEFORE the first await (a concurrent burst is\ncounted, not waved past a check nobody has failed yet — SEC-08 round 1):\n\n· the cooldown ladder per (account, device or source) — pin_limiter · PinLimiter;\n· for a device the account does not know, the account's new-device budget — NewDeviceBudget.\n\nA throttled attempt is REFUSED before the verify, a correct PIN included: verifying while\nthrottled is what made the PIN space brute-forceable once (SEC-08 round 3). Both blocks are\nbounded and neither deepens while it stands, so the operator always gets a window — and a\ndevice the account knows is never behind the budget at all.",
         "operationId": "login_api_auth_login_post",
+        "parameters": [
+          {
+            "name": "known_device",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Known Device"
+            }
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/LoginRequest"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -132,6 +151,22 @@
                 }
               ],
               "title": "Refresh Token"
+            }
+          },
+          {
+            "name": "known_device",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Known Device"
             }
           }
         ],

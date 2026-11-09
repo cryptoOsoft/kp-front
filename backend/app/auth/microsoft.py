@@ -53,6 +53,7 @@ from ..config import settings
 from ..database import get_db
 from ..models import User
 from .cookies import set_auth_cookies
+from .known_device import DEVICE_COOKIE, read_known_device, remember_device
 from .router import _claims
 from .security import create_access_token, create_refresh_token
 
@@ -278,4 +279,6 @@ async def callback(
     logger.info("Microsoft login: oid=%s → user=%s", claims.get("oid"), user.id)
     response = _back()
     set_auth_cookies(response, create_access_token(claims_out), create_refresh_token(claims_out))
+    # a later PIN login on this browser is a known device's (auth/known_device)
+    remember_device(response, read_known_device(request.cookies.get(DEVICE_COOKIE)), user)
     return response

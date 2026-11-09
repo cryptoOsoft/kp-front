@@ -2032,6 +2032,10 @@ export const adminCopy = {
       liveSnapshot: 'Live-Systemstatus',
       updatedAt: 'Stand {time}',
       healthSummary: 'Systemzustand',
+      // Anmeldesperre für neue Geräte (backend auth/pin_limiter · NewDeviceBudget) — nur sichtbar, solange eine gilt
+      loginLocksTitle: 'Anmeldung für neue Geräte gesperrt',
+      loginLocksTip: 'Auf dieses Konto wurden von unbekannten Geräten zu viele falsche PINs eingegeben. Geräte, die schon einmal mit dem Konto angemeldet waren, sind nicht betroffen. Die Sperre endet von selbst; hält das Raten an, kehrt sie zurück. Bei Verdacht: PIN des Kontos zurücksetzen.',
+      loginLockRow: '{name} – neue Geräte noch {minutes} min gesperrt',
       server: 'Server',
       reachable: 'erreichbar',
       error: 'Systemdaten konnten nicht geladen werden.',

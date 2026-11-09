@@ -25,6 +25,9 @@ interface SystemDatabase {
   ok: boolean
 }
 interface SystemMonitoring { heartbeatConfigured: boolean }
+/** An account new devices are refused for right now: somebody is guessing at its PIN
+ *  (backend auth/pin_limiter · NewDeviceBudget). */
+interface SystemLoginLock { userId: string; displayName: string; minutesLeft: number }
 interface SystemCounts {
   incidents: number | null
   incidents_open: number | null
@@ -84,6 +87,8 @@ interface SystemResponse {
   connectors: SystemConnector[] | null
   /** whether this deployment can tell anybody it has died (api/system) — a boolean, never the URL */
   monitoring: SystemMonitoring | null
+  /** empty on every ordinary day; absent from a server older than this page */
+  loginLocks?: SystemLoginLock[]
   /** «Einrichtung», derived server-side — see SetupChecklist. */
   setup: SetupState | null
 }
@@ -761,7 +766,7 @@ export function SystemView({ onNavigate }: { onNavigate?: (id: string) => void }
       )}
 
       {state.kind === 'ok' && (() => {
-        const { version, database, counts, storage } = state.data
+        const { version, database, counts, storage, loginLocks = [] } = state.data
         const isProd = version?.env === 'production'
         /** A version cell's text. One fallback for all three: a server that answered without a
          *  version block says «nicht verfügbar» rather than three dashes that read as empty
@@ -782,6 +787,17 @@ export function SystemView({ onNavigate }: { onNavigate?: (id: string) => void }
               }}
               onGo={(id) => onNavigate?.(id)}
             />
+            {/* Only while a lock stands: the one thing on this page that means «somebody is
+                trying to get in», so it sits above the health read-out. */}
+            {loginLocks.length > 0 && (
+              <Card title={C.loginLocksTitle} tip={C.loginLocksTip}>
+                {loginLocks.map((lock) => (
+                  <p key={lock.userId} className="adm-hint" role="status">
+                    {fillTemplate(C.loginLockRow, { name: lock.displayName, minutes: lock.minutesLeft })}
+                  </p>
+                ))}
+              </Card>
+            )}
             {/* «Systemzustand» — the page's ONE primary status surface, and the only place for
                 any of these six facts. Server/Datenbank/Umgebung used to sit in a strip and
                 Release/Commit/Branch in a card of their own further down: two surfaces saying

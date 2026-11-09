@@ -80,7 +80,19 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Login */
+        /**
+         * Login
+         * @description PIN login behind two throttles, both taken BEFORE the first await (a concurrent burst is
+         *     counted, not waved past a check nobody has failed yet — SEC-08 round 1):
+         *
+         *     · the cooldown ladder per (account, device or source) — pin_limiter · PinLimiter;
+         *     · for a device the account does not know, the account's new-device budget — NewDeviceBudget.
+         *
+         *     A throttled attempt is REFUSED before the verify, a correct PIN included: verifying while
+         *     throttled is what made the PIN space brute-forceable once (SEC-08 round 3). Both blocks are
+         *     bounded and neither deepens while it stands, so the operator always gets a window — and a
+         *     device the account knows is never behind the budget at all.
+         */
         post: operations["login_api_auth_login_post"];
         delete?: never;
         options?: never;
@@ -8102,7 +8114,9 @@ export interface operations {
             query?: never;
             header?: never;
             path?: never;
-            cookie?: never;
+            cookie?: {
+                known_device?: string | null;
+            };
         };
         requestBody: {
             content: {
@@ -8137,6 +8151,7 @@ export interface operations {
             path?: never;
             cookie?: {
                 refresh_token?: string | null;
+                known_device?: string | null;
             };
         };
         requestBody?: never;

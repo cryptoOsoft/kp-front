@@ -10,8 +10,9 @@ Two properties the first version lacked (security audit SEC-08):
   database round trip and a bcrypt verification, and only then record the failure — so 24
   simultaneous wrong PINs all passed a check that nobody had yet failed and all reached bcrypt.
   Nothing may be awaited between deciding and counting.
-* **Buckets are bounded and they expire.** The key includes the request's source address and
-  the *claimed* user id, both attacker-suppliable, so the map has to prune: a bucket untouched
+* **Buckets are bounded and they expire.** The key includes the request's source (its address,
+  or the device id of a device the account knows) and the *claimed* user id — the address and
+  the id are attacker-suppliable — so the map has to prune: a bucket untouched
   for `BUCKET_TTL_SECONDS` is forgotten (which is also how a legitimate operator's own slips
   decay), and the map never exceeds `MAX_BUCKETS`.
 
@@ -23,7 +24,11 @@ rather than pretended away.
 Keying is per (account, source), not per account. A cooldown shared by every caller of one
 account is a remote lockout switch: hostile traffic aimed at the Einsatzleiter's tile would
 keep the Einsatzleiter out. Their own tablet has its own bucket and is never blocked by
-somebody else's failures; a correct PIN clears that bucket immediately.
+somebody else's failures; a correct PIN clears that bucket immediately. The «source» of a
+device the account knows is the device itself (auth/known_device), not its address — two
+tablets behind the station's one address no longer share a ladder.
+
+Per-source keying alone leaves source rotation open; `NewDeviceBudget` below closes it.
 """
 
 import time
@@ -123,12 +128,15 @@ class PinLimiter:
             del self._state[stale]
         if len(self._state) <= MAX_BUCKETS:
             return
-        # Still over the ceiling: evict by (cooldown already expired, longest unseen) so a
-        # flood of invented keys sheds itself before a live cooldown does. Shed to a margin
+        # Still over the ceiling: evict by (fewest failures, cooldown already expired, longest
+        # unseen). Failures FIRST: a flood of fresh one-attempt keys is always newer than the
+        # bucket it wants gone, so ordering by age alone let ~9,000 invented keys push out a
+        # real bucket at the end of its free tier and hand its guesser five more tries
+        # (review of #562). Shed to a margin
         # below the ceiling, like the aggregate below: shedding to the ceiling itself meant a
         # flood paid one sort of 10,000 buckets per INSERT (the bounded-map test alone took 44 s).
         target = MAX_BUCKETS * 9 // 10
-        ordered = sorted(self._state.items(), key=lambda item: (item[1][1], item[1][2]))
+        ordered = sorted(self._state.items(), key=lambda item: (item[1][0], item[1][1], item[1][2]))
         for key, _bucket in ordered[: len(self._state) - target]:
             del self._state[key]
 
@@ -136,94 +144,102 @@ class PinLimiter:
 pin_limiter = PinLimiter()
 
 
-# --- per-account aggregate slowdown (M1a) -----------------------------------------
+# --- the new-device budget ------------------------------------------------------------------
 
-#: Failures per account, across ALL sources, within one window before the slowdown engages.
-#: Deliberately far above anything a legitimate crew produces — every operator on station
-#: burning their full free tier at once is still well under it — while a source-rotating
-#: attacker at the bcrypt ceiling (~13 verifies/s) crosses it in under ten seconds.
-AGGREGATE_THRESHOLD = 100
+#: Wrong PINs one ACCOUNT may collect from devices that never signed in to it, across every
+#: source address, before new devices are refused for it. A person setting up a phone does not
+#: mistype ten times; a guesser rotating addresses reaches it in a second.
+NEW_DEVICE_FREE_FAILURES = 10
 
-#: Tumbling window the failures are counted in. An hour: long enough that an attacker cannot
-#: simply wait it out between bursts, short enough that yesterday's attack does not slow
-#: today's alarm.
-AGGREGATE_WINDOW_SECONDS = 60 * 60
+#: How long new devices are then refused, one step deeper per further lock while the guessing
+#: goes on. At the last step that is ten guesses an hour: the 6-digit space takes over a decade.
+NEW_DEVICE_LOCK_STEPS_SECONDS = (15 * 60, 30 * 60, 60 * 60)
 
-#: The slowdown ladder: base delay once engaged, one step deeper per further THRESHOLD
-#: failures, hard-capped. Small on purpose — the legit operator behind it waits a breath,
-#: never a lockout — while an attacker's per-attempt cost roughly triples over bcrypt alone
-#: and each attempt now holds a connection open for seconds.
-AGGREGATE_BASE_DELAY_SECONDS = 1.5
-AGGREGATE_DELAY_STEP_SECONDS = 0.5
-AGGREGATE_MAX_DELAY_SECONDS = 3.0
+#: An account nobody guessed at for this long starts over — count and step. A real person's
+#: slips are forgotten by the next day; an attacker pacing below the budget gets ten a day,
+#: and at that pace nothing locks and nobody is told — only the per-attempt log line shows it.
+NEW_DEVICE_QUIET_SECONDS = 24 * 60 * 60
 
-#: Ceiling on tracked accounts. The key is the CLAIMED user id (attacker-suppliable), so the
-#: map must stay bounded like the cooldown limiter's above.
-MAX_AGGREGATE_ACCOUNTS = 10_000
+#: Ceiling on tracked accounts, and what a caller past it is told to wait. The route forgets an
+#: id that turns out to be no account (`forget`), so the map holds real accounts plus whatever
+#: is in flight; the ceiling is only reachable by parking requests on the database pool.
+MAX_BUDGET_ACCOUNTS = 10_000
+BUDGET_FULL_WAIT_SECONDS = 60
 
 
-class LoginAggregate:
-    """Failure tally per ACCOUNT across all sources — the answer to source rotation.
+class NewDeviceBudget:
+    """Wrong PINs per ACCOUNT from devices it does not know — the answer to source rotation.
 
-    The per-(account, source) cooldown above is availability-first by design: a rotating
-    attacker gets a fresh bucket per address, so their real ceiling is only the bcrypt
-    CapacityLimiter. This tally closes that hole without giving up the availability property:
-    above `AGGREGATE_THRESHOLD` failures/window every verify for the account is DELAYED a
-    couple of seconds (`delay`), never refused — there is no path from here to a 4xx. The
-    delay multiplies what an attacker must spend (time, and connections held open) per
-    attempt; the operator caught behind it waits a breath and gets in.
+    The cooldown above is keyed per (account, source), so a caller rotating addresses mints a
+    fresh bucket at will and guesses at the bcrypt ceiling: the whole 6-digit space in a day
+    (sweep 2026-11-09, SEC.1). A cap shared by ALL callers of an account would stop that and be
+    the remote lockout switch the cooldown's docstring warns about. So the cap is shared only by
+    devices that never signed in to the account. A device that did carries a signed cookie
+    saying so (auth/known_device) and never reaches this class: the Einsatzleiter's own tablet
+    keeps the cooldown ladder and nothing else, whatever the rest of the internet does.
 
-    Success handling — the trade-off, deliberately: `record_success` clears the account's
-    tally outright. Only a caller who KNOWS the PIN can trigger it, so a guessing attacker
-    cannot reach it on purpose; the residual cost is that during an active attack each real
-    crew login re-opens one threshold's worth of undelayed attempts — seconds of guessing at
-    the bcrypt ceiling, negligible against the PIN space — accepted so an operator is never
-    left dragging an hour of somebody else's failures after proving who they are.
+    What an attacker can still do: keep NEW devices out of one account by guessing at it. That
+    is the price, and the owner's call (2026-11-09): a known device is never affected, the
+    editors get a push when a lock engages, and the admin's System page lists it.
 
-    Process-local and approximate, like the cooldown limiter (its docstring says why that is
-    documented rather than pretended away). Counting happens on the failed verify rather than
-    being reserved up front — a concurrent burst can undercount by its own width once, which
-    shaves a delay step, never bypasses admission (there is no admission here to bypass).
+    `reserve` counts the attempt in the step that admits it, like the cooldown — nothing may be
+    awaited between deciding and counting. A caller who turns out to know the PIN gives the
+    slot back (`release`). The lock engages on the attempt that ARRIVES at a full budget, so a
+    lone tenth correct PIN is never the one that locks.
+
+    ⚠️ NOTHING IS EVER EVICTED. This map is the security bound, and an entry that can be pushed
+    out is a budget that can be reset: the first version shed its lowest entries at the ceiling,
+    and a flood of invented account ids took the real account's counter — and its live lock —
+    with them (review of #562). Hence `forget` for ids that are no account, and a refusal for a
+    NEW id at the ceiling. Process-local, like the cooldown: a restart forgets it, which hands
+    a guesser ten more tries per deploy.
     """
 
     def __init__(self) -> None:
-        # account id -> (window_start_monotonic, failures_in_window)
-        self._state: dict[str, tuple[float, int]] = {}
+        # account id -> (failures, locked_until_monotonic, locks_so_far, last_seen_monotonic)
+        self._state: dict[str, tuple[int, float, int, float]] = {}
 
-    def _count(self, account: str, now: float) -> int:
-        start, fails = self._state.get(account, (now, 0))
-        if now - start > AGGREGATE_WINDOW_SECONDS:
-            return 0
-        return fails
+    def _entry(self, account: str, now: float) -> tuple[int, float, int]:
+        fails, until, locks, seen = self._state.get(account, (0, 0.0, 0, now))
+        if now - seen > NEW_DEVICE_QUIET_SECONDS and until <= now:
+            return 0, 0.0, 0
+        return fails, until, locks
 
-    def failures(self, account: str) -> int:
-        """Failures counted against this account in the current window."""
-        return self._count(account, time.monotonic())
-
-    def delay(self, account: str) -> float:
-        """Seconds to sleep before verifying for this account — 0.0 below the threshold."""
-        fails = self.failures(account)
-        if fails < AGGREGATE_THRESHOLD:
-            return 0.0
-        steps = (fails - AGGREGATE_THRESHOLD) // AGGREGATE_THRESHOLD
-        return min(
-            AGGREGATE_BASE_DELAY_SECONDS + AGGREGATE_DELAY_STEP_SECONDS * steps,
-            AGGREGATE_MAX_DELAY_SECONDS,
-        )
-
-    def record_failure(self, account: str) -> int:
-        """Count one failed verify; return the account's new window total."""
+    def reserve(self, account: str) -> tuple[int, int]:
+        """Take one attempt slot for a new device. Returns ``(wait, engaged)``: ``wait`` 0 =
+        go ahead (already counted), >0 = seconds until new devices may try again. ``engaged``
+        is the lock's ordinal (1 = the first of this episode) on the ONE call that engages it,
+        else 0 — the moment worth telling somebody about."""
         now = time.monotonic()
-        fails = self._count(account, now) + 1
-        start = self._state.get(account, (now, 0))[0] if fails > 1 else now
-        self._state[account] = (start, fails)
-        if len(self._state) > MAX_AGGREGATE_ACCOUNTS:
-            self._prune(now)
-        return fails
+        fails, until, locks = self._entry(account, now)
+        if until > now:
+            return max(1, int(until - now + 0.999)), 0
+        if fails >= NEW_DEVICE_FREE_FAILURES:
+            step = NEW_DEVICE_LOCK_STEPS_SECONDS[min(locks, len(NEW_DEVICE_LOCK_STEPS_SECONDS) - 1)]
+            self._state[account] = (0, now + step, locks + 1, now)
+            return step, locks + 1
+        if account not in self._state and len(self._state) >= MAX_BUDGET_ACCOUNTS:
+            self._drop_quiet(now)
+            if len(self._state) >= MAX_BUDGET_ACCOUNTS:
+                return BUDGET_FULL_WAIT_SECONDS, 0
+        self._state[account] = (fails + 1, 0.0, locks, now)
+        return 0, 0
 
-    def record_success(self, account: str) -> None:
-        # See the class docstring for why a success clears the whole tally.
+    def release(self, account: str) -> None:
+        """Give a reserved slot back: the caller knew the PIN, or was refused before the verify."""
+        fails, until, locks, seen = self._state.get(account, (0, 0.0, 0, 0.0))
+        if fails > 0:
+            self._state[account] = (fails - 1, until, locks, seen)
+
+    def forget(self, account: str) -> None:
+        """Drop an id that turned out to be no account. Only the route can know that, after its
+        lookup; without this anyone could fill the map with invented ids."""
         self._state.pop(account, None)
+
+    def locked(self) -> dict[str, int]:
+        """Accounts new devices are refused for right now → seconds left (the admin's view)."""
+        now = time.monotonic()
+        return {a: int(until - now + 0.999) for a, (_f, until, _l, _s) in self._state.items() if until > now}
 
     def reset(self) -> None:
         self._state.clear()
@@ -231,20 +247,15 @@ class LoginAggregate:
     def account_count(self) -> int:
         return len(self._state)
 
-    def _prune(self, now: float) -> None:
-        for stale in [a for a, (start, _f) in self._state.items() if now - start > AGGREGATE_WINDOW_SECONDS]:
-            del self._state[stale]
-        if len(self._state) <= MAX_AGGREGATE_ACCOUNTS:
-            return
-        # Still over the ceiling: shed the LOWEST tallies first. Evicting a hot account would
-        # re-grant it a fresh undelayed window — exactly the capacity eviction must not hand
-        # back — while a one-failure account loses nothing that matters. Shed to a margin
-        # below the ceiling so a flood of invented ids pays for one sort per ~thousand
-        # inserts, not per insert.
-        target = MAX_AGGREGATE_ACCOUNTS * 9 // 10
-        ordered = sorted(self._state.items(), key=lambda item: item[1][1])
-        for account, _entry in ordered[: len(self._state) - target]:
+    def _drop_quiet(self, now: float) -> None:
+        """Forget what `_entry` already reads as absent: no live lock, a day without a guess."""
+        quiet = [
+            a
+            for a, (_f, until, _l, seen) in self._state.items()
+            if until <= now and now - seen > NEW_DEVICE_QUIET_SECONDS
+        ]
+        for account in quiet:
             del self._state[account]
 
 
-login_aggregate = LoginAggregate()
+new_device_budget = NewDeviceBudget()
