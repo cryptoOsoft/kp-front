@@ -24,6 +24,7 @@ the right failure direction for a safety alarm.
 import asyncio
 import json
 import logging
+import time
 import uuid
 from collections.abc import Awaitable, Callable, Collection
 from datetime import UTC, datetime, timedelta
@@ -734,12 +735,23 @@ async def notify_new_alarm(
     return 1
 
 
-def notify_login_lock(db: AsyncSession, *, display_name: str, minutes: int, tag: str) -> None:
-    """Tell the editors that new devices are now refused for one account (auth/router ·
+#: At most one «Anmeldung gesperrt» push in this long, whatever the number of accounts: the
+#: roster is public, so one push per account was forty notifications for 440 requests.
+LOGIN_LOCK_PUSH_INTERVAL_SECONDS = 60 * 60
+_last_login_lock_push = 0.0
+
+
+def notify_login_lock(db: AsyncSession, *, display_name: str, minutes: int) -> bool:
+    """Tell the editors that new devices are now refused for an account (auth/router ·
     `_refuse_new_device`): somebody is guessing at its PIN. Scheduled at once, on its own
-    session — the request that noticed is about to answer 429 and commits nothing."""
-    if not push_enabled():
-        return
+    session — the request that noticed is about to answer 429 and commits nothing. At most one
+    per hour under one tag, so a second lock replaces the first notification instead of
+    stacking; the admin's System page lists every live lock. Returns whether one was sent."""
+    global _last_login_lock_push
+    now = time.monotonic()
+    if not push_enabled() or (_last_login_lock_push and now - _last_login_lock_push < LOGIN_LOCK_PUSH_INTERVAL_SECONDS):
+        return False
+    _last_login_lock_push = now
     factory = async_sessionmaker(db.bind, class_=AsyncSession, expire_on_commit=False, autoflush=False)
     task = asyncio.create_task(
         _broadcast_committed(
@@ -749,13 +761,14 @@ def notify_login_lock(db: AsyncSession, *, display_name: str, minutes: int, tag:
                 f"{display_name}: zu viele falsche PINs von unbekannten Geräten. "
                 f"Neue Geräte sind für dieses Konto {minutes} min gesperrt."
             ),
-            tag=tag,
+            tag="login-lock",
             target=None,
             audience=_new_alarm_recipients,
         )
     )
     _inflight.add(task)
     task.add_done_callback(_inflight.discard)
+    return True
 
 
 async def _broadcast_committed(

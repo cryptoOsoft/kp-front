@@ -6,15 +6,21 @@ a login still needs the PIN. It only decides which THROTTLE a wrong PIN counts a
 other device shares the account's new-device budget, the one a guesser can exhaust.
 
 Bound to the ACCOUNT, not just to the device: a cookie earned with one's own viewer login must
-not buy the fast lane to an editor's tile. And bound to the account's auth generation: a PIN
-reset or a deactivation makes every device unknown again, the thrown-out phone included.
+not buy the fast lane to an editor's tile.
+
+Deliberately NOT bound to the account's auth generation (review of #562). A PIN reset, a role
+change and a deactivation all bump it, and a stale cookie would put the Einsatzleiter's own
+tablet behind the budget exactly when somebody is guessing at the account — resetting the PIN,
+the natural answer to «Anmeldung gesperrt», would have locked the crew out with the correct
+new PIN in hand. What a lost phone keeps is the ladder: about thirty guesses an hour at a PIN
+it no longer knows, against ten for a stranger. Both are years for six digits.
 
 Deliberately NOT cleared by «Abmelden», like the terminal enrollment (auth/cookies): signing
 out of a shared tablet must not turn the station's own tablet into a stranger.
 """
 
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import timedelta
 
 from fastapi import Response
@@ -37,19 +43,14 @@ MAX_ACCOUNTS = 40
 
 @dataclass(frozen=True)
 class KnownDevice:
-    """A verified cookie: the device's own id (the cooldown key) and, per account id that
-    signed in here, the auth generation it signed in under."""
+    """A verified cookie: the device's own id (the cooldown key) and the ids of the accounts
+    that signed in here, oldest first."""
 
     id: str
-    accounts: dict[str, int] = field(default_factory=dict)
+    accounts: tuple[str, ...] = ()
 
     def knows(self, account: str) -> bool:
-        """Whether this device CLAIMS the account — before the generation is checked against
-        the stored user, which only the route can do (`is_current`)."""
         return account in self.accounts
-
-    def is_current(self, user: User) -> bool:
-        return self.accounts.get(str(user.id)) == user.auth_generation
 
 
 def read_known_device(token: str | None) -> KnownDevice | None:
@@ -61,18 +62,17 @@ def read_known_device(token: str | None) -> KnownDevice | None:
     except JWTError:
         return None
     device_id, accounts = payload.get("dev"), payload.get("acc")
-    if payload.get("type") != DEVICE_TOKEN_TYPE or not isinstance(device_id, str) or not isinstance(accounts, dict):
+    if payload.get("type") != DEVICE_TOKEN_TYPE or not isinstance(device_id, str) or not isinstance(accounts, list):
         return None
-    return KnownDevice(device_id, {k: v for k, v in accounts.items() if isinstance(k, str) and isinstance(v, int)})
+    return KnownDevice(device_id, tuple(a for a in accounts if isinstance(a, str)))
 
 
 def remember_device(response: Response, device: KnownDevice | None, user: User) -> None:
     """Record that `user` signed in on this device, minting the device id on first use."""
-    accounts = {k: v for k, v in (device.accounts if device else {}).items() if k != str(user.id)}
-    accounts[str(user.id)] = user.auth_generation  # last = most recently used
-    kept = dict(list(accounts.items())[-MAX_ACCOUNTS:])
+    account = str(user.id)
+    accounts = [a for a in (device.accounts if device else ()) if a != account] + [account]  # last = most recent
     token = _encode(
-        {"dev": device.id if device else uuid.uuid4().hex, "acc": kept},
+        {"dev": device.id if device else uuid.uuid4().hex, "acc": accounts[-MAX_ACCOUNTS:]},
         token_type=DEVICE_TOKEN_TYPE,
         expires=DEVICE_TTL,
     )

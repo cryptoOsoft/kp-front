@@ -5,6 +5,8 @@ under a day. Now every device an account does not know shares one budget of wron
 and a device that has signed in before (the signed `known_device` cookie) is never behind it.
 """
 
+from types import SimpleNamespace
+
 import httpx
 import pytest
 
@@ -97,17 +99,47 @@ async def test_another_accounts_cookie_buys_no_fast_lane(client, editor, viewer,
         assert (await _try(insider, editor, PIN)).status_code == 429
 
 
-async def test_a_pin_reset_makes_every_device_a_stranger_again(client, editor, admin_login, behind_proxy):
-    async with _device("9.9.9.9") as phone:
-        assert (await _try(phone, editor, PIN)).status_code == 200
-        cookie = phone.cookies[DEVICE_COOKIE]
+async def test_a_pin_reset_under_attack_does_not_lock_the_crew_out(client, editor, admin_login, behind_proxy):
+    """Resetting the PIN is the natural answer to «Anmeldung gesperrt». The tablet that was
+    known before the reset signs in with the NEW PIN while new devices are still refused."""
+    async with _device("9.9.9.9") as tablet:
+        assert (await _try(tablet, editor, PIN)).status_code == 200
+        cookie = tablet.cookies[DEVICE_COOKIE]
 
+    await _lock(editor)
     await admin_login(client)
     assert (await client.post(f"/api/auth/users/{editor.id}/pin", json={"pin": "864209"})).status_code == 200
-    await _lock(editor)
 
-    async with _device("9.9.9.9", **{DEVICE_COOKIE: cookie}) as lost_phone:
-        assert (await _try(lost_phone, editor, "864209")).status_code == 429
+    async with _device("9.9.9.9", **{DEVICE_COOKIE: cookie}) as tablet:
+        assert (await _try(tablet, editor, "864209")).status_code == 200
+
+
+async def test_a_flood_of_invented_accounts_does_not_reset_a_real_one(client, editor, behind_proxy):
+    """The reviewer's attack: ten guesses, then invented ids to push the counter out, repeat."""
+    import uuid
+
+    assert await _guess_from_rotating_sources(editor) == [401] * NEW_DEVICE_FREE_FAILURES
+    for _ in range(50):
+        async with _device("7.7.7.7") as attacker:
+            assert (await _try(attacker, SimpleNamespace(id=uuid.uuid4()), WRONG_PIN)).status_code == 401
+    assert new_device_budget.account_count() == 1  # the real one; no invented id stayed
+
+    async with _device("8.8.8.8") as attacker:
+        assert (await _try(attacker, editor, WRONG_PIN)).status_code == 429
+
+
+async def test_a_concurrent_burst_from_new_devices_cannot_outrun_the_budget(client, editor, behind_proxy):
+    """Counted in the step that admits: forty simultaneous guesses from forty addresses reach
+    the verify at most ten times."""
+    import asyncio
+
+    async def guess(i: int) -> int:
+        async with _device(f"5.5.{i}.1") as attacker:
+            return (await _try(attacker, editor, WRONG_PIN)).status_code
+
+    codes = await asyncio.gather(*(guess(i) for i in range(40)))
+    assert codes.count(401) == NEW_DEVICE_FREE_FAILURES
+    assert codes.count(429) == 40 - NEW_DEVICE_FREE_FAILURES
 
 
 async def test_a_forged_cookie_is_an_unknown_device(client, editor, behind_proxy):
@@ -133,33 +165,52 @@ async def test_signing_out_keeps_the_device_known(client, editor):
         assert tablet.cookies[DEVICE_COOKIE]
 
 
-async def test_the_first_lock_tells_the_editors_and_the_admin_sees_it(
-    client, editor, admin_login, behind_proxy, monkeypatch
-):
+async def test_a_lock_tells_the_editors_and_the_admin_sees_it(client, editor, admin_login, behind_proxy, monkeypatch):
     from app.auth import router as auth_router
 
     told: list[dict] = []
     monkeypatch.setattr(auth_router, "notify_login_lock", lambda _db, **kw: told.append(kw))
 
-    await _lock(editor, refused=3)  # three refused, ONE push
+    await _lock(editor, refused=3)  # three refused, ONE call
 
-    assert [t["display_name"] for t in told] == [editor.display_name]
-    assert told[0]["minutes"] == NEW_DEVICE_LOCK_STEPS_SECONDS[0] // 60
+    assert told == [{"display_name": editor.display_name, "minutes": NEW_DEVICE_LOCK_STEPS_SECONDS[0] // 60}]
 
     await admin_login(client)
     locks = (await client.get("/api/system")).json()["loginLocks"]
     assert [(lock["userId"], lock["displayName"]) for lock in locks] == [(str(editor.id), editor.display_name)]
 
 
-async def test_an_invented_account_locks_nobody_and_tells_nobody(client, editor, behind_proxy, monkeypatch):
+async def test_locks_on_many_accounts_are_one_push_an_hour(db_session, monkeypatch):
+    """The roster is public: one push per account was forty notifications for 440 requests."""
+    from app import push
+
+    sent: list[str] = []
+
+    async def record(_factory, **kw) -> None:
+        sent.append(kw["tag"])
+
+    clock = [1000.0]
+    monkeypatch.setattr(push, "push_enabled", lambda: True)
+    monkeypatch.setattr(push, "_broadcast_committed", record)
+    monkeypatch.setattr(push, "_last_login_lock_push", 0.0)
+    monkeypatch.setattr(push, "time", SimpleNamespace(monotonic=lambda: clock[0]))
+
+    assert push.notify_login_lock(db_session, display_name="A", minutes=15) is True
+    assert push.notify_login_lock(db_session, display_name="B", minutes=15) is False
+    clock[0] += push.LOGIN_LOCK_PUSH_INTERVAL_SECONDS + 1
+    assert push.notify_login_lock(db_session, display_name="C", minutes=15) is True
+
+
+async def test_an_invented_account_is_never_locked_and_tells_nobody(client, editor, behind_proxy, monkeypatch):
     import uuid
-    from types import SimpleNamespace
 
     from app.auth import router as auth_router
 
     told: list[dict] = []
     monkeypatch.setattr(auth_router, "notify_login_lock", lambda _db, **kw: told.append(kw))
-    await _lock(SimpleNamespace(id=uuid.uuid4()))
+    ghost = SimpleNamespace(id=uuid.uuid4())
+    codes = await _guess_from_rotating_sources(ghost, NEW_DEVICE_FREE_FAILURES * 2)
+    assert codes == [401] * (NEW_DEVICE_FREE_FAILURES * 2)
 
     assert told == []
     async with _device("6.6.6.6") as phone:

@@ -3,11 +3,13 @@
 Pure functions + in-memory limiter — no DB, no live server. Run with `uv run pytest`.
 """
 
+from types import SimpleNamespace
+
 import pytest
 
+from app.auth import pin_limiter as pin_limiter_module
 from app.auth.client_ip import _normalize
 from app.auth.pin_limiter import (
-    MAX_BUDGET_ACCOUNTS,
     NEW_DEVICE_FREE_FAILURES,
     NEW_DEVICE_LOCK_STEPS_SECONDS,
     NEW_DEVICE_QUIET_SECONDS,
@@ -130,7 +132,8 @@ def test_budget_locks_on_the_attempt_that_arrives_at_a_full_one():
 def test_budget_lock_deepens_while_the_guessing_goes_on(monkeypatch):
     budget = NewDeviceBudget()
     clock = [1000.0]
-    monkeypatch.setattr("app.auth.pin_limiter.time.monotonic", lambda: clock[0])
+    # the module's `time` reference, never `time.monotonic` itself: asyncio reads that one too
+    monkeypatch.setattr(pin_limiter_module, "time", SimpleNamespace(monotonic=lambda: clock[0]))
     seen = []
     for _ in range(len(NEW_DEVICE_LOCK_STEPS_SECONDS) + 1):
         _spend(budget)
@@ -143,7 +146,8 @@ def test_budget_lock_deepens_while_the_guessing_goes_on(monkeypatch):
 def test_budget_forgets_an_account_left_alone_for_a_day(monkeypatch):
     budget = NewDeviceBudget()
     clock = [1000.0]
-    monkeypatch.setattr("app.auth.pin_limiter.time.monotonic", lambda: clock[0])
+    # the module's `time` reference, never `time.monotonic` itself: asyncio reads that one too
+    monkeypatch.setattr(pin_limiter_module, "time", SimpleNamespace(monotonic=lambda: clock[0]))
     _spend(budget)
     clock[0] += NEW_DEVICE_QUIET_SECONDS + 1
     assert budget.reserve("u") == (0, 0)  # a fresh budget, not a lock
@@ -156,14 +160,42 @@ def test_budget_gives_a_slot_back_to_whoever_knew_the_pin():
         budget.release("u")
 
 
-def test_budget_eviction_never_drops_a_live_lock():
+def test_budget_never_evicts_and_refuses_a_new_id_at_the_ceiling(monkeypatch):
+    """The map is the security bound: a flood of invented ids must not push out a real
+    account's counter or its lock (it did — review of #562). A NEW id at the ceiling waits."""
+    monkeypatch.setattr(pin_limiter_module, "MAX_BUDGET_ACCOUNTS", 50)
     budget = NewDeviceBudget()
-    _spend(budget, "hot")
-    budget.reserve("hot")
-    for i in range(MAX_BUDGET_ACCOUNTS + 1):
-        budget.reserve(f"cold-{i}")
-    assert budget.account_count() <= MAX_BUDGET_ACCOUNTS
-    assert "hot" in budget.locked()
+    _spend(budget, "locked")
+    budget.reserve("locked")
+    for _ in range(NEW_DEVICE_FREE_FAILURES - 1):
+        budget.reserve("counting")
+    for i in range(200):
+        budget.reserve(f"invented-{i}")
+
+    assert budget.account_count() == 50
+    assert budget.reserve("one-more")[0] > 0
+    assert "locked" in budget.locked()
+    assert budget.reserve("counting") == (0, 0)  # its tenth, still counted…
+    assert budget.reserve("counting")[1] == 1  # …so the eleventh locks
+
+
+def test_budget_forgets_an_id_that_is_no_account():
+    budget = NewDeviceBudget()
+    budget.reserve("invented")
+    budget.forget("invented")
+    assert budget.account_count() == 0
+
+
+def test_cooldown_eviction_sheds_fresh_one_attempt_keys_before_a_spent_bucket(monkeypatch):
+    """A flood is always NEWER than the bucket it wants gone; age alone evicted the real one."""
+    monkeypatch.setattr(pin_limiter_module, "MAX_BUCKETS", 50)
+    limiter = PinLimiter()
+    for _ in range(settings.pin_free_attempts):
+        limiter.reserve("real|1.1.1.1")
+    for i in range(200):
+        limiter.reserve(f"invented-{i}|1.1.1.1")
+    limiter.reserve("real|1.1.1.1")  # the one that starts the ladder
+    assert limiter.retry_after("real|1.1.1.1") > 0
 
 
 def test_settings_refuse_an_inverted_pin_range():

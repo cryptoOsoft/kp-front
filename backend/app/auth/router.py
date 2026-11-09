@@ -57,18 +57,15 @@ logger = logging.getLogger(__name__)
 async def _refuse_new_device(db: AsyncSession, account: str, wait: int, engaged: int) -> HTTPException:
     """The 429 for a device the account does not know, while its new-device budget is spent
     (pin_limiter · NewDeviceBudget). On the call that ENGAGES a lock it also says so: a log
-    line every time, and a push to the editors for the first lock of an episode — somebody is
-    guessing at an account, and a colleague with a new phone is about to ask why it says no."""
+    line, and a push to the editors (rate-limited in push · notify_login_lock) — somebody is
+    guessing at an account, and a colleague with a new phone is about to ask why it says no.
+    An id that is no account never gets here twice: the route forgets it after its lookup."""
     minutes = max(1, round(wait / 60))
     if engaged:
         logger.warning("New-device login lock engaged: user=%s lock=%d for %d min", account, engaged, minutes)
-    if engaged == 1:
-        try:
-            user = (await db.execute(select(User).where(User.id == uuid.UUID(account)))).scalar_one_or_none()
-        except ValueError:
-            user = None
+        user = (await db.execute(select(User).where(User.id == uuid.UUID(account)))).scalar_one_or_none()
         if user is not None and user.is_active:
-            notify_login_lock(db, display_name=user.display_name, minutes=minutes, tag=f"login-lock:{account}")
+            notify_login_lock(db, display_name=user.display_name, minutes=minutes)
     return HTTPException(
         status_code=status.HTTP_429_TOO_MANY_REQUESTS,
         detail=(
@@ -211,18 +208,16 @@ async def login(
         )
 
     user = (await db.execute(select(User).where(User.id == body.user_id))).scalar_one_or_none()
-    if device is not None and claims_known and (user is None or not device.is_current(user)):
-        # The cookie names the account but under an older generation: the PIN was reset or the
-        # account switched off since. That device is a stranger again. Its ladder slot above
-        # bounds a burst here, so taking the budget after the fetch does not reopen the race.
-        budgeted = True
-        wait, engaged = new_device_budget.reserve(account)
-        if wait:
-            raise await _refuse_new_device(db, account, wait, engaged)
+    if user is None:
+        # No such account. Both throttles forget the id again: they are keyed on what the caller
+        # CLAIMED, and an id that stays tracked is how a flood of invented ones filled the maps
+        # and pushed a real account's counter out (review of #562). Same answer as a wrong PIN.
+        if budgeted:
+            new_device_budget.forget(account)
+        pin_limiter.record_success(bucket)
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Falsche PIN")
 
-    # Spelled out rather than via an `ok` flag so the None-check actually narrows `user` for
-    # everything below; short-circuiting keeps bcrypt off the unknown-user path as before.
-    if user is None or not user.is_active or not await verify_pin_async(body.pin, user.pin_hash):
+    if not user.is_active or not await verify_pin_async(body.pin, user.pin_hash):
         # user UUID and limiter source key only — never the PIN or anything derived from it.
         logger.warning("PIN login failed: user=%s source=%s new_device=%s", body.user_id, source, budgeted)
         cooldown = pin_limiter.retry_after(bucket)  # installed by the reservation above

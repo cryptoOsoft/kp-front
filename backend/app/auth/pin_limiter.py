@@ -10,8 +10,9 @@ Two properties the first version lacked (security audit SEC-08):
   database round trip and a bcrypt verification, and only then record the failure — so 24
   simultaneous wrong PINs all passed a check that nobody had yet failed and all reached bcrypt.
   Nothing may be awaited between deciding and counting.
-* **Buckets are bounded and they expire.** The key includes the request's source address and
-  the *claimed* user id, both attacker-suppliable, so the map has to prune: a bucket untouched
+* **Buckets are bounded and they expire.** The key includes the request's source (its address,
+  or the device id of a device the account knows) and the *claimed* user id — the address and
+  the id are attacker-suppliable — so the map has to prune: a bucket untouched
   for `BUCKET_TTL_SECONDS` is forgotten (which is also how a legitimate operator's own slips
   decay), and the map never exceeds `MAX_BUCKETS`.
 
@@ -127,12 +128,15 @@ class PinLimiter:
             del self._state[stale]
         if len(self._state) <= MAX_BUCKETS:
             return
-        # Still over the ceiling: evict by (cooldown already expired, longest unseen) so a
-        # flood of invented keys sheds itself before a live cooldown does. Shed to a margin
+        # Still over the ceiling: evict by (fewest failures, cooldown already expired, longest
+        # unseen). Failures FIRST: a flood of fresh one-attempt keys is always newer than the
+        # bucket it wants gone, so ordering by age alone let ~9,000 invented keys push out a
+        # real bucket at the end of its free tier and hand its guesser five more tries
+        # (review of #562). Shed to a margin
         # below the ceiling, like the aggregate below: shedding to the ceiling itself meant a
         # flood paid one sort of 10,000 buckets per INSERT (the bounded-map test alone took 44 s).
         target = MAX_BUCKETS * 9 // 10
-        ordered = sorted(self._state.items(), key=lambda item: (item[1][1], item[1][2]))
+        ordered = sorted(self._state.items(), key=lambda item: (item[1][0], item[1][1], item[1][2]))
         for key, _bucket in ordered[: len(self._state) - target]:
             del self._state[key]
 
@@ -152,12 +156,15 @@ NEW_DEVICE_FREE_FAILURES = 10
 NEW_DEVICE_LOCK_STEPS_SECONDS = (15 * 60, 30 * 60, 60 * 60)
 
 #: An account nobody guessed at for this long starts over — count and step. A real person's
-#: slips are forgotten by the next day; an attacker pacing below the budget gets nine a day.
+#: slips are forgotten by the next day; an attacker pacing below the budget gets ten a day,
+#: and at that pace nothing locks and nobody is told — only the per-attempt log line shows it.
 NEW_DEVICE_QUIET_SECONDS = 24 * 60 * 60
 
-#: Ceiling on tracked accounts. The key is the CLAIMED user id (attacker-suppliable), so the
-#: map must stay bounded like the cooldown limiter's above.
+#: Ceiling on tracked accounts, and what a caller past it is told to wait. The route forgets an
+#: id that turns out to be no account (`forget`), so the map holds real accounts plus whatever
+#: is in flight; the ceiling is only reachable by parking requests on the database pool.
 MAX_BUDGET_ACCOUNTS = 10_000
+BUDGET_FULL_WAIT_SECONDS = 60
 
 
 class NewDeviceBudget:
@@ -173,13 +180,19 @@ class NewDeviceBudget:
 
     What an attacker can still do: keep NEW devices out of one account by guessing at it. That
     is the price, and the owner's call (2026-11-09): a known device is never affected, the
-    editors get a push when a lock first engages, and the admin's System page lists it.
+    editors get a push when a lock engages, and the admin's System page lists it.
 
     `reserve` counts the attempt in the step that admits it, like the cooldown — nothing may be
     awaited between deciding and counting. A caller who turns out to know the PIN gives the
     slot back (`release`). The lock engages on the attempt that ARRIVES at a full budget, so a
-    tenth correct PIN is never the one that locks. Process-local, like the cooldown: a restart
-    forgets it, which hands a guesser ten more tries per deploy.
+    lone tenth correct PIN is never the one that locks.
+
+    ⚠️ NOTHING IS EVER EVICTED. This map is the security bound, and an entry that can be pushed
+    out is a budget that can be reset: the first version shed its lowest entries at the ceiling,
+    and a flood of invented account ids took the real account's counter — and its live lock —
+    with them (review of #562). Hence `forget` for ids that are no account, and a refusal for a
+    NEW id at the ceiling. Process-local, like the cooldown: a restart forgets it, which hands
+    a guesser ten more tries per deploy.
     """
 
     def __init__(self) -> None:
@@ -205,9 +218,11 @@ class NewDeviceBudget:
             step = NEW_DEVICE_LOCK_STEPS_SECONDS[min(locks, len(NEW_DEVICE_LOCK_STEPS_SECONDS) - 1)]
             self._state[account] = (0, now + step, locks + 1, now)
             return step, locks + 1
+        if account not in self._state and len(self._state) >= MAX_BUDGET_ACCOUNTS:
+            self._drop_quiet(now)
+            if len(self._state) >= MAX_BUDGET_ACCOUNTS:
+                return BUDGET_FULL_WAIT_SECONDS, 0
         self._state[account] = (fails + 1, 0.0, locks, now)
-        if len(self._state) > MAX_BUDGET_ACCOUNTS:
-            self._prune(now)
         return 0, 0
 
     def release(self, account: str) -> None:
@@ -215,6 +230,11 @@ class NewDeviceBudget:
         fails, until, locks, seen = self._state.get(account, (0, 0.0, 0, 0.0))
         if fails > 0:
             self._state[account] = (fails - 1, until, locks, seen)
+
+    def forget(self, account: str) -> None:
+        """Drop an id that turned out to be no account. Only the route can know that, after its
+        lookup; without this anyone could fill the map with invented ids."""
+        self._state.pop(account, None)
 
     def locked(self) -> dict[str, int]:
         """Accounts new devices are refused for right now → seconds left (the admin's view)."""
@@ -227,23 +247,14 @@ class NewDeviceBudget:
     def account_count(self) -> int:
         return len(self._state)
 
-    def _prune(self, now: float) -> None:
+    def _drop_quiet(self, now: float) -> None:
+        """Forget what `_entry` already reads as absent: no live lock, a day without a guess."""
         quiet = [
             a
             for a, (_f, until, _l, seen) in self._state.items()
             if until <= now and now - seen > NEW_DEVICE_QUIET_SECONDS
         ]
         for account in quiet:
-            del self._state[account]
-        if len(self._state) <= MAX_BUDGET_ACCOUNTS:
-            return
-        # Still over the ceiling: shed what matters least — never a live lock, then the fewest
-        # locks and failures. Evicting a hot account would hand its guesser a fresh budget.
-        # Shed to a margin below the ceiling so a flood of invented ids pays one sort per
-        # ~thousand inserts, not per insert.
-        target = MAX_BUDGET_ACCOUNTS * 9 // 10
-        ordered = sorted(self._state.items(), key=lambda item: (item[1][1] > now, item[1][2], item[1][0]))
-        for account, _entry in ordered[: len(self._state) - target]:
             del self._state[account]
 
 
