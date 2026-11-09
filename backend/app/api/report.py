@@ -9,9 +9,10 @@ uses CurrentUser, not CurrentEditor.
 """
 
 import re
+import unicodedata
 import uuid
 from dataclasses import dataclass
-from urllib.parse import unquote
+from urllib.parse import quote, unquote
 
 import anyio
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
@@ -360,6 +361,16 @@ async def warm_report_from_payload(payload: str) -> None:
     await anyio.to_thread.run_sync(warm_report_tiles, data)
 
 
+def attachment_headers(filename: str) -> dict[str, str]:
+    """`Content-Disposition` for a download named after an Einsatz title.
+
+    Header values are Latin-1, and a title keeps every letter `str.isalnum` accepts: «Čapek AG»
+    raised `UnicodeEncodeError` while the response was built, after the whole PDF was composed.
+    So the plain `filename=` carries an ASCII fold and `filename*` (RFC 5987) the real name."""
+    fallback = unicodedata.normalize("NFKD", filename).encode("ascii", "ignore").decode() or "download.pdf"
+    return {"Content-Disposition": f"attachment; filename=\"{fallback}\"; filename*=UTF-8''{quote(filename)}"}
+
+
 def report_filename(title: str) -> str:
     safe = "".join(c for c in title if c.isalnum() or c in " -_").strip().replace(" ", "_")[:60] or "Einsatzrapport"
     return f"Einsatzrapport_{safe}.pdf"
@@ -394,7 +405,7 @@ async def report_pdf(
     return Response(
         content=pdf,
         media_type="application/pdf",
-        headers={"Content-Disposition": f'attachment; filename="{report_filename(inc.title)}"'},
+        headers=attachment_headers(report_filename(inc.title)),
     )
 
 
@@ -427,7 +438,7 @@ async def tafel_pdf(
     return Response(
         content=pdf,
         media_type="application/pdf",
-        headers={"Content-Disposition": f'attachment; filename="{tafel_filename(inc.title)}"'},
+        headers=attachment_headers(tafel_filename(inc.title)),
     )
 
 
@@ -477,5 +488,5 @@ async def zeitplan_pdf(
     return Response(
         content=pdf,
         media_type="application/pdf",
-        headers={"Content-Disposition": f'attachment; filename="{zeitplan_filename(inc.title, data.sheet)}"'},
+        headers=attachment_headers(zeitplan_filename(inc.title, data.sheet)),
     )
