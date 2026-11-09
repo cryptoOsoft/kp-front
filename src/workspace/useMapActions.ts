@@ -16,7 +16,7 @@ import { fillTemplate, formatSymbolName, formatTime } from '../lib/format'
 import { bearingDeg, circlePolygon, haversineM, midCoord } from '../lib/geo'
 import { georefDispatch, useGeorefMode } from '../lib/georefMode'
 import { routeEscape, routeHotkey } from '../lib/hotkeyRoute'
-import { resolveHotkey, isTypingTarget } from '../lib/hotkeys'
+import { resolveHotkey, isTypingTarget, type ToolCmd } from '../lib/hotkeys'
 import { newId } from '../lib/ids'
 import { applyRouting, detachDrawings, moveLineBody, objectAttachment, wireFreed, withDetach, type DetachPatch } from '../lib/lineAttachments'
 import { moduleNumbers } from '../lib/navRail'
@@ -127,7 +127,7 @@ export interface UseMapActionsInputs {
   goToNav: (dir: -1 | 1) => void
   planFit: RefObject<(() => void) | null>
   stepHistory: (dir: 'undo' | 'redo', anchor?: HTMLElement | null) => void
-  planKeys: RefObject<{ pickTool: (tool: string) => void; zoom: (f: number) => void; duplicate: () => void } | null>
+  planKeys: RefObject<{ pickTool: (tool: ToolCmd) => void; zoom: (f: number) => void; duplicate: () => void } | null>
   setJournalOpen: Dispatch<SetStateAction<boolean>>
   setComposerOpen: Dispatch<SetStateAction<boolean>>
   togglePanel: (name: 'layers') => void

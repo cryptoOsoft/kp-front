@@ -5,6 +5,7 @@
 // you're placing symbol XYZ and that's it»). A symbol's name is the symbol's own
 // (format · formatSymbolName); this only covers the rail's tools.
 import { appConfig } from '../config/appConfig'
+import type { BoardTool, MapTool } from '../types'
 
 /** the input mode of the two tools that have one (Linie, Fläche): drag, or tap the corners */
 export type DrawMode = 'freehand' | 'nodes'
@@ -17,7 +18,7 @@ export interface ArmedToolModes {
 type ToolEntry = { id: string; icon: string; label: string; alt?: { id: string; icon: string; label: string } }
 
 /** the tool's rail entry – its own, or the tile whose second state it is (Mehrfach on Auswahl) */
-const entryFor = (tool: string, tools: readonly ToolEntry[]) => {
+const entryFor = (tool: MapTool | BoardTool, tools: readonly ToolEntry[]) => {
   for (const t of tools) {
     if (t.alt?.id === tool) return t.alt
     if (t.id === tool) return t
@@ -33,7 +34,7 @@ const modeWord = (mode: DrawMode): string =>
  * `planTools` on a Plan) – so the pill always says what the rail tile says, in the deployment's
  * language. Auswahl (the rest state) and an unknown id answer null: nothing is armed, no pill.
  */
-export function armedToolName(tool: string, tools: readonly ToolEntry[], modes: ArmedToolModes = {}): string | null {
+export function armedToolName(tool: MapTool | BoardTool, tools: readonly ToolEntry[], modes: ArmedToolModes = {}): string | null {
   const t = entryFor(tool, tools)
   if (!t) return null
   if (tool === 'line' && modes.lineMode) return `${t.label} · ${modeWord(modes.lineMode)}`
@@ -42,6 +43,6 @@ export function armedToolName(tool: string, tools: readonly ToolEntry[], modes: 
 }
 
 /** the pill's glyph for `tool`: the rail tile's icon id (lib/icons) */
-export function armedToolIcon(tool: string, tools: readonly ToolEntry[]): string | null {
+export function armedToolIcon(tool: MapTool | BoardTool, tools: readonly ToolEntry[]): string | null {
   return entryFor(tool, tools)?.icon ?? null
 }

@@ -1,5 +1,6 @@
 import type { HotkeyCommand, SurfaceCmd, ToolCmd } from './hotkeys'
 import { isMapReadOnlyTool } from './readOnlyTools'
+import type { WorkspaceMode } from '../workspace/types'
 
 /**
  * WHERE a decoded shortcut goes, given the workspace's state — the routing half of the keyboard
@@ -18,7 +19,7 @@ import { isMapReadOnlyTool } from './readOnlyTools'
 export interface HotkeyState {
   /** a modal sheet owns the screen — its own focus trap / Esc handle keys */
   modalOpen: boolean
-  mode: string
+  mode: WorkspaceMode
   /** an alignment session is running, on this plan (georefMode · planId) */
   georefPlanId: string | null
   /** the plan a module number opens (the first carrying it), for the alignment session's own pair */
