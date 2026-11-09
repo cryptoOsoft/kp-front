@@ -1235,7 +1235,7 @@ export class WorkspaceSync {
     let landed: { workspace: Workspace; rev: number } | null = null
     if (!this.opts.slice && base) {
       const record = recordSlice(pushed)
-      const changed = RECORD_SLICE_KEYS.some((k) => JSON.stringify(record[k]) !== JSON.stringify(base[k]))
+      const changed = RECORD_SLICE_KEYS.some((k) => !jsonEqual(record[k], base[k]))
       if (changed) {
         try {
           const { workspace_rev } = await putWorkspaceRecord(this.incidentId, record, baseRev, this.writerId, versionOf(pushed))
