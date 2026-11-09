@@ -35,14 +35,20 @@ UNKNOWN_SOURCE = "unknown"
 
 
 def _normalize(value: str) -> str | None:
-    """A parseable IP as a canonical string, or None. An IPv4-mapped IPv6 literal is unwrapped
-    so a proxy writing "::ffff:198.51.100.4" and one writing "198.51.100.4" name one bucket."""
+    """A parseable IP as a canonical key, or None. An IPv4-mapped IPv6 literal is unwrapped
+    so a proxy writing "::ffff:198.51.100.4" and one writing "198.51.100.4" name one bucket.
+
+    An IPv6 address is keyed on its /64: that is what ONE subscriber is handed, and a device
+    picks its own lower 64 bits — keyed on the full address, a single home line was an
+    unlimited supply of fresh sources."""
     try:
         ip = ipaddress.ip_address(value)
     except ValueError:
         return None
-    if isinstance(ip, ipaddress.IPv6Address) and ip.ipv4_mapped is not None:
-        ip = ip.ipv4_mapped
+    if isinstance(ip, ipaddress.IPv6Address):
+        if ip.ipv4_mapped is not None:
+            return str(ip.ipv4_mapped)
+        return str(ipaddress.ip_network((ip, 64), strict=False))
     return str(ip)
 
 
