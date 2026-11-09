@@ -5,10 +5,11 @@ import { cx } from '../lib/cx'
 import { fillTemplate } from '../lib/format'
 import { fmtDistance } from '../lib/geo'
 import { HOSES, RELAY, RELAY_HOSE_SIZES, type RelayPlan } from '../lib/hydraulics'
+import { pumpWarnings } from '../lib/linePumps'
 import { Icon } from '../lib/icons'
 import { Popover } from '../lib/overlays'
 import { useIsPhone } from '../lib/useIsPhone'
-import { fmtBar, parseFlow, pumpsText, PUMP_ATTR, type RelayController } from '../lib/useRelay'
+import { fmtBar, parseFlow, pumpLabel, pumpsText, PUMP_ATTR, type RelayController } from '../lib/useRelay'
 import type { RelaySource } from '../types'
 import { Button, IconButton } from './Button'
 import { Combo } from './Combo'
@@ -159,12 +160,9 @@ function RelayMessages({ ctrl, plan }: { ctrl: RelayController; plan: RelayPlan 
     : ''
   return (
     <>
-      {plan.pumps.map((p, i) => p.low && (
-        <p key={i} className={cx(s.msg, s.msgBad)}><Icon id="warn" />
-          <span>{p.inBar > 0
-            ? fillTemplate(R.lowInlet, { n: i + 1, min: RELAY.minInletBar })
-            : fillTemplate(R.noInlet, { n: i + 1 })}</span>
-        </p>
+      {/* the same words the Verlauf's rows are made from (lib/linePumps · pumpWarnings) */}
+      {pumpWarnings(plan.pumps).map((w) => (
+        <p key={w} className={cx(s.msg, s.msgBad)}><Icon id="warn" /><span>{w}</span></p>
       ))}
       {!plan.terrain && <p className={cx(s.msg, s.msgWarn)}><Icon id="warn" /><span>{R.noTerrain}</span></p>}
       {plan.loss.above && (
@@ -350,7 +348,7 @@ export function RelayChart({ ctrl, plan }: { ctrl: RelayController; plan: RelayP
                   <circle cx={x} cy={y} r={20} fill="transparent" />
                   <circle className={cx(s.pumpDot, p.low && s.pumpLow, p.pinned && s.pumpPinned)} cx={x} cy={y} r={DOT_R} />
                   <text className={s.pumpText} x={x} y={y + 3.2} textAnchor="middle" fontSize={many ? 7.5 : 8.5}>
-                    {many ? i + 1 : fillTemplate(R.pumpShort, { n: i + 1 })}
+                    {pumpLabel(i, plan.pumps.length)}
                   </text>
                 </g>
               </g>

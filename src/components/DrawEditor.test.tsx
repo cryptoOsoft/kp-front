@@ -4,8 +4,8 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { DrawEditor } from './DrawEditor'
 import { appConfig } from '../config/appConfig'
 import { fillTemplate } from '../lib/format'
-import { hoseCount } from '../lib/geo'
 import { HOSE_SIZES } from '../lib/hydraulics'
+import { askLineMeasure } from '../lib/useRelay'
 
 afterEach(cleanup)
 
@@ -108,8 +108,18 @@ describe('Messung on an already drawn line', () => {
     expect(screen.queryByText('412 m')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: D.measurement }))
     expect(screen.getByText('412 m')).toBeTruthy()
-    // incl. the configured reserve; the hose length rides in the value, so the label stays one line
-    expect(screen.getByText(`${hoseCount(412)} × ${appConfig.drawing.hoseLengthM} m`)).toBeTruthy()
+    // the configured reserve named apart; the hose length rides in the value, so the label stays one line
+    expect(screen.getByText('21 + 2 Reserve × 20 m')).toBeTruthy()
+  })
+
+  // Manuel 09.11.2026: a tap on a Leitung's pump on the map is about the Wassertransport
+  it('opens unfolded when the line was opened from one of its pumps; a tap folds it for good', () => {
+    askLineMeasure('d1')
+    render(<DrawEditor {...base} drawing={{ kind: 'line' }} lengthM={412} waterRelay={{ lineId: 'd1' }} />)
+    const toggle = screen.getByRole('button', { name: D.measurement })
+    expect(toggle).toHaveProperty('ariaExpanded', 'true')
+    fireEvent.click(toggle)
+    expect(toggle).toHaveProperty('ariaExpanded', 'false')
   })
 
   it('fetches the Höhenprofil only when the group is opened (no swisstopo request on selection)', () => {
