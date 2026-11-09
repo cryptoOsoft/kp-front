@@ -81,9 +81,12 @@ before/after comparison. Review `Survived` and `NoCoverage` mutants as missing-t
 fault. Equivalent changes can survive correct tests: record the reason instead of asserting
 private implementation details or suppressing mutation operators to improve the score.
 
-This is an explicit local quality check, separate from the existing coverage floor and the
-seven required PR checks. Its initial score floor is 78%; raise it deliberately as gaps close,
-never lower it to make a run pass. Run `just ci` before pushing as usual.
+This is a quality check separate from the existing coverage floor and the seven required PR
+checks. It runs by hand, and every Monday in «Mutation testing (weekly)»
+(`.github/workflows/mutation.yml`, also Actions → Run workflow): a cold run whose per-module
+table lands in the job summary and whose HTML report is an artifact; it gates no merge. Its
+initial score floor is 78%; raise it deliberately as gaps close, never lower it to make a run
+pass. Run `just ci` before pushing as usual.
 
 ### Audit on 2026-10-28
 
@@ -144,8 +147,9 @@ No such cases were suppressed to improve the score.
 
 Moved here from AGENTS.md on 2026-10-18, wording unchanged.
 
-**Tests** are Vitest (node env), colocated as `*.test.ts`, focused on pure `src/lib` logic
-(plus a few components); the backend uses pytest. Pre-commit covers backend Ruff and staged
+**Tests** are Vitest, colocated as `*.test.ts(x)`: pure `src/lib` logic in the default node
+environment, and component and hook tests in jsdom (a `@vitest-environment jsdom` line at the
+top of the file – about half of the files); the backend uses pytest. Pre-commit covers backend Ruff and staged
 frontend ESLint, not the full gate. `just ci` also runs the coverage floor, the bundle budget,
 audits, licenses and `just schema-check` (a throwaway Postgres migrated to head, then `alembic
 check` against the models); image, secrets, e2e, visual and perf stay CI's.
