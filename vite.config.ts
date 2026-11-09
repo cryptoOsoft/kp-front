@@ -269,6 +269,11 @@ export default defineConfig(({ mode }) => {
     // same URL died the same way («Setting up fake worker failed», 08.09.). It is one
     // self-contained minified ESM with nothing to pre-bundle, so serving it as source is free.
     optimizeDeps: { exclude: ['pdfjs-dist/build/pdf.worker.min.mjs'] },
+    // jsPDF's three optional peers never run here (src/lib/unbundled.ts has the why): aliased
+    // to a stub, so their chunks leave the build and the precache.
+    resolve: {
+      alias: Object.fromEntries(['html2canvas', 'canvg', 'dompurify'].map((lib) => [lib, resolve('src/lib/unbundled.ts')])),
+    },
     css: { postcss: { plugins: [customMedia()] } },
     plugins: [
       inlineSnailLoader(),
