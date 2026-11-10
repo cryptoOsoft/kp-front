@@ -1,5 +1,6 @@
 import { ShellLoader } from '../components/ShellLoader'
-import { useCallback, useEffect, useState } from 'react'
+import { Fragment, useCallback, useEffect, useState } from 'react'
+import { cx } from '../lib/cx'
 import { caretToEnd } from '../lib/ui'
 import { apiGet, apiPost, apiPatch, ApiError } from '../lib/api'
 import { appConfig } from '../config/appConfig'
@@ -447,8 +448,10 @@ export function MembersView() {
                       />
                     )
                   }
+                  const asked = asking?.id === u.id ? asking : null
                   return (
-                    <tr key={u.id} className={u.is_active ? '' : 'adm-members-inactive'}>
+                    <Fragment key={u.id}>
+                    <tr className={cx(!u.is_active && 'adm-members-inactive', asked && 'adm-members-asked')}>
                       <td>
                         <span className="adm-members-name">
                           {u.color && (
@@ -473,19 +476,9 @@ export function MembersView() {
                       </td>
                       <td className="adm-mono">{fmtDate(u.last_login)}</td>
                       <td className="adm-members-actions-col adm-c-act">
-                        {asking?.id === u.id ? (
-                          <ConfirmPrompt
-                            danger={asking.act === 'deactivate'}
-                            question={asking.act === 'deactivate'
-                              ? fillTemplate(C.deactivateConfirm, { name: u.display_name })
-                              : fillTemplate(C.roleConfirm, { name: u.display_name, role: u.role === 'editor' ? C.roleViewer : C.roleEditor })}
-                            onConfirm={() => { setAsking(null); void (asking.act === 'deactivate' ? toggleActive(u) : toggleRole(u)) }}
-                            onCancel={() => setAsking(null)}
-                          />
-                        ) : (
                         <ActionMenu
                           ariaLabel={fillTemplate(C.guardLabel, { name: u.display_name })}
-                          disabled={busy}
+                          disabled={busy || !!asked}
                           actions={[
                             { label: appConfig.copy.admin.common2.edit, onClick: () => setEditing(u.id) },
                             {
@@ -505,7 +498,6 @@ export function MembersView() {
                             { label: C.resetPin, onClick: () => setPinFor(u) },
                           ]}
                         />
-                        )}
                         {rowErr?.id === u.id && (
                           <div className="adm-state adm-state-err adm-members-rowerr">
                             {rowErr.detail}
@@ -513,6 +505,24 @@ export function MembersView() {
                         )}
                       </td>
                     </tr>
+                    {/* The question gets a line of its own under the row. It stood in the narrow
+                        Aktionen cell, where the sentence took the row's width and squeezed the
+                        member's name into a column of syllables (sweep 09.11.2026). */}
+                    {asked && (
+                      <tr className="adm-members-askrow">
+                        <td colSpan={6}>
+                          <ConfirmPrompt
+                            danger={asked.act === 'deactivate'}
+                            question={asked.act === 'deactivate'
+                              ? fillTemplate(C.deactivateConfirm, { name: u.display_name })
+                              : fillTemplate(C.roleConfirm, { name: u.display_name, role: u.role === 'editor' ? C.roleViewer : C.roleEditor })}
+                            onConfirm={() => { setAsking(null); void (asked.act === 'deactivate' ? toggleActive(u) : toggleRole(u)) }}
+                            onCancel={() => setAsking(null)}
+                          />
+                        </td>
+                      </tr>
+                    )}
+                    </Fragment>
                   )
                 })}
               </tbody>
