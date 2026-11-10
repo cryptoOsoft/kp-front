@@ -6,7 +6,7 @@
 // Rules: every mutation joins the one timeline (docs/undo.md); synced state and the record:
 // docs/sync-and-offline.md.
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type MutableRefObject, type ReactNode } from 'react'
 import type { MapRef } from 'react-map-gl/maplibre'
 import './app.css'
 import { IconSprite } from './lib/icons'
@@ -161,6 +161,7 @@ import { useTafelPages } from './workspace/useTafelPages'
 import { useTafelPendenzen } from './workspace/useTafelPendenzen'
 import type { OneShotRows, WorkspaceMode } from './workspace/types'
 import { WorkspaceMeldungen } from './workspace/WorkspaceMeldungen'
+import { ForeignUnsentMeldungen } from './components/ForeignUnsentMeldung'
 import { WorkspaceSheets } from './workspace/WorkspaceSheets'
 import { JournalLayer } from './workspace/JournalLayer'
 import { MapToolDocks } from './workspace/MapToolDocks'
@@ -261,6 +262,9 @@ interface WorkspaceProps {
    *  ⚠️ There is deliberately no second «archive the active one» prop. Both doors — the Rapport
    *  and the Einsatz-Menü row — go through the one confirm and end in this one callback. */
   onCompleteRapport: () => Promise<boolean>
+  /** App's handle on that same confirm, for «Abschliessen» in «Alle Einsätze» (lib/
+   *  useIncidentLifecycle · archiveById): set while this Einsatz can be closed here, else null. */
+  abschlussRef?: MutableRefObject<(() => Promise<boolean>) | null>
   /** re-open the CLOSED active incident (confirm dialog included) — the banner action */
   onReactivateActive?: () => Promise<ReactivateResult>
   /** leave the archived read-only view — back to the previously active incident, else the
@@ -279,7 +283,7 @@ interface WorkspaceProps {
 
 
 export function IncidentWorkspace({
-  incidentMeta, incidents, workspace, sync, forceReadOnly, tabLockLost, onTakeOverTab, onCompleteRapport,
+  incidentMeta, incidents, workspace, sync, forceReadOnly, tabLockLost, onTakeOverTab, onCompleteRapport, abschlussRef,
   onSwitchIncident, onOpenHistory, onOpenObjectVisits, onOpenKarte, onOpenDivera, onOpenDatenquellen, onReactivateActive, onBackFromArchive,
   covered = false, onUncover, needsReview, onReviewDone, reviewedLocallyAt, onEditMeta, lifecycleElsewhere, openCover, onOpenCoverDone,
 }: WorkspaceProps) {
@@ -1580,6 +1584,18 @@ export function IncidentWorkspace({
     // the rows' buttons and the pre-filled Einsatzende write the Rapport — only where it may be edited
     patchReportMeta: canEditRapport ? patchReportMeta : undefined,
   })
+  // «Alle Einsätze» closes THIS Einsatz through the same confirm (prop `abschlussRef`) — offered
+  // exactly where the Einsatz-Menü row is (WorkspaceTopBar · onArchive)
+  const canCloseHere = canEditIncident && !readOnly && !incidentMeta.is_archived
+  // …and the Einsatz-Menü the list was opened from is put away first (`menuCloseKey`): it stays
+  // logically open under «Alle Einsätze», and once the list stepped aside it stood open behind
+  // the question (sweep 09.11.2026). The menu's own «Abschliessen» keeps it, as before.
+  const [menuCloseKey, setMenuCloseKey] = useState(0)
+  useEffect(() => {
+    if (!abschlussRef) return
+    abschlussRef.current = canCloseHere ? () => { setMenuCloseKey((n) => n + 1); return confirmAndComplete() } : null
+    return () => { abschlussRef.current = null }
+  }, [abschlussRef, canCloseHere, confirmAndComplete])
   // --- the Atemschutz clocks across «Wieder öffnen» (staging r3, F4; lib/reopenClocks) ----------
   // The newest close/reopen boundary in the Verlauf, the server's own rows. Right after a reopen
   // the meta can say «running» a moment before the Verlauf has the reopen row: the alarm HOLDS
@@ -2283,7 +2299,7 @@ export function IncidentWorkspace({
   })
   const {
     deleteGroup, deleteEntity, placed, goToModule, goToTrupp, viewsApi, toggleViews, selected,
-    undockTeam, setEntityDone, focusDrawing, noteEntity, pick, pickShape,
+    undockTeam, setEntityDone, commitEntityFields, focusDrawing, noteEntity, pick, pickShape,
   } = mapActions
   // a generic (untracked) team marker — the map twin of the plan's placeTeamChip
   const teamMarkers = useTeamMarkerActions({
@@ -3127,8 +3143,12 @@ export function IncidentWorkspace({
         onOpenDivera, onOpenDatenquellen, confirmAndComplete, abschlussMissing, canShareLink, setShareLink,
         setHelpOpen, setInstallGuideOpen, setOfflineReadyOpen, syncNow, media, logout, settingsOpen,
         helpOpen, installGuideOpen, offlineReadyOpen, shareLink,
-        canEditRapport,
+        canEditRapport, menuCloseKey,
       }} />
+
+      {/* unsent edits of ANOTHER account for this Einsatz are parked on this device (sweep
+          09.11.2026, UX.2): one dismissible row; a link page has no account of its own to tell */}
+      {!linkScoped && <ForeignUnsentMeldungen sync={sync} incidentId={incidentMeta.id} viewerId={user?.id ?? null} />}
 
       <WorkspaceMeldungen {...{
         reminders, setJournalOpen, setJournalLandOn, sym, symbolsRowHidden, setSymbolsRowHidden, noBasemap,
@@ -3191,7 +3211,7 @@ export function IncidentWorkspace({
         detailSlotFree, tacticalLocked, tool, selected, commit, setSelectedId, flyToMapVisible, deleteEntity,
         timeline, sym, entityTypedAt, titleLiveRef, beginDrag,
         setDocRaw, endDrag, emit, patchEntity, linkRosterFields, createCircle, doc, undockTeam, effTrupps,
-        symbolCaptions, rosterNames, rosterRank, personStatus, rosterFieldHints, setEntityDone,
+        symbolCaptions, rosterNames, rosterRank, personStatus, rosterFieldHints, setEntityDone, commitEntityFields,
         vehicleOverrides, canEditIncident, readOnly, stopPersonSharing, setVehicleOverrides, log,
         assignTypedName, drawings, entities, focusDrawing, noteEntity, notePlacedId, setNotePanelId,
         noteTextLive, setNoteDefaults, selectedDrawing, patchDrawing,

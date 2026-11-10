@@ -330,6 +330,8 @@ export const incidentCopy = {
     region: 'Verlauf-Wiedergabe',
     banner: 'VERLAUF · WIEDERGABE',
     subtitle: 'Schreibgeschützte Ansicht der Vergangenheit',
+    // a GPS vehicle of the past that carries no name of its own ({id}: its device id)
+    vehicle: 'Fahrzeug {id}',
     backToLive: 'Zurück zu Live',
     loadFailed: 'Verlauf konnte nicht geladen werden.',
     loading: 'Verlauf wird geladen …',

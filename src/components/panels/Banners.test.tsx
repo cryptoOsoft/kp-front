@@ -24,7 +24,7 @@ const labels = (attachFirst: boolean, canAttach = true) => {
   render(
     <>
       <IncomingAlarmBanner
-        alarms={[alarm]} taking={null} attachFirst={attachFirst}
+        alarms={[alarm]} dismissed={new Set()} onDismiss={() => {}} taking={null} attachFirst={attachFirst}
         onTake={() => {}} onAttach={canAttach ? () => {} : undefined}
       />
       <Meldeleiste />

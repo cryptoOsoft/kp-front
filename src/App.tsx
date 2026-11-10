@@ -41,9 +41,9 @@ import { unlockAlarm } from './lib/alarm'
 import { CRASH_HEALTHY_MS, clearCrash } from './lib/crashLoop'
 import { ApiError } from './lib/api'
 import { useDiveraWatch } from './lib/useDiveraWatch'
-import { dismissAlarm, loadDismissedAlarms } from './lib/diveraDismiss'
+import { dismissAlarm, loadDismissedAlarms, shownAlarms } from './lib/diveraDismiss'
 import { useIncidentWatch } from './lib/useIncidentWatch'
-import { loadReviewedIncidents, needsIntakeReview, sameIncidentList, saveReviewedIncident, shouldReopenClosed } from './lib/incidentAlerts'
+import { loadReviewedIncidents, needsIntakeReview, sameIncidentList, saveReviewedIncident, shouldReopenClosed, undoTakeReturn } from './lib/incidentAlerts'
 import { EinsatzWizard, DatenquellenPanel, FeedbackSheet, HistoryPanel, IncomingAlarmBanner, NewIncidentBanner, SettingsSheet } from './components/panels'
 import { Meldeleiste } from './components/Meldeleiste'
 import { linkShowsMeldung } from './lib/meldungen'
@@ -401,7 +401,8 @@ export default function App() {
       // Concurrent edits are auto-merged three-way (see mergeWorkspace), so no blocking
       // dialog — just a quiet notice. The merged result is applied in place via onApplyMerged
       // (registered by the live view); onServerWorkspace is the remount fallback.
-      onMerged: () => toast(appConfig.copy.toast.merged),
+      // one pill, however many merges: three devices saving at once stacked it (UX.9, 09.11.2026)
+      onMerged: () => toast(appConfig.copy.toast.merged, { kind: 'ws-merged' }),
       onServerWorkspace: (ws) => { setWorkspace(ws); setRemount((n) => n + 1) },
     })
     const meta = opts.meta ?? (await getIncident(id))
@@ -569,12 +570,14 @@ export default function App() {
   // One-tap Divera take: create the incident from the alarm AS-IS (everything Divera
   // carries + backend type/priority/geocode), drop straight onto the live map, and arm the
   // in-map review banner. No wizard — corrections happen on the map, never blocking it.
-  // Undo a one-tap take: archive the just-created incident and return to the prior view (the
-  // previous open incident if there was one, else the landing). Always targets the passed id
-  // (the take made it active) — no activeId dep, so the toast's captured closure can't go stale.
-  // Taken from «Karte & Objekte» (`back: 'karte'`): the undo returns THERE, as the mockup's j8 does
-  // — not into another open Einsatz the operator was not looking at.
-  const undoTake = useCallback(async (id: string, back?: 'karte') => {
+  // Undo a one-tap take: archive the just-created incident and return to the prior view — the
+  // Einsatz that was open when the alarm was taken (`back`, its id), else home. Always targets
+  // the passed id (the take made it active) — no activeId dep, so the toast's captured closure
+  // can't go stale. Taken from «Karte & Objekte» (`back: 'karte'`): the undo returns THERE, as the
+  // mockup's j8 does — not into another open Einsatz the operator was not looking at.
+  // ⚠️ Never into `list[0]` (sweep 09.11.2026, UX.7): with an Übung and a real Einsatz open that
+  // was the other one. An Einsatz that is gone meanwhile, or does not open, is home too.
+  const undoTake = useCallback(async (id: string, back: 'karte' | { incidentId: string | null }) => {
     if (syncRef.current) { syncRef.current.dispose(); syncRef.current = null }
     // this device's own archive — not «auf einem anderen Gerät abgeschlossen» (lib/incidentClosed)
     closingLocallyRef.current = id
@@ -596,16 +599,17 @@ export default function App() {
     setReviewPendingId(null)
     const list = await refreshList() // returns non-archived only → the taken incident is gone
     setActiveId(null); setActiveMeta(null)
-    if (back === 'karte') {
-      // home again, where the take started; the undone Einsatz is not remembered either
-      savePrefs({ ...loadPrefs(), incidentId: undefined })
-      setWorkspace(null); setForceReadOnly(false)
-    } else if (list[0]) await selectIncident(list[0].id, { meta: list[0] })
+    // home: where the take started, or all that is left; the undone Einsatz is not remembered either
+    savePrefs({ ...loadPrefs(), incidentId: undefined })
+    setWorkspace(null); setForceReadOnly(false)
+    const previous = back === 'karte' ? null : undoTakeReturn(list, back.incidentId)
+    if (previous) await openIncident(previous.id, { meta: previous }) // says so when it fails
     void refreshPool()
-  }, [closingLocallyRef, refreshList, selectIncident, refreshPool])
+  }, [closingLocallyRef, refreshList, openIncident, refreshPool])
 
-  const takeAndOpen = useCallback(async (a: DiveraAlarm, back?: 'karte') => {
+  const takeAndOpen = useCallback(async (a: DiveraAlarm, from?: 'karte') => {
     if (taking != null) return
+    const back = from ?? { incidentId: activeId } // read before the take makes its own Einsatz active
     setTaking(a.divera_id)
     try {
       const inc = await takeDiveraAlarm(a.divera_id)
@@ -625,7 +629,7 @@ export default function App() {
       setTaking(null)
       void refreshPool()
     }
-  }, [taking, openCreated, refreshPool, undoTake])
+  }, [taking, activeId, openCreated, refreshPool, undoTake])
 
   // Split dispatch: the banner alarm may be the SAME Einsatz already open (reworded group
   // dispatch, Nachalarm) — attach it to the ACTIVE incident instead of opening a duplicate.
@@ -662,9 +666,14 @@ export default function App() {
   }, [])
 
   // ── close / reopen: lib/useIncidentLifecycle ──
+  /** the open Einsatz's counting confirm, set by IncidentWorkspace (prop `abschlussRef`) */
+  const abschlussHereRef = useRef<(() => Promise<boolean>) | null>(null)
   const { completeRapport, archiveById, reactivateById } = useCloseReopen({
     closingLocallyRef, reopeningLocallyRef, activeId, activeMeta, incidents, syncRef, archiveReturnRef, refreshList,
     selectIncident, markOpened, setIncidents, setClosedMedia, setActiveId, setActiveMeta, setWorkspace, setForceReadOnly,
+    abschlussHereRef,
+    // the list steps aside and the Einsatz comes to the front: its confirm can answer «Zur Tafel»
+    showEinsatz: useCallback(() => { setOverlay(null); uncoverEinsatz() }, [uncoverEinsatz]),
   })
 
   // «Zurück» from an archived read-only view: return to the incident that was active before,
@@ -747,6 +756,7 @@ export default function App() {
   // (with its own margin) and skipped the sentence explaining what to do. A hole where the
   // explanation should be, on the one screen whose whole job is «what now».
   const landingAlarms = isEditor ? poolAlarms.filter((a) => !dismissedAlarms.has(a.divera_id)) : []
+  const hideAlarm = (a: DiveraAlarm) => setDismissedAlarms(dismissAlarm(a.divera_id))
   // an alarm taken from the viewer undoes back to it (undoTake)
   const takeBack = screen === 'karte' ? 'karte' as const : undefined
 
@@ -763,7 +773,7 @@ export default function App() {
     user: { display_name: user?.display_name ?? '', color: user?.color ?? null, role: user?.role ?? 'viewer' },
     incidents: allIncidents, activeId, opening, alarms: landingAlarms, taking,
     onTake: (a) => void takeAndOpen(a, takeBack),
-    onDismissAlarm: (a) => setDismissedAlarms(dismissAlarm(a.divera_id)),
+    onDismissAlarm: hideAlarm,
     onOpenIncident: openOrUncover,
     onHistory: () => setOverlay('history'),
     onCreate: () => setOverlay('create'),
@@ -800,7 +810,10 @@ export default function App() {
       {/* the session cookie died mid-Einsatz (lib/auth · sessionExpired): every request 401s,
           the badge cannot say why. Published HERE so it shows with or without an open Einsatz;
           it ends only by signing in again, which is what its one button does. */}
-      {sessionExpired && <SessionExpiredMeldung onRelogin={() => void logout()} />}
+      {sessionExpired && (
+        // a link session has no account whose sign-in could send anything
+        <SessionExpiredMeldung onRelogin={() => void askLogout()} name={user && !user.link_scoped ? user.display_name : undefined} />
+      )}
       {/* ⚠️ The open Einsatz stays MOUNTED while «Karte & Objekte» or the Objektbesuche are in
           front of it (`covered`): its sync, its live poll and its Atemschutz alarm keep running,
           and the alarm's rows stand in the strip over that surface (IncidentWorkspace · covered;
@@ -849,6 +862,7 @@ export default function App() {
           // checked — while the Rapport path stamped and counted. Both doors run the SAME confirm
           // in IncidentWorkspace now and end here (mockup 06 · Fall 4).
           onCompleteRapport={() => completeRapport(activeMeta.id)}
+          abschlussRef={abschlussHereRef}
           onReactivateActive={canLifecycle && activeMeta.is_archived ? () => reactivateById(activeMeta.id) : undefined}
           onBackFromArchive={activeMeta.is_archived ? () => void backFromArchive() : undefined}
           lifecycleElsewhere={lifecycleElsewhere?.id === activeMeta.id ? lifecycleElsewhere : null}
@@ -937,6 +951,8 @@ export default function App() {
       {isEditor && (screen === 'karte' || screen === 'visits') && (
         <IncomingAlarmBanner
           alarms={poolAlarms}
+          dismissed={dismissedAlarms}
+          onDismiss={hideAlarm}
           taking={taking}
           attachFirst={false}
           onTake={(a) => {
@@ -947,6 +963,8 @@ export default function App() {
       {isEditor && screen === 'einsatz' && activeMeta != null && (
         <IncomingAlarmBanner
           alarms={poolAlarms}
+          dismissed={dismissedAlarms}
+          onDismiss={hideAlarm}
           taking={taking}
           // ⚠️ «Anhängen» only onto an Einsatz that is RUNNING (review of #235): attached to a closed
           // one, the dispatch's Zeiten and Meldung would land in a closed record
@@ -956,12 +974,13 @@ export default function App() {
         />
       )}
 
-      {/* auto-opened / colleague-taken incident announced, never forced. Suppressed while
-          untaken pool alarms exist — the take banner owns that spot and the take flow. */}
+      {/* auto-opened / colleague-taken incident announced, never forced. Suppressed while an
+          alarm row SHOWS (diveraDismiss · shownAlarms) — the take banner owns that spot and the take
+          flow. Never on the raw pool: a stale or ×-ed alarm shows no row and hid this one too. */}
       {closedMedia.map((p) => (
         <MediaPendingMeldung key={p.id} pending={p} onDismiss={() => setClosedMedia((cur) => cur.filter((q) => q.id !== p.id))} />
       ))}
-      {freshIncident && poolAlarms.length === 0 && (
+      {freshIncident && shownAlarms(poolAlarms, dismissedAlarms).length === 0 && (
         <NewIncidentBanner
           inc={freshIncident}
           active={!!activeId}

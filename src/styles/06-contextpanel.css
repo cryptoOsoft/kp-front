@@ -6,8 +6,11 @@
 /* A read-only title must not LOOK editable. It shares .ctx-title-input for metrics, which also
    handed it the resting underline and the hover highlight — so «Notiz» (whose text is the
    content, edited in the textarea below, never in the header) invited a click that does
-   nothing, and a viewer's title did the same. Same size, no affordance. */
-.ctx-title-ro { display: block; cursor: default; border-bottom-color: transparent; }
+   nothing, and a viewer's title did the same. Same size, no affordance.
+   ⚠️ Both classes in the selector, on purpose: `.ctx-title-input` is declared LATER (07-toolrail),
+   so at one class each its underline won on source order and every symbol's type head («Feuer»)
+   kept the «tap to edit» line (sweep 09.11.2026, UI.1). */
+.ctx-title-input.ctx-title-ro { display: block; cursor: default; border-bottom-color: transparent; }
 .ctx-notes-ro { margin: 0; font-size: var(--fs-2); line-height: 1.45; color: var(--ink); white-space: pre-wrap; }
 .kv-val-ro { font-weight: var(--fw-medium); }
 /* (the live vehicle's Fahrer row shares .field with the preset rows — no style of its own) */
@@ -66,7 +69,11 @@
 /* no hairline under the head (r35, 06.11.2026): no other sheet draws one – its title and the 12px
    below it already end the head */
 .ctx-head { padding: 16px 16px 12px; display: flex; align-items: center; gap: 12px; }
-.ph { width: 46px; height: 46px; border-radius: var(--r-ctl); border: 2px solid var(--blue); color: var(--blue);
+/* The header's icon tile is a picture, not a control: no outline (owner review 10.11.2026 – the
+   2px --blue frame was decoration that read as «selected» or «tap me»). The frame's WIDTH stays,
+   transparent, because the Linien-/Flächen-/Form-Editor paint it in the drawing's own colour
+   (DrawEditor, ShapeEditor · inline `borderColor`) – there it is the object's colour, a fact. */
+.ph { width: 46px; height: 46px; border-radius: var(--r-ctl); border: 2px solid transparent; color: var(--ink-dim);
   display: grid; place-items: center; font-family: var(--mono); font-size: var(--fs-1); background: var(--surface-2); flex: none; }
 .ph svg { width: 30px; height: 30px; }
 /* the glyph's wrapper span is a grid too: as an inline box it carried the line's descender gap
@@ -235,14 +242,16 @@
 /* a user-added field: same run as .field above, so the same treatment — no rule, and its key box
    IS the label column (27B), so its value starts at the edge every preset row's control does */
 .kv-row { display: flex; align-items: center; gap: var(--ctx-col-gap); min-height: 52px; padding: 4px 0; }
-/* both boxes --tap tall (27x): every box control in the panel is, at every pointer */
-.kv-key, .kv-val { box-sizing: border-box; min-height: var(--tap); font-size: var(--fs-2); color: var(--ink); border: none; background: var(--fill-soft); border-radius: var(--r-sm);
+/* both boxes --tap tall (27x): every box control in the panel is, at every pointer; what is typed
+   in them is 16px like every other field (`.ip-input`; it was 14 until the sweep of 09.11.2026, UI.12) */
+.kv-key, .kv-val { box-sizing: border-box; min-height: var(--tap); font-size: var(--fs-3); color: var(--ink); border: none; background: var(--fill-soft); border-radius: var(--r-sm);
   padding: 8px 12px; min-width: 0; font-family: var(--body); }
 /* …but the KEY reads as the label it is (r36, 06.11.2026): bare at rest, in the label column like
    «Von Geschoss» / «Horizontal», only the value on the field plate. Still an input – its plate
    comes back under a hovering mouse and on focus. Its 12px text inset is paid into the gutter
-   (the negative margin), so the word starts at the label column's edge, not 12px inside it. */
-.kv-key { flex: 0 0 calc(var(--ctx-lbl) + var(--sp-3)); margin-left: calc(-1 * var(--sp-3)); font-weight: var(--fw-medium); color: var(--ink-dim);
+   (the negative margin), so the word starts at the label column's edge, not 12px inside it.
+   And it keeps the labels' 14px: at the fields' 16 it would be the one bigger word in that column. */
+.kv-key { flex: 0 0 calc(var(--ctx-lbl) + var(--sp-3)); margin-left: calc(-1 * var(--sp-3)); font-size: var(--fs-2); font-weight: var(--fw-medium); color: var(--ink-dim);
   background: transparent; }
 @media (hover: hover) { .kv-key:hover:not(:focus) { background: var(--fill-soft); } }
 .kv-val { flex: 1; font-family: var(--mono); }
@@ -309,22 +318,49 @@
    seconds AFTER the pick and then vanished — the list is where the decision is made, so the
    list is where the fact belongs. A hint, never a block. */
 .combo-opt-status { flex: none; font: var(--fw-bold) var(--fs-micro) var(--body); white-space: nowrap; }
-.combo-opt-status.warn { color: var(--accent); }
+.combo-opt-status.warn { color: var(--amber-strong); }   /* a hint, so amber – never the station's --accent (sweep 09.11.2026, UI.5) */
 .combo-opt-status.info { color: var(--blue-strong); }
 .combo-opt-status.muted { color: var(--ink-faint); font-weight: var(--fw-medium); }
 
 /* the contradiction a filled roster field carries — under the field, and it stays.
    ⚠️ .field / .kv-row are single-line flex rows, so as a plain sibling the hint landed BESIDE
    the control and wrapped into a four-word-tall red column. It takes a row of its own, under
-   the control it is about — from the column's edge (27B), not under the label. */
+   the control it is about — from the column's edge (27B), not under the label. Amber: it does
+   not block (it wore the station's --accent, red by default, until the sweep of 09.11.2026). */
 .field:has(> .kv-hint), .kv-row:has(> .kv-hint) { flex-wrap: wrap; row-gap: 2px; }
 .kv-hint { flex: 0 0 calc(100% - var(--ctx-lbl) - var(--ctx-col-gap)); display: flex; align-items: center; gap: 8px; margin: 2px 0 0 auto;
-  font: var(--fw-medium) var(--fs-1)/1.35 var(--body); color: var(--accent); }
+  font: var(--fw-medium) var(--fs-1)/1.35 var(--body); color: var(--amber-strong); }
 .kv-hint .i { width: 14px; height: 14px; flex: none; }
 /* a measured gas (the Messpunkt, ReadingParts): the input with its calm/amber/red bar right under it, and
    a tick where the typed value sits – no numbers, only the stages */
 .reading-field { display: flex; flex-direction: column; gap: var(--sp-2); }
 .reading-bar { position: relative; display: block; height: 4px; }
+/* the number box with its «über Messbereich» tick INLINE beside it (10.11.2026, ReadingParts ·
+   MeasuredField; owner: «a small tick button but inline»). The tick is the shared TickRow as a
+   box alone (owner review 10.11.2026: «just with a tick and not the entire text») – its --tap
+   square, the box at the control edge so the column's caption ends on it. */
+.reading-entry { display: flex; align-items: center; gap: var(--sp-2); }
+.reading-entry .kv-val { flex: 1 1 0; width: 0; min-width: 0; }
+/* (.reading-entry in front: TickRow's own module class centres the box at equal weight) */
+.reading-entry .reading-over { flex: none; justify-content: flex-end; }
+/* …and what the column means, ONCE: a read-only caption above the first gas, right-aligned on
+   that edge like a table header over its column (ReadingParts · ReadingOverHead). No shared piece
+   fits: `.ctx-section-label` is an eyebrow that opens a section, this heads one column of a row. */
+.reading-over-head { margin: var(--sp-1) 0 -2px; text-align: right;
+  font: var(--fw-medium) var(--fs-micro)/1.3 var(--body); color: var(--ink-faint); }
+/* a value from before the box took numbers only: its text gets the whole row (the tick drops
+   under it), so «ca. 60 ppm» is read whole – and it is said in amber under the bar, never calm */
+.reading-entry.unreadable { flex-wrap: wrap; }
+.reading-entry.unreadable .kv-val { flex-basis: 100%; }
+.reading-entry.unreadable .reading-over { margin-left: auto; }   /* stays in its column */
+.reading-unreadable { display: flex; align-items: center; gap: var(--sp-2);
+  font: var(--fw-medium) var(--fs-1)/1.35 var(--body); color: var(--amber-strong); }
+.reading-unreadable .i { width: 14px; height: 14px; flex: none; }
+/* «Gleich gemessen» under the measured fields: the shared Button at its own width, right-aligned
+   on the control edge (owner review 10.11.2026; it was full width), with air above.
+   (`.ctx` in front: `.ip-btn`'s own inline-flex comes later in the cascade, 13-incident, and an
+   inline box takes no auto margin.) */
+.ctx .reading-again { display: flex; width: fit-content; margin: var(--sp-2) 0 0 auto; }
 /* nothing typed yet: the zones stay as a faint guide, so the first digit does not move the row */
 .reading-bar.empty { opacity: .35; }
 .reading-bar i { position: absolute; top: 0; height: 4px; border-radius: 2px; background: var(--hover-strong); }
@@ -339,7 +375,7 @@
   font-family: var(--mono); font-size: var(--fs-1); color: var(--ink-dim); }
 .reading-history time { color: var(--ink-faint); }
 .reading-history .a1 { color: var(--amber-strong); font-weight: var(--fw-bold); }
-.reading-history .a2 { color: var(--red); font-weight: var(--fw-bold); }
+.reading-history .a2 { color: var(--red-strong); font-weight: var(--fw-bold); }
 /* …and the ⓘ between them (ReadingInfo): the section label with the shared InfoToggle at its end,
    folding out one mono row per gas under an A1/A2 head – unit, A1 amber, A2 red, the history's
    colours – and two lines */
@@ -352,7 +388,7 @@
 .reading-info li b { color: var(--ink); }
 .reading-info .unit { color: var(--ink-faint); }
 .reading-info .a1 { color: var(--amber-strong); font-weight: var(--fw-bold); }
-.reading-info .a2 { color: var(--red); font-weight: var(--fw-bold); }
+.reading-info .a2 { color: var(--red-strong); font-weight: var(--fw-bold); }
 .reading-info p { margin: var(--sp-2) 0 0; font-size: var(--fs-1); line-height: 1.4; color: var(--ink-dim); }
 .combo-type { color: var(--blue-strong); font-weight: var(--fw-bold); border-top: 1px solid var(--border-soft); margin-top: 2px; }
 .combo-type .i { width: 14px; height: 14px; }

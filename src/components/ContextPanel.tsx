@@ -19,8 +19,8 @@ import { Segmented } from './Segmented'
 import { IconButton } from './Button'
 import { compositeSpec } from '../lib/symbolRender'
 import { bareBlack } from '../lib/glyphTile'
-import { UN_CAPABLE, alarmBar, countFieldValue, isMeasuredSymbol, symbolFieldKind } from '../lib/symbols'
-import { ReadingBar, ReadingHistory, ReadingInfo } from './ReadingParts'
+import { UN_CAPABLE, countFieldValue, isMeasuredSymbol, symbolFieldKind } from '../lib/symbols'
+import { MeasuredField, ReadingAgain, ReadingHistory, ReadingInfo, ReadingOverHead } from './ReadingParts'
 import { sanitizeSvg } from '../lib/sanitizeSvg'
 import { bearing360 } from '../lib/planProjection'
 import { doneStatusText } from '../lib/objectDone'
@@ -69,12 +69,10 @@ function FieldControl({ fieldKey, value, kind, options, placeholder, officerFilt
     )
   }
   // no options → a plain free-text field (commits on blur). A measured gas (the Messpunkt's CO, Ex,
-  // O₂, H₂S – sweep 28.10.2026 #2a) asks the phone for its decimal keypad and a «Fertig» key, but
-  // stays type="text": a number input would refuse the «20,9» a radio report is typed as.
+  // O₂, H₂S) never comes here: its row is ReadingParts · MeasuredField.
   if (!options?.length) {
     return (
       <input className="kv-val" value={value} placeholder={placeholder}
-        inputMode={kind === 'measured' ? 'decimal' : undefined} enterKeyHint={kind === 'measured' ? 'done' : undefined}
         onChange={(e) => onInput(e.target.value)}
         onBlur={() => onCommit(value)}
         onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()} />
@@ -215,6 +213,10 @@ export interface ContextPanelProps {
    *  else. Where it is wired, the footer's delete reads «Entfernen»: next to a «gelöschtes» Feuer,
    *  «Löschen» would say the opposite of what the button does. */
   onDone?: (done: boolean) => void
+  /** «Gleich gemessen» on a measured symbol (the Messpunkt, lib/readingLog · readingAct with
+   *  `again`): the surface appends a reading of the values as they stand, as one undoable step
+   *  with its Verlauf row. Wired by both surfaces; absent = no button. */
+  onReadingAgain?: () => void
   /** Clear a crew member's self-reported position (Selbstauskunft) from the command post.
    *  Editor-only, and offered ONLY on a live `person` dot: somebody drives home with sharing
    *  still on, or a phone dies holding its last fix, and the dot then claims a crew is
@@ -311,7 +313,7 @@ function LinkBtn({ onClick, text }: { onClick: () => void; text: string }) {
   )
 }
 
-export function ContextPanel({ entity, svg, onClose, onCenter, onOriginal, originalLabel, onTitle, onTitleLive, onFields, onNotes, onFloorFrom, onFloorTo, onSpread, onCount, onRotate, onErgRings, ergCoord, onAdoptRadius, ergAdopted, onRotate2, onCaption, captionDefault = 'auto', onAirflow, controls, titleOptions, fieldOptions, rosterRank, protectedKeys, onDelete, onDone, onStopSharing, readOnly, allowDelete = false, hasOverride, onPinGps, onResetGps, driver, origin, personStatus, fieldHints, connectedLines = [], onFocusLine, dockedToLabel, onUndock, dockedTeams = [], onNoteSize, autoFocusNote = false, onNotePlain, onColor }: ContextPanelProps) {
+export function ContextPanel({ entity, svg, onClose, onCenter, onOriginal, originalLabel, onTitle, onTitleLive, onFields, onNotes, onReadingAgain, onFloorFrom, onFloorTo, onSpread, onCount, onRotate, onErgRings, ergCoord, onAdoptRadius, ergAdopted, onRotate2, onCaption, captionDefault = 'auto', onAirflow, controls, titleOptions, fieldOptions, rosterRank, protectedKeys, onDelete, onDone, onStopSharing, readOnly, allowDelete = false, hasOverride, onPinGps, onResetGps, driver, origin, personStatus, fieldHints, connectedLines = [], onFocusLine, dockedToLabel, onUndock, dockedTeams = [], onNoteSize, autoFocusNote = false, onNotePlain, onColor }: ContextPanelProps) {
   // read per-render (not module-load) so the resolved locale is applied — see config/copy
   const C = appConfig.copy.contextPanel
   const N = appConfig.copy.notes
@@ -724,6 +726,8 @@ const GRENZE_GLYPH = { left: 'grenze-v', right: 'grenze-v', up: 'grenze-up', dow
 
   // the header shares the grip's drag (tap stays a tap there — see useSheetDrag)
   const sheetDrag = useSheetDrag({ onClose, tapToggles: false })
+  // the first measured gas (the Messpunkt) – the tick column's caption stands above it
+  const firstMeasured = rows.findIndex((r) => symbolFieldKind(entity.symbol, r.k) === 'measured')
   return (
     <CtxShell onClose={onClose}>
       <SheetGrip onClose={onClose} />
@@ -1041,13 +1045,11 @@ const GRENZE_GLYPH = { left: 'grenze-v', right: 'grenze-v', up: 'grenze-up', dow
                         placeholder={valuePlaceholder(r.k)}
                         searchPlaceholder={C.stoffSearch}
                         onChange={(v) => setRowValue(i, v)} />
-                    ) : alarmBar(entity.symbol, r.k.trim(), r.v) ? (
-                      // a measured gas (the Messpunkt): the input box is the visualisation – its
-                      // calm/amber/red bar right under it, following the value as it is typed
-                      <span className="reading-field">
-                        {control}
-                        <ReadingBar symbol={entity.symbol} fieldKey={r.k.trim()} value={r.v} />
-                      </span>
+                    ) : symbolFieldKind(entity.symbol, r.k) === 'measured' ? (
+                      // a measured gas (the Messpunkt): the number box, its bare «über Messbereich» tick
+                      // and the calm/amber/red bar under them, following the value as it is typed
+                      <MeasuredField symbol={entity.symbol} fieldKey={r.k.trim()} value={r.v} placeholder={valuePlaceholder(r.k)}
+                        onInput={(v) => setRow(i, { v })} onCommit={(v) => setRowValue(i, v)} />
                     ) : control}
                     {/* the contradiction stays put, under the field it is about */}
                     {fieldHints?.[r.k.trim()] && (
@@ -1068,8 +1070,11 @@ const GRENZE_GLYPH = { left: 'grenze-v', right: 'grenze-v', up: 'grenze-up', dow
                   && rows.some((x) => (x.k.trim() === EL_NAME || x.k.trim() === EL_STV) && x.v.trim())
                 const swap = pair && k === EL_NAME
                 const swapGap = pair && k === EL_STV
+                // the caption of the tick column, once, above the first measured gas (ReadingParts)
+                const overHead = !readOnly && i === firstMeasured && <ReadingOverHead />
                 return fixed ? (
                   <Fragment key={i}>
+                    {overHead}
                     <div className="field">
                       <span className="kv-key-ro">{rowLabel(r.k)}</span>
                       {readOnly ? <b className="kv-val-ro">{r.v || '–'}</b> : field}
@@ -1083,6 +1088,7 @@ const GRENZE_GLYPH = { left: 'grenze-v', right: 'grenze-v', up: 'grenze-up', dow
                   </Fragment>
                 ) : (
                   <Fragment key={i}>
+                    {overHead}
                     <div className={`kv-row${dupRow[i] ? ' dup' : ''}`}>
                       <input className="kv-key" value={r.k} placeholder={C.fieldKeyPlaceholder}
                         aria-invalid={dupRow[i] || undefined}
@@ -1102,7 +1108,10 @@ const GRENZE_GLYPH = { left: 'grenze-v', right: 'grenze-v', up: 'grenze-up', dow
             </div>
           )}
 
-          {/* a Messpunkt's limits behind an ⓘ, then its readings, one row per radio report (ReadingParts) */}
+          {/* a Messpunkt's «Gleich gemessen», its limits behind an ⓘ, then its readings, one row per
+              radio report (ReadingParts). A value still in a box is committed first: the button's
+              tap blurs it, and a reading must never be of what the box no longer says. */}
+          {isMeasuredSymbol(entity) && !readOnly && onReadingAgain && <ReadingAgain entity={entity} onAgain={onReadingAgain} />}
           {isMeasuredSymbol(entity) && <ReadingInfo symbol={entity.symbol} />}
           {isMeasuredSymbol(entity) && <ReadingHistory entity={entity} />}
 

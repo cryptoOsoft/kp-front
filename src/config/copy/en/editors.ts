@@ -50,6 +50,9 @@ export const editorsCopy: Localizable<Pick<Copy, Keys>> = {
     readingOr: 'or',
     readingInfoLevels: 'Yellow = A1 (pre-alarm) reached, red = A2 (main alarm) reached.',
     readingInfoStale: 'With its age (e.g. 18′) and only the outline coloured = older than {min} min.',
+    readingOver: 'over range',
+    readingUnreadable: 'Unreadable – enter a number',
+    readingAgain: 'Measured the same',
     removeField: 'Delete field',
     fieldKeyPlaceholder: 'Label',
     fieldNamePlaceholder: 'Name …',
@@ -266,8 +269,6 @@ export const editorsCopy: Localizable<Pick<Copy, Keys>> = {
   },
   topBar: {
     offline: 'Offline',
-    tiles: 'Tiles',
-    recording: 'REC',
     gpsFrozen: 'GPS frozen',
     gpsFrozenHint: 'The live GPS feed is not responding. Vehicles are shown at their last known position.',
   },

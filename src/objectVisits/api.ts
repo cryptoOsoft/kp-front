@@ -2,6 +2,7 @@
 // paths can be adjusted in one place if the server names a route differently. Typed, thin — the
 // policy (when to send, what a refusal means) lives in outbox.ts.
 
+import { appConfig } from '../config/appConfig'
 import { ApiError, apiGet, apiPost, apiPut, apiRequestRaw, throwResponseError, UPLOAD_REQUEST_TIMEOUT_MS } from '../lib/api'
 import type {
   Catalogue, DeliveryRow, NotifyState, PutAccepted, Revision, ServerVisit, VisitDoc, VisitSummary,
@@ -126,7 +127,7 @@ export async function putAttachment(visitId: string, attId: string, blob: Blob, 
   const body = (await res.json().catch(() => null)) as { id?: unknown; sha256?: unknown; size?: unknown } | null
   const said = body && typeof body === 'object' ? body : {}
   if (said.id !== attId || typeof said.sha256 !== 'string' || said.sha256.toLowerCase() !== sha256.toLowerCase()) {
-    throw new ApiError(0, 'Server nicht erreichbar (unerwartete Antwort)')
+    throw new ApiError(0, appConfig.copy.errors.serverUnexpected)
   }
   return { id: attId, sha256, size: typeof said.size === 'number' ? said.size : blob.size }
 }

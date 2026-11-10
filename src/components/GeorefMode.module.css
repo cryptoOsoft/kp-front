@@ -473,7 +473,7 @@
   /* ONE row, 64px: status · Karte|plan · «+». The card's look is the instrument's (.pill, .bar). */
   .bar {
     display: flex; align-items: center; gap: var(--sp-2);
-    min-height: 64px; padding: 0 var(--sp-1) 0 var(--sp-2); border-radius: 22px; flex: none;
+    min-height: 64px; padding: 0 var(--sp-1) 0 var(--sp-2); border-radius: var(--r-bar); flex: none;
   }
   /* the status IS the ⓘ: «0/2» over «Paare ⓘ», one 64px-tall target */
   .stat {

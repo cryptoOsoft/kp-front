@@ -64,7 +64,7 @@ describe('reportSignature · what is signed', () => {
 
   it('leaves the Beilagen, the print options, the Lehren and the Kommandant default out', () => {
     const base = { incident: { title: 'Brand' }, meta: { summary: 'Küche', lehren: 'x', kommandant: 'Keller Urs' }, personal: [{ name: 'A' }] }
-    const withBeilagen = { ...base, journal: [{ text: 'spät' }], generatedAt: '15.10.2026 09:00', options: { journal: true }, auswertung: {}, meta: { ...base.meta, lehren: 'anders', kommandant: 'Stv' } }
+    const withBeilagen = { ...base, journal: [{ text: 'spät' }], messungen: [{ name: 'Keller' }], messungenLimits: 'CO A1 ab 30', generatedAt: '15.10.2026 09:00', options: { journal: true }, auswertung: {}, meta: { ...base.meta, lehren: 'anders', kommandant: 'Stv' } }
     expect(signatureScope(withBeilagen)).toBe(signatureScope(base))
     expect(signatureScope({ ...base, personal: [{ name: 'A' }, { name: 'B' }] })).not.toBe(signatureScope(base))
     expect(signatureScope({ ...base, meta: { ...base.meta, summary: 'Küche, Wohnzimmer' } })).not.toBe(signatureScope(base))

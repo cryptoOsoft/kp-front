@@ -12,7 +12,6 @@ export const intakeCopy = {
     // …and with «Übung: Ja» the form says what it is about to open (sweep F.8)
     titleNewExercise: 'Übung eröffnen',
     // --- Standort section ---
-    locationHead: 'Standort',
     addressLabel: 'Adresse',
     addressPlaceholder: 'Strasse Nr, PLZ Ort',
     addressSearching: 'Wird gesucht …',
@@ -37,7 +36,6 @@ export const intakeCopy = {
     // The fold over the literal coordinate (owner, 18.09.2026) — see EinsatzWizard.
     coordFold: 'Koordinaten',
     // --- Stichwort section ---
-    keywordHead: 'Stichwort & Kategorie',
     titleLabel: 'Stichwort / Titel',
     titlePlaceholder: 'z. B. Gebäudebrand Schulhaus',
     categoryLabel: 'Kategorie',
@@ -70,7 +68,6 @@ export const intakeCopy = {
     created: 'Einsatz erstellt',
     taken: 'Alarm übernommen',
     updated: 'Einsatz aktualisiert',
-    alarmierungHead: 'Alarmierung',
     alarmTime: 'Alarmzeit',
     alarmMessage: 'Alarmmeldung',
     // --- Divera pool + incoming banner + in-map review ---

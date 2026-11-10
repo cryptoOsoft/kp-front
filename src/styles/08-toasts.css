@@ -39,7 +39,7 @@
 .dw-sec h3 { margin: 0 0 var(--sp-2); font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-faint); }
 .dw-sec ul { margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-1); list-style: none; }
 .dw-sec li { display: flex; align-items: center; gap: var(--sp-2); min-height: 28px; font-size: var(--fs-2); line-height: 1.35; color: var(--ink); font-weight: var(--fw-bold); }
-.dw-sec li .i { width: 16px; height: 16px; flex: none; color: var(--accent); stroke-width: 2.4; }
+.dw-sec li .i { width: 16px; height: 16px; flex: none; color: var(--ink-dim); stroke-width: 2.4; }
 /* (the «Los» is <Button variant="primary" size="lg" block> since 07.10.2026 — UI sweep C4; `.dw-cta`
    stays on it as the e2e's handle) */
 .dw-meta { margin: var(--sp-2) 0 0; color: var(--ink-dim); font-size: var(--fs-micro); line-height: 1.35; font-weight: var(--fw-medium); text-align: center; }

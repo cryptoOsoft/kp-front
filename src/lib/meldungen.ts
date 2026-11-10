@@ -63,7 +63,10 @@ export const MELDUNG_RANK = {
   symbols: 12,
   /** offline with no cached basemap for this view — the map is a flat colour */
   basemap: 13,
-  /** the session cookie expired — the sync is standing still until the operator signs in again */
+  /** the session cookie expired — the sync is standing still until the operator signs in again.
+   *  Also the row about ANOTHER account's unsent edits parked on this device
+   *  (ForeignUnsentMeldung, sweep 09.11.2026 UX.2): the same subject — work that waits for a
+   *  sign-in — and the same standing, below everything about the Einsatz itself. */
   session: 14,
   /** a new build is waiting for the next app start */
   update: 15,

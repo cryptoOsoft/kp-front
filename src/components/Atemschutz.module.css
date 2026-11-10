@@ -836,7 +836,7 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
   color: var(--ink-dim); font-weight: var(--fw-bold); border-bottom: 1px solid var(--glass-edge);
   margin-bottom: 2px;
 }
-.comboToggle :global(.i) { width: 15px; height: 15px; color: var(--accent); }
+.comboToggle :global(.i) { width: 15px; height: 15px; color: var(--blue); }   /* as 06-contextpanel · .combo-toggle .i */
 /* --blue: this is a SELECTED state, and --accent is the brand red — the note two rules up in
    this same file says so. */
 .comboToggleOn { color: var(--ink); background: var(--sel-wash); }
@@ -1558,7 +1558,7 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
    at the end. Still a wrapping row: a fifth Trupp starts a second line instead of hiding. */
 .strip { flex: 1 1 auto; min-width: 0; display: flex; flex-wrap: wrap; gap: 4px; }
 .tab { flex: 1 1 72px; min-width: 0; min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-  padding: 4px 2px; border-radius: 14px; border: 0; background: transparent; color: var(--ink); font: inherit; cursor: pointer; }
+  padding: 4px 2px; border-radius: var(--r-sm); border: 0; background: transparent; color: var(--ink); font: inherit; cursor: pointer; }
 .tab:active { background-image: linear-gradient(var(--press), var(--press)); }
 .tabName { display: flex; align-items: center; gap: var(--sp-1); font-size: var(--fs-3); line-height: 1.2; font-weight: var(--fw-heavy); white-space: nowrap; }
 .tabName :global(.i) { width: 14px; height: 14px; }
@@ -1663,8 +1663,8 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 .focusCard .trowHead .trowClock { display: flex; flex-direction: column; align-items: flex-end; }
 .focusCard .trowHead .trowSub { display: block; }
 /* a crew at the door: «Bereit» where the clock would stand (TruppCard · `page`) */
-.pageReady { display: inline-flex; align-items: center; min-height: 32px; padding: 0 12px; border-radius: 99px;
-  background: color-mix(in srgb, var(--green) 16%, transparent); color: var(--green); font: var(--fw-heavy) var(--fs-1) var(--body); }
+.pageReady { display: inline-flex; align-items: center; min-height: 32px; padding: 0 12px; border-radius: var(--r-xs);
+  background: color-mix(in srgb, var(--green) 16%, transparent); color: var(--green-strong); font: var(--fw-heavy) var(--fs-1) var(--body); }
 /* «Ein Trupp, ein Bildschirm»: the one card on the screen keeps the clock as large as it allows
    (02.09.) — the same line as every other card (RowLine), one type step up. 34px was the band's
    size here; `:not(.trowOut, .trowIdle)` so a Trupp out or still waiting keeps its quiet 16px.
@@ -2200,7 +2200,7 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
 .trowWarn .pinState { color: var(--amber-strong); }
 .trowCrit .pinState { color: var(--red-strong); }
 .pinClock { font: var(--fw-heavy) var(--fs-5) var(--mono); line-height: 1; font-variant-numeric: tabular-nums; color: var(--green); }
-.trowWarn .pinClock { color: var(--amber); }
+.trowWarn .pinClock { color: var(--amber-strong); }   /* a hue as TEXT is its -strong tier: plain amber was 2.5:1 by day (sweep 09.11.2026, UI.2) */
 .trowCrit .pinClock { color: var(--red-strong); }
 .pinKontakt { min-height: 48px; padding: 0 var(--sp-4); border-radius: var(--r-ctl); font-size: var(--fs-2); }
 .pinKontakt :global(.i) { width: 16px; height: 16px; }

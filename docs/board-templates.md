@@ -189,8 +189,8 @@ written, and a tick on either side is the same tick.
   takes it back (`reopened`). **Prio.** 1 = «dringend», a tap sets or clears it. **Zeit** is an
   Erinnerung's time with a bell, red «überfällig» once past and open. **Wer** is the item's
   assignee.
-- **A row typed on the page** becomes a Pendenz in the Verlauf when the row is left (Enter, Tab
-  off «Wer», a tap elsewhere) — one `created` row with Was, Wer and Prio. together, marked
+- **A row typed on the page** becomes a Pendenz in the Verlauf on Enter or Tab off «Wer» (never
+  when the focus merely leaves it: the words then stay in the row as a draft, 09.11.2026) — one `created` row with Was, Wer and Prio. together, marked
   `origin: 'tafel'` — and says once «Als Pendenz im Verlauf eingetragen · 14:31 · Name». The
   Verlauf's Pendenzen block marks it «von der Tafel»; a tap there opens the page.
 - **Changing Was / Wer / Prio.** of an item appends a correction (a `note` row carrying `edit`,

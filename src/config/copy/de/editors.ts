@@ -82,8 +82,9 @@ export const editorsCopy = {
     captionAll: 'Alle',
     notes: 'Notizen',
     notesPlaceholder: 'Allgemeine Notizen …',
-    /** a Messpunkt's readings under its fields, newest first (ReadingHistory) */
-    readingHistory: 'Verlauf',
+    /** a Messpunkt's readings under its fields, newest first (ReadingHistory). Not «Verlauf»:
+     *  that word is the place (docs/copy-and-wording.md), and «Messungen» is the list of points. */
+    readingHistory: 'Bisher gemessen',
     /** the ⓘ beside a Messpunkt's values (ReadingParts · ReadingInfo, sweep 28.10.2026 #2b): the
      *  rows are built from the preset's alarm limits, so a station's own limits explain themselves.
      *  The unit per measured field key; {n} a limit; {min} the preset's staleMin. */
@@ -95,6 +96,13 @@ export const editorsCopy = {
     readingOr: 'oder',
     readingInfoLevels: 'Gelb = A1 (Voralarm) erreicht, rot = A2 (Hauptalarm) erreicht.',
     readingInfoStale: 'Mit Alter (z. B. 18′) und nur der Rahmen farbig = älter als {min} min.',
+    /** das Feld eines Messwerts (Entscheid 3B/4A, 10.11.2026): nur Ziffern, daneben das Häkchen
+     *  «über Messbereich» (zählt als A2); `readingUnreadable` unter einem alten Wert, der keine
+     *  Zahl ist; `readingAgain` = der Knopf unter den Feldern, eine Nachmessung mit denselben
+     *  Werten und der Zeit jetzt. */
+    readingOver: 'über Messbereich',
+    readingUnreadable: 'Unlesbar – Zahl eingeben',
+    readingAgain: 'Gleich gemessen',
     removeField: 'Feld löschen',
     // the ⇄ square at the end of the Einsatzleiter glyph's EL row (title/aria). Says what HAPPENS,
     // not what the button is: an Ablösung is «übergeben», and both Anwesenheits-Bemerkungen follow
@@ -376,8 +384,6 @@ export const editorsCopy = {
   },
   topBar: {
     offline: 'Offline',
-    tiles: 'Tiles',
-    recording: 'REC',
     // Caveat on a stalled GPS picture: the Fahrzeuge deliberately do NOT disappear, so the
     // freeze has to be labelled – otherwise hours-old positions look as authoritative as
     // one-minute-old ones.

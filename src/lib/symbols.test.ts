@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { alarmBar, compareReadings, countFieldValue, readingRows, readingScale, recordReading, symbolCaptionBoxText, symbolCaptionText, symbolControls, symbolFieldKind, symbolFieldOptions, symbolLegendText, symbolOriginText, symbolPresetFieldKeys, symbolReading, symbolReadoutText } from './symbols'
+import { alarmBar, cleanMeasured, compareReadings, countFieldValue, measuredInput, measuredOf, measuredValue, readingLevel, readingRows, readingScale, readingState, recordReading, symbolCaptionBoxText, symbolCaptionText, symbolControls, symbolFieldKind, symbolFieldOptions, symbolLegendText, symbolOriginText, symbolPresetFieldKeys, symbolReading, symbolReadoutText } from './symbols'
 import type { SymbolControl } from '../types'
 import { appConfig } from '../config/appConfig'
 
@@ -263,6 +263,14 @@ describe('Messpunkt — the reading its mark wears (27.10.2026)', () => {
     expect(recordReading({ symbol: 'FW Kleinloeschgeraet', fields: {} }, { Typ: 'CO2' }, 5)).toBeUndefined()
   })
 
+  it('«Gleich gemessen» appends the same values again, with the time now', () => {
+    const p = mp({ CO: '0' }, [{ t: 1, v: { CO: '0' } }])
+    expect(recordReading(p, { CO: '0' }, 9, true)).toEqual([{ t: 1, v: { CO: '0' } }, { t: 9, v: { CO: '0' } }])
+    // …and so the point is fresh again
+    expect(symbolReading({ ...p, readings: recordReading(p, { CO: '0' }, 20 * MIN, true) }, 21 * MIN)).toMatchObject({ stale: false, ageMin: 1 })
+    expect(recordReading(mp({}), {}, 9, true)).toBeUndefined() // nothing measured, nothing to repeat
+  })
+
   it('one report typed gas by gas is one row in the list, newest first', () => {
     const p = mp({}, [{ t: 0, v: { CO: '20' } }, { t: 10 * MIN, v: { CO: '45' } }, { t: 10 * MIN + 20_000, v: { CO: '45', Ex: '0' } }])
     expect(readingRows(p).map((r) => r.v)).toEqual([{ CO: '45', Ex: '0' }, { CO: '20' }])
@@ -425,5 +433,59 @@ describe('count fields (fieldKinds)', () => {
     expect(countFieldValue(' 3 ')).toBe(3)
     expect(countFieldValue('2 Katzen')).toBeUndefined()
     expect(countFieldValue('-1')).toBeUndefined()
+  })
+})
+
+describe('a measured value that is not a plain number (owner pick 3B, 10.11.2026)', () => {
+  const mp = (fields: Record<string, string>) => ({ symbol: 'FW Messpunkt', fields })
+
+  it('reads over range from the tick\'s «>» and from what older records typed', () => {
+    expect(measuredOf('>100')).toEqual({ kind: 'over', n: 100 })
+    expect(measuredOf('>')).toEqual({ kind: 'over', n: null })
+    expect(measuredOf('OL')).toEqual({ kind: 'over', n: null })
+    expect(measuredOf('≥ 99,5')).toEqual({ kind: 'over', n: 99.5 })
+    expect(measuredOf('ca. 60')).toEqual({ kind: 'unreadable' })
+    expect(measuredOf('180 ppm')).toEqual({ kind: 'unreadable' })
+    expect(measuredOf('20,9')).toEqual({ kind: 'number', n: 20.9 })
+    expect(measuredOf('  ')).toEqual({ kind: 'empty' })
+  })
+
+  it('over range is the Hauptalarm, unreadable the Voralarm – never calm', () => {
+    expect(readingState('FW Messpunkt', 'CO', '>100')).toBe('over')
+    expect(readingLevel('FW Messpunkt', 'CO', 'OL')).toBe('a2')
+    expect(readingState('FW Messpunkt', 'CO', 'ca. 8')).toBe('unreadable')
+    expect(readingLevel('FW Messpunkt', 'CO', 'ca. 8')).toBe('a1')
+    // even past a number that alone would be calm: the detector could not say how much
+    expect(symbolReading(mp({ CO: '>10' }))).toMatchObject({ text: 'CO >10', level: 'a2' })
+  })
+
+  it('the pill wears the over-range gas before any measured alarm, and it sorts first', () => {
+    expect(symbolReading(mp({ CO: '400', Ex: '>100' }))).toMatchObject({ text: 'Ex >100', level: 'a2' })
+    const sorted = [mp({ CO: '400' }), mp({ CO: 'ca. 8' }), mp({ CO: '>100' }), mp({ CO: '35' }), mp({ CO: '3' })]
+      .map((p) => symbolReading(p)).sort(compareReadings).map((r) => r?.text)
+    expect(sorted).toEqual(['CO >100', 'CO 400', 'CO 35', 'CO ca. 8', 'CO 3'])
+  })
+
+  it('the bar puts over range at its end and leaves an unreadable value off it', () => {
+    expect(alarmBar('FW Messpunkt', 'CO', '>100')?.at).toBe(1)
+    expect(alarmBar('FW Messpunkt', 'CO', 'ca. 8')?.at).toBeNull()
+  })
+
+  it('the box takes digits and one decimal mark only', () => {
+    expect(cleanMeasured('999')).toBe('999')
+    expect(cleanMeasured('OL')).toBe('')
+    expect(cleanMeasured('>100')).toBe('100')
+    expect(cleanMeasured('20,9')).toBe('20,9')
+    expect(cleanMeasured('2.0,9 ppm')).toBe('2.09')
+  })
+
+  it('the box and the tick are two views of the one stored value', () => {
+    expect(measuredInput('>100')).toEqual({ text: '100', over: true })
+    expect(measuredInput('OL')).toEqual({ text: '', over: true })
+    expect(measuredInput('85')).toEqual({ text: '85', over: false })
+    expect(measuredInput('ca. 60')).toEqual({ text: 'ca. 60', over: false }) // kept until typed over
+    expect(measuredValue('100', true)).toBe('>100')
+    expect(measuredValue('', true)).toBe('>')
+    expect(measuredValue('100', false)).toBe('100')
   })
 })

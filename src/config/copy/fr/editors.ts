@@ -45,6 +45,9 @@ export const editorsCopy: Localizable<Pick<Copy, Keys>> = {
     readingOr: 'ou',
     readingInfoLevels: 'Jaune = A1 (préalarme) atteint, rouge = A2 (alarme principale) atteint.',
     readingInfoStale: 'Avec son âge (p. ex. 18′) et seul le contour coloré = plus de {min} min.',
+    readingOver: 'hors plage de mesure',
+    readingUnreadable: 'Illisible – saisir un nombre',
+    readingAgain: 'Mesure identique',
     removeField: 'Supprimer le champ',
     fieldKeyPlaceholder: 'Désignation',
     fieldNamePlaceholder: 'Nom …',
@@ -263,8 +266,6 @@ export const editorsCopy: Localizable<Pick<Copy, Keys>> = {
   },
   topBar: {
     offline: 'Hors ligne',
-    tiles: 'Tuiles',
-    recording: 'REC',
     gpsFrozen: 'GPS figé',
     gpsFrozenHint: 'Le flux GPS en direct ne répond plus. Les véhicules restent à leur dernière position connue.',
   },

@@ -30,6 +30,7 @@ import { Modal, realCoord } from './_shared'
 import { SearchField } from '../SearchField'
 import { pointAtField } from '../../lib/pointAtField'
 import { objectPicklistSub } from '../../lib/karte/places'
+import { clearDraft, keepDraft, readDraft } from '../../lib/draftKeep'
 
 // --- Einsatz eröffnen / Einsatzdaten korrigieren -------------------------------------
 // `ix` (appConfig.copy.intake) is read inside each function below rather than captured at
@@ -70,6 +71,28 @@ export function changedOnly(next: Record<string, unknown>, seed: Record<string, 
   return out
 }
 
+/** What was typed when the sheet closed by anything but «Abbrechen» or a save (lib/draftKeep).
+ *  `text` and `alarmiertAt` ride only once the operator set them: the Alarmmeldung of an edit is
+ *  fetched and the Alarmzeit of a create is «now» – neither may come back stale. */
+type WizardFields = {
+  title: string
+  address: string
+  kategorie: string | null
+  coord: [number, number] | null
+  isExercise: boolean
+  text?: string
+  alarmiertAt?: string
+}
+
+/** The draft to keep for `now`, or null when nothing differs from what the sheet opened with. */
+function wizardDraft(now: WizardFields, opened: WizardFields): WizardFields | null {
+  const same = now.title === opened.title && now.address === opened.address
+    && now.kategorie === opened.kategorie && now.isExercise === opened.isExercise
+    && now.coord?.[0] === opened.coord?.[0] && now.coord?.[1] === opened.coord?.[1]
+    && now.text === undefined && now.alarmiertAt === undefined
+  return same ? null : now
+}
+
 export function EinsatzWizard({ edit, nearCoord, onClose, onCreated }: {
   /** existing incident to correct in place (PATCH) instead of creating; null = manual create */
   edit?: IncidentMeta | null
@@ -79,35 +102,58 @@ export function EinsatzWizard({ edit, nearCoord, onClose, onCreated }: {
   onCreated: (inc: IncidentFull) => void
 }) {
   const ix = appConfig.copy.intake // read per-render so the resolved locale applies
-  const [title, setTitle] = useState(edit?.title ?? '')
-  const [address, setAddress] = useState(edit?.address ?? '')
+  // ⚠️ An outside tap, a swipe down, Esc or the ✕ close this sheet, and they used to take the
+  // address, Stichwort, Kategorie, Alarmzeit and Alarmmeldung with them (sweep 09.11.2026, UX.5).
+  // What differs from what the sheet opened with is kept like the composer's draft and seeds the
+  // next open – per Einsatz when correcting. «Abbrechen» and a save are what drop it.
+  const draftKey = `einsatz-wizard:${edit?.id ?? 'new'}`
+  const [draft] = useState(() => readDraft<WizardFields | null>(draftKey, null))
+  const [title, setTitle] = useState(draft?.title ?? edit?.title ?? '')
+  const [address, setAddress] = useState(draft?.address ?? edit?.address ?? '')
   // Alarmmeldung (= incident.text). On edit it's fetched from the incident below
   // (IncidentMeta carries no text). `textReady` guards the PATCH so a save before the fetch
   // lands can't blank an existing Meldungstext.
-  const [text, setText] = useState('')
+  const [text, setText] = useState(draft?.text ?? '')
+  const textTouched = useRef(draft?.text !== undefined)
   const [textReady, setTextReady] = useState(!edit)
   // Alarmierungszeit (= incident.started_at): correctable in edit mode, and settable on
   // MANUAL create so a fully analog incident (no Divera) can be nachgetragen days later
   // with its real alarm time — that timestamp is what a website/statistics feed reads.
   // Defaults to now, so live creation needs no interaction.
-  const [alarmiertAt, setAlarmiertAt] = useState(
-    dtLocalValue(edit ? edit.started_at : new Date().toISOString()),
-  )
+  const [openedAlarm] = useState(() => dtLocalValue(edit ? edit.started_at : new Date().toISOString()))
+  const [alarmiertAt, setAlarmiertAt] = useState(draft?.alarmiertAt ?? openedAlarm)
   // category defaults to the first VKF type (Brandbekämpfung) so the dropdown is never empty;
   // the list is the server's (`categoryLabels`), the option text translated per locale
   const kategorien = incidentCategories()
   const kategorieText = (k: string) => ix.kategorienLabels[k] ?? k
-  const [kategorie, setKategorie] = useState<string | null>(edit?.type ?? kategorien[0] ?? null)
+  const openedKategorie = edit?.type ?? kategorien[0] ?? null
+  const [kategorie, setKategorie] = useState<string | null>(draft ? draft.kategorie : openedKategorie)
   // Priorität has NO control any more (18.09.2026): it is inferred from the alarm keywords and
   // nobody was correcting it here — a field on the intake form that only ever repeated a guess.
   // The value itself is untouched: an existing incident keeps whatever it carries (so the diff
   // below never reports a change), and a manual create sends none, which the backend derives.
   const priority = edit ? (edit.priority === 'HIGH' ? 'HIGH' : 'LOW') : null
   // [lng, lat] resolved location (object / address hit / map-pick / the alarm's own coord)
-  const [coord, setCoord] = useState<[number, number] | null>(realCoord(edit?.lng, edit?.lat))
+  const [coord, setCoord] = useState<[number, number] | null>(draft ? draft.coord : realCoord(edit?.lng, edit?.lat))
   // Übung — stats-excluded + deletable. A Probealarm that opened itself gets retro-tagged here.
-  const [isExercise, setIsExercise] = useState(!!edit?.is_exercise)
+  const [isExercise, setIsExercise] = useState(draft?.isExercise ?? !!edit?.is_exercise)
   const [busy, setBusy] = useState(false)
+  /** what the sheet opened with – frozen like `seed`: the draft is «what the operator changed» */
+  const [opened] = useState<WizardFields>(() => ({
+    title: edit?.title ?? '', address: edit?.address ?? '', kategorie: openedKategorie,
+    coord: realCoord(edit?.lng, edit?.lat), isExercise: !!edit?.is_exercise,
+  }))
+  useEffect(() => {
+    const kept = wizardDraft({
+      title, address, kategorie, coord, isExercise,
+      text: textTouched.current ? text : undefined,
+      alarmiertAt: alarmiertAt !== openedAlarm ? alarmiertAt : undefined,
+    }, opened)
+    if (kept) keepDraft(draftKey, kept)
+    else clearDraft(draftKey)
+  }, [title, address, kategorie, coord, isExercise, text, alarmiertAt, opened, openedAlarm, draftKey])
+  /** «Abbrechen»: the deliberate way out, so the draft goes too */
+  const cancel = () => { clearDraft(draftKey); onClose() }
   // the Alarmmeldung fetch FAILED — the textarea is disabled and says so, and `text` stays out of
   // the PATCH body, so a save cannot blank what could not be read (see the fetch below)
   const [textFailed, setTextFailed] = useState(false)
@@ -334,10 +380,11 @@ export function EinsatzWizard({ edit, nearCoord, onClose, onCreated }: {
     const patch = edit ? changedOnly(full, seed) : null
     // nothing was touched — closing is the honest outcome, and it skips a write that would
     // otherwise re-stamp the record for no reason
-    if (patch && !Object.keys(patch).length) { onClose(); return }
+    if (patch && !Object.keys(patch).length) { cancel(); return }
     try {
       const inc = edit && patch ? await patchIncident(edit.id, patch) : await createIncident(full)
       toast(edit ? ix.updated : ix.created, { icon: 'check', tone: 'success' })
+      clearDraft(draftKey) // saved – the next open starts from the record
       onCreated(inc)
     } catch (e) {
       toast(e instanceof ApiError ? e.detail : edit ? ix.errorUpdate : ix.errorCreate, { icon: 'warn', tone: 'warn' })
@@ -365,14 +412,14 @@ export function EinsatzWizard({ edit, nearCoord, onClose, onCreated }: {
     <Modal title={edit ? ix.editTitle : isExercise ? ix.titleNewExercise : ix.titleNew} onClose={onClose} footer={<>
       {/* «Abbrechen» in both modes (29.09.2026): the wizard is ONE step, and closing it goes back
           to the landing without opening anything — a cancel, not a «Zurück» to a previous step */}
-      <button className="ip-btn" onClick={onClose}>{ix.cancel}</button>
+      <button className="ip-btn" onClick={cancel}>{ix.cancel}</button>
       <button className="ip-btn primary" disabled={busy} aria-disabled={!effectiveTitle || demoBlocked} onClick={submit}>
         {/* one verb, title and button alike: «eröffnen» – and «Übung» once the switch says so */}
         {busy ? <><ShellLoader /> {edit ? ix.saving : ix.opening}</> : edit ? ix.save : isExercise ? ix.openExercise : ix.open}
       </button>
     </>}>
-      {/* --- Standort --- */}
-      <div className="ip-ix-head">{ix.locationHead}</div>
+      {/* ONE flat list of fields, no section eyebrows (owner review 10.11.2026: «only like 5
+          things to put in») – each field's own label says what it is. --- Standort --- */}
       <div className="ip-field ip-ac" ref={addrRef}>
         <span>{ix.addressLabel}</span>
         {/* «Hier» (GPS) is an icon-only button riding the field's own right edge — the EL usually
@@ -459,7 +506,6 @@ export function EinsatzWizard({ edit, nearCoord, onClose, onCreated }: {
       </div>
 
       {/* --- Stichwort & Kategorie --- */}
-      <div className="ip-ix-head">{ix.keywordHead}</div>
       <label ref={titleRef} className="ip-field"><span>{ix.titleLabel} *</span>
         {/* no autofocus — the EL usually sets the location (address / object / map) first, so
             opening with the keyboard up over the Stichwort field would be in the way */}
@@ -489,11 +535,11 @@ export function EinsatzWizard({ edit, nearCoord, onClose, onCreated }: {
           + the alarm message. The Rapportangaben hold the rest. ONE section in both modes
           (29.09.2026): the wizard asked «Meldungstext (optional)» then «Alarmzeit» with no
           eyebrow, the edit sheet «Alarmzeit» then «Alarmmeldung» under «Alarmierung» — one field,
-          two names, two places, and the Rapport says «Alarmmeldung».
+          two names, two places, and the Rapport says «Alarmmeldung». The eyebrow went with the
+          other two on 10.11.2026; order and names stay.
           Creating, the time is prefilled with now — leave it for a live incident, set it back to
           enter an analog one afterwards (the paper report keeps the bookkeeping; this row is what
           puts the right date into the catalogue). --- */}
-      <div className="ip-ix-head">{ix.alarmierungHead}</div>
       <label className="ip-field"><span>{ix.alarmTime}</span>
         <DateTimeField ariaLabel={ix.alarmTime} value={dtLocalToIso(alarmiertAt)}
           onCommit={(iso) => setAlarmiertAt(dtLocalValue(iso))} />
@@ -502,7 +548,7 @@ export function EinsatzWizard({ edit, nearCoord, onClose, onCreated }: {
         {/* editing: disabled while the existing Meldungstext could not be read — editing it
             would mean typing over something invisible, and saving would blank it */}
         <textarea className="ip-textarea" rows={edit ? 3 : 2} value={text} disabled={!textReady}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => { textTouched.current = true; setText(e.target.value) }}
           placeholder={textFailed ? ix.alarmTextUnavailable : ix.detailsPlaceholder} />
       </label>
 

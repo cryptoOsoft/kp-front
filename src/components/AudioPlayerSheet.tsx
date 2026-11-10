@@ -318,7 +318,10 @@ export function AudioPlayerSheet({ row, events, readOnly, canTranscribe = true, 
     x.scale(dpr, dpr)
     const css = getComputedStyle(document.documentElement)
     const tok = (n: string) => css.getPropertyValue(n).trim()
-    const INK = tok('--ink'), ACCENT = tok('--accent') || tok('--red')
+    // «played» and the playhead are the CURRENT position, so they wear the blue text tier the
+    // current row wears (18-audio · .ap-row.current) — never the station's --accent, which is
+    // alarm red by default and read as «wrong» (sweep 09.11.2026, UI.5)
+    const INK = tok('--ink'), CURRENT = tok('--blue-strong')
     const toneColor = { entry: tok('--blue'), reminder: tok('--amber'), system: tok('--ink-faint') }
     const frac = durationSec > 0 ? cur / durationSec : 0
     const playedX = w * frac
@@ -328,7 +331,7 @@ export function AudioPlayerSheet({ row, events, readOnly, canTranscribe = true, 
       for (let i = 0; i < n; i++) {
         const bx = i * step
         const bh = Math.max(2, vals[i] * (h - 30))
-        x.fillStyle = bx <= playedX ? ACCENT : INK
+        x.fillStyle = bx <= playedX ? CURRENT : INK
         x.globalAlpha = bx <= playedX ? 0.85 : 0.28
         x.fillRect(bx, (h - 14 - bh) / 2 + 4, Math.max(1, step - 1), bh)
       }
@@ -338,7 +341,7 @@ export function AudioPlayerSheet({ row, events, readOnly, canTranscribe = true, 
       const y = (h - 14) / 2
       x.fillStyle = INK; x.globalAlpha = 0.15
       x.fillRect(0, y, w, 6)
-      x.fillStyle = ACCENT; x.globalAlpha = 0.8
+      x.fillStyle = CURRENT; x.globalAlpha = 0.8
       x.fillRect(0, y, playedX, 6)
       x.globalAlpha = 1
     }
@@ -361,9 +364,9 @@ export function AudioPlayerSheet({ row, events, readOnly, canTranscribe = true, 
         for (let gy = h - 12; gy < h - 3; gy += 3) x.fillRect(px - 1, gy, 2, 2)
       }
     }
-    x.strokeStyle = ACCENT; x.lineWidth = 2
+    x.strokeStyle = CURRENT; x.lineWidth = 2
     x.beginPath(); x.moveTo(playedX, 2); x.lineTo(playedX, h - 12); x.stroke()
-    x.fillStyle = ACCENT; x.beginPath(); x.arc(playedX, 5, 4, 0, 7); x.fill()
+    x.fillStyle = CURRENT; x.beginPath(); x.arc(playedX, 5, 4, 0, 7); x.fill()
   }, [cur, durationSec, peaks, markers, ticks, errored, stt])
 
   // tap/drag to seek

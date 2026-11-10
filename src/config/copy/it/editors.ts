@@ -45,6 +45,9 @@ export const editorsCopy: Localizable<Pick<Copy, Keys>> = {
     readingOr: 'o',
     readingInfoLevels: 'Giallo = A1 (preallarme) raggiunto, rosso = A2 (allarme principale) raggiunto.',
     readingInfoStale: 'Con la sua età (p. es. 18′) e solo il contorno colorato = più di {min} min.',
+    readingOver: 'fuori campo di misura',
+    readingUnreadable: 'Illeggibile – inserire un numero',
+    readingAgain: 'Misura identica',
     removeField: 'Elimina campo',
     fieldKeyPlaceholder: 'Denominazione',
     fieldNamePlaceholder: 'Nome …',
@@ -263,8 +266,6 @@ export const editorsCopy: Localizable<Pick<Copy, Keys>> = {
   },
   topBar: {
     offline: 'Offline',
-    tiles: 'Tasselli',
-    recording: 'REC',
     gpsFrozen: 'GPS congelato',
     gpsFrozenHint: 'Il feed GPS in tempo reale non risponde. I veicoli restano sull’ultima posizione nota.',
   },
