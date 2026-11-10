@@ -44,10 +44,11 @@
     "demo": "Demo öffnen"
   },
   "hero": {
-    "eyebrow": "Open Source&nbsp;· Schweiz",
+    "eyebrow": "Open Source&nbsp;· kostenlos&nbsp;· Schweiz",
     "h1": "Digitale Einsatzführung für die Feuerwehr.",
     "lede": "KP Front ist der digitale Kommandoposten am Einsatzort:\n      <strong>Karte, Pläne, Trupps, Verlauf und Rapport</strong> in einer App.",
     "cta": "Demo öffnen",
+    "ctaSelf": "Selbst betreiben",
     "ctaNote": "Ohne Login – in der Demo brennt es gerade in Musterdorf",
     "frameAddr": "KARTE · ZIMMERBRAND · 2611624 / 1263070",
     "frameAlt": "Karten-Ansicht: taktische Zeichen nach FKS, Sektoren und Schlauchleitungen",
@@ -273,8 +274,10 @@
           "<strong>Gefahrgut-Nachschlagewerk</strong>: UN-Nummern, Stoffinformationen sowie Hinweise zu Absperr- und Schutzdistanzen, direkt im Einsatz verfügbar",
           "Wetter- und Windinformationen als Unterstützung für die Lagebeurteilung, dazu das Niederschlagsradar von MeteoSchweiz als Ebene",
           "Objektpläne als Whiteboard und Geschossstapel",
+          "<strong>Karte &amp; Objekte</strong>: ohne Einsatz die Karte der eigenen Feuerwehr – Objekte, Gefahren, Hydranten und Objektpläne nachschlagen",
           "<strong>Tafel mit FKS-Seiten</strong>: freie Skizze, Erste Führung und Handbuch-Blätter – im Rapport gedruckt wie das Original",
           "<strong>Gebäude-Info</strong>: Angaben aus dem Gebäuderegister – Gas, Heizöl, PV – und die Sofortmassnahmen zum Objekt",
+          "<strong>Messungen</strong>: Messpunkte mit Gaswerten pro Raum und Geschoss, mit Verlauf und Alarmstufen",
           "<strong>Georeferenz</strong>: Plan und Karte über gemeinsame Landmarken verknüpfen – ein Objekt, auf beiden Flächen sichtbar, mit ehrlicher Angabe der Genauigkeit. Die Station lässt ihre Objektpläne vorab ausrichten und gibt sie frei",
           "Rückgängig/Wiederherstellen auf jeder Fläche – dokumentierte Vorgänge bleiben nachvollziehbar"
         ]
@@ -290,6 +293,7 @@
           "<strong>Zeitplan</strong>: Verfügbarkeiten und Schichten pro Person planen, Deckung\n            über den ganzen Einsatz erkennen und als Führungsformular ausgeben",
           "<strong>Standort teilen</strong>: wer den Link öffnet, erscheint als Punkt auf der\n            Lagekarte – freiwillig, und nur für diesen Einsatz",
           "Einsatz per Link weitergeben; Zugriff ist transparent ausgewiesen und kann jederzeit\n            wieder aufgehoben werden",
+          "<strong>Präsentationsmodus</strong>: wer den Einsatz offen hat, folgt dem Bildschirm der präsentierenden Person – alle können zeigen, gespeichert wird nichts",
           "Material mit Bestand und Verbrauch",
           "Checklisten für Führungsunterstützung und Einsatzleitung",
           "Einsatzleiter-Rolle: Anwesenheit, Mittel, Checklisten und Rapport führen – Karte und Trupps nur mitlesen"
@@ -302,6 +306,7 @@
           "Sprachnotizen mit Transkription, Fotos, Erinnerungen",
           "<strong>Zeitreise</strong>: den Einsatz Minute für Minute nachspielen, Wartezeiten\n            übersprungen – für die Nachbesprechung",
           "Einsatzrapport als fixfertiges PDF mit Personal, Material, Zeiten, Journal, Kroki,\n            Fotos und Atemschutzüberwachung",
+          "Rapport und Zeitplan direkt auf dem <strong>Stationsdrucker</strong> im Magazin ausdrucken <span class=\"opt\">optional</span>",
           "<strong>Auswertung</strong> für die Nachbesprechung: Kennzahlen und Zeitachse auf einem eigenen Blatt am Schluss des Rapports",
           "Fotos als Beilagen zum Rapport",
           "<strong>Abschlussprüfung</strong>: vor dem Abschluss zeigt KP Front, welche Angaben oder Klärungen im Rapport noch fehlen",
@@ -315,7 +320,7 @@
         "items": [
           "<strong>Offline-fähig</strong> als installierbare App – die Bereitschaftsprüfung zeigt vor dem Einsatz, ob die benötigten Daten auf dem Gerät sind",
           "Mehrere verbundene Geräte arbeiten auf demselben Stand – nach einem Verbindungsunterbruch werden Änderungen wieder abgeglichen",
-          "Rollen: bearbeiten oder nur mitlesen",
+          "Drei Rollen: Führungsunterstützung bearbeitet alles, der Einsatzleiter führt die Dokumentation und liest die Lage mit, Betrachter lesen nur mit",
           "Tag-/Nachtmodus, Symbolgrösse, grosse Bedienflächen fürs Tablet",
           "Kann Alarme aus Divera oder FireHub übernehmen; weitere Alarmierungssysteme lassen sich über die offene Schnittstelle anbinden <span class=\"opt\">optional</span>",
           "Fahrzeugpositionen per GPS <span class=\"opt\">optional</span>",
@@ -372,6 +377,10 @@
         "a": "KP Front ist Open Source (AGPL-3.0): <strong>keine Lizenzgebühren, kein Abo, keine Kosten pro Gerät</strong>. Jede Feuerwehr betreibt ihre eigene Installation und behält damit die Kontrolle über ihre Daten. Was bleibt, sind die eigenen Kosten für Betrieb, Infrastruktur und allenfalls externe Unterstützung. Die Weiterentwicklung kommt direkt aus der Praxis der Feuerwehr Oberwil BL; Fehlermeldungen, Ideen und Beiträge aus der Open-Source-Community sind willkommen."
       },
       {
+        "q": "Auf welchen Geräten läuft KP Front?",
+        "a": "KP Front läuft im Browser – ohne App Store. Gebaut ist es fürs Tablet: Auf dem iPad und auf Android-Tablets lässt es sich wie eine App auf dem Startbildschirm installieren und arbeitet dann auch ohne Verbindung. Am Laptop im Führungsfahrzeug oder im Magazin läuft dieselbe Oberfläche mit Maus und Tastatur. Das Handy ist der Begleiter: Lage ansehen, Einträge erfassen, den Atemschutz im Blick behalten – gezeichnet und geführt wird am grösseren Bildschirm. Alle Geräte zeigen denselben Einsatz."
+      },
+      {
         "q": "Was braucht es für den Betrieb?",
         "a": "Ein kleiner Mini-PC oder Server im Magazin reicht. Für Einrichtung, Updates und\n          Backups braucht es jemanden mit Docker- und Kommandozeilen-Erfahrung, sei es in der\n          Feuerwehr, in der Gemeinde oder bei einer unterstützenden IT. Die Anleitung und der\n          Verwaltungsbereich führen durch den Aufbau. Allgemeine Fragen beantworten wir gerne;\n          Daten und Betrieb bleiben in der Verantwortung der jeweiligen Feuerwehr."
       },
@@ -393,11 +402,11 @@
       },
       {
         "q": "In welchen Sprachen ist KP Front verfügbar?",
-        "a": "Die Benutzeroberfläche von KP Front ist aktuell auf Deutsch verfügbar. Als Open-Source-Anwendung kann KP Front um weitere Sprachen erweitert werden. Dafür ist eine vollständige und fachlich geprüfte Übersetzung der Feuerwehrbegriffe erforderlich."
+        "a": "Die Benutzeroberfläche von KP Front gibt es auf Deutsch, Französisch, Italienisch und Englisch. Deutsch ist massgebend; die anderen drei Sprachen sind vollständig, aber noch nicht von Feuerwehrleuten gegengelesen. Als Open-Source-Anwendung kann KP Front um weitere Sprachen erweitert werden. Dafür ist eine vollständige und fachlich geprüfte Übersetzung der Feuerwehrbegriffe erforderlich."
       },
       {
         "q": "Wie fangen wir an?",
-        "a": "Mit der <a href=\"https://demo.kp-front.ch\" target=\"_blank\" rel=\"noopener\">Demo</a>,\n          ohne Anmeldung – in Musterdorf brennt es schon, und alle Besucher teilen denselben\n          Einsatz (Neustart täglich um 00:00 Uhr, Zeitzone Europe/Zurich). Danach an einer Übung ausprobieren.\n          Wenn es passt, führt die <a href=\"https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md\" target=\"_blank\" rel=\"noopener\">Einrichtungsanleitung</a> zur eigenen Installation."
+        "a": "Mit der <a href=\"https://demo.kp-front.ch\" target=\"_blank\" rel=\"noopener\">Demo</a>,\n          ohne Anmeldung – in Musterdorf brennt es schon, und alle Besucher teilen denselben\n          Einsatz (Neustart zweimal täglich, um 00:00 und 12:00 Uhr, Zeitzone Europe/Zurich). Danach an einer Übung ausprobieren.\n          Wenn es passt, führt die <a href=\"https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md\" target=\"_blank\" rel=\"noopener\">Einrichtungsanleitung</a> zur eigenen Installation."
       }
     ]
   },
@@ -438,7 +447,8 @@
     "close": "Schliessen",
     "prev": "Vorheriges Bild",
     "next": "Nächstes Bild",
-    "zoom": "Vergrössern"
+    "zoom": "Vergrössern",
+    "hint": "Bild seitwärts schieben"
   },
   "footer": {
     "origin": "Entstanden im Einsatzbetrieb der <a href=\"https://www.feuerwehr-oberwil.ch\" target=\"_blank\" rel=\"noopener\">Feuerwehr Oberwil BL</a> –\n      weil wir im Einsatz immer wieder dieselben Fehlerquellen gesehen haben: Doppelbelegungen, verstreute\n      Informationen und handschriftliche Übertragungsfehler.\n      Jede Feuerwehr betreibt ihr eigenes KP Front, mit eigenen Karten, Plänen und Daten.",

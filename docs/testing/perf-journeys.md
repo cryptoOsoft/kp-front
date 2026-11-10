@@ -65,6 +65,9 @@ journey called. When a request count moves, the report shows which routes change
 - **A regression is confirmed before it fails.** If the first run regresses, CI walks the journeys
   again, and every number takes its best of the two runs. Noise only ever makes a number worse,
   so a regression in both runs is real.
+- **The baseline is the typical walk, not the luckiest** (10.11.2026). A build is judged by one
+  walk, so `just perf-accept` takes several runs and writes the **median** of every time. See
+  «Accepting a baseline» below.
 - **Tolerances per unit** (`scripts/perf-gate.mjs · TOLERANCE`): a number fails above
   `baseline + max(abs, rel × baseline)`.
 
@@ -94,8 +97,8 @@ requests, bytes, writes, memory left behind or interaction times regress against
 - **A red Performance check blocks the merge** like a failing test. Fix the cause first: a new poll,
   a save on open, a chunk pulled into the entry bundle, a listener a surface never removes. The
   summary names the routes that changed.
-- **Never accept a baseline to turn a check green.** `just perf-accept <run-id>` is for a cost the
-  change deliberately buys (a request a feature needs). Take it from a CI run (never a local one),
+- **Never accept a baseline to turn a check green.** `just perf-accept <run-id> …` is for a cost the
+  change deliberately buys (a request a feature needs). Take it from CI runs (never a local one),
   in its own commit, with the reason in the message, and say so in the PR. Accepting a 🟢 gain is
   always welcome.
 - **Never loosen a tolerance or skip a journey to pass.** Gate on a count or a size where the
@@ -116,15 +119,52 @@ changed. The raw numbers are the `perf-results` artifact.
 2. **Intended** (a request the feature needs, a dependency worth its bytes): accept it.
 
    ```bash
-   just perf-accept <run-id>    # the CI run's id, from the PR's «Performance» check
-   git commit -s e2e/perf/baseline.json   # say WHY in the message
+   just perf-accept <run-id> [<run-id> …]   # CI run ids, from the «Performance» check
+   git commit -s e2e/perf/baseline.json     # say WHY in the message, and which runs
    ```
 
-   `perf-accept` downloads that run's numbers and rewrites `e2e/perf/baseline.json`, keeping the
-   `tolerance` block. Take the baseline from a CI run, never from a local one. Counts and bytes
-   would match, but times and heap come from a different machine.
 3. 🟢 **Better than the baseline** by more than its tolerance: accept that too, so the gain is
    defended from then on.
+
+## Accepting a baseline
+
+`just perf-accept` downloads the runs' numbers and rewrites `e2e/perf/baseline.json`, keeping the
+`tolerance` block. Take the baseline from CI runs, never from a local one. Counts and bytes would
+match, but times and heap come from a different machine.
+
+**Give it five to seven runs of the same code** whenever they exist: the PR's run plus its
+re-runs, or the newest green `main` runs when nothing the journeys walk has changed since.
+
+```bash
+gh run list --branch main --workflow ci.yml --status success --limit 7
+just perf-accept 42805629593 42805619827 42773242324 …
+```
+
+Every `perf-results/run*` directory in those runs is one **walk** (a run has two when its first
+one regressed). From the walks, `scripts/perf-gate.mjs · baselineOf` writes:
+
+| numbers | rule | Why |
+| --- | --- | --- |
+| times (`ms`) | **median** of the walks | A PR is judged by one walk. Against the best of N, an ordinary walk reads as drift |
+| counts, kB, MB | **best** (smallest) of the walks, as before | Close to deterministic, with an absolute tolerance; the extra in another walk is a poll or a save that fell into the window. The minimum can never loosen the gate |
+| `calibration` | **median** of the walks that were used | It has to describe the machine the stored times come from: every time budget is scaled by today's calibration over it, upwards only |
+
+**Walks of one kind of runner only.** GitHub hands out three kinds (~29, ~38, ~46 ms). A walk
+whose calibration is more than 10 % off the walks' median is left out whole, and the command says
+which. Mixing would break the scaling: a fast walk pulls the medians down (its times are well below
+the others'), and the gate never scales a budget down to answer for it. Its counts go too: a
+fast runner debounces twenty edits into 10 saves where the others send 12. The baseline records
+how many walks it was written from (`walks`).
+
+One run id still works and gives that run's numbers (the mean of its two walks' times, if it has
+two). Use it for a brand-new journey or when a change has only one run. The next accept from
+several runs replaces it.
+
+Why (measured 10.11.2026, 43 walks from 34 CI runs): the baseline of 09.11. came from one run, and
+for most times only 0–3 of 25 comparable walks beat it. Unchanged builds read ⚠️ +20–25 %
+(`cold-start.pin_to_ready_ms` 3,039 against a median of 3,695, `verlauf.submit_ms` 131 against
+162), and `warm-reload.reload_to_workspace_ms` (377, limit 565) was crossed once at 616. A ⚠️ meant
+«not the lucky run» instead of «drift».
 
 ## Running it locally
 
@@ -145,7 +185,7 @@ look, not a verdict. A loaded box skews every time. Counts and sizes compare as 
   in the page (`timeTo`). Never time a locator action: its actionability waits would be in the
   number.
 - Prefer a count or a size to a time wherever the regression shows in one.
-- Ship it with a baseline from its first CI run (`just perf-accept`). Until then its numbers are
+- Ship it with a baseline from its first CI run (`just perf-accept <run-id>`). Until then its numbers are
   listed as 🆕 and gate nothing.
 
 ## Found on its first walks (2026-10-05)

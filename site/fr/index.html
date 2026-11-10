@@ -70,7 +70,8 @@
 <link rel="alternate" hreflang="rm-CH" href="https://kp-front.ch/rm/">
 <link rel="alternate" hreflang="en" href="https://kp-front.ch/en/">
 <link rel="alternate" hreflang="x-default" href="https://kp-front.ch/">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231b2330'/%3E%3Cg transform='translate(16 16.5) scale(0.085) translate(-257 -274)'%3E%3Cellipse cx='256' cy='398' rx='150' ry='19' fill='%23000' opacity='0.22'/%3E%3Cg stroke='%23c4cedb' stroke-width='3' stroke-linejoin='round'%3E%3Cpolygon points='100,216 198,190 198,380 100,406' fill='%23e7edf4'/%3E%3Cpolygon points='208,190 306,216 306,406 208,380' fill='%23ffffff'/%3E%3Cpolygon points='316,216 414,190 414,380 316,406' fill='%23d8e1ec'/%3E%3C/g%3E%3Cpath fill='%23e8392b' d='M256 350 C221 297 186 260 186 206 A70 70 0 1 1 326 206 C326 260 291 297 256 350 Z'/%3E%3Ccircle cx='256' cy='200' r='30' fill='%23fff'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <meta property="og:type" content="website">
 <meta property="og:title" content="KP Front – Conduite d’intervention numérique pour les sapeurs-pompiers">
 <meta property="og:description" content="Le poste de commandement numérique sur les lieux : carte, plans, binômes, journal et rapport – hors ligne et open source.">
@@ -113,7 +114,10 @@
       "applicationCategory": "BusinessApplication",
       "operatingSystem": "Web browser",
       "inLanguage": [
-        "de"
+        "de",
+        "fr",
+        "it",
+        "en"
       ],
       "softwareVersion": "0.12.0",
       "dateModified": "2026-10-13",
@@ -227,7 +231,7 @@
         "height": 937
       },
       "inLanguage": "fr-CH",
-      "dateModified": "2026-11-08",
+      "dateModified": "2026-11-10",
       "isPartOf": {
         "@id": "https://kp-front.ch/#website"
       },
@@ -262,6 +266,14 @@
           "acceptedAnswer": {
             "@type": "Answer",
             "text": "KP Front est open source (AGPL-3.0) : pas de frais de licence, pas d’abonnement, pas de coût par appareil. Chaque corps exploite sa propre installation et garde ainsi le contrôle de ses données. Restent les coûts propres à l’exploitation, à l’infrastructure et, le cas échéant, à une assistance externe. Le développement vient directement de la pratique des sapeurs-pompiers d’Oberwil BL ; signalements d’erreurs, idées et contributions de la communauté open source sont les bienvenus."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Sur quels appareils KP Front fonctionne-t-il ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "KP Front fonctionne dans le navigateur – sans App Store. Il est conçu pour la tablette : sur l’iPad et sur les tablettes Android, il s’installe sur l’écran d’accueil comme une application et fonctionne alors aussi sans connexion. Sur l’ordinateur portable, dans le véhicule de commandement ou à la caserne, la même interface s’utilise à la souris et au clavier. Le téléphone est le compagnon : consulter la situation, saisir des entrées, garder un œil sur la protection respiratoire – on dessine et on conduit sur le grand écran. Tous les appareils montrent la même intervention."
           }
         },
         {
@@ -309,7 +321,7 @@
           "name": "Dans quelles langues KP Front est-il disponible ?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "L’interface utilisateur de KP Front est actuellement disponible en allemand. En tant qu’application open source, KP Front peut être étendu à d’autres langues. Cela nécessite une traduction complète et vérifiée par des spécialistes de la terminologie des sapeurs-pompiers."
+            "text": "L’interface utilisateur de KP Front existe en allemand, en français, en italien et en anglais. L’allemand fait foi ; les trois autres langues sont complètes, mais n’ont pas encore été relues par des sapeurs-pompiers. En tant qu’application open source, KP Front peut être étendu à d’autres langues. Cela nécessite une traduction complète et vérifiée par des spécialistes de la terminologie des sapeurs-pompiers."
           }
         },
         {
@@ -317,7 +329,7 @@
           "name": "Comment commencer ?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Par la démo, sans inscription – à Musterdorf, le feu est déjà déclaré, et tous les visiteurs partagent la même intervention (elle redémarre chaque jour à 00 h 00, fuseau horaire Europe/Zurich). Ensuite, l’essayer à un exercice. Si cela convient, le guide d’installation mène à votre propre instance."
+            "text": "Par la démo, sans inscription – à Musterdorf, le feu est déjà déclaré, et tous les visiteurs partagent la même intervention (elle redémarre deux fois par jour, à 00 h 00 et à 12 h 00, fuseau horaire Europe/Zurich). Ensuite, l’essayer à un exercice. Si cela convient, le guide d’installation mène à votre propre instance."
           }
         }
       ]
@@ -399,12 +411,13 @@
 </div>
 <main>
   <section class="hero wrap">
-    <p class="eyebrow">Open source&nbsp;· Suisse</p>
+    <p class="eyebrow">Open source&nbsp;· gratuit&nbsp;· Suisse</p>
     <h1>La conduite d’intervention numérique pour les sapeurs-pompiers.</h1>
     <p class="lede">KP Front est le poste de commandement numérique sur les lieux :
       <strong>carte, plans, binômes, journal et rapport</strong> dans une seule application.</p>
     <div class="cta-row">
       <a class="btn btn-primary" href="https://demo.kp-front.ch" target="_blank" rel="noopener"><svg class="ico"><use href="#i-play"/></svg>Ouvrir la démo</a>
+      <a class="btn btn-ghost" href="https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md" target="_blank" rel="noopener">L’exploiter soi-même</a>
       <span class="cta-note">Sans inscription – dans la démo, il y a le feu à Musterdorf (interface en allemand)</span>
     </div>
     <figure class="frame">
@@ -732,8 +745,10 @@
           <li><strong>Répertoire des matières dangereuses</strong>&nbsp;: numéros ONU, informations sur les substances et indications concernant les distances d’isolation et de protection, disponibles directement pendant l’intervention</li>
           <li>Informations météorologiques et données sur le vent pour soutenir l’appréciation de la situation, ainsi que le radar de précipitations de MétéoSuisse comme couche</li>
           <li>Plans d’objet comme tableau blanc et étages superposés</li>
+          <li><strong>Carte &amp; objets</strong> : hors intervention, la carte de votre propre corps – consulter objets, dangers, hydrantes et plans d’objet</li>
           <li><strong>Tableau avec pages CSSP</strong>&nbsp;: croquis libre, Première Conduite et feuilles du manuel – imprimés dans le rapport comme l’original</li>
           <li><strong>Info bâtiment</strong>&nbsp;: données du registre des bâtiments – gaz, mazout, photovoltaïque – et mesures immédiates pour l’objet</li>
+          <li><strong>Mesures</strong> : points de mesure avec valeurs de gaz par local et par étage, avec historique et seuils d’alarme</li>
           <li><strong>Géoréférencement</strong>&nbsp;: relier un plan à la carte par des points de repère communs – un seul objet, visible sur les deux surfaces, avec une indication honnête de la précision. La caserne fait aligner ses plans à l’avance et les valide</li>
           <li>Annuler/rétablir sur chaque surface – les événements documentés restent traçables</li>
         </ul>
@@ -753,6 +768,7 @@
             carte de situation – volontairement, et pour cette intervention seulement</li>
           <li>Partager l’intervention par lien ; l’accès est clairement signalé et peut être révoqué
             à tout moment</li>
+          <li><strong>Mode présentation</strong> : toute personne qui a l’intervention ouverte suit l’écran de celle qui présente – tous peuvent pointer, rien n’est enregistré</li>
           <li>Matériel avec stock et consommation</li>
           <li>Checklists pour l’aide à la conduite et le chef d’intervention</li>
           <li>Rôle chef d’intervention : tenir la présence, les moyens, les check-lists et le rapport – lire la carte et les équipes sans rien déplacer</li>
@@ -767,6 +783,7 @@
             pour le débriefing</li>
           <li>Rapport d’intervention prêt au format PDF, avec effectif, matériel, horaires, journal,
             croquis, photos et surveillance PR</li>
+          <li>Imprimer le rapport et le plan horaire directement sur l’<strong>imprimante de la caserne</strong> <span class="opt">facultatif</span></li>
           <li><strong>Analyse</strong> pour le débriefing&nbsp;: chiffres clés et ligne du temps sur une feuille à part, à la fin du rapport</li>
           <li>Photos en annexe au rapport</li>
           <li><strong>Contrôle final</strong>&nbsp;: avant la clôture, KP Front indique quelles informations ou clarifications manquent encore dans le rapport</li>
@@ -780,7 +797,7 @@
         <ul class="flist">
           <li><strong>Fonctionne hors ligne</strong> comme application installable – le contrôle de disponibilité indique avant l’intervention si les données nécessaires sont sur l’appareil</li>
           <li>Plusieurs appareils connectés travaillent sur le même état – après une interruption de connexion, les modifications sont à nouveau synchronisées</li>
-          <li>Rôles : modifier, ou seulement suivre</li>
+          <li>Trois rôles : l’aide à la conduite modifie tout, le chef d’intervention tient la documentation et suit la situation, les observateurs lisent seulement</li>
           <li>Mode jour/nuit, taille des symboles, grandes zones tactiles pour la tablette</li>
           <li>Peut reprendre les alarmes de Divera ou FireHub ; d’autres systèmes d’alerte peuvent être raccordés par l’interface ouverte <span class="opt">facultatif</span></li>
           <li>Positions des véhicules par GPS <span class="opt">facultatif</span></li>
@@ -802,7 +819,7 @@
           commandement arrière : un tableau pour le personnel, les véhicules et le matériel.
           Application distincte, même écriture – les deux reçoivent la même alarme du
           système d’alarme et n’ont pas besoin l’une de l’autre. Les deux applications peuvent être engagées dans une même situation, en parallèle et indépendamment l’une de l’autre.</p>
-          <a class="btn btn-ghost" href="https://kp-rueck.ch">Découvrir KP Rück<svg class="ico" style="width:14px;height:14px"><use href="#i-arrow"/></svg></a>
+          <a class="btn btn-ghost" href="https://kp-rueck.ch/fr/">Découvrir KP Rück<svg class="ico" style="width:14px;height:14px"><use href="#i-arrow"/></svg></a>
         </div>
 
         <div class="setup-card">
@@ -858,6 +875,10 @@
         <p>KP Front est open source (AGPL-3.0) : <strong>pas de frais de licence, pas d’abonnement, pas de coût par appareil</strong>. Chaque corps exploite sa propre installation et garde ainsi le contrôle de ses données. Restent les coûts propres à l’exploitation, à l’infrastructure et, le cas échéant, à une assistance externe. Le développement vient directement de la pratique des sapeurs-pompiers d’Oberwil BL ; signalements d’erreurs, idées et contributions de la communauté open source sont les bienvenus.</p>
       </div>
       <div class="faq-item">
+        <h3>Sur quels appareils KP Front fonctionne-t-il ?</h3>
+        <p>KP Front fonctionne dans le navigateur – sans App Store. Il est conçu pour la tablette : sur l’iPad et sur les tablettes Android, il s’installe sur l’écran d’accueil comme une application et fonctionne alors aussi sans connexion. Sur l’ordinateur portable, dans le véhicule de commandement ou à la caserne, la même interface s’utilise à la souris et au clavier. Le téléphone est le compagnon : consulter la situation, saisir des entrées, garder un œil sur la protection respiratoire – on dessine et on conduit sur le grand écran. Tous les appareils montrent la même intervention.</p>
+      </div>
+      <div class="faq-item">
         <h3>Que faut-il pour l’exploiter ?</h3>
         <p>Un petit mini-PC ou serveur à la caserne suffit. L’installation, les mises à jour et
           les sauvegardes nécessitent une personne à l’aise avec Docker et la ligne de commande,
@@ -896,13 +917,13 @@
       </div>
       <div class="faq-item">
         <h3>Dans quelles langues KP Front est-il disponible ?</h3>
-        <p>L’interface utilisateur de KP Front est actuellement disponible en allemand. En tant qu’application open source, KP Front peut être étendu à d’autres langues. Cela nécessite une traduction complète et vérifiée par des spécialistes de la terminologie des sapeurs-pompiers.</p>
+        <p>L’interface utilisateur de KP Front existe en allemand, en français, en italien et en anglais. L’allemand fait foi ; les trois autres langues sont complètes, mais n’ont pas encore été relues par des sapeurs-pompiers. En tant qu’application open source, KP Front peut être étendu à d’autres langues. Cela nécessite une traduction complète et vérifiée par des spécialistes de la terminologie des sapeurs-pompiers.</p>
       </div>
       <div class="faq-item">
         <h3>Comment commencer ?</h3>
         <p>Par la <a href="https://demo.kp-front.ch" target="_blank" rel="noopener">démo</a>,
           sans inscription – à Musterdorf, le feu est déjà déclaré, et tous les visiteurs partagent
-          la même intervention (elle redémarre chaque jour à 00 h 00, fuseau horaire Europe/Zurich). Ensuite, l’essayer à un
+          la même intervention (elle redémarre deux fois par jour, à 00 h 00 et à 12 h 00, fuseau horaire Europe/Zurich). Ensuite, l’essayer à un
           exercice. Si cela convient, le <a href="https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md" target="_blank" rel="noopener">guide d’installation</a> mène à votre propre instance.</p>
       </div>
     </div>
@@ -980,7 +1001,7 @@
       <a href="https://github.com/feuerwehr-oberwil/kp-front" target="_blank" rel="noopener">GitHub</a>
       <a href="https://github.com/feuerwehr-oberwil" target="_blank" rel="noopener me">Sapeurs-pompiers d’Oberwil sur GitHub</a>
       <a href="https://demo.kp-front.ch" target="_blank" rel="noopener">Démo</a>
-      <a href="https://kp-rueck.ch">KP Rück</a>
+      <a href="https://kp-rueck.ch/fr/">KP Rück</a>
       <a href="#kontakt">Contact</a>
       <a href="https://github.com/feuerwehr-oberwil/kp-front/security/policy" target="_blank" rel="noopener">Sécurité</a>
     </div>
@@ -1064,6 +1085,11 @@
   })();
 
   // Both the gallery and its enlarged picture use native theme-aware sources.
+  // On a phone (landing.css, max-width 620px) a 1500 px tablet capture at viewport width is
+  // unreadable, so there the picture is shown taller than it is wide enough for: it scrolls
+  // sideways inside <picture>, a track and a hint say so, and «‹ 2 / 9 ›» sits at the bottom.
+  // A swipe changes the picture – on the picture itself only from the edge it is scrolled to,
+  // so that sliding it never flips it. Nothing here animates.
   (function () {
     var btns = [].slice.call(document.querySelectorAll('.shot-zoom'));
     if (!btns.length || typeof HTMLDialogElement === 'undefined') return;
@@ -1074,13 +1100,32 @@
       '<button class="lb-x" type="button" aria-label="Fermer">×</button>' +
       '<button class="lb-nav lb-prev" type="button" aria-label="Image précédente">‹</button>' +
       '<button class="lb-nav lb-next" type="button" aria-label="Image suivante">›</button>' +
-      '<figure class="lb-fig"><picture><source data-theme-dark><img alt=""></picture><figcaption></figcaption></figure>';
+      '<span class="lb-count"></span>' +
+      '<figure class="lb-fig"><picture><source data-theme-dark><img alt=""></picture>' +
+      '<div class="lb-track" aria-hidden="true" hidden><i></i></div>' +
+      '<p class="lb-hint" aria-hidden="true" hidden>← Faire glisser l’image de côté →</p>' +
+      '<figcaption></figcaption></figure>';
     document.body.appendChild(dlg);
 
     var img = dlg.querySelector('.lb-fig img');
     var dark = dlg.querySelector('source');
     var cap = dlg.querySelector('.lb-fig figcaption');
+    var pan = dlg.querySelector('.lb-fig picture');
+    var track = dlg.querySelector('.lb-track');
+    var thumb = track.firstChild;
+    var hint = dlg.querySelector('.lb-hint');
+    var count = dlg.querySelector('.lb-count');
     var idx = 0;
+
+    // The track mirrors the sideways scroll; it and the hint exist only while the picture
+    // really is wider than its box (never on a desktop, where the picture is fitted).
+    var syncPan = function () {
+      var fits = pan.scrollWidth <= pan.clientWidth + 1;
+      track.hidden = hint.hidden = fits;
+      if (fits) return;
+      thumb.style.left = (pan.scrollLeft / pan.scrollWidth * 100) + '%';
+      thumb.style.width = (pan.clientWidth / pan.scrollWidth * 100) + '%';
+    };
 
     var show = function (i) {
       idx = (i + btns.length) % btns.length;
@@ -1092,10 +1137,13 @@
       img.alt = src.alt;
       cap.innerHTML = '<b>' + s.querySelector('.cap-t').textContent + '</b> – '
         + s.querySelector('.cap-s').textContent;
+      count.textContent = (idx + 1) + ' / ' + btns.length;
+      pan.scrollLeft = 0;
+      syncPan();
     };
 
     btns.forEach(function (btn, i) {
-      btn.addEventListener('click', function () { show(i); dlg.showModal(); });
+      btn.addEventListener('click', function () { show(i); dlg.showModal(); syncPan(); });
     });
     dlg.querySelector('.lb-x').addEventListener('click', function () { dlg.close(); });
     dlg.querySelector('.lb-prev').addEventListener('click', function () { show(idx - 1); });
@@ -1105,5 +1153,30 @@
       if (e.key === 'ArrowLeft') { e.preventDefault(); show(idx - 1); }
       if (e.key === 'ArrowRight') { e.preventDefault(); show(idx + 1); }
     });
+
+    pan.addEventListener('scroll', syncPan, { passive: true });
+    img.addEventListener('load', syncPan);
+    addEventListener('resize', syncPan);
+
+    var touch = null;
+    dlg.addEventListener('touchstart', function (e) {
+      if (e.touches.length !== 1) { touch = null; return; }
+      var onPicture = pan.contains(e.target);
+      touch = {
+        x: e.touches[0].clientX, y: e.touches[0].clientY,
+        prev: !onPicture || pan.scrollLeft <= 1,
+        next: !onPicture || pan.scrollLeft >= pan.scrollWidth - pan.clientWidth - 1
+      };
+    }, { passive: true });
+    dlg.addEventListener('touchend', function (e) {
+      if (!touch) return;
+      var dx = e.changedTouches[0].clientX - touch.x;
+      var dy = e.changedTouches[0].clientY - touch.y;
+      if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        if (dx > 0 && touch.prev) show(idx - 1);
+        if (dx < 0 && touch.next) show(idx + 1);
+      }
+      touch = null;
+    }, { passive: true });
   })();
 </script>

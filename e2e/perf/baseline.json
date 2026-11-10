@@ -1,8 +1,9 @@
 {
-  "$comment": "Written by `node scripts/perf-report.mjs --update` from a CI run (`just perf-accept <run-id>`). Hand-edit only `tolerance`. docs/testing/perf-journeys.md",
-  "recorded": "2026-11-09",
-  "source": "CI run 42717650281",
-  "calibration": 46.45,
+  "$comment": "Written by `node scripts/perf-report.mjs --update` from CI runs (`just perf-accept <run-id> …`): times are the median of `walks` walks, the rest their best. Hand-edit only `tolerance`. docs/testing/perf-journeys.md",
+  "recorded": "2026-11-10",
+  "source": "CI run 42805629593 42805619827 42773242324 42771416256 42771079598 42769156755 42717650281",
+  "walks": 8,
+  "calibration": 46.3,
   "tolerance": {},
   "metrics": {
     "cold-start.api_kb": {
@@ -14,7 +15,7 @@
       "unit": "count"
     },
     "cold-start.blocking_ms": {
-      "value": 794,
+      "value": 961,
       "unit": "ms"
     },
     "cold-start.dom_nodes": {
@@ -34,7 +35,7 @@
       "unit": "count"
     },
     "cold-start.login_screen_ms": {
-      "value": 699.1,
+      "value": 786,
       "unit": "ms"
     },
     "cold-start.long_tasks": {
@@ -42,11 +43,11 @@
       "unit": "count"
     },
     "cold-start.pin_to_ready_ms": {
-      "value": 3039,
+      "value": 3405.4,
       "unit": "ms"
     },
     "cold-start.pin_to_workspace_ms": {
-      "value": 972.2,
+      "value": 997.9,
       "unit": "ms"
     },
     "cold-start.static_requests": {
@@ -54,7 +55,7 @@
       "unit": "count"
     },
     "cold-start.total_ms": {
-      "value": 4085.1,
+      "value": 4590.2,
       "unit": "ms"
     },
     "cold-start.writes": {
@@ -66,7 +67,7 @@
       "unit": "kb"
     },
     "edit.api_requests": {
-      "value": 77,
+      "value": 76,
       "unit": "count"
     },
     "edit.external_hosts": {
@@ -74,11 +75,11 @@
       "unit": "count"
     },
     "edit.karte_long_tasks": {
-      "value": 162,
+      "value": 152,
       "unit": "count"
     },
     "edit.karte_script_ms": {
-      "value": 1966.6,
+      "value": 1986.5,
       "unit": "ms"
     },
     "edit.kb_per_save": {
@@ -86,7 +87,7 @@
       "unit": "kb"
     },
     "edit.saves": {
-      "value": 12,
+      "value": 11,
       "unit": "count"
     },
     "edit.static_requests": {
@@ -102,7 +103,7 @@
       "unit": "ms"
     },
     "edit.tafel_tap_ms": {
-      "value": 78.1,
+      "value": 91,
       "unit": "ms"
     },
     "edit.workspace_pull_kb": {
@@ -122,7 +123,7 @@
       "unit": "count"
     },
     "idle.heap_growth_mb": {
-      "value": 0.3,
+      "value": 0.2,
       "unit": "mb"
     },
     "idle.layouts_per_min": {
@@ -138,7 +139,7 @@
       "unit": "count"
     },
     "idle.script_ms_per_min": {
-      "value": 141.6,
+      "value": 148.7,
       "unit": "ms"
     },
     "idle.style_recalcs_per_min": {
@@ -146,11 +147,11 @@
       "unit": "count"
     },
     "idle.task_ms_per_min": {
-      "value": 201.6,
+      "value": 211,
       "unit": "ms"
     },
     "surface-tour.blocking_ms": {
-      "value": 177,
+      "value": 203,
       "unit": "ms"
     },
     "surface-tour.dom_node_growth": {
@@ -158,7 +159,7 @@
       "unit": "count"
     },
     "surface-tour.heap_growth_mb": {
-      "value": 1.5,
+      "value": 1.3,
       "unit": "mb"
     },
     "surface-tour.interaction_max_ms": {
@@ -170,7 +171,7 @@
       "unit": "count"
     },
     "surface-tour.switch_anwesenheit_ms": {
-      "value": 69.9,
+      "value": 76.5,
       "unit": "ms"
     },
     "surface-tour.switch_checkliste_ms": {
@@ -178,35 +179,35 @@
       "unit": "ms"
     },
     "surface-tour.switch_gebaeude_ms": {
-      "value": 86.2,
+      "value": 94,
       "unit": "ms"
     },
     "surface-tour.switch_karte_ms": {
-      "value": 79.3,
+      "value": 88.5,
       "unit": "ms"
     },
     "surface-tour.switch_material_ms": {
-      "value": 50.1,
+      "value": 49.5,
       "unit": "ms"
     },
     "surface-tour.switch_p50_ms": {
-      "value": 70.3,
+      "value": 71.4,
       "unit": "ms"
     },
     "surface-tour.switch_rapport_ms": {
-      "value": 174.8,
+      "value": 191.1,
       "unit": "ms"
     },
     "surface-tour.switch_tafel_ms": {
-      "value": 57.9,
+      "value": 66.1,
       "unit": "ms"
     },
     "surface-tour.switch_trupps_ms": {
-      "value": 68.5,
+      "value": 70.2,
       "unit": "ms"
     },
     "trupps.api_kb": {
-      "value": 8.8,
+      "value": 8.6,
       "unit": "kb"
     },
     "trupps.api_requests": {
@@ -218,7 +219,7 @@
       "unit": "ms"
     },
     "trupps.contact_ms": {
-      "value": 77.7,
+      "value": 78.6,
       "unit": "ms"
     },
     "trupps.external_hosts": {
@@ -226,7 +227,7 @@
       "unit": "count"
     },
     "trupps.interaction_max_ms": {
-      "value": 48,
+      "value": 44,
       "unit": "ms"
     },
     "trupps.kb_per_save": {
@@ -250,7 +251,7 @@
       "unit": "count"
     },
     "verlauf.api_kb": {
-      "value": 8.7,
+      "value": 8.6,
       "unit": "kb"
     },
     "verlauf.api_requests": {
@@ -258,7 +259,7 @@
       "unit": "count"
     },
     "verlauf.compose_interaction_max_ms": {
-      "value": 248,
+      "value": 244,
       "unit": "ms"
     },
     "verlauf.external_hosts": {
@@ -270,15 +271,15 @@
       "unit": "count"
     },
     "verlauf.open_verlauf_blocking_ms": {
-      "value": 89,
+      "value": 95,
       "unit": "ms"
     },
     "verlauf.open_verlauf_ms": {
-      "value": 311.7,
+      "value": 322.2,
       "unit": "ms"
     },
     "verlauf.remote_entry_visible_ms": {
-      "value": 116.6,
+      "value": 149.8,
       "unit": "ms"
     },
     "verlauf.static_requests": {
@@ -286,7 +287,7 @@
       "unit": "count"
     },
     "verlauf.submit_ms": {
-      "value": 130.9,
+      "value": 154.8,
       "unit": "ms"
     },
     "warm-reload.api_kb": {
@@ -298,7 +299,7 @@
       "unit": "count"
     },
     "warm-reload.blocking_ms": {
-      "value": 870,
+      "value": 895,
       "unit": "ms"
     },
     "warm-reload.external_hosts": {
@@ -306,11 +307,11 @@
       "unit": "count"
     },
     "warm-reload.reload_to_ready_ms": {
-      "value": 2715.2,
+      "value": 2871.2,
       "unit": "ms"
     },
     "warm-reload.reload_to_workspace_ms": {
-      "value": 376.7,
+      "value": 443.1,
       "unit": "ms"
     },
     "warm-reload.static_requests": {
@@ -354,7 +355,7 @@
         "GET /api/reference": 1,
         "POST /api/incidents/:id/events": 1,
         "POST /api/incidents/:id/journal": 20,
-        "PUT /api/incidents/:id/workspace": 12
+        "PUT /api/incidents/:id/workspace": 11
       }
     },
     "idle": {

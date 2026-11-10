@@ -70,7 +70,8 @@
 <link rel="alternate" hreflang="rm-CH" href="https://kp-front.ch/rm/">
 <link rel="alternate" hreflang="en" href="https://kp-front.ch/en/">
 <link rel="alternate" hreflang="x-default" href="https://kp-front.ch/">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231b2330'/%3E%3Cg transform='translate(16 16.5) scale(0.085) translate(-257 -274)'%3E%3Cellipse cx='256' cy='398' rx='150' ry='19' fill='%23000' opacity='0.22'/%3E%3Cg stroke='%23c4cedb' stroke-width='3' stroke-linejoin='round'%3E%3Cpolygon points='100,216 198,190 198,380 100,406' fill='%23e7edf4'/%3E%3Cpolygon points='208,190 306,216 306,406 208,380' fill='%23ffffff'/%3E%3Cpolygon points='316,216 414,190 414,380 316,406' fill='%23d8e1ec'/%3E%3C/g%3E%3Cpath fill='%23e8392b' d='M256 350 C221 297 186 260 186 206 A70 70 0 1 1 326 206 C326 260 291 297 256 350 Z'/%3E%3Ccircle cx='256' cy='200' r='30' fill='%23fff'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <meta property="og:type" content="website">
 <meta property="og:title" content="KP Front – Direcziun digitala d’acziun per ils pumpiers">
 <meta property="og:description" content="Il post da commando digital al lieu d’acziun: charta, plans, gruppas, decurs e rapport – utilisabel offline ed open source.">
@@ -113,7 +114,10 @@
       "applicationCategory": "BusinessApplication",
       "operatingSystem": "Web browser",
       "inLanguage": [
-        "de"
+        "de",
+        "fr",
+        "it",
+        "en"
       ],
       "softwareVersion": "0.12.0",
       "dateModified": "2026-10-13",
@@ -227,7 +231,7 @@
         "height": 937
       },
       "inLanguage": "rm-CH",
-      "dateModified": "2026-11-08",
+      "dateModified": "2026-11-10",
       "isPartOf": {
         "@id": "https://kp-front.ch/#website"
       },
@@ -262,6 +266,14 @@
           "acceptedAnswer": {
             "@type": "Answer",
             "text": "KP Front è open source (AGPL-3.0): naginas taxas da licenza, nagin abunament, nagins custs per apparat. Mintga corps maina si’atgna installaziun e mantegna uschia la controlla da sias datas. Restan ils agens custs da manaschi, infrastructura ed eventual sustegn extern. Il svilup deriva directamain da la pratica dals pumpiers d’Oberwil BL; annunzias d’errurs, ideas e contribuziuns da la cuminanza open source èn bainvegnidas."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Sin tge apparats funcziuna KP Front?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "KP Front funcziuna en il browser – senza App Store. El è fatg per il tablet: sin l’iPad e sin tablets Android sa lascha el installar sco ina app sin il visur da partenza e funcziuna lura er senza connexiun. Sin il laptop en il vehichel da commando u en il magazin funcziuna la medema interfatscha cun mieur e tastatura. Il telefonin è l’accumpagnader: guardar la situaziun, registrar endataziuns, tegnair en egl la protecziun respiratorica – dissegnà e manà vegn sin il visur pli grond. Tut ils apparats mussan la medema acziun."
           }
         },
         {
@@ -309,7 +321,7 @@
           "name": "En tge linguas è KP Front disponibel?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "L’interfatscha d’utilisader da KP Front è actualmain disponibla per tudestg. Sco applicaziun open source po KP Front vegnir amplifitgà cun ulteriuras linguas. Per quai dovri ina translaziun cumpletta e controllada professiunalmain dals terms dals pumpiers."
+            "text": "L’interfatscha d’utilisader da KP Front datti per tudestg, franzos, talian ed englais. Il tudestg è decisiv; las autras trais linguas èn cumplettas, ma n’èn anc betg vegnidas controlladas da pumpiers. Sco applicaziun open source po KP Front vegnir amplifitgà cun ulteriuras linguas. Per quai dovri ina translaziun cumpletta e controllada professiunalmain dals terms dals pumpiers."
           }
         },
         {
@@ -317,7 +329,7 @@
           "name": "Co cumenzar?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Cun la demo, senza registraziun – a Musterdorf arda gia, e tut ils visitaders partan la medema intervenziun (ella cumenza mintga di da nov a las 00:00, zona d’urari Europe/Zurich). Suenter testar durant in exercizi. Sche l’applicaziun cunvegna, maina l’instrucziun d’installaziun a l’atgna instanza."
+            "text": "Cun la demo, senza registraziun – a Musterdorf arda gia, e tut ils visitaders partan la medema intervenziun (ella cumenza duas giadas per di da nov, a las 00:00 ed a las 12:00, zona d’urari Europe/Zurich). Suenter testar durant in exercizi. Sche l’applicaziun cunvegna, maina l’instrucziun d’installaziun a l’atgna instanza."
           }
         }
       ]
@@ -399,12 +411,13 @@
 </div>
 <main>
   <section class="hero wrap">
-    <p class="eyebrow">Open source&nbsp;· Svizra</p>
+    <p class="eyebrow">Open source&nbsp;· gratuit&nbsp;· Svizra</p>
     <h1>Direcziun digitala d’acziun per ils pumpiers.</h1>
     <p class="lede">KP Front è il post da commando digital al lieu d’acziun:
       <strong>charta, plans, gruppas, decurs e rapport</strong> en ina applicaziun.</p>
     <div class="cta-row">
       <a class="btn btn-primary" href="https://demo.kp-front.ch" target="_blank" rel="noopener"><svg class="ico"><use href="#i-play"/></svg>Avrir la demo</a>
+      <a class="btn btn-ghost" href="https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md" target="_blank" rel="noopener">Manar sez</a>
       <span class="cta-note">Senza login – en la demo arda gist insatge a Musterdorf</span>
     </div>
     <figure class="frame">
@@ -726,8 +739,10 @@
           <li><strong>Register da materias privlusas</strong>: nums ONU, infurmaziuns davart substanzas e recumandaziuns per distanzas da bloccada e da protecziun, disponibel directamain durant l’acziun</li>
           <li>Infurmaziuns meteorologicas e da vent per sustegnair la valitaziun da la situaziun, ed il radar da precipitaziuns da MeteoSvizra sco nivel</li>
           <li>Plans d’object sco tavla da lavur e plauns superposts</li>
+          <li><strong>Charta &amp; objects</strong>: senza acziun la charta da l’agen corp – consultar objects, privels, idrants e plans d’object</li>
           <li><strong>Tavla cun paginas FKS</strong>: skizza libra, «Erste Führung» e fegls dal manual FKS – stampads en il rapport sco l’original</li>
           <li><strong>Infurmaziuns davart l’edifizi</strong>: datas dal register d’edifizis – gas, ieli da stgaudar, PV – e mesiras immediatas per l’object</li>
+          <li><strong>Mesiraziuns</strong>: puncts da mesiraziun cun valurs da gas per local e per plaun, cun decurs e stgalims d’alarm</li>
           <li><strong>Georeferenziaziun</strong>: colliar plan e charta sur puncts da referenza cuminaivels – in object, visibel sin omaduas surfatschas, cun indicaziun da la precisiun. Il corps da pumpiers po orientar e deliberar ils plans d’object ordavant</li>
           <li>Revocar e restabilir sin mintga surfatscha – process documentads restan chapibels</li>
         </ul>
@@ -746,6 +761,7 @@
             charta da situaziun – voluntarmain, e mo per questa acziun</li>
           <li>Dar vinavant l’access ad in’acziun cun in link; l’access è visibel e po vegnir
             revocà</li>
+          <li><strong>Modus da preschentaziun</strong>: tgi che ha averta l’acziun suonda il visur da la persuna che preschenta – tuts pon mussar, nagut vegn memorisà</li>
           <li>Material cun inventari e consum</li>
           <li>Glistas da controlla adattablas cun access direct als instruments correspundents</li>
           <li>Rolla da direcziun d’acziun: administrar preschientscha, meds, glistas da controlla e rapport – leger charta e gruppas senza dretg da modifitgar</li>
@@ -760,6 +776,7 @@
             lungs vegnan sursiglids – per la discussiun finala</li>
           <li>Rapport d’acziun sco PDF cun persunal, material, temps, decurs, skizza,
             fotografias e surveglianza respiratorica</li>
+          <li>Stampar rapport ed urari directamain sin il <strong>stampader dal magazin</strong> <span class="opt">opziunal</span></li>
           <li><strong>Evaluaziun</strong> per la discussiun finala: cifras clav ed ina lingia dal temp sin in agen fegl a la fin dal rapport</li>
           <li>Fotografias sco annexas al rapport</li>
           <li><strong>Controlla finala</strong> che mussa indicaziuns mancantas</li>
@@ -773,7 +790,7 @@
         <ul class="flist">
           <li><strong>Utilisabel offline</strong> sco applicaziun installabla – ina controlla da prontezza mussa avant l’acziun sche las datas necessarias èn memorisadas sin l’apparat</li>
           <li>Plirs apparats lavuran cun il medem stadi – modificaziuns registradas durant in’interrupziun vegnan sincronisadas uschespert ch’ina connexiun è puspè disponibla</li>
-          <li>Rollas per modifitgar u mo leger</li>
+          <li>Trais rollas: il sustegn da direcziun modifitgescha tut, il manader d’acziun maina la documentaziun e legia la situaziun, observaders legian mo</li>
           <li>Modus da di e da notg, grondezza dals simbols e surfatschas grondas per tablets</li>
           <li>Surpigliar alarms da Divera u FireHub ed integrar ulteriurs sistems d’alarmaziun sur ina interfatscha averta <span class="opt">opziunal</span></li>
           <li>Posiziuns GPS dals vehichels <span class="opt">opziunal</span></li>
@@ -794,7 +811,7 @@
           <p><strong>KP Rück</strong> è la versiun digitala da la tavla magnetica en il post da commando
           posteriur: ina tavla per persunal, vehichels e material. Las duas applicaziuns
           survegnan il medem alarm dal sistem d’alarmaziun e funcziunan independentamain. Ellas pon vegnir utilisadas en parallel en la medema situaziun.</p>
-          <a class="btn btn-ghost" href="https://kp-rueck.ch">Vesair KP Rück<svg class="ico" style="width:14px;height:14px"><use href="#i-arrow"/></svg></a>
+          <a class="btn btn-ghost" href="https://kp-rueck.ch/rm/">Vesair KP Rück<svg class="ico" style="width:14px;height:14px"><use href="#i-arrow"/></svg></a>
         </div>
 
         <div class="setup-card">
@@ -844,6 +861,10 @@
         <p>KP Front è open source (AGPL-3.0): <strong>naginas taxas da licenza, nagin abunament, nagins custs per apparat</strong>. Mintga corps maina si’atgna installaziun e mantegna uschia la controlla da sias datas. Restan ils agens custs da manaschi, infrastructura ed eventual sustegn extern. Il svilup deriva directamain da la pratica dals pumpiers d’Oberwil BL; annunzias d’errurs, ideas e contribuziuns da la cuminanza open source èn bainvegnidas.</p>
       </div>
       <div class="faq-item">
+        <h3>Sin tge apparats funcziuna KP Front?</h3>
+        <p>KP Front funcziuna en il browser – senza App Store. El è fatg per il tablet: sin l’iPad e sin tablets Android sa lascha el installar sco ina app sin il visur da partenza e funcziuna lura er senza connexiun. Sin il laptop en il vehichel da commando u en il magazin funcziuna la medema interfatscha cun mieur e tastatura. Il telefonin è l’accumpagnader: guardar la situaziun, registrar endataziuns, tegnair en egl la protecziun respiratorica – dissegnà e manà vegn sin il visur pli grond. Tut ils apparats mussan la medema acziun.</p>
+      </div>
+      <div class="faq-item">
         <h3>Tge dovri per il manaschi?</h3>
         <p>In pitschen mini-PC u server en il magazin basta. Per l’installaziun, actualisaziuns e
           backups dovri ina persuna cun experientscha da Docker e da la lingia da commandos, saja quai
@@ -880,13 +901,13 @@
       </div>
       <div class="faq-item">
         <h3>En tge linguas è KP Front disponibel?</h3>
-        <p>L’interfatscha d’utilisader da KP Front è actualmain disponibla per tudestg. Sco applicaziun open source po KP Front vegnir amplifitgà cun ulteriuras linguas. Per quai dovri ina translaziun cumpletta e controllada professiunalmain dals terms dals pumpiers.</p>
+        <p>L’interfatscha d’utilisader da KP Front datti per tudestg, franzos, talian ed englais. Il tudestg è decisiv; las autras trais linguas èn cumplettas, ma n’èn anc betg vegnidas controlladas da pumpiers. Sco applicaziun open source po KP Front vegnir amplifitgà cun ulteriuras linguas. Per quai dovri ina translaziun cumpletta e controllada professiunalmain dals terms dals pumpiers.</p>
       </div>
       <div class="faq-item">
         <h3>Co cumenzar?</h3>
         <p>Cun la <a href="https://demo.kp-front.ch" target="_blank" rel="noopener">demo</a>,
           senza registraziun – a Musterdorf arda gia, e tut ils visitaders partan la medema
-          intervenziun (ella cumenza mintga di da nov a las 00:00, zona d’urari Europe/Zurich). Suenter testar durant in exercizi. Sche l’applicaziun cunvegna, maina
+          intervenziun (ella cumenza duas giadas per di da nov, a las 00:00 ed a las 12:00, zona d’urari Europe/Zurich). Suenter testar durant in exercizi. Sche l’applicaziun cunvegna, maina
           l’<a href="https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md" target="_blank" rel="noopener">instrucziun d’installaziun</a> a l’atgna instanza.</p>
       </div>
     </div>
@@ -964,7 +985,7 @@
       <a href="https://github.com/feuerwehr-oberwil/kp-front" target="_blank" rel="noopener">GitHub</a>
       <a href="https://github.com/feuerwehr-oberwil" target="_blank" rel="noopener me">Pumpiers d’Oberwil sin GitHub</a>
       <a href="https://demo.kp-front.ch" target="_blank" rel="noopener">Demo</a>
-      <a href="https://kp-rueck.ch">KP Rück</a>
+      <a href="https://kp-rueck.ch/rm/">KP Rück</a>
       <a href="#kontakt">Contact</a>
       <a href="https://github.com/feuerwehr-oberwil/kp-front/security/policy" target="_blank" rel="noopener">Segirezza</a>
     </div>
@@ -1048,6 +1069,11 @@
   })();
 
   // Both the gallery and its enlarged picture use native theme-aware sources.
+  // On a phone (landing.css, max-width 620px) a 1500 px tablet capture at viewport width is
+  // unreadable, so there the picture is shown taller than it is wide enough for: it scrolls
+  // sideways inside <picture>, a track and a hint say so, and «‹ 2 / 9 ›» sits at the bottom.
+  // A swipe changes the picture – on the picture itself only from the edge it is scrolled to,
+  // so that sliding it never flips it. Nothing here animates.
   (function () {
     var btns = [].slice.call(document.querySelectorAll('.shot-zoom'));
     if (!btns.length || typeof HTMLDialogElement === 'undefined') return;
@@ -1058,13 +1084,32 @@
       '<button class="lb-x" type="button" aria-label="Serrar">×</button>' +
       '<button class="lb-nav lb-prev" type="button" aria-label="Maletg precedent">‹</button>' +
       '<button class="lb-nav lb-next" type="button" aria-label="Proxim maletg">›</button>' +
-      '<figure class="lb-fig"><picture><source data-theme-dark><img alt=""></picture><figcaption></figcaption></figure>';
+      '<span class="lb-count"></span>' +
+      '<figure class="lb-fig"><picture><source data-theme-dark><img alt=""></picture>' +
+      '<div class="lb-track" aria-hidden="true" hidden><i></i></div>' +
+      '<p class="lb-hint" aria-hidden="true" hidden>← Stuschar il maletg da la vart →</p>' +
+      '<figcaption></figcaption></figure>';
     document.body.appendChild(dlg);
 
     var img = dlg.querySelector('.lb-fig img');
     var dark = dlg.querySelector('source');
     var cap = dlg.querySelector('.lb-fig figcaption');
+    var pan = dlg.querySelector('.lb-fig picture');
+    var track = dlg.querySelector('.lb-track');
+    var thumb = track.firstChild;
+    var hint = dlg.querySelector('.lb-hint');
+    var count = dlg.querySelector('.lb-count');
     var idx = 0;
+
+    // The track mirrors the sideways scroll; it and the hint exist only while the picture
+    // really is wider than its box (never on a desktop, where the picture is fitted).
+    var syncPan = function () {
+      var fits = pan.scrollWidth <= pan.clientWidth + 1;
+      track.hidden = hint.hidden = fits;
+      if (fits) return;
+      thumb.style.left = (pan.scrollLeft / pan.scrollWidth * 100) + '%';
+      thumb.style.width = (pan.clientWidth / pan.scrollWidth * 100) + '%';
+    };
 
     var show = function (i) {
       idx = (i + btns.length) % btns.length;
@@ -1076,10 +1121,13 @@
       img.alt = src.alt;
       cap.innerHTML = '<b>' + s.querySelector('.cap-t').textContent + '</b> – '
         + s.querySelector('.cap-s').textContent;
+      count.textContent = (idx + 1) + ' / ' + btns.length;
+      pan.scrollLeft = 0;
+      syncPan();
     };
 
     btns.forEach(function (btn, i) {
-      btn.addEventListener('click', function () { show(i); dlg.showModal(); });
+      btn.addEventListener('click', function () { show(i); dlg.showModal(); syncPan(); });
     });
     dlg.querySelector('.lb-x').addEventListener('click', function () { dlg.close(); });
     dlg.querySelector('.lb-prev').addEventListener('click', function () { show(idx - 1); });
@@ -1089,5 +1137,30 @@
       if (e.key === 'ArrowLeft') { e.preventDefault(); show(idx - 1); }
       if (e.key === 'ArrowRight') { e.preventDefault(); show(idx + 1); }
     });
+
+    pan.addEventListener('scroll', syncPan, { passive: true });
+    img.addEventListener('load', syncPan);
+    addEventListener('resize', syncPan);
+
+    var touch = null;
+    dlg.addEventListener('touchstart', function (e) {
+      if (e.touches.length !== 1) { touch = null; return; }
+      var onPicture = pan.contains(e.target);
+      touch = {
+        x: e.touches[0].clientX, y: e.touches[0].clientY,
+        prev: !onPicture || pan.scrollLeft <= 1,
+        next: !onPicture || pan.scrollLeft >= pan.scrollWidth - pan.clientWidth - 1
+      };
+    }, { passive: true });
+    dlg.addEventListener('touchend', function (e) {
+      if (!touch) return;
+      var dx = e.changedTouches[0].clientX - touch.x;
+      var dy = e.changedTouches[0].clientY - touch.y;
+      if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        if (dx > 0 && touch.prev) show(idx - 1);
+        if (dx < 0 && touch.next) show(idx + 1);
+      }
+      touch = null;
+    }, { passive: true });
   })();
 </script>

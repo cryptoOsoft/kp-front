@@ -45,10 +45,11 @@
     "demo": "Ouvrir la démo"
   },
   "hero": {
-    "eyebrow": "Open source&nbsp;· Suisse",
+    "eyebrow": "Open source&nbsp;· gratuit&nbsp;· Suisse",
     "h1": "La conduite d’intervention numérique pour les sapeurs-pompiers.",
     "lede": "KP Front est le poste de commandement numérique sur les lieux :\n      <strong>carte, plans, binômes, journal et rapport</strong> dans une seule application.",
     "cta": "Ouvrir la démo",
+    "ctaSelf": "L’exploiter soi-même",
     "ctaNote": "Sans inscription – dans la démo, il y a le feu à Musterdorf (interface en allemand)",
     "frameAddr": "KARTE · ZIMMERBRAND · 2611624 / 1263070",
     "frameAlt": "Vue Carte : signes conventionnels CSSP, secteurs et conduites sur la carte tactique"
@@ -244,8 +245,10 @@
           "<strong>Répertoire des matières dangereuses</strong>&nbsp;: numéros ONU, informations sur les substances et indications concernant les distances d’isolation et de protection, disponibles directement pendant l’intervention",
           "Informations météorologiques et données sur le vent pour soutenir l’appréciation de la situation, ainsi que le radar de précipitations de MétéoSuisse comme couche",
           "Plans d’objet comme tableau blanc et étages superposés",
+          "<strong>Carte &amp; objets</strong> : hors intervention, la carte de votre propre corps – consulter objets, dangers, hydrantes et plans d’objet",
           "<strong>Tableau avec pages CSSP</strong>&nbsp;: croquis libre, Première Conduite et feuilles du manuel – imprimés dans le rapport comme l’original",
           "<strong>Info bâtiment</strong>&nbsp;: données du registre des bâtiments – gaz, mazout, photovoltaïque – et mesures immédiates pour l’objet",
+          "<strong>Mesures</strong> : points de mesure avec valeurs de gaz par local et par étage, avec historique et seuils d’alarme",
           "<strong>Géoréférencement</strong>&nbsp;: relier un plan à la carte par des points de repère communs – un seul objet, visible sur les deux surfaces, avec une indication honnête de la précision. La caserne fait aligner ses plans à l’avance et les valide",
           "Annuler/rétablir sur chaque surface – les événements documentés restent traçables"
         ]
@@ -261,6 +264,7 @@
           "<strong>Plan de relève</strong> : planifier les disponibilités et les tours par\n            personne, visualiser la couverture sur toute l’intervention et imprimer les\n            formulaires de conduite",
           "<strong>Partager sa position</strong> : qui ouvre le lien apparaît comme un point sur la\n            carte de situation – volontairement, et pour cette intervention seulement",
           "Partager l’intervention par lien ; l’accès est clairement signalé et peut être révoqué\n            à tout moment",
+          "<strong>Mode présentation</strong> : toute personne qui a l’intervention ouverte suit l’écran de celle qui présente – tous peuvent pointer, rien n’est enregistré",
           "Matériel avec stock et consommation",
           "Checklists pour l’aide à la conduite et le chef d’intervention",
           "Rôle chef d’intervention : tenir la présence, les moyens, les check-lists et le rapport – lire la carte et les équipes sans rien déplacer"
@@ -273,6 +277,7 @@
           "Notes vocales avec transcription, photos, rappels",
           "<strong>Rejouer</strong> : repasser l’intervention minute par minute, attentes sautées –\n            pour le débriefing",
           "Rapport d’intervention prêt au format PDF, avec effectif, matériel, horaires, journal,\n            croquis, photos et surveillance PR",
+          "Imprimer le rapport et le plan horaire directement sur l’<strong>imprimante de la caserne</strong> <span class=\"opt\">facultatif</span>",
           "<strong>Analyse</strong> pour le débriefing&nbsp;: chiffres clés et ligne du temps sur une feuille à part, à la fin du rapport",
           "Photos en annexe au rapport",
           "<strong>Contrôle final</strong>&nbsp;: avant la clôture, KP Front indique quelles informations ou clarifications manquent encore dans le rapport",
@@ -286,7 +291,7 @@
         "items": [
           "<strong>Fonctionne hors ligne</strong> comme application installable – le contrôle de disponibilité indique avant l’intervention si les données nécessaires sont sur l’appareil",
           "Plusieurs appareils connectés travaillent sur le même état – après une interruption de connexion, les modifications sont à nouveau synchronisées",
-          "Rôles : modifier, ou seulement suivre",
+          "Trois rôles : l’aide à la conduite modifie tout, le chef d’intervention tient la documentation et suit la situation, les observateurs lisent seulement",
           "Mode jour/nuit, taille des symboles, grandes zones tactiles pour la tablette",
           "Peut reprendre les alarmes de Divera ou FireHub ; d’autres systèmes d’alerte peuvent être raccordés par l’interface ouverte <span class=\"opt\">facultatif</span>",
           "Positions des véhicules par GPS <span class=\"opt\">facultatif</span>",
@@ -343,6 +348,10 @@
         "a": "KP Front est open source (AGPL-3.0) : <strong>pas de frais de licence, pas d’abonnement, pas de coût par appareil</strong>. Chaque corps exploite sa propre installation et garde ainsi le contrôle de ses données. Restent les coûts propres à l’exploitation, à l’infrastructure et, le cas échéant, à une assistance externe. Le développement vient directement de la pratique des sapeurs-pompiers d’Oberwil BL ; signalements d’erreurs, idées et contributions de la communauté open source sont les bienvenus."
       },
       {
+        "q": "Sur quels appareils KP Front fonctionne-t-il ?",
+        "a": "KP Front fonctionne dans le navigateur – sans App Store. Il est conçu pour la tablette : sur l’iPad et sur les tablettes Android, il s’installe sur l’écran d’accueil comme une application et fonctionne alors aussi sans connexion. Sur l’ordinateur portable, dans le véhicule de commandement ou à la caserne, la même interface s’utilise à la souris et au clavier. Le téléphone est le compagnon : consulter la situation, saisir des entrées, garder un œil sur la protection respiratoire – on dessine et on conduit sur le grand écran. Tous les appareils montrent la même intervention."
+      },
+      {
         "q": "Que faut-il pour l’exploiter ?",
         "a": "Un petit mini-PC ou serveur à la caserne suffit. L’installation, les mises à jour et\n          les sauvegardes nécessitent une personne à l’aise avec Docker et la ligne de commande,\n          que ce soit au sein du corps, de la commune ou auprès d’un prestataire informatique. Le\n          guide et l’espace d’administration accompagnent la mise en place. Nous répondons\n          volontiers aux questions générales ; les données et l’exploitation restent sous la\n          responsabilité de chaque corps."
       },
@@ -364,11 +373,11 @@
       },
       {
         "q": "Dans quelles langues KP Front est-il disponible ?",
-        "a": "L’interface utilisateur de KP Front est actuellement disponible en allemand. En tant qu’application open source, KP Front peut être étendu à d’autres langues. Cela nécessite une traduction complète et vérifiée par des spécialistes de la terminologie des sapeurs-pompiers."
+        "a": "L’interface utilisateur de KP Front existe en allemand, en français, en italien et en anglais. L’allemand fait foi ; les trois autres langues sont complètes, mais n’ont pas encore été relues par des sapeurs-pompiers. En tant qu’application open source, KP Front peut être étendu à d’autres langues. Cela nécessite une traduction complète et vérifiée par des spécialistes de la terminologie des sapeurs-pompiers."
       },
       {
         "q": "Comment commencer ?",
-        "a": "Par la <a href=\"https://demo.kp-front.ch\" target=\"_blank\" rel=\"noopener\">démo</a>,\n          sans inscription – à Musterdorf, le feu est déjà déclaré, et tous les visiteurs partagent\n          la même intervention (elle redémarre chaque jour à 00 h 00, fuseau horaire Europe/Zurich). Ensuite, l’essayer à un\n          exercice. Si cela convient, le <a href=\"https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md\" target=\"_blank\" rel=\"noopener\">guide d’installation</a> mène à votre propre instance."
+        "a": "Par la <a href=\"https://demo.kp-front.ch\" target=\"_blank\" rel=\"noopener\">démo</a>,\n          sans inscription – à Musterdorf, le feu est déjà déclaré, et tous les visiteurs partagent\n          la même intervention (elle redémarre deux fois par jour, à 00 h 00 et à 12 h 00, fuseau horaire Europe/Zurich). Ensuite, l’essayer à un\n          exercice. Si cela convient, le <a href=\"https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md\" target=\"_blank\" rel=\"noopener\">guide d’installation</a> mène à votre propre instance."
       }
     ]
   },
@@ -409,7 +418,8 @@
     "close": "Fermer",
     "prev": "Image précédente",
     "next": "Image suivante",
-    "zoom": "Agrandir"
+    "zoom": "Agrandir",
+    "hint": "Faire glisser l’image de côté"
   },
   "footer": {
     "origin": "Né du service opérationnel des <a href=\"https://www.feuerwehr-oberwil.ch\" target=\"_blank\" rel=\"noopener\">sapeurs-pompiers d’Oberwil BL</a> –\n      parce qu’en intervention nous avons vu revenir les mêmes sources d’erreur : doubles\n      affectations, informations éparpillées et erreurs de recopie à la main.\n      Chaque corps exploite son propre KP Front, avec ses cartes, ses plans et ses données.",
