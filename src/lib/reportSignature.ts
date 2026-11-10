@@ -92,7 +92,7 @@ export function canonicalJson(v: unknown): string {
 const NOT_SIGNED = new Set([
   'options', 'attachments', 'generatedAt', 'kroki', 'krokiCaption', 'planPages', 'boardPages', 'boardMap',
   'atemschutzIntervalMin', 'atemschutzGraceSec', 'trupps', 'journal', 'pendenzen', 'auswertung', 'partnerPresets',
-  'signatures',
+  'signatures', 'messungen', 'messungenLimits',
 ])
 /** …and inside `meta`: the Lehren print in the internal Auswertung; the Kommandant's name is the
  *  deployment's default for the line, not a fact of the Einsatz */

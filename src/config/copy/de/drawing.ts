@@ -306,6 +306,19 @@ export const drawingCopy = {
     logDone: '{name} {word}',
     logReopened: '{name} wieder aktiv',
   },
+  /** Jede Messung eines Messpunkts als Verlaufszeile (Entscheid 2A, 10.11.2026, lib/readingLog):
+   *  «Messung Keller Heizraum (UG): CO 180 ppm – A2 Hauptalarm erreicht · O₂ 20,4 Vol-%».
+   *  {name} = Raum mit Geschoss, {values} = die Gase dieser Eingabe mit Einheit und Stufe.
+   *  `rowAgain` = der Knopf «Gleich gemessen». `state` sind die Stufen in Worten – dieselben im
+   *  Rapport (dort deutsch aus backend · labels). {stage} = eine davon. */
+  readingLog: {
+    row: 'Messung {name}: {values}',
+    rowAgain: 'Messung {name}: {values} – gleich gemessen',
+    state: { a1: 'A1 Voralarm', a2: 'A2 Hauptalarm', over: 'über Messbereich', unreadable: 'unlesbar' },
+    reached: '{stage} erreicht',
+    backTo: 'zurück auf {stage}',
+    calmAgain: 'wieder im Normalbereich',
+  },
   // unified, append-only journal (Verlauf) shared by Karte + Plan
   // PHONE: the «+» tile's word and the first section of its sheet (lib/toolFold · Palette) —
   // Linie · Fläche · Absperrkreis · Notiz · Trupp leave the bar for it

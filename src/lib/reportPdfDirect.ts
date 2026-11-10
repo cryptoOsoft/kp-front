@@ -31,6 +31,7 @@ import { auswertungForPdf, computeAuswertung } from './auswertung'
 import { fahrzeugRows } from './alarmzeiten'
 import type { ChecklistState, ChecklistTemplate } from './checklists'
 import { formatSymbolName } from './format'
+import { readingsForReport } from './readingLog'
 import { SHAPE_DEFS, shapeAspect } from './shapes'
 import { placardSvgForSymbol } from './placard'
 import { ensureErg } from './erg'
@@ -589,6 +590,7 @@ export function buildDirectReportPayload(args: DirectReportArgs): Record<string,
     title: incident.title,
     at: formatDateTime(draft.options.krokiAt ?? draft.generatedAt),
   })
+  const messungen = readingsForReport(scene?.entities ?? [], board ?? {})
   const payload = {
     incident: {
       title: incident.title, id: incident.id, type: incident.type ?? undefined, address: incident.address ?? undefined,
@@ -743,6 +745,10 @@ export function buildDirectReportPayload(args: DirectReportArgs): Record<string,
     journal: draft.options.journal ? journal : [],
     journalDay: draft.options.journal ? journalDay : undefined,
     pendenzen: draft.options.pendenzen ? pendenzen : [],
+    // «Messungen» (lib/readingLog): every Messpunkt with its readings – a Beilage beside the
+    // Journal, which leaves the reading rows to it. Printed whenever there are any.
+    messungen: messungen.points,
+    messungenLimits: messungen.limits || undefined,
     // the internal Beilage (lib/auswertung): computed HERE, where the ISO stamps are
     auswertung: draft.options.auswertung
       ? (() => {

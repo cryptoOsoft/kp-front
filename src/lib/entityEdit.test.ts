@@ -15,6 +15,12 @@ describe('entityEditChanges (the Verlauf line for editing the Kroki)', () => {
       .toEqual(['Name: Widmer Céline'])
   })
 
+  it('leaves a measured value to its own reading row (lib/readingLog) – the room still logs', () => {
+    const prev = sym({ symbol: 'FW Messpunkt', label: 'Messpunkt', fields: { Raum: 'Gang', CO: '12' } })
+    expect(entityEditChanges(prev, sym({ symbol: 'FW Messpunkt', label: 'Messpunkt', fields: { Raum: 'Gang Nord', CO: '180' } })))
+      .toEqual(['Raum auf Gang Nord geändert'])
+  })
+
   it('says a field was CHANGED when it already said something else', () => {
     const prev = sym({ fields: { Name: 'Meier Hans' } })
     expect(entityEditChanges(prev, sym({ fields: { Name: 'Widmer Céline' } })))

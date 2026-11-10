@@ -29,6 +29,7 @@ from reportlab.platypus import (
 from .auswertung import _auswertung_story
 from .kroki_view import _KROKI_PX, _KROKI_PX_PORTRAIT, _kroki_view
 from .labels import _LINE_STUB, _WRITE_DASH, L
+from .messungen import _messungen_story
 from .schema import (
     _PAD_ROW,
     AttachmentIn,
@@ -587,6 +588,17 @@ def compose_report_pdf(
         # says out loud — «!» sits next to the word «dringend», an indented line under an Auftrag
         # reads as belonging to it, «offen» is the word in the column — and a caption that repeats
         # its own table teaches the reader to skip captions.
+
+    # --- Messungen — the Messpunkte with their gas readings (10.11.2026, app/report/messungen) --
+    # A Beilage like the Journal, and after it: the journal carries none of the reading rows, so
+    # this table is where a reader finds «was the room free when we handed over». No switch — it
+    # prints whenever a point was measured and costs nothing when none was. On the Journal's
+    # sheet when there is one; with neither Journal nor Pendenzen before it, on its own.
+    messungen = _messungen_story(payload.messungen, payload.messungenLimits, inner_w, head, st)
+    if messungen:
+        follows = (opt.journal and payload.journal) or (opt.pendenzen and payload.pendenzen)
+        story.append(Spacer(1, 7 * mm) if follows else PageBreak())
+        story.extend(messungen)
 
     # --- Die Tafel — every board-template page on a sheet of its own, in its own layout --------
     # (10.10.2026, app/report_board). After the Aufträge: the Erste Führung is the Einsatz's own

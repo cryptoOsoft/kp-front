@@ -6,6 +6,7 @@ Split out of the former ``report_pdf.py``; rules for this area: docs/rapport.md.
 from __future__ import annotations
 
 import re
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
@@ -549,6 +550,27 @@ class MittelFormRowIn(BaseModel):
     _clip = field_validator("note")(_clip_note)
 
 
+class MessungRowIn(BaseModel):
+    """One reading of a Messpunkt (src/lib/readingLog · readingsForReport): the gas the map's pill
+    wore for it, the others of the same radio report beside it. All client-formatted but `stage`,
+    which the composer words itself — the Stufe has to read on a monochrome print."""
+
+    time: str
+    gas: str
+    value: str
+    stage: Literal["ok", "a1", "a2", "over", "unreadable"] = "ok"
+    others: str = ""
+
+
+class MessungPointIn(BaseModel):
+    """One Messpunkt with its readings, oldest first; the last one is what the head row says."""
+
+    name: str
+    #: «UG», «1. OG» — empty when the point carries no Geschoss
+    place: str = ""
+    rows: list[MessungRowIn] = []
+
+
 class ReportOptionsIn(BaseModel):
     #: ⚠️ A switch this model does not know is refused (422), not dropped: the client keeps more
     #: options than it sends (src/lib/report · ReportOptions – the framing, the plan choice …
@@ -772,6 +794,11 @@ class ReportPayload(BaseModel):
     #: Aufträge / Pendenzen — printed right after the Verlauf they are derived from, so a reader
     #: checking one line only turns back a page.
     pendenzen: list[PendenzRowIn] = []
+    #: «Messungen» — every Messpunkt with its gas readings (10.11.2026). The Journal carries none
+    #: of them (the client leaves the reading rows out), so this table is their place on paper;
+    #: printed whenever a point has a reading. `messungenLimits` is the A1/A2 line above it.
+    messungen: list[MessungPointIn] = []
+    messungenLimits: str | None = None
     attachments: list[AttachmentIn] = []
     #: the internal debrief Beilage — see AuswertungIn
     auswertung: AuswertungIn | None = None

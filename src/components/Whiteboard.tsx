@@ -59,7 +59,7 @@ import { isBottomSheet, nudgeSelectionIntoRect, rectCenter, visibleWorkRect, typ
 import { doneAct, doneOf, donePlace, offersDone } from '../lib/objectDone'
 import { serverNow, serverNowIso } from '../lib/serverClock'
 import { useHazardData } from '../lib/useHazardData'
-import { isMeasuredSymbol, readingPatch, symbolControls, symbolTitleOptions, symbolFieldOptions, symbolPresetFieldKeys } from '../lib/symbols'
+import { isMeasuredSymbol, symbolControls, symbolTitleOptions, symbolFieldOptions, symbolPresetFieldKeys } from '../lib/symbols'
 import { ContextPanel } from './ContextPanel'
 import { DrawEditor } from './DrawEditor'
 import { ShapeEditor } from './ShapeEditor'
@@ -81,6 +81,7 @@ import { circleRing, enclosesSection, inSection, rectPoly, storeySections, visib
 import type { FloorPackView } from '../lib/floorPackBinding'
 import { stackInstances } from '../lib/stackFloors'
 import { StackReadings } from './ReadingParts'
+import { READING_ICON, readingAct } from '../lib/readingLog'
 import { circleRadiusM, circleRadiusN, pathMetres, polyAreaM2, planFactsTone, scaleLampTone, type PlanScale } from '../lib/planScale'
 import { splitAddress } from '../lib/karte/places'
 import { cx } from '../lib/cx'
@@ -1372,6 +1373,22 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
     commit(annos.map((x) => (x.id === a.id ? { ...x, done: act.done } : x)))
     for (const [op, payload] of act.events) emit(op, payload)
     log(on ? 'check' : 'undo', act.text, { annoId: a.id, x: a.x, y: a.y, floor: a.floor })
+  }
+
+  /**
+   * A symbol's fields committed in the plan's panel – the Karte's `commitEntityFields`
+   * (useMapActions), on this surface: for a Messpunkt the reading that comes of it rides in the
+   * same checkpoint, names the step and writes its Verlauf row (lib/readingLog · readingAct), with
+   * the storey the point stands on – on the Gebäude its tile. `again` = «Gleich gemessen».
+   */
+  const commitAnnoFields = (a: BoardAnno, fields: Record<string, string>, again = false) => {
+    if (readOnly) return
+    const from = stack ? a.floorFrom ?? a.floor ?? 0 : a.floorFrom ?? a.storey
+    const act = readingAct(a, fields, { now: serverNow(), place: donePlace(from, stack ? a.floorTo ?? from : a.floorTo), again })
+    if (again && !act) return
+    if (act) onStepLabel?.(act.text)
+    patchCommit(a.id, { ...(again ? {} : { fields }), ...(act && { readings: act.readings }) })
+    if (act) log(READING_ICON, act.text, { annoId: a.id, x: a.x, y: a.y, floor: a.floor })
   }
 
   const planWorkRect = (canvas: DOMRect, panelEl?: Element | null): NudgeBox => {
@@ -3010,12 +3027,12 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
           }}
           onFields={(fields) => {
             const before = selSymbol.fields ?? {}
-            // a Messpunkt's history grows in the same step (lib/symbols · recordReading)
-            patchCommit(selSymbol.id, { fields, ...readingPatch(selSymbol, fields) })
+            commitAnnoFields(selSymbol, fields)
             for (const [k, v] of Object.entries(fields)) {
               if (v.trim() && before[k] !== v) onRosterField?.(selSymbol.symbol, selSymbol.label, k, v)
             }
           }}
+          onReadingAgain={() => commitAnnoFields(selSymbol, selSymbol.fields ?? {}, true)}
           onNotes={(v) => patchCommit(selSymbol.id, { notes: v || undefined })}
           // Stockwerk — the Lage has always offered it, the Modul boards never did, so a Brand
           // drawn on «Modul 2» could not say which storey it was on. Absent on the Gebäude

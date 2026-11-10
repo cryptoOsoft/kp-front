@@ -20,6 +20,7 @@ import { mittelReportRows } from './mittel'
 import { isNachtrag, repeatRuns, rowPhotos, rowText } from './verlauf'
 import { linkMarkup, type JournalLink } from './journalLinks'
 import { jsonEqual } from './jsonEqual'
+import { isReadingRow } from './readingLog'
 
 export interface KrokiView {
   center: LngLat
@@ -200,6 +201,9 @@ function historyCountersPrintedRow(e: TimelineEvent): boolean {
 function printableTacticalText(e: TimelineEvent): boolean {
   const text = e.text.trim()
   if (!text) return false
+  // a Messpunkt's reading (and its ↶ / ↷) is in the Verlauf, but on paper only in the «Messungen»
+  // table (owner, 10.11.2026: «in the pdf just in the separate table») – lib/readingLog
+  if (isReadingRow(e)) return false
   if (OMIT_TEXT.some((p) => p && text.includes(p))) return false
   if (/verschoben$/i.test(text)) return false
   return true

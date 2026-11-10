@@ -527,3 +527,29 @@ describe('buildDirectReportPayload · Auswertung', () => {
     expect(out.auswertung.figures[4]).toMatchObject({ value: '—', sub: appConfig.copy.auswertung.totalRunning })
   })
 })
+
+// «Messungen» (10.11.2026, lib/readingLog): the Messpunkte reach the payload as their own Beilage
+describe('buildDirectReportPayload · Messungen', () => {
+  const build = (board: Record<string, BoardAnno[]>) => buildDirectReportPayload({
+    incident: { id: 'i1', title: 'Brand', started_at: '2026-11-09T17:00:00.000Z' } as never,
+    draft: { meta: {}, generatedAt: '2026-11-09T19:00:00.000Z', proof: {}, options: {} } as never,
+    trupps: [], attendance: {}, events: [], plans: [], board,
+  }) as { messungen: { name: string; place: string; rows: { gas: string; value: string; stage: string }[] }[]; messungenLimits?: string }
+
+  it('carries every measured Messpunkt with its readings, and the limits they were read against', () => {
+    const out = build({ gebaeude: [{
+      id: 'p', kind: 'symbol', symbol: 'FW Messpunkt', x: 0.5, y: 0.5, floor: -1, fields: { Raum: 'Keller', CO: '>100' },
+      readings: [{ t: Date.parse('2026-11-09T17:02:00.000Z'), v: { CO: '180' } }, { t: Date.parse('2026-11-09T17:20:00.000Z'), v: { CO: '>100' } }],
+    }] })
+    expect(out.messungen).toMatchObject([{ name: 'Keller', place: '1. UG', rows: [
+      { gas: 'CO', value: '180 ppm', stage: 'a2' }, { gas: 'CO', value: '>100 ppm', stage: 'over' },
+    ] }])
+    expect(out.messungenLimits).toContain('CO A1')
+  })
+
+  it('sends no section and no limits line when nothing was measured', () => {
+    const out = build({ gebaeude: [{ id: 'f', kind: 'symbol', symbol: 'VKF Feuer', x: 0.2, y: 0.3 }] })
+    expect(out.messungen).toEqual([])
+    expect(out.messungenLimits).toBeUndefined()
+  })
+})

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { render, screen, cleanup, fireEvent } from '@testing-library/react'
+import { render, screen, cleanup, fireEvent, within } from '@testing-library/react'
 import { ContextPanel, type SymbolView } from './ContextPanel'
 import type { SymbolControl } from '../types'
 import { appConfig } from '../config/appConfig'
@@ -833,6 +833,64 @@ describe('ContextPanel — a typed field survives the panel closing', () => {
     const { onFields, unmount } = mount()
     unmount()
     expect(onFields).not.toHaveBeenCalled()
+  })
+})
+
+// Owner picks 3B / 4A (10.11.2026): a measured field takes a number only, «über Messbereich» is a
+// tick beside it, and «Gleich gemessen» hands the surface a Nachmessung of the values as they stand.
+describe('ContextPanel — a Messpunkt\'s measured fields', () => {
+  const C = appConfig.copy.contextPanel
+  const coBox = () => screen.getByRole('textbox', { name: 'CO' }) as HTMLInputElement
+  const coTick = () => within(coBox().parentElement as HTMLElement).getByRole('checkbox', { name: C.readingOver })
+  const mount = (fields: Record<string, string> = {}, extra: { onReadingAgain?: () => void } = {}) => {
+    const onFields = vi.fn()
+    render(
+      <ContextPanel entity={{ id: 'm1', symbol: 'FW Messpunkt', label: '', fields }} onClose={vi.fn()}
+        onTitle={vi.fn()} onFields={onFields} onDelete={vi.fn()} {...extra}
+        protectedKeys={new Set(['Raum', 'CO', 'Ex', 'O₂', 'H₂S'])} />,
+    )
+    return onFields
+  }
+
+  it('takes digits only – «OL» and «>100» cannot be typed, «999» and «20,9» can', () => {
+    mount()
+    expect(coBox().inputMode).toBe('decimal')
+    fireEvent.change(coBox(), { target: { value: 'OL' } })
+    expect(coBox().value).toBe('')
+    fireEvent.change(coBox(), { target: { value: '>100' } })
+    expect(coBox().value).toBe('100')
+    fireEvent.change(coBox(), { target: { value: '20,9' } })
+    expect(coBox().value).toBe('20,9')
+  })
+
+  it('the tick commits the value as over range at once, and un-ticking gives the number back', () => {
+    const onFields = mount({ CO: '100' })
+    fireEvent.click(coTick())
+    expect(onFields).toHaveBeenLastCalledWith(expect.objectContaining({ CO: '>100' }))
+    expect(coTick().getAttribute('aria-checked')).toBe('true')
+    expect(coBox().value).toBe('100') // the box keeps the number, the tick carries the «>»
+    fireEvent.click(coTick())
+    expect(onFields).toHaveBeenLastCalledWith(expect.objectContaining({ CO: '100' }))
+  })
+
+  it('shows what an older record typed: «OL» ticked, «ca. 60» kept and called unreadable', () => {
+    mount({ CO: 'OL', Ex: 'ca. 60' })
+    expect(coTick().getAttribute('aria-checked')).toBe('true')
+    expect(coBox().value).toBe('')
+    expect((screen.getByRole('textbox', { name: 'Ex' }) as HTMLInputElement).value).toBe('ca. 60')
+    expect(screen.getAllByText(C.readingUnreadable)).toHaveLength(1)
+  })
+
+  it('offers «Gleich gemessen» once a value stands, and hands the tap to the surface', () => {
+    const onReadingAgain = vi.fn()
+    mount({ CO: '0' }, { onReadingAgain })
+    fireEvent.click(screen.getByRole('button', { name: C.readingAgain }))
+    expect(onReadingAgain).toHaveBeenCalledOnce()
+  })
+
+  it('offers no «Gleich gemessen» before the first value', () => {
+    mount({}, { onReadingAgain: vi.fn() })
+    expect(screen.queryByRole('button', { name: C.readingAgain })).toBeNull()
   })
 })
 
