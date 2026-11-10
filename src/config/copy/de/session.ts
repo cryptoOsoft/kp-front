@@ -8,6 +8,11 @@ export const sessionCopy = {
     ribbon: 'DEMO',
     ariaLabel: 'Demo-Instanz mit synthetischen Daten',
     actionBlocked: 'In der Demo nicht möglich.',
+    // the demo's own language switch (lib/demoLocale) – login card and Einstellungen › Gerät;
+    // `unverified` only shows while the demo runs in a language other than German
+    language: 'Sprache der Demo',
+    languageHint: 'Nur in der Demo und nur auf diesem Gerät. Beispieldaten und Rapport-PDF bleiben deutsch.',
+    unverified: 'Diese Übersetzung ist von der Feuerwehr noch nicht geprüft – Fachbegriffe können noch abweichen.',
     welcome: {
       title: 'Willkommen bei KP Front',
       intro: 'Ein vorbereiteter Einsatz mit erfundenen Daten. Zeichne, führe Trupps und probiere die Lageführung frei aus.',

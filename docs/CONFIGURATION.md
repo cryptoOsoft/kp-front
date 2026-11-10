@@ -246,7 +246,9 @@ both now have browser pages – §9e and §9f.
                                                 //    Unset → a neutral menu symbol (or the logo alone)
     "locale": "de-CH",                          // "de-CH" | "en" | "fr" | "it" (the Sprache picker);
                                                 //    another tag resolves by its primary subtag,
-                                                //    an unknown one falls back to German
+                                                //    an unknown one falls back to German.
+                                                //    With demoMode a device may pick de-CH/fr
+                                                //    itself (login, Einstellungen; lib/demoLocale)
     "accentColor": "#c4161c",                   // HEX ONLY (#rgb/#rgba/#rrggbb/#rrggbbaa, `#`
                                                 //    optional on input, stored lowercase with it);
                                                 //    anything else is refused with 422. Flows

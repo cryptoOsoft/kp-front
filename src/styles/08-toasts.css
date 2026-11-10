@@ -48,6 +48,12 @@
   background: var(--amber-16); color: var(--ink-dim);
   font-size: var(--fs-1); font-weight: var(--fw-medium); line-height: 1.45; text-align: center;
   border: 1px solid color-mix(in srgb, var(--amber) 40%, transparent); }
+/* a translated demo's «terms not checked yet» line, inside the same note (lib/demoLocale) */
+.login-demo-unverified { display: block; color: var(--ink); }
+.login-demo-note > .login-demo-unverified:not(:first-child) { margin-top: var(--sp-2); }
+/* the demo's «Deutsch | Français», last on the login card: two equal halves */
+.login-lang > .useg { display: flex; }
+.login-lang > .useg > .useg-btn { flex: 1 1 0; }
 
 /* ── Die Meldeleiste ──────────────────────────────────────────────────────────────────────
    ONE strip under the top bar for every message with no place of its own. Since 23.08. EVERY

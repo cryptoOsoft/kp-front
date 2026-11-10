@@ -18,7 +18,7 @@ vi.mock('../lib/api', () => ({
     constructor(public status: number, public detail: string, public retryAfter?: number, public hint?: string) { super(detail) }
   },
 }))
-const cfg = vi.hoisted(() => ({ microsoft: false }))
+const cfg = vi.hoisted(() => ({ microsoft: false, demo: false }))
 // what the device holds of unsent work (lib/unsentAccounts) — the store itself is pinned there
 const device = vi.hoisted(() => ({
   unsent: [] as { id: string; at: number }[],
@@ -33,6 +33,7 @@ vi.mock(import('../lib/unsentAccounts'), async (importOriginal) => ({
 vi.mock(import('../lib/deploymentConfig'), async (importOriginal) => ({
   ...(await importOriginal()),
   demoNote: () => null,
+  isDemoMode: () => cfg.demo,
   deploymentName: () => 'Test',
   getDeploymentConfig: () => ({ integrations: { microsoftLoginConfigured: cfg.microsoft } }),
 }))
@@ -69,6 +70,7 @@ function installLocalStorage() {
 
 beforeEach(() => {
   cfg.microsoft = false
+  cfg.demo = false
   device.unsent = []
   device.cachedRoster = []
   installLocalStorage()
@@ -178,6 +180,27 @@ describe('LoginScreen — «Mit Microsoft anmelden»', () => {
 
 // Sweep 09.11.2026, UX.2 (owner pick «5B»): unsent work of an account waits on this device, and
 // the gate says whose — with the one tap that brings that person to their PIN pad.
+describe('LoginScreen — the demo\'s «Deutsch | Français»', () => {
+  const picker = () => screen.queryByRole('group', { name: 'Sprache der Demo' })
+
+  it('is not drawn on a station: its language is the deployment\'s', async () => {
+    render(<LoginScreen />)
+    await act(async () => {})
+    expect(picker()).toBeNull()
+  })
+
+  it('on the demo, «Français» is remembered on this device and reloads into it', async () => {
+    cfg.demo = true
+    const reload = vi.fn()
+    vi.spyOn(window, 'location', 'get').mockReturnValue({ ...window.location, reload })
+    render(<LoginScreen />)
+    await act(async () => {})
+    fireEvent.click(screen.getByRole('button', { name: 'Français' }))
+    expect(localStorage.getItem('kp-demo-locale')).toBe('fr')
+    expect(reload).toHaveBeenCalledOnce()
+  })
+})
+
 describe('LoginScreen — «Ungesendete Änderungen von …»', () => {
   const person = (id: string, display_name: string) => ({ id, display_name, color: null, role: 'editor' as const })
   const banner = () => document.querySelector('[role="status"].form-warn')

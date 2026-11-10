@@ -23,7 +23,9 @@ AGENTS.md on 2026-10-08 (the wording) and 2026-10-18 (the mechanics), wording un
   unchanged (`appConfig.copy.x.y`). Locale is a **per-deployment** setting (one brigade = one
   language), resolved **once at boot** (`/api/config` `identity.locale` → `de-CH`) by
   `applyLocale()` in `main.tsx`. It's set in deployment config (CLI/config file first; admin UI
-  can inspect/basic-edit Station › Identität › Sprache), NOT per device. **Add a new string to
+  can inspect/basic-edit Station › Identität › Sprache), NOT per device – except on the public
+  demo (`identity.demoMode`), where the login card and Einstellungen › Gerät let a device pick
+  Deutsch or Français (`lib/demoLocale`). **Add a new string to
   `de/<surface>.ts` first** (it defines the shape); translate in the other locales as desired.
   Two caveats: (1) module-level captures like `const C = appConfig.copy.x` freeze the language
   at import – read inside the component/function instead; (2) a few copy values are structural

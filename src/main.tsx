@@ -23,6 +23,7 @@ import { loadStationPlanScales, refreshStationPlanScales } from './lib/stationPl
 import { migrateLocalStorageToIdb } from './lib/storageMigration'
 import { requestPersistentStorage } from './lib/idb'
 import { applyLocale } from './config/copy'
+import { bootLocale } from './lib/demoLocale'
 import { ensureErg } from './lib/erg'
 import { ensureUnHazard } from './lib/unHazard'
 import { whenIdle } from './lib/idle'
@@ -161,12 +162,12 @@ void (async () => {
     })
     window.addEventListener('focus', () => { void refreshStationPlanScales() })
     // Resolve the UI language now that the deployment config is in: deployment locale →
-    // de-CH. Awaited before first render, so appConfig.copy.* (a getter delegating to
+    // de-CH (the public demo alone lets a device pick its own – lib/demoLocale). Awaited before first render, so appConfig.copy.* (a getter delegating to
     // config/copy · getCopy) is already in the right language from the first paint. A
     // non-German locale loads its overlay as its own chunk (precached, so offline too) —
     // budgeted like everything on the boot path: past the budget the app renders German
     // and the overlay applies when it lands (a reload picks it up fully).
-    await withBudget(applyLocale(cfg.identity?.locale), BOOT_BUDGET_MS, undefined)
+    await withBudget(applyLocale(bootLocale(cfg.identity)), BOOT_BUDGET_MS, undefined)
     // Prefetch the hazard reference datasets (ADR table + ERG — static assets since they
     // left the entry bundle, see lib/staticData). Deliberately NOT awaited: nothing on the
     // boot path may block first paint, and the surfaces re-render when they land

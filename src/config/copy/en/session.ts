@@ -151,6 +151,9 @@ export const sessionCopy: Localizable<Pick<Copy, Keys>> = {
     ribbon: 'DEMO',
     ariaLabel: 'Demo instance with synthetic data',
     actionBlocked: 'Not possible in the demo.',
+    language: 'Demo language',
+    languageHint: 'Only in the demo and only on this device. Sample data and the report PDF stay German.',
+    unverified: 'This translation has not yet been checked by firefighters – some fire-service terms may still be off.',
     welcome: {
       title: 'Welcome to KP Front',
       intro: 'A prepared incident with invented data. Draw, run teams and try the situation management freely.',

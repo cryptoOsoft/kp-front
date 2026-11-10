@@ -1,5 +1,5 @@
 {
-  "notice": "Cette traduction n’a pas encore été vérifiée par une personne francophone des sapeurs-pompiers – les <a href=\"#kontakt\">suggestions et corrections</a> sont bienvenues. La démo est en allemand.",
+  "notice": "Cette traduction n’a pas encore été vérifiée par une personne francophone des sapeurs-pompiers – les <a href=\"#kontakt\">suggestions et corrections</a> sont bienvenues. La démo s’affiche aussi en français : choisissez «&nbsp;Français&nbsp;» à la connexion.",
   "meta": {
     "title": "KP Front – Conduite d’intervention numérique pour les sapeurs-pompiers",
     "description": "KP Front est le poste de commandement numérique sur les lieux : carte, plans, binômes, journal et rapport – hors ligne et open source.",
@@ -50,7 +50,7 @@
     "lede": "KP Front est le poste de commandement numérique sur les lieux :\n      <strong>carte, plans, binômes, journal et rapport</strong> dans une seule application.",
     "cta": "Ouvrir la démo",
     "ctaSelf": "L’exploiter soi-même",
-    "ctaNote": "Sans inscription – dans la démo, il y a le feu à Musterdorf (interface en allemand)",
+    "ctaNote": "Sans inscription – dans la démo, il y a le feu à Musterdorf (interface aussi en français, termes pas encore vérifiés)",
     "frameAddr": "KARTE · ZIMMERBRAND · 2611624 / 1263070",
     "frameAlt": "Vue Carte : signes conventionnels CSSP, secteurs et conduites sur la carte tactique"
   },
@@ -146,7 +146,7 @@
     "eyebrow": "Tiré de la démo",
     "h2": "Voilà à quoi cela ressemble.",
     "lede": "Toutes les images proviennent de la démo publique. Cliquez sur\n        «&nbsp;Ouvrir la démo&nbsp;» et vous serez dans la même situation.",
-    "note": "Les captures d’écran sont en allemand : la démo publique l’est, et elles en viennent – des images reconstituées seraient une affirmation plutôt qu’une preuve.",
+    "note": "Les captures d’écran sont en allemand, la langue de base de la démo publique dont elles viennent – des images reconstituées seraient une affirmation plutôt qu’une preuve. Dans la démo, l’interface passe aussi en français ; les données d’exemple restent en allemand.",
     "items": [
       {
         "alt": "Vue Plan : plan d’objet comme tableau blanc, avec dessin, symboles et échelle",

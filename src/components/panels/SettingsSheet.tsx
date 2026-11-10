@@ -4,7 +4,9 @@ import { toast } from '../../lib/ui'
 import { loadPrefs, savePrefs, applyTheme, resolveTheme, SYMBOL_SCALE, type ThemeMode, type RailLabels, type SymbolSurface } from '../../lib/prefs'
 import { appConfig } from '../../config/appConfig'
 import type { CaptionMode } from '../../types'
-import { getDeploymentConfig } from '../../lib/deploymentConfig'
+import { getDeploymentConfig, isDemoMode } from '../../lib/deploymentConfig'
+import { demoInTranslation } from '../../lib/demoLocale'
+import { DemoLanguagePicker } from '../DemoLanguage'
 import { loadRoster } from '../../lib/usePersonnel'
 import { Modal } from './_shared'
 import { OnOff, Segmented } from '../Segmented'
@@ -165,6 +167,14 @@ export function SettingsSheet({
               <Segmented<ThemeMode> ariaLabel={cp.colorScheme} value={themeMode} onChange={setTheme}
                 options={themeOpts.map(({ m, label }) => ({ value: m, label }))} />
             </div>
+            {/* the public demo only: a station's language is its deployment's (/admin) */}
+            {isDemoMode() && (
+              <div className="set-row">
+                <span className="set-row-l">{appConfig.copy.demo.language}
+                  <small>{appConfig.copy.demo.languageHint}{demoInTranslation() && ` ${appConfig.copy.demo.unverified}`}</small></span>
+                <DemoLanguagePicker />
+              </div>
+            )}
             {/* Two sliders, not one S/M/L segment: an unlinked Modul sheet and the Lage never
                 wanted the same size. Once the sheet is georeferenced it follows Karte instead;
                 the subtitles make that automatic hand-off visible before somebody drags. */}

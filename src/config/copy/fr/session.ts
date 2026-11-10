@@ -151,6 +151,9 @@ export const sessionCopy: Localizable<Pick<Copy, Keys>> = {
     ribbon: 'DÉMO',
     ariaLabel: 'Instance de démonstration avec des données fictives',
     actionBlocked: 'Impossible dans la démo.',
+    language: 'Langue de la démo',
+    languageHint: 'Seulement dans la démo et sur cet appareil. Les données d’exemple et le rapport PDF restent en allemand.',
+    unverified: 'Version française pas encore vérifiée par des sapeurs-pompiers francophones – certains termes du service du feu peuvent encore être inexacts.',
     welcome: {
       title: 'Bienvenue sur PC Front',
       intro: 'Une intervention préparée avec des données fictives. Dessine, conduis les équipes et teste librement la conduite de l’intervention.',

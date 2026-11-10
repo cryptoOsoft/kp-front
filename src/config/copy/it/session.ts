@@ -151,6 +151,9 @@ export const sessionCopy: Localizable<Pick<Copy, Keys>> = {
     ribbon: 'DEMO',
     ariaLabel: 'Istanza dimostrativa con dati fittizi',
     actionBlocked: 'Non possibile nella demo.',
+    language: 'Lingua della demo',
+    languageHint: 'Solo nella demo e solo su questo dispositivo. I dati di esempio e il rapporto PDF restano in tedesco.',
+    unverified: 'Questa traduzione non è ancora stata verificata da pompieri – alcuni termini tecnici possono essere ancora imprecisi.',
     welcome: {
       title: 'Benvenuto su PC Fronte',
       intro: 'Un intervento preparato con dati fittizi. Disegna, conduci le squadre e prova liberamente la gestione della situazione.',

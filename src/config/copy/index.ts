@@ -14,7 +14,8 @@
 //   • Locale is a PER-DEPLOYMENT setting (one brigade = one language), resolved ONCE at boot
 //     from the deployment config's `identity.locale`, falling back to 'de-CH'. main.tsx calls
 //     applyLocale() after the deployment config loads. It is set in the admin config editor
-//     (Station › Identität › Sprache), not per device.
+//     (Station › Identität › Sprache), not per device. The one exception is the public demo,
+//     where a device may pick Deutsch or Français before boot resolves it (lib/demoLocale).
 //
 // To add a language: create ./xx.ts exporting `Localizable<Copy>`, register it in LOCALES,
 // and add it to AVAILABLE_LOCALES below. Nothing else changes.

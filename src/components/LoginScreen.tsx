@@ -3,7 +3,9 @@ import { useEffect, useRef, useState } from 'react'
 import { apiGet, ApiError } from '../lib/api'
 import { useAuth, type RosterEntry } from '../lib/auth'
 import { Brand } from './Brand'
-import { demoNote, getDeploymentConfig } from '../lib/deploymentConfig'
+import { demoNote, getDeploymentConfig, isDemoMode } from '../lib/deploymentConfig'
+import { demoInTranslation } from '../lib/demoLocale'
+import { DemoLanguagePicker } from './DemoLanguage'
 import { IconSprite, Icon } from '../lib/icons'
 import { fillTemplate, initials, roleLabel } from '../lib/format'
 import { appConfig } from '../config/appConfig'
@@ -70,7 +72,14 @@ export function LoginScreen() {
       <div className="login-card">
         <Brand sub={selected ? appConfig.copy.login.pinEnter : appConfig.copy.login.subtitle} />
 
-        {demoNote() && <p className="login-demo-note">{demoNote()}</p>}
+        {/* the demo note is the deployment's own text (German); a translated demo adds that its
+            fire-service terms are not checked yet, where every visitor reads it before signing in */}
+        {(demoNote() || demoInTranslation()) && (
+          <p className="login-demo-note">
+            {demoNote() && <span>{demoNote()}</span>}
+            {demoInTranslation() && <span className="login-demo-unverified">{appConfig.copy.demo.unverified}</span>}
+          </p>
+        )}
 
         {/* once the roster has answered either way, so the lines do not gain their buttons late */}
         {!selected && unsent && (roster || rosterError) && (
@@ -82,6 +91,9 @@ export function LoginScreen() {
           : <Roster roster={roster} error={rosterError} onPick={setSelected} onRetry={() => setAttempt((n) => n + 1)} />}
 
         {!selected && <MicrosoftLogin error={msError} />}
+
+        {/* before the login, like KP Rück's: a picker behind a login you cannot read is none */}
+        {!selected && isDemoMode() && <div className="login-lang"><DemoLanguagePicker /></div>}
       </div>
     </div>
   )
