@@ -800,7 +800,7 @@ export default function App() {
       {/* the session cookie died mid-Einsatz (lib/auth · sessionExpired): every request 401s,
           the badge cannot say why. Published HERE so it shows with or without an open Einsatz;
           it ends only by signing in again, which is what its one button does. */}
-      {sessionExpired && <SessionExpiredMeldung onRelogin={() => void logout()} />}
+      {sessionExpired && <SessionExpiredMeldung onRelogin={() => void askLogout()} />}
       {/* ⚠️ The open Einsatz stays MOUNTED while «Karte & Objekte» or the Objektbesuche are in
           front of it (`covered`): its sync, its live poll and its Atemschutz alarm keep running,
           and the alarm's rows stand in the strip over that surface (IncidentWorkspace · covered;
