@@ -996,8 +996,9 @@ export function mapReferenceLayers(refs: DeploymentReferenceLayer[] | undefined)
  * Apply the deployment's branding at boot (called once in main.tsx after loadDeploymentConfig).
  * Sets the document title and the --accent CSS custom property.
  *
- * --accent defaults to the brigade red (var(--red)) and currently drives only the
- * brand-identity surface (the login/splash pulse). The semantic palette (warn/danger
+ * --accent defaults to the brigade red (var(--red)) and marks a handful of relationship cues, never
+ * a state: the Leitungsnetz halo, a hidden attachment's marker, the composer's «Sofort» chip, a
+ * Checkliste phone link, the audio waveform's playhead. The semantic palette (warn/danger
  * --red, selection --blue) is intentionally NOT brand-driven; broadening --accent into a
  * full brandable palette is a deliberate later (admin/branding) task, not Phase 1.
  */

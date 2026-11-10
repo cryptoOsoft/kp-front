@@ -836,7 +836,7 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
   color: var(--ink-dim); font-weight: var(--fw-bold); border-bottom: 1px solid var(--glass-edge);
   margin-bottom: 2px;
 }
-.comboToggle :global(.i) { width: 15px; height: 15px; color: var(--accent); }
+.comboToggle :global(.i) { width: 15px; height: 15px; color: var(--blue); }   /* as 06-contextpanel · .combo-toggle .i */
 /* --blue: this is a SELECTED state, and --accent is the brand red — the note two rules up in
    this same file says so. */
 .comboToggleOn { color: var(--ink); background: var(--sel-wash); }

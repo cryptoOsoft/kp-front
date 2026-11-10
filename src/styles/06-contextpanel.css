@@ -312,17 +312,18 @@
    seconds AFTER the pick and then vanished — the list is where the decision is made, so the
    list is where the fact belongs. A hint, never a block. */
 .combo-opt-status { flex: none; font: var(--fw-bold) var(--fs-micro) var(--body); white-space: nowrap; }
-.combo-opt-status.warn { color: var(--accent); }
+.combo-opt-status.warn { color: var(--amber-strong); }   /* a hint, so amber – never the station's --accent (sweep 09.11.2026, UI.5) */
 .combo-opt-status.info { color: var(--blue-strong); }
 .combo-opt-status.muted { color: var(--ink-faint); font-weight: var(--fw-medium); }
 
 /* the contradiction a filled roster field carries — under the field, and it stays.
    ⚠️ .field / .kv-row are single-line flex rows, so as a plain sibling the hint landed BESIDE
    the control and wrapped into a four-word-tall red column. It takes a row of its own, under
-   the control it is about — from the column's edge (27B), not under the label. */
+   the control it is about — from the column's edge (27B), not under the label. Amber: it does
+   not block (it wore the station's --accent, red by default, until the sweep of 09.11.2026). */
 .field:has(> .kv-hint), .kv-row:has(> .kv-hint) { flex-wrap: wrap; row-gap: 2px; }
 .kv-hint { flex: 0 0 calc(100% - var(--ctx-lbl) - var(--ctx-col-gap)); display: flex; align-items: center; gap: 8px; margin: 2px 0 0 auto;
-  font: var(--fw-medium) var(--fs-1)/1.35 var(--body); color: var(--accent); }
+  font: var(--fw-medium) var(--fs-1)/1.35 var(--body); color: var(--amber-strong); }
 .kv-hint .i { width: 14px; height: 14px; flex: none; }
 /* a measured gas (the Messpunkt, ReadingParts): the input with its calm/amber/red bar right under it, and
    a tick where the typed value sits – no numbers, only the stages */

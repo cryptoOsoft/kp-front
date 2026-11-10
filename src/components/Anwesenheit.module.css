@@ -46,7 +46,7 @@
    (RankBadge.module.css · the Dienstgrad chip itself is that component, on every surface) */
 .rank {
   flex: none; font: var(--fw-heavy) var(--fs-micro) var(--body); letter-spacing: .02em; color: var(--ink-dim);
-  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  background: var(--ink-8);
   border-radius: 5px; padding: 2px var(--sp-1);
 }
 
