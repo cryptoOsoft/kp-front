@@ -165,7 +165,7 @@ function dropManifestFromPrecache(): Plugin {
 // still answered by the PRECACHED index.html of whatever build the device's worker holds — and
 // under registerType 'prompt' that is legitimately an old one — which then imports an AdminApp
 // hash the server no longer has: a 404 on every device that had not restarted since the deploy
-// (the pdf.worker story, AGENTS.md). Going to the network for the shell means /admin always boots
+// (the pdf.worker story). Going to the network for the shell means /admin always boots
 // the deploy it talks to. Offline, /admin is the browser's own offline page; accepted.
 //
 // Deliberately LOUD like the plugin above: no AdminApp chunk, or no AdminApp entry in the
@@ -269,6 +269,11 @@ export default defineConfig(({ mode }) => {
     // same URL died the same way («Setting up fake worker failed», 08.09.). It is one
     // self-contained minified ESM with nothing to pre-bundle, so serving it as source is free.
     optimizeDeps: { exclude: ['pdfjs-dist/build/pdf.worker.min.mjs'] },
+    // jsPDF's three optional peers never run here (src/lib/unbundled.ts has the why): aliased
+    // to a stub, so their chunks leave the build and the precache.
+    resolve: {
+      alias: Object.fromEntries(['html2canvas', 'canvg', 'dompurify'].map((lib) => [lib, resolve('src/lib/unbundled.ts')])),
+    },
     css: { postcss: { plugins: [customMedia()] } },
     plugins: [
       inlineSnailLoader(),

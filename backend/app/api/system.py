@@ -13,12 +13,14 @@ source of truth for the config document, not this status payload).
 import logging
 import os
 import shutil
+import uuid
 
 from fastapi import APIRouter, Depends
 from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..auth.dependencies import CurrentAdmin
+from ..auth.pin_limiter import new_device_budget
 from ..config import settings
 from ..credentials import get as credential
 from ..credentials import load as load_credentials
@@ -332,6 +334,20 @@ async def _setup(db: AsyncSession, counts: dict | None) -> dict:
     }
 
 
+async def _login_locks(db: AsyncSession) -> list[dict]:
+    """The live new-device locks, by name. A claimed id that is no account is left out: anyone
+    can make the limiter track an invented one."""
+    locked = new_device_budget.locked()
+    if not locked:
+        return []
+    ids = [uuid.UUID(account) for account in locked]  # the login body's id is a validated UUID
+    users = (await db.execute(select(User.id, User.display_name).where(User.id.in_(ids)))).all()
+    return [
+        {"userId": str(user_id), "displayName": name, "minutesLeft": max(1, round(locked[str(user_id)] / 60))}
+        for user_id, name in users
+    ]
+
+
 @router.get("")
 async def get_system(
     _admin: CurrentAdmin,
@@ -396,4 +412,7 @@ async def get_system(
         # monitor believing a dead station is alive — so it stays write-only even though the
         # admin UI can now SET it (Anbindungen · Monitor). See scheduler · _heartbeat.
         "monitoring": {"heartbeatConfigured": bool(credential("healthcheck_ping_url").strip())},
+        # Accounts whose PIN somebody is guessing at: new devices are refused for them right now
+        # (auth/pin_limiter · NewDeviceBudget). Empty on every ordinary day.
+        "loginLocks": await _login_locks(db),
     }

@@ -26,10 +26,11 @@
 //    wider rail moves the middle with it (`besidePanel`). And back from a plan the selected
 //    object is framed there again (useKarteCamera · useFrameOnReturn), however the tap that selected it left the map.
 
+import type { Tool } from '../../components/karte/useKarteTools'
 import type { LngLat } from '../../types'
 
 /** A map tool armed for a tap (components/karte/useKarteTools · Tool), and Gefahrgut's ring mode. */
-export function toolTakesTaps(tool: string | null, ergMode: string): boolean {
+export function toolTakesTaps(tool: Tool, ergMode: string): boolean {
   return tool === 'measure' || tool === 'pin' || (tool === 'erg' && ergMode !== 'off')
 }
 

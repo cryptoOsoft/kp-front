@@ -846,3 +846,16 @@ async def test_an_older_payload_without_cycles_prints_exactly_as_before():
     assert "Meier Anna" in text and "Trupp 1" not in text
     assert "AdF 1: Dürring Jan" in text
     assert "Eintritt: 12.09.2026 14:05" in text
+
+
+async def test_a_title_outside_latin1_still_downloads(client, editor):
+    """A header is Latin-1: «Čapek AG» in the title raised while the response was built, after
+    the whole PDF was composed. The real name travels in `filename*`, an ASCII fold beside it."""
+    await _login(client, editor)
+    r = await client.post("/api/incidents", json={"title": "BMA Čapek AG"})
+    inc = r.json()["id"]
+    r = await client.post(f"/api/incidents/{inc}/report/pdf", data={"payload": json.dumps(_minimal_payload(inc))})
+    assert r.status_code == 200, r.text
+    disposition = r.headers["content-disposition"]
+    assert 'filename="Einsatzrapport_BMA_Capek_AG.pdf"' in disposition
+    assert "filename*=UTF-8''Einsatzrapport_BMA_%C4%8Capek_AG.pdf" in disposition

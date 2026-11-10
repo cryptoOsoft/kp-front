@@ -18,6 +18,10 @@ export interface FeedPollOpts<T> {
    * Keep it a module-level constant in the caller — it is an effect dependency.
    */
   deadStatuses: readonly number[]
+  /** Asked on every cadence tick: true lets the tick pass without a request. That is how a feed
+   *  with nothing to show asks more rarely without its timer being rebuilt (a changed `pollMs`
+   *  restarts the poll, and a restart begins with a round). Omit to ask on every tick. */
+  skipRound?: () => boolean
   /** The parsed body of a round that succeeded. Never called after teardown. */
   onData: (data: T) => void
   /** A round that failed (network, timeout, non-2xx that isn't dead). Omit to fail silently —
@@ -40,12 +44,13 @@ export interface FeedPollOpts<T> {
  * Paused while the page is hidden, with a round at once on the way back (lib/visibleInterval):
  * every consumer of these feeds is the screen.
  */
-export function useFeedPoll<T>({ path, pollMs, enabled = true, deadStatuses, onData, onError }: FeedPollOpts<T>): void {
+export function useFeedPoll<T>({ path, pollMs, enabled = true, deadStatuses, skipRound, onData, onError }: FeedPollOpts<T>): void {
   // The callbacks are rebuilt on every render of the calling hook. Reading them through refs is
   // what keeps that from tearing the poll down and re-issuing a round on each of those renders.
   const onDataRef = useRef(onData)
   const onErrorRef = useRef(onError)
-  useEffect(() => { onDataRef.current = onData; onErrorRef.current = onError })
+  const skipRoundRef = useRef(skipRound)
+  useEffect(() => { onDataRef.current = onData; onErrorRef.current = onError; skipRoundRef.current = skipRound })
 
   useEffect(() => {
     if (!enabled) return
@@ -60,7 +65,7 @@ export function useFeedPoll<T>({ path, pollMs, enabled = true, deadStatuses, onD
     }
 
     const poll = async () => {
-      if (busy) return
+      if (busy || skipRoundRef.current?.()) return
       busy = true
       try {
         const res = await apiGetRaw(path) // bounded (20 s); non-2xx comes back as a Response

@@ -326,7 +326,12 @@ export const reportCopy = {
     toggleKroki: 'Kroki',
     plansAnnotated: 'Pläne mit Anmerkungen ({n})',
     toggleGebaeude: 'Gebäude – Geschosse ({n})',
-    toggleTafel: 'Tafel – Seiten ({n})',
+    // the Tafel's pages, one tick per kind (lib/tafelPicks, owner 09.11.2026): the two FKS sheets by
+    // name, any other kind by its page title and how many there are; the Skizze its own tick
+    toggleErsteFuehrung: 'Erste Führung',
+    toggleRapportPage: 'Rapport (Traktanden)',
+    toggleTafelPage: '{title} ({n})',
+    toggleTafelSkizze: 'Tafel – Skizze',
     plansAll: 'Alle Pläne',
     toggleAtemschutz: 'Atemschutzüberwachung ({n})',
     toggleAttendance: 'Anwesenheit ({n})',

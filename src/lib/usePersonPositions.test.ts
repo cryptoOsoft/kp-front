@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, renderHook } from '@testing-library/react'
 import {
   ageMinutes, personSymbolSvg, positionsSignature, usePersonPositions,
-  PERSON_STALE_AFTER_MS, type LivePerson,
+  EMPTY_POLL_EVERY, PERSON_STALE_AFTER_MS, type LivePerson,
 } from './usePersonPositions'
 
 const AT = Date.parse('2026-08-05T10:00:00Z')
@@ -110,6 +110,32 @@ describe('usePersonPositions polling', () => {
 
     await act(async () => { await vi.advanceTimersByTimeAsync(15_000) })
     expect(fetchMock).toHaveBeenCalledTimes(2)
+    unmount()
+  })
+
+  it('asks a third as often while nobody shares, and is back on every tick with the first position', async () => {
+    // perf sweep 09.11.2026: an idle tablet spent a third of its requests on an empty answer
+    const answer = (rows: unknown[]) => new Response(JSON.stringify(rows), { status: 200 })
+    const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(answer([])))
+    vi.stubGlobal('fetch', fetchMock)
+    const { result, unmount } = renderHook(() => usePersonPositions('inc-1', true))
+    await act(async () => { await vi.advanceTimersByTimeAsync(0) })
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+
+    // empty: two ticks pass, the third asks
+    await act(async () => { await vi.advanceTimersByTimeAsync(15_000 * (EMPTY_POLL_EVERY - 1)) })
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    await act(async () => { await vi.advanceTimersByTimeAsync(15_000) })
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+
+    // somebody starts sharing: found on the next slow round, then every tick again
+    fetchMock.mockImplementation(() => Promise.resolve(answer([dto('p1')])))
+    await act(async () => { await vi.advanceTimersByTimeAsync(15_000 * EMPTY_POLL_EVERY) })
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+    expect(result.current.people).toHaveLength(1)
+    await act(async () => { await vi.advanceTimersByTimeAsync(15_000) })
+    await act(async () => { await vi.advanceTimersByTimeAsync(15_000) })
+    expect(fetchMock).toHaveBeenCalledTimes(5)
     unmount()
   })
 

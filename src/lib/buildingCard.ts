@@ -225,8 +225,8 @@ export interface BuildingChipSummary {
   hazard: boolean
   /** the hazard words, deduplicated, in the chips' order («Gas», «Heizöl», «PV») */
   words: string[]
-  /** the Objekt's Sofortmassnahmen are there to be read */
-  measures: boolean
+  /** how many Sofortmassnahmen the Objekt has to be read (0 = none) – the chip's count badge */
+  measures: number
   /** the full sentence for aria-label / title */
   label: string
 }
@@ -240,9 +240,10 @@ export function buildingChipSummary(b: BuildingInfo | null): BuildingChipSummary
     const w = c.word ?? c.text
     if (!words.includes(w)) words.push(w)
   }
-  const measures = noteLines(b.object?.measures).length > 0
-  const label = words.length
+  const measures = noteLines(b.object?.measures).length
+  const open = words.length
     ? fillTemplate(C.chipLabelHazards, { h: words.join(', ') })
     : C.chipLabel
+  const label = measures ? `${open} · ${fillTemplate(measures === 1 ? C.chipMeasuresOne : C.chipMeasures, { n: measures })}` : open
   return { hazard: words.length > 0, words, measures, label }
 }

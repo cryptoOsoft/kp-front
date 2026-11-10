@@ -142,6 +142,7 @@ def downscale_photo(data: bytes) -> bytes | None:
             im.convert("RGB").save(buf, format="JPEG", quality=_PHOTO_QUALITY, optimize=True)
             return buf.getvalue()
     except Exception:  # noqa: BLE001 — an unreadable photo prints as a placeholder
+        logger.warning("object visit report: a photo could not be read; it prints as a placeholder", exc_info=True)
         return None
 
 
@@ -157,6 +158,7 @@ def _photo_flowable(data: bytes | None, max_w: float, max_h: float) -> Image | N
             im.convert("RGB").save(buf, format="JPEG", quality=_PHOTO_QUALITY, optimize=True)
             width, height = im.size
     except Exception:  # noqa: BLE001 — an unreadable photo prints as a placeholder
+        logger.warning("object visit report: a photo could not be read; it prints as a placeholder", exc_info=True)
         return None
     if width <= 0 or height <= 0:
         return None

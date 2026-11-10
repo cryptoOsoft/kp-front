@@ -23,12 +23,9 @@ type Route = 'github' | 'mail'
 /** Rückmeldung composer. Opened either from Einstellungen (no `trouble`) or from the launcher
  *  prompt after something went wrong (`trouble` set, so the question can be specific).
  *
- *  The app does not transmit this. It never did automatically, and since the maintainer's
- *  ingest was retired (PRIVACY.md § «Where it goes») it has no destination to transmit TO —
- *  so the sheet no longer offers a «Senden» button that would queue a report into an outbox
- *  nobody drains. What it does instead is prepare a report properly and hand it to the
- *  operator: pick a route, and the sheet fills in the form or the mail and saves the
- *  Diagnose-Datei to attach.
+ *  The app does not transmit this: there is no «Senden» button and no ingest to send to.
+ *  What the sheet does is prepare a report properly and hand it to the operator: pick a
+ *  route, and the sheet fills in the form or the mail and saves the Diagnose-Datei to attach.
  *
  *  That file is the point of the whole screen. Prose plus a build number says «es ist
  *  abgestürzt»; the Diagnose-Datei carries the station's own sanitised crash traces, which is
@@ -37,9 +34,7 @@ type Route = 'github' | 'mail'
  *  operator can check, and an empty buffer says so rather than promising a file with nothing
  *  in it.
  *
- *  A photo, if one helps, is attached the same way the file is: in the mail or in the issue.
- *  The app used to downscale and base64 one into a telemetry payload, which only ever existed
- *  because that payload was the only transport out. It isn't any more. */
+ *  A photo, if one helps, is attached the same way the file is: in the mail or in the issue. */
 export function FeedbackSheet({ trouble, onClose }: {
   trouble?: TroubleEvent
   onClose: (reason: 'cancel' | 'complete') => void

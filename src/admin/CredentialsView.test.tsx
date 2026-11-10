@@ -238,6 +238,5 @@ describe('the page says what a browser deliberately cannot set', () => {
 
     expect(await screen.findByText('SECRET_KEY')).toBeTruthy()
     expect(screen.getByText('ADMIN_SECRET')).toBeTruthy()
-    expect(screen.getByText('KP_TELEMETRY_ENABLED / _DSN')).toBeTruthy()
   })
 })

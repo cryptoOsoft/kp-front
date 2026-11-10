@@ -268,8 +268,8 @@ function initialDecisions(preview: RosterImportPreview): Decisions {
  * import every rank was known, so the second one went straight through.
  *
  * The second question is the mapping, which appears only when the file uses a Dienstgrad the
- * station's list does not know: ONE row per unknown VALUE, with three answers
- * (mockups/admin-csv-b-zuordnung.html) — put it on a rank the station has, adopt it as a new
+ * station's list does not know: ONE row per unknown VALUE, with three answers:
+ * put it on a rank the station has, adopt it as a new
  * rank of the station, or import those people without a Dienstgrad.
  *
  * ⚠️ «Übernehmen» writes the station's `roster.ranks`. On a station that has never configured

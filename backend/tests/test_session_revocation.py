@@ -237,3 +237,19 @@ async def test_an_unchanged_role_keeps_the_sessions(client, editor, admin_login)
 
     async with _bearer(access_token=access) as same:
         assert (await same.get("/api/auth/me")).status_code == 200
+
+
+async def test_pin_reset_drops_the_accounts_push_registrations(client, editor, viewer, admin_login, db_session):
+    """The lock screen is a session too: a lost phone kept getting «Neuer Einsatz – Titel –
+    Adresse» after the reset that signed it out, because push rows belong to the account and
+    renew without a session. Another account's phone is untouched."""
+    from app.models import PushSubscription
+
+    for user, endpoint in ((editor, "https://push.example/lost"), (viewer, "https://push.example/other")):
+        db_session.add(PushSubscription(user_id=user.id, endpoint=endpoint, p256dh="k", auth="a"))
+    await db_session.commit()
+
+    await _reset_pin(client, admin_login, editor)
+
+    left = (await db_session.execute(select(PushSubscription.endpoint))).scalars().all()
+    assert left == ["https://push.example/other"]

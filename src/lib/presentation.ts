@@ -63,14 +63,24 @@ export function nextFollow(f: Follow, ev: FollowEvent): Follow {
 /** Joined the room (sends pointers, is counted, sees the others' rings). */
 export const isJoined = (f: Follow) => f.kind === 'presenting' || f.kind === 'following' || f.kind === 'detached'
 
-// --- pointer rings -----------------------------------------------------------------------
+/** This tab follows somebody's presentation (or has panned away from it, «Wieder folgen»). The
+ *  tab-lock banner («In einem anderen Tab geöffnet») steps aside meanwhile – the second tab is
+ *  there to follow, the pill says enough – and comes back when the following ends (owner,
+ *  09.11.2026; WorkspaceMeldungen). */
+export const isFollower = (f: Follow) => f.kind === 'following' || f.kind === 'detached'
 
-/** How long a ring stands before it is gone; the fade is the last part of it (CSS, 21-presentation). */
-export const RING_MS = 4000
-/** A person tapping fast leaves at most this many rings at once. */
-const RINGS_PER_PERSON = 3
+// --- pointer rings -----------------------------------------------------------------------
+// ⚠️ A mark – a ring or a line – STANDS until somebody joined takes it away with the × on its name,
+// or the presenter switches «Zeigen» off, which takes every mark away (owner pick 09.11.2026, mock
+// nov09-zeigen-banner A; they faded after four seconds before). `applyMarks` is the one place a
+// message from the room changes the marks on this device.
+
+/** A person tapping (or drawing) a lot keeps at most this many rings – and as many lines – at
+ *  once: the oldest goes. A guard against a flood (a forwarded view link), not a fade. */
+const MARKS_PER_PERSON = 12
 
 export interface Ring {
+  /** `<client>:<id>` – the same on every screen, so the × can name it */
   key: string
   client: string
   name: string
@@ -79,16 +89,12 @@ export interface Ring {
   born: number
 }
 
-/** Add a pointer's ring (newest last) and drop what has faded. */
-export function addRing(rings: readonly Ring[], ring: Ring, now: number): Ring[] {
-  const live = liveRings(rings, now).filter((r) => r.key !== ring.key)
-  const mine = live.filter((r) => r.client === ring.client)
-  const drop = new Set(mine.slice(0, Math.max(0, mine.length - RINGS_PER_PERSON + 1)).map((r) => r.key))
-  return [...live.filter((r) => !drop.has(r.key)), ring]
-}
-
-export function liveRings(rings: readonly Ring[], now: number): Ring[] {
-  return rings.filter((r) => now - r.born < RING_MS)
+/** Add a pointer's ring (newest last), dropping the same person's oldest beyond the cap. */
+export function addRing(rings: readonly Ring[], ring: Ring): Ring[] {
+  const rest = rings.filter((r) => r.key !== ring.key)
+  const mine = rest.filter((r) => r.client === ring.client)
+  const drop = new Set(mine.slice(0, Math.max(0, mine.length - MARKS_PER_PERSON + 1)).map((r) => r.key))
+  return [...rest.filter((r) => !drop.has(r.key)), ring]
 }
 
 /** A surface a ring or a line can stand on: the Karte, one plan (on the Tafel, its Skizze), or
@@ -114,28 +120,28 @@ export function ringsOn(rings: readonly Ring[], where: Where): Ring[] {
 export const STROKE_MS = 250
 /** The server's cap (app/presentation · MAX_STROKE_POINTS); `capPoints` simplifies to fit. */
 export const MAX_STROKE_POINTS = 120
-/** A line whose finger never came up (the page went away mid-draw) is gone after this long. */
+/** A line whose finger never came up (the page went away mid-draw) is gone after this long – the
+ *  one mark that leaves on its own: nobody would ever see it finished to take it away. */
 const STROKE_STALE_MS = 15_000
-/** A person drawing fast keeps at most this many lines at once. */
-const STROKES_PER_PERSON = 3
 
 export interface Stroke {
+  /** `<client>:<stroke id>` – the same on every screen */
   key: string
   client: string
   name: string
   link: boolean
   line: StrokeData
-  /** the last update (ms) – a done line fades RING_MS from here, like a ring */
+  /** the last update (ms) – an unfinished line goes STROKE_STALE_MS after it */
   born: number
 }
 
-const strokeLive = (s: Stroke, now: number) => now - s.born < (s.line.done ? RING_MS : STROKE_STALE_MS)
+const strokeLive = (s: Stroke, now: number) => s.line.done || now - s.born < STROKE_STALE_MS
 
-/** Put a line's newest update in place of its older one, and drop what has faded. */
+/** Put a line's newest update in place of its older one, and drop what went stale. */
 export function addStroke(strokes: readonly Stroke[], stroke: Stroke, now: number): Stroke[] {
   const live = liveStrokes(strokes, now).filter((s) => s.key !== stroke.key)
   const mine = live.filter((s) => s.client === stroke.client)
-  const drop = new Set(mine.slice(0, Math.max(0, mine.length - STROKES_PER_PERSON + 1)).map((s) => s.key))
+  const drop = new Set(mine.slice(0, Math.max(0, mine.length - MARKS_PER_PERSON + 1)).map((s) => s.key))
   return [...live.filter((s) => !drop.has(s.key)), stroke]
 }
 
@@ -143,10 +149,41 @@ export function liveStrokes(strokes: readonly Stroke[], now: number): Stroke[] {
   return strokes.filter((s) => strokeLive(s, now))
 }
 
-/** When the next of these lines fades (ms from `now`), or null when none will. */
-export function nextFade(strokes: readonly Stroke[], now: number): number | null {
-  const ends = strokes.map((s) => s.born + (s.line.done ? RING_MS : STROKE_STALE_MS) - now)
+/** When the next unfinished line goes stale (ms from `now`), or null when none will. */
+export function nextStale(strokes: readonly Stroke[], now: number): number | null {
+  const ends = strokes.filter((s) => !s.line.done).map((s) => s.born + STROKE_STALE_MS - now)
   return ends.length ? Math.max(50, Math.min(...ends)) : null
+}
+
+/** The marks on this device: every ring and line standing, whoever made them. */
+export interface Marks { rings: Ring[]; strokes: Stroke[] }
+export const NO_MARKS: Marks = { rings: [], strokes: [] }
+
+type MarkMessage = Extract<PresentationState['messages'][number], { kind: 'pointer' | 'stroke' | 'unmark' | 'clear' }>
+
+/** The key of the mark a pointer message makes: its ring's id, or – from a build that sent none –
+ *  the message's place in the room (that ring cannot be taken away singly anywhere else). */
+export const ringKey = (m: Extract<MarkMessage, { kind: 'pointer' }>) => `${m.client}:${m.at.id ?? `s${m.seq}`}`
+
+/** Apply the room's mark messages, in order: a ring or a line from somebody else is added (this
+ *  device drew its own the moment it was made), an `unmark` takes one away, a `clear` all of them. */
+export function applyMarks(marks: Marks, messages: readonly PresentationState['messages'][number][], self: string, now: number): Marks {
+  let { rings, strokes } = marks
+  for (const m of messages) {
+    if (m.kind === 'pointer' && m.client !== self) {
+      rings = addRing(rings, { key: ringKey(m), client: m.client, name: m.name, link: m.link, at: m.at, born: now })
+    } else if (m.kind === 'stroke' && m.client !== self) {
+      strokes = addStroke(strokes, { key: `${m.client}:${m.stroke.id}`, client: m.client, name: m.name, link: m.link, line: m.stroke, born: now }, now)
+    } else if (m.kind === 'unmark') {
+      const key = `${m.client}:${m.id}`
+      if (rings.some((r) => r.key === key)) rings = rings.filter((r) => r.key !== key)
+      if (strokes.some((x) => x.key === key)) strokes = strokes.filter((x) => x.key !== key)
+    } else if (m.kind === 'clear' && (rings.length || strokes.length)) {
+      rings = []
+      strokes = []
+    }
+  }
+  return rings === marks.rings && strokes === marks.strokes ? marks : { rings, strokes }
 }
 
 /** The lines that belong on the Karte, on one plan, or on one Tafel form page. */
@@ -326,7 +363,7 @@ export function initials(name: string): string {
 }
 
 /** A person's ring and avatar colour (`--present-1` … `--present-6`): the presenter's is always
- *  the first (the pill's own magenta), everybody else's is stable for their client id. */
+ *  the first (the pill's own FW red), everybody else's is stable for their client id. */
 export function personTone(client: string, presenter: string | null | undefined): number {
   if (client === presenter) return 1
   let h = 0

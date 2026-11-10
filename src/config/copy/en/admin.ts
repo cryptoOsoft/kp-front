@@ -534,7 +534,6 @@ export const adminCopy: Localizable<Pick<Copy, 'admin'>> = {
         items: [
           { name: 'SECRET_KEY', why: 'encrypts the PINs and the values on this page – it cannot live in the database it protects.' },
           { name: 'ADMIN_SECRET', why: 'opens this very administration. Whoever can open it could otherwise grant themselves new access.' },
-          { name: 'KP_TELEMETRY_ENABLED / _DSN', why: 'is the deployer’s veto over the administration. A veto the administration can change is not one.' },
           { name: 'DATABASE_URL, POSTGRES_*', why: 'are needed before a database connection exists at all.' },
           { name: 'APP_PORT, DOMAIN, KP_FRONT_TAG', why: 'are read by Docker Compose, not by the app – a restart is unavoidable here.' },
         ],
@@ -1688,6 +1687,9 @@ export const adminCopy: Localizable<Pick<Copy, 'admin'>> = {
       liveSnapshot: 'Live system status',
       updatedAt: 'Updated {time}',
       healthSummary: 'System health',
+      loginLocksTitle: 'Sign-in locked for new devices',
+      loginLocksTip: 'Too many wrong PINs were entered for this account from unknown devices. Devices that have signed in to the account before are not affected. The lock ends by itself; if the guessing continues, it returns. If in doubt, reset the account\'s PIN.',
+      loginLockRow: '{name} – new devices locked for another {minutes} min',
       server: 'Server',
       reachable: 'reachable',
       error: 'Could not load system data.',

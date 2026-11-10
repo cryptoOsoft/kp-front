@@ -69,8 +69,8 @@ a session of its own.
 # includes an incident LINK (`LinkApp` mounts the whole app, and a link carries no
 # `access_token`, so `actor is not None` is the wrong test). Server-side renders (Rapport/Kroki)
 # use `app/carto.py` and the deployment's own credential, never the client's copy. `SECRET_KEY`,
-# `ADMIN_SECRET`, `KP_TELEMETRY_*` and `REQUIRE_PLAN_DIGEST` stay env-only on purpose: each
-# would defeat itself in the database it gates.
+# `ADMIN_SECRET` and `REQUIRE_PLAN_DIGEST` stay env-only on purpose: each would defeat itself
+# in the database it gates.
 
 from __future__ import annotations
 
@@ -144,8 +144,7 @@ class CredentialField:
 #: Exactly the set a station may set from a browser. Everything NOT here stays in ``.env``
 #: on purpose, and the admin page says so out loud: ``SECRET_KEY`` peppers the PINs in the
 #: database it would live in, ``ADMIN_SECRET`` gates writing the very document it would live
-#: in, ``KP_TELEMETRY_*`` is the deployer's veto OVER the admin UI (an admin-settable veto is
-#: not a veto), ``REQUIRE_PLAN_DIGEST`` guards the config a stale publish overwrites, and the
+#: in, ``REQUIRE_PLAN_DIGEST`` guards the config a stale publish overwrites, and the
 #: database/port/domain variables are read before a database connection exists.
 FIELDS: tuple[CredentialField, ...] = (
     # --- Divera -----------------------------------------------------------------------

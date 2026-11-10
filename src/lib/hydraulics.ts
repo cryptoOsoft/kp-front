@@ -4,7 +4,7 @@ import type { ProfilePoint } from './profile'
 
 // Wassertransport — the pressure along a hose relay and where its pumps go. No React, no copy:
 // Messen › Strecke and the Leitung editor both drive it through lib/useRelay, and the validated
-// click prototype (proto/wassertransport-prototype.html, 03.11.2026) is its origin. Pure but for
+// click prototype (03.11.2026) is its origin. Pure but for
 // ONE read: `hoseDefaults()`, the station's doctrine for the Ø a Leitung or a Messen relay
 // starts on (deployment config `doctrine.defaultLineHose` / `defaultRelayHose`).
 //

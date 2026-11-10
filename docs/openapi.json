@@ -75,16 +75,35 @@
           "auth"
         ],
         "summary": "Login",
+        "description": "PIN login behind two throttles, both taken BEFORE the first await (a concurrent burst is\ncounted, not waved past a check nobody has failed yet — SEC-08 round 1):\n\n· the cooldown ladder per (account, device or source) — pin_limiter · PinLimiter;\n· for a device the account does not know, the account's new-device budget — NewDeviceBudget.\n\nA throttled attempt is REFUSED before the verify, a correct PIN included: verifying while\nthrottled is what made the PIN space brute-forceable once (SEC-08 round 3). Both blocks are\nbounded and neither deepens while it stands, so the operator always gets a window — and a\ndevice the account knows is never behind the budget at all.",
         "operationId": "login_api_auth_login_post",
+        "parameters": [
+          {
+            "name": "known_device",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Known Device"
+            }
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/LoginRequest"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -132,6 +151,22 @@
                 }
               ],
               "title": "Refresh Token"
+            }
+          },
+          {
+            "name": "known_device",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Known Device"
             }
           }
         ],
@@ -1193,8 +1228,42 @@
           "plan-scales"
         ],
         "summary": "Get Plan Scales",
-        "description": "PUBLIC — needed to measure on plans (viewers included) and cached offline at boot.\nNever raises: whatever in the stored blob does not validate is dropped entry-wise, the rest\nis served — with the `version` the caller sends back as `If-Match` when it writes.",
+        "description": "Any session (viewers measure on plans too), never an anonymous caller — see the module\ndocstring. Never raises on the stored document: whatever in the stored blob does not validate is dropped entry-wise, the rest\nis served — with the `version` the caller sends back as `If-Match` when it writes.",
         "operationId": "get_plan_scales_api_plan_scales_get",
+        "parameters": [
+          {
+            "name": "access_token",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Access Token"
+            }
+          },
+          {
+            "name": "admin_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Admin Session"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -1202,6 +1271,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PlanScalesOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -3082,7 +3161,7 @@
           "presentation"
         ],
         "summary": "Presentation Signal",
-        "description": "Join, leave, the presenter's view, a pointer or a line. Ephemeral by construction – see the\nmodule docstring. 409 when the presentation it names is not the one running (ended,\ntaken over): the client drops back to «no presentation» on its next poll.",
+        "description": "Join, leave, the presenter's view, a pointer or a line, a mark taken away or all of them.\nEphemeral by construction – see the\nmodule docstring. 409 when the presentation it names is not the one running (ended,\ntaken over): the client drops back to «no presentation» on its next poll.",
         "operationId": "presentation_signal_api_incidents__incident_id__presentation_signal_post",
         "parameters": [
           {
@@ -12641,172 +12720,6 @@
         }
       }
     },
-    "/api/diag/telemetry": {
-      "get": {
-        "tags": [
-          "diag"
-        ],
-        "summary": "Telemetry Status",
-        "description": "Everything the admin screen needs to answer \"what is this instance sending\".\n\nIncludes the last few payloads verbatim. The queue is the honest answer to that\nquestion and there is no reason to summarise it — a fire station should be able to read\nthe actual JSON without opening psql.",
-        "operationId": "telemetry_status_api_diag_telemetry_get",
-        "parameters": [
-          {
-            "name": "admin_session",
-            "in": "cookie",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Admin Session"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": true,
-                  "title": "Response Telemetry Status Api Diag Telemetry Get"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/diag/telemetry/consent": {
-      "put": {
-        "tags": [
-          "diag"
-        ],
-        "summary": "Update Consent",
-        "description": "Turn the background channel on or off. Off also discards whatever is still queued.",
-        "operationId": "update_consent_api_diag_telemetry_consent_put",
-        "parameters": [
-          {
-            "name": "admin_session",
-            "in": "cookie",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Admin Session"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ConsentUpdate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": true,
-                  "title": "Response Update Consent Api Diag Telemetry Consent Put"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/diag/telemetry/install-id": {
-      "post": {
-        "tags": [
-          "diag"
-        ],
-        "summary": "Rotate Install Id",
-        "description": "Mint a fresh install id, cutting the link to everything sent so far.",
-        "operationId": "rotate_install_id_api_diag_telemetry_install_id_post",
-        "parameters": [
-          {
-            "name": "admin_session",
-            "in": "cookie",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Admin Session"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": true,
-                  "title": "Response Rotate Install Id Api Diag Telemetry Install Id Post"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/admin/visits": {
       "get": {
         "tags": [
@@ -17039,20 +16952,6 @@
         ],
         "title": "ConfigValidationResult",
         "description": "What ``POST /api/config/validate`` answers: everything a PUT would say, without writing.\n\nThe dry-run an agent needs and only a workstation had (``admin_config validate`` / ``diff``).\n``valid`` is about the SCHEMA; the other fields are about the consequences — the sections a\nwrite would empty (which `?force=true` is the answer to), the sections it would change, and\nthe ``version`` to send back as ``If-Match`` so the follow-up PUT is not a blind one."
-      },
-      "ConsentUpdate": {
-        "properties": {
-          "consent": {
-            "type": "string",
-            "maxLength": 16,
-            "title": "Consent"
-          }
-        },
-        "type": "object",
-        "required": [
-          "consent"
-        ],
-        "title": "ConsentUpdate"
       },
       "CredentialAuditEntry": {
         "properties": {
@@ -22049,6 +21948,26 @@
         "title": "PresentationChecklist",
         "description": "The open Checkliste (components/ChecklistsView · Sel)."
       },
+      "PresentationClearMessage": {
+        "properties": {
+          "seq": {
+            "type": "integer",
+            "title": "Seq"
+          },
+          "kind": {
+            "type": "string",
+            "const": "clear",
+            "title": "Kind"
+          }
+        },
+        "type": "object",
+        "required": [
+          "seq",
+          "kind"
+        ],
+        "title": "PresentationClearMessage",
+        "description": "The presenter switched «Zeigen» off: every mark goes."
+      },
       "PresentationMapView": {
         "properties": {
           "lng": {
@@ -22112,6 +22031,29 @@
         ],
         "title": "PresentationMapView",
         "description": "The presenter's free map area (its own side panel left out): the centre, zoom, bearing and\nthe area's size in px – a follower fits that whole area into its own (components/Presentation\n· fitZoom), so a portrait phone zooms out instead of cutting it off."
+      },
+      "PresentationMarkRef": {
+        "properties": {
+          "client": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 4,
+            "title": "Client"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{4,40}$",
+            "title": "Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "client",
+          "id"
+        ],
+        "title": "PresentationMarkRef",
+        "description": "One ring or line, as the × on its name takes it away: whose it is, and its id."
       },
       "PresentationPerson": {
         "properties": {
@@ -22309,6 +22251,18 @@
                 "type": "null"
               }
             ]
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_-]{4,40}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
           }
         },
         "additionalProperties": false,
@@ -22378,7 +22332,9 @@
               "leave",
               "view",
               "pointer",
-              "stroke"
+              "stroke",
+              "unmark",
+              "clear"
             ],
             "title": "Kind"
           },
@@ -22418,6 +22374,16 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/PresentationStroke"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mark": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PresentationMarkRef"
               },
               {
                 "type": "null"
@@ -22522,13 +22488,21 @@
                 },
                 {
                   "$ref": "#/components/schemas/PresentationStrokeMessage"
+                },
+                {
+                  "$ref": "#/components/schemas/PresentationUnmarkMessage"
+                },
+                {
+                  "$ref": "#/components/schemas/PresentationClearMessage"
                 }
               ],
               "discriminator": {
                 "propertyName": "kind",
                 "mapping": {
+                  "clear": "#/components/schemas/PresentationClearMessage",
                   "pointer": "#/components/schemas/PresentationPointerMessage",
                   "stroke": "#/components/schemas/PresentationStrokeMessage",
+                  "unmark": "#/components/schemas/PresentationUnmarkMessage",
                   "view": "#/components/schemas/PresentationViewMessage"
                 }
               }
@@ -22680,6 +22654,36 @@
           "stroke"
         ],
         "title": "PresentationStrokeMessage"
+      },
+      "PresentationUnmarkMessage": {
+        "properties": {
+          "seq": {
+            "type": "integer",
+            "title": "Seq"
+          },
+          "kind": {
+            "type": "string",
+            "const": "unmark",
+            "title": "Kind"
+          },
+          "client": {
+            "type": "string",
+            "title": "Client"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "seq",
+          "kind",
+          "client",
+          "id"
+        ],
+        "title": "PresentationUnmarkMessage",
+        "description": "A ring or line taken away (the × on its name): `client`/`id` name the MARK, not who tapped."
       },
       "PresentationView": {
         "properties": {

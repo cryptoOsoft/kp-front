@@ -18,7 +18,7 @@
 //   ./api/reference     — reference datasets + per-station reference-layer config
 
 export {
-  listIncidents, cacheIncidentList, readCachedIncidentList, listIncidentsResilient,
+  listIncidents, cacheIncidentList, readCachedIncidentList, listIncidentsResilient, listIncidentsShared,
   getIncident, createIncident, patchIncident, archiveIncident, reactivateIncident,
   deleteIncident, migrateLegacyWorkspace,
 } from './api/incidents'

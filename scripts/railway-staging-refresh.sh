@@ -137,7 +137,7 @@ cat >> "$WORK/db.sql" <<SQL
 
 -- ─── staging cuts (railway-staging-refresh.sh) ───
 SET search_path = public;  -- the dump emptied it
-TRUNCATE push_subscriptions, telemetry_outbox, print_jobs;
+TRUNCATE push_subscriptions, print_jobs;
 DELETE FROM integration_credentials WHERE name IN (
   'healthcheck_ping_url', 'print_agent_secret', 'alarm_webhook_secret', 'divera_webhook_secret',
   'vapid_public_key', 'vapid_private_key', 'vapid_subject');

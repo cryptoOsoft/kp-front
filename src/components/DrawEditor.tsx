@@ -792,7 +792,7 @@ export function DrawEditor({ drawing, pointCount, readOnly = false, areaM2, boxM
             )}
             {/* a Leitung's Wassertransport chart carries the terrain itself – it stands in for the
                 Höhenprofil, in ONE column: inputs, chart and tapped pump, result and «Pumpen auf
-                Karte» (mockups/wt-nov04-m4b.html, round 3 mock F-A, 04.11.2026; the switch 05.11.) */}
+                Karte» (mock M4b, round 3 mock F-A, 04.11.2026; the switch 05.11.) */}
             {measureOpen && relayShown && (
               <WaterRelay ctrl={relayCtrl} onClose={() => setRelayAdded(false)} mapPumps />
             )}

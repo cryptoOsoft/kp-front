@@ -6,7 +6,7 @@ const listPersonnel = vi.fn()
 vi.mock('./incidents', () => ({ listPersonnel: (...a: unknown[]) => listPersonnel(...a) }))
 vi.mock('./idb', () => ({ idbGet: () => Promise.resolve(undefined), idbSet: () => Promise.resolve() }))
 
-import { usePersonnel } from './usePersonnel'
+import { loadRoster, usePersonnel } from './usePersonnel'
 import type { Person } from '../types'
 
 const person = (id: string, updatedAt = 't0'): Person =>
@@ -73,5 +73,37 @@ describe('usePersonnel — the roster keeps itself fresh', () => {
     await waitFor(() => expect(result.current.loaded).toBe(true))
     await act(async () => { window.dispatchEvent(new Event('online')); await Promise.resolve() })
     expect(listPersonnel).toHaveBeenCalledTimes(2)
+  })
+})
+
+// 09.11.2026: every launch into an Einsatz asked for the roster twice, seconds apart – the
+// launcher's warm-up (App · loadRoster) and this hook's initial load.
+describe('usePersonnel — the initial load takes the warm-up answer', () => {
+  it('sends no request of its own right after the warm-up', async () => {
+    listPersonnel.mockResolvedValue([person('a'), person('b')])
+    await loadRoster()
+    const { result } = renderHook(() => usePersonnel())
+    await waitFor(() => expect(result.current.loaded).toBe(true))
+    expect(result.current.people).toHaveLength(2)
+    expect(listPersonnel).toHaveBeenCalledTimes(1)
+  })
+
+  it('asks itself once the warm-up is old', async () => {
+    listPersonnel.mockResolvedValue([person('a')])
+    await loadRoster()
+    await vi.advanceTimersByTimeAsync(30_000)
+    const { result } = renderHook(() => usePersonnel())
+    await waitFor(() => expect(result.current.loaded).toBe(true))
+    expect(listPersonnel).toHaveBeenCalledTimes(2)
+  })
+
+  it('asks itself when the warm-up failed', async () => {
+    listPersonnel.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+    await loadRoster().catch(() => {})
+    listPersonnel.mockResolvedValue([person('a')])
+    const { result } = renderHook(() => usePersonnel())
+    await waitFor(() => expect(result.current.loaded).toBe(true))
+    expect(result.current.error).toBe(false)
+    expect(result.current.people).toHaveLength(1)
   })
 })

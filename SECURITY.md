@@ -42,8 +42,9 @@ the latest tagged release (or `main`) and update promptly – see [`docs/DEPLOYM
   is never an admin session, and nothing on the PIN path depends on it. Off unless the tenant,
   client, secret and allow-list are all configured – see
   [`docs/microsoft-login.md`](docs/microsoft-login.md).
-- **Sessions:** short-lived JWT access tokens + refresh tokens delivered as **httpOnly
-  cookies** (Secure in production), with refresh rotation and revocation.
+- **Sessions:** JWT access tokens (8 h) + refresh tokens (90 days, rolling) delivered as
+  **httpOnly cookies** (Secure in production). Every refresh mints a one-time successor; a PIN
+  reset or a role change ends the session at once.
 - **Roles:** incident users are `editor` (FU / can mutate incident state), `el` (Einsatzleiter –
   reads everything, writes only the record domains, enforced server-side) and `viewer`
   (read-only). The stored backend value was migrated from the legacy `commander` name to
@@ -52,12 +53,15 @@ the latest tagged release (or `main`) and update promptly – see [`docs/DEPLOYM
   (config, branding, system, user CRUD, geodata/objects) require an admin session unlocked by the
   `ADMIN_SECRET` env var – not the editor PIN. It is **fail-closed**: with `ADMIN_SECRET` unset the
   admin surface returns 403 and never falls back to the editor PIN.
-- **Single-origin, no CORS:** one deployment = one station (single-tenant). The FastAPI
-  service serves the SPA same-origin, so there is no cross-origin API surface. It proxies the
-  configured integrations, geocoder, and weather; map/WMS tiles are fetched by the browser so
-  they can be cached offline. The exception is the map in the server-rendered PDFs (Rapport,
-  Tafel print): the server fetches those basemap tiles itself, from a fixed list of provider
-  hosts plus any the deployer adds via `REPORT_TILE_HOSTS`.
+- **Single-origin:** one deployment = one station (single-tenant). The FastAPI service serves
+  the SPA same-origin and sends no CORS headers, with one exception: the visit beacon
+  `POST /api/hit` answers an allow-list of landing-page origins. It takes a kind and a key from a
+  closed list, always answers 204, and counts only with `VISIT_STATS=true` (the public demo).
+  The service proxies the configured integrations, geocoder, and weather; the browser itself
+  fetches map/WMS tiles, so they can be cached offline, and the Höhenprofil of a drawn line
+  from swisstopo. For the map in the server-rendered PDFs (Rapport, Tafel print) the server
+  fetches the basemap tiles itself, from a fixed list of provider hosts plus any the deployer
+  adds via `REPORT_TILE_HOSTS`.
 - **Secrets stay out of the repo:** host-root secrets (`SECRET_KEY`, `ADMIN_SECRET`,
   `DATABASE_URL`) live in environment variables. Integration credentials can live there too,
   or in the deployment's encrypted credential store managed through `/admin`; an environment
@@ -65,10 +69,8 @@ the latest tagged release (or `main`) and update promptly – see [`docs/DEPLOYM
   `openssl rand -hex 32`) – it signs JWTs, peppers PINs, and seals that credential store, so
   rotating it invalidates sessions and PIN hashes and makes stored integration credentials
   unreadable. `just init-env` generates the required host secrets for a fresh `.env`.
-- **No telemetry credential ships:** the default DSN in `backend/app/telemetry/dsn.py` is the
-  empty string, since the maintainer's ingest was retired. `KP_TELEMETRY_DSN` stays empty – and
-  nothing is forwarded – unless a deployer sets it to an ingest of their own;
-  `KP_TELEMETRY_ENABLED=0` vetoes the forwarder outright. See [`PRIVACY.md`](PRIVACY.md).
+- **No telemetry:** the app forwards no crash reports anywhere. Crashes stay in the server log
+  and an in-memory buffer an operator can export by hand. See [`PRIVACY.md`](PRIVACY.md).
 
 ## Accepted single-station deployment constraints
 

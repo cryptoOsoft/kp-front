@@ -43,7 +43,10 @@ export function useZeigen(
   useEffect(() => { tapRef.current = onTap; drawRef.current = onDraw }, [onTap, onDraw])
   useEffect(() => {
     if (!el || !enabled) return
+    // …except the × on a mark's name (components/Presentation · UnmarkX): a tap there takes the
+    // mark away, it never sets a new one
     const inside = (e: Event) => e.target instanceof Node && el.contains(e.target)
+      && !(e.target instanceof Element && e.target.closest('.present-unmark'))
     /** the one pointer this mode owns, while it is down */
     let owned: {
       id: number; x: number; y: number; t: number; moved: boolean

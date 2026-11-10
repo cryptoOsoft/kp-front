@@ -117,8 +117,8 @@ export function doneName(props: Pick<SymbolProps, 'label' | 'symbol'>): string {
 const named = (name: string, place: string) => (place ? `${name} ${place}` : name)
 
 /**
- * The Verlauf row for the act — «Feuer EG gelöscht». A row carries what was said (AGENTS ·
- * append-only), so it names the object and its storey; the WHEN is the row's own timestamp, which
+ * The Verlauf row for the act – «Feuer EG gelöscht». A row carries what was said
+ * (docs/sync-and-offline.md · append-only), so it names the object and its storey; the WHEN is the row's own timestamp, which
  * is the same instant `done.at` holds (review of PR #226: a bracketed time said it twice).
  */
 export function doneRowText(name: string, place: string, symbol: string | undefined): string {

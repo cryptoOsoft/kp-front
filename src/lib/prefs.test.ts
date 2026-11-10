@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { SYMBOL_SCALE, clampSymbolScale, initialMode, keyHintsFor, legacySymbolMul, planSymbolScale, railLabelsFor, symbolScales, type Prefs } from './prefs'
+import { SYMBOL_SCALE, clampSymbolScale, initialMode, keyHintsFor, legacySymbolMul, planSymbolScale, railLabelsFor, resolveTheme, symbolScales, type Prefs } from './prefs'
 
 // The Symbolgrösse rework: one global S/M/L pref became one multiplier PER SURFACE (Karte /
 // Module). Two things have to hold — the bands the sliders offer, and that nobody's stored
@@ -142,5 +142,27 @@ describe('keyHintsFor', () => {
   it('keeps a device\'s own choice', () => {
     expect(keyHintsFor({ keyHints: false })).toBe(false)
     expect(keyHintsFor({ keyHints: true })).toBe(true)
+  })
+})
+
+// «Gerät» (09.11.2026): a fourth Farbschema option that follows the OS light/dark setting,
+// beside «Automatisch», which keeps following the time of day
+describe('resolveTheme', () => {
+  const noon = new Date('2026-06-21T10:00:00Z')
+  const midnight = new Date('2026-06-21T22:00:00Z')
+
+  it('follows the device setting for «Gerät», whatever the time of day', () => {
+    expect(resolveTheme('device', null, noon, true)).toBe('night')
+    expect(resolveTheme('device', null, midnight, false)).toBe('day')
+  })
+
+  it('keeps «Automatisch» (and an absent pref) on daylight, ignoring the device', () => {
+    expect(resolveTheme('auto', null, noon, true)).toBe('day')
+    expect(resolveTheme(undefined, null, midnight, false)).toBe('night')
+  })
+
+  it('lets Tag/Nacht override both', () => {
+    expect(resolveTheme('day', null, midnight, true)).toBe('day')
+    expect(resolveTheme('night', null, noon, false)).toBe('night')
   })
 })

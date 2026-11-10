@@ -172,7 +172,7 @@ describe('sources, notes, object, visit', () => {
 
 describe('buildingChipSummary', () => {
   it('hazard words deduplicated in order — gas heating and gas hot water are one «Gas»', () => {
-    expect(buildingChipSummary(info())).toMatchObject({ hazard: true, words: ['Gas', 'PV'], measures: false })
+    expect(buildingChipSummary(info())).toMatchObject({ hazard: true, words: ['Gas', 'PV'], measures: 0 })
     expect(buildingChipSummary(info({ gwr: { ...gwr, heating: ['air'], hot_water: ['oil'] }, plants: [] }))?.words).toEqual(['Heizöl'])
   })
 

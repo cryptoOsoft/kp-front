@@ -16,6 +16,7 @@ import { createPlanStepLink, type PlanStepLink } from '../lib/planStepLink'
 import type { UndoTimeline } from '../lib/undoTimeline'
 import type { SetBoard } from '../lib/useObjectStore'
 import type { BoardDoc, TimelineEvent } from '../types'
+import type { ToolCmd } from '../lib/hotkeys'
 
 export interface PlanStacksDeps {
   undoHist: UndoTimeline
@@ -136,7 +137,7 @@ export function usePlanStacks({
   const planFit = useRef<(() => void) | null>(null)
   // the Plan exposes tool-pick + zoom here so the global keyboard-shortcut layer can drive it
   // while the Plan is the active surface (parity with how it drives the Lage map).
-  const planKeys = useRef<{ pickTool: (tool: string) => void; zoom: (f: number) => void; duplicate: () => void } | null>(null)
+  const planKeys = useRef<{ pickTool: (tool: ToolCmd) => void; zoom: (f: number) => void; duplicate: () => void } | null>(null)
   // the words of a plan act for its ↶ — on both stacks, since whichever owns the object
   // takes the step (lib/planStepLink)
   const onPlanStepLabel = (label: string) => { planStepLabelRef.current = label; stepLabelRef.current = label }

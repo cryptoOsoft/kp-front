@@ -1,8 +1,8 @@
 # Karte & Objekte
 
-Status: 🟡 in progress (from 2026-10-16). The station reads and the `/karte` viewer are built; the
-home switch (Karte & Objekte as the start when no Einsatz is open), the menu sheet, the
-Einsatz-menu entry back to the viewer and deliberate offline downloads follow in their own changes.
+Status: 🟢 shipped (from 2026-10-16). Karte & Objekte is the start when no Einsatz is open, with
+its menu sheet and the Einsatz-menu entry back to the viewer. Not built: deliberate offline
+downloads of chosen objects or areas ([Offline](#offline)).
 
 «Karte & Objekte» is the station's reference viewer **outside an Einsatz**: a member looks at the
 station area, an object's plans and notes, the register facts of any building, and starts an

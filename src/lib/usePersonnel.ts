@@ -21,6 +21,20 @@ function cacheRoster(list: Person[]): void {
   void idbSet(ROSTER_CACHE, list)
 }
 
+/** The launcher's warm-up (App · loadRoster) and the hook's initial load are seconds apart at
+ *  every launch into an Einsatz, and each used to ask the server for the same roster. The newest
+ *  `loadRoster` request is kept here, and an initial load within ROSTER_WARM_MS of its start takes
+ *  that answer instead of sending its own. Only the initial load: the background refresh and the
+ *  retry exist to fetch a NEWER list. */
+const ROSTER_WARM_MS = 30_000
+let warmUp: { request: Promise<Person[]>; at: number } | null = null
+/** The initial load's roster: the warm-up's answer while it is fresh, the server's otherwise –
+ *  and the server's too when the warm-up failed. */
+function initialRoster(): Promise<Person[]> {
+  if (!warmUp || Date.now() - warmUp.at >= ROSTER_WARM_MS) return listPersonnel()
+  return warmUp.request.catch(() => listPersonnel())
+}
+
 /** The roster for a one-off read OUTSIDE the hook — the Leeres Erfassungsblatt, the launcher's
  *  warm-up: the server's list (re-cached on the way), else the last one this device held.
  *
@@ -30,7 +44,9 @@ function cacheRoster(list: Person[]): void {
  *  Anwesenheit a minute before. Rejects only when there is neither a server answer nor a cache. */
 export async function loadRoster(): Promise<Person[]> {
   try {
-    const list = await listPersonnel()
+    const request = listPersonnel()
+    warmUp = { request, at: Date.now() }
+    const list = await request
     cacheRoster(list)
     return list
   } catch (e) {
@@ -131,7 +147,7 @@ export function usePersonnel(enabled = true) {
   useEffect(() => {
     if (!enabled) return
     let alive = true
-    listPersonnel()
+    initialRoster()
       .then((list) => { if (alive) { apply(list); setError(false) } })
       .catch(() => { if (alive) setError(true) })
       .finally(() => { if (alive) { setLoading(false); setLoaded(true) } })

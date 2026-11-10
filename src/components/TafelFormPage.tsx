@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent as ReactPointerEvent, type RefObject } from 'react'
+import { Fragment, useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent as ReactPointerEvent, type RefObject } from 'react'
 import { clearDraft, keepDraft, readDraft } from '../lib/draftKeep'
 import { useMediaQuery } from '../lib/useIsPhone'
 import { appConfig } from '../config/appConfig'
 import { getLocaleId } from '../config/copy'
 import { Icon } from '../lib/icons'
 import { cx } from '../lib/cx'
-import { fillTemplate, hhmm, pad2 } from '../lib/format'
+import { fillTemplate, hhmm, localeDate, pad2 } from '../lib/format'
+import { dayBreaks } from '../lib/formDays'
 import { newId } from '../lib/ids'
 import { serverNow } from '../lib/serverClock'
 import {
@@ -489,6 +490,13 @@ export function TafelFormPage({ pageKey, title, data, readOnly, isPhone, onChang
     return minted[list]
   }
 
+  /** where a table's «Wann» column passes midnight: per written row, the new day it begins, or
+   *  null (lib/formDays – the same rule the paper prints its date rows by) */
+  const daySeps = (sec: TableSection): (Date | null)[] => {
+    const tc = shownColumns(sec).find((c) => c.type === 'time')
+    return tc ? dayBreaks(writtenRows(data, sec).map((r) => r.cells[tc.id]), data.at) : []
+  }
+
   // ── the layout the keyboard moves through (lib/boardFormNav) ──────────────────────────────
   /** per section: a box's written lines and its empty line; a table's written rows, its empty row
    *  (`newId`, where writing lands — directly under the last entry) and how many more empty
@@ -515,7 +523,9 @@ export function TafelFormPage({ pageKey, title, data, readOnly, isPhone, onChang
       // directly under the last entry (owner, 10.10. evening: «reorder, no fixed slots»): a tap
       // on any of the others puts the caret there.
       const room = adds && !isPhone ? Math.max(0, (sec.height ?? 0) - fixedRowIds.length * 2) : 0
-      ids[sec.id] = { newId: adds ? newRow : undefined, ghosts: Math.max(0, room - written.length - 1) }
+      // a date row (midnight, `daySeps`) takes a ruling, as on paper
+      const seps = daySeps(sec).filter(Boolean).length
+      ids[sec.id] = { newId: adds ? newRow : undefined, ghosts: Math.max(0, room - written.length - seps - 1) }
       // the keys walk the typed cells: a trend button and a Bereich menu are tapped, not typed
       const typed = (cs: TemplateColumn[]) => cs.filter((c) => c.type !== 'trend' && c.type !== 'area').map((c) => c.id)
       const fixed = (sec.fixedRows ?? []).map((r) => r.id)
@@ -795,6 +805,7 @@ export function TafelFormPage({ pageKey, title, data, readOnly, isPhone, onChang
     const fixedRows = new Map((sec.fixedRows ?? []).map((r) => [r.id, r]))
     const fixedList = tableRows(data, sec).slice(0, shownFixedCount(sec))
     const written = writtenRows(data, sec)
+    const seps = daySeps(sec)
     const order = written.map((r) => r.id)
     const list = sec.id
     const { newId, ghosts = 0 } = ids[sec.id]
@@ -903,8 +914,15 @@ export function TafelFormPage({ pageKey, title, data, readOnly, isPhone, onChang
         ))}
         {/* the entries, from the top, in their order (owner, 10.10. evening: «reorder, no fixed
             slots») — then the empty row writing lands in, then the empty rulings under it */}
+        {/* …with a date row where the «Wann» passes midnight (owner pick 09.11.2026, lib/formDays) */}
         {written.map((r, i) => (
-          <div key={r.id} className={cx(s.tr, r.done && s.trDone, drag?.id === r.id && s.dragging)} role="row"
+          <Fragment key={r.id}>
+          {seps[i] && (
+            <div className={cx(s.tr, s.daySep)} role="row">
+              <span role="cell">{localeDate(seps[i], { weekday: 'short', day: '2-digit', month: '2-digit' })}</span>
+            </div>
+          )}
+          <div className={cx(s.tr, r.done && s.trDone, drag?.id === r.id && s.dragging)} role="row"
             data-ord-list={list} data-ord-id={r.id} style={{ ...grid, ...dragStyle(list, r.id, i) }}>
             {cols.map((c) => cellFor(r, c, false, i))}
             {sec.done && <span className={cx(s.td, s.doneCell)}>
@@ -914,6 +932,7 @@ export function TafelFormPage({ pageKey, title, data, readOnly, isPhone, onChang
               <BinButton onRemove={() => removeEntry({ kind: 'cell', sec: sec.id, row: r.id, col: '' }, (pc ? r.cells[pc.text] : undefined) ?? Object.values(r.cells).find((x) => x.trim()) ?? '', r.src)} />
             </span>}
           </div>
+          </Fragment>
         ))}
         {newId && (
           <div key={newId} className={cx(s.tr, s.trNew)} role="row" style={grid}>

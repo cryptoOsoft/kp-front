@@ -10,6 +10,7 @@ import { installGlobalErrorReporting } from './lib/reportError'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import './fonts.css'
 import './app.css'
+import { onAccountKnown } from './lib/accountKnown'
 import { AuthProvider, useAuth } from './lib/auth'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { LoginScreen } from './components/LoginScreen'
@@ -39,7 +40,8 @@ installGlobalErrorReporting()
 
 // Night ergonomics: resolve the colour scheme before first paint so the app never
 // flashes the wrong chrome. Default 'auto' tracks daylight (brigade region at boot,
-// the incident coordinate once known via useAutoTheme); 'day'/'night' are overrides.
+// the incident coordinate once known via useAutoTheme); 'device' follows the OS setting;
+// 'day'/'night' are overrides.
 applyTheme(resolveTheme(loadPrefs().theme, null, new Date()))
 
 // Ask for PERSISTENT storage: without it this origin's bucket is "best-effort" and the browser
@@ -145,8 +147,10 @@ void (async () => {
     // React's <Splash> used to bring: into the line index.html reserves for it.
     const wordmark = document.querySelector('.boot-splash .loading-name')
     if (wordmark) wordmark.textContent = deploymentName()
-    // station plan calibration (public, offline-cached) — so plans measure out of the box (#3)
-    void loadStationPlanScales()
+    // station plan calibration (offline-cached) — so plans measure out of the box (#3). Its
+    // route needs a session, so it is loaded once the account is known, not at this anonymous
+    // point of the boot.
+    onAccountKnown(() => { void loadStationPlanScales() })
     // …and re-read it whenever this device comes back to the foreground. The document holds
     // STATION data — the Massstab and the Georeferenz of a sheet — which somebody sets on the
     // KP tablet while the phone in the same Einsatz sits in a pocket. The boot load runs once,

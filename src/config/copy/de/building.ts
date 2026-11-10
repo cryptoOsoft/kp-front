@@ -110,7 +110,9 @@ export const buildingCopy = {
     chipTitle: 'Gebäude-Info',
     chipLabel: 'Gebäude-Steckbrief öffnen',
     chipLabelHazards: 'Gebäude: {h} – Steckbrief öffnen',
-    measuresShort: 'Sofortmassn.',
+    // the chip's label after «Steckbrief öffnen»: what its count badge counts
+    chipMeasuresOne: '1 Sofortmassnahme',
+    chipMeasures: '{n} Sofortmassnahmen',
     // the «Messungen» chip and its list of every Messpunkt (ReadingsChip, once one is placed);
     // readingsOnMap = a row's place tag when the point stands on the Karte
     readingsChip: 'Messungen',

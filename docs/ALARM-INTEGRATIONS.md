@@ -441,7 +441,7 @@ Off the list, each for a stated reason:
 | Push subscriptions | writes rows tied to a user |
 | Geocoding, Overpass | billable third-party calls, and an open proxy |
 | `media/*/peaks`, `media/*/transcription` | `GET`s that are not reads – they write a file or mutate a job row |
-| Diagnostics report | enqueues outbound telemetry |
+| Diagnostics export | the station's own crash traces are internal diagnostics, and a link is handed to outsiders |
 | Everything that writes | a link is a read surface, full stop |
 
 **Scope is enforced twice.** Being allowlisted is not enough: a route that names an incident

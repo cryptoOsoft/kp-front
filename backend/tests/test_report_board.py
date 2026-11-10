@@ -393,3 +393,35 @@ def test_the_page_prints_its_timeline_beside_a_long_source():
             assert source_right < stamp_left
             return
     raise AssertionError("the timeline is missing")
+
+
+def test_a_date_row_stands_where_the_wann_column_passes_midnight(monkeypatch):
+    """Mitternacht B (owner, 09.11.2026): the client puts the new day before its first entry
+    (lib/formDays); on paper it is one grey ruling across the table, never an entry's cells – and
+    in the Fortsetzung it is a row of its own too."""
+    import app.report_board as rb
+
+    rows: list = []
+    real = rb.BoardPageFlowable._row
+    monkeypatch.setattr(
+        rb.BoardPageFlowable, "_row", lambda self, xs, w, cols, r, *a: (rows.append(r), real(self, xs, w, cols, r, *a))
+    )
+    page = _ef()
+    page["sections"][2]["rows"] = [
+        {"cells": ["Sicherheitstrupp bereit", "Trupp Weber", "23:59"]},
+        {"sep": "Di., 10.11.2026", "cells": []},
+        {"cells": ["Personenrettung 2. OG Nord", "Trupp Schmid", "00:01"]},
+    ]
+    text = _text(_compose(boardPages=[page]))
+    assert "Di., 10.11.2026" in text
+    # between the two entries on the sheet (PDF y grows upwards)
+    doc = pdfium.PdfDocument(io.BytesIO(_compose(boardPages=[page])))
+    tp = next(t for t in (doc[i].get_textpage() for i in range(len(doc))) if "23:59" in t.get_text_range())
+
+    def top(needle: str) -> float:
+        found = tp.search(needle).get_next()
+        assert found, needle
+        return tp.get_charbox(found[0], loose=False)[3]
+
+    assert top("23:59") > top("Di., 10.11.2026") > top("00:01")
+    assert all(not r.sep for r in rows)  # drawn as a band, not as an entry

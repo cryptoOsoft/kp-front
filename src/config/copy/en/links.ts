@@ -109,6 +109,7 @@ export const linksCopy: Localizable<Pick<Copy, Keys>> = {
     end: 'End',
     leave: 'Stop following',
     followAgain: 'Follow again',
+    unmark: 'Hide',
     hint: 'Pointing is on – tap sets a point, drag draws a line, pan with two fingers',
     link: 'Link',
     me: 'Me',

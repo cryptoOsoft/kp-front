@@ -1,4 +1,5 @@
 import { appConfig } from '../config/appConfig'
+import type { BoardTool, MapTool } from '../types'
 import { fillTemplate } from './format'
 import { confirmDialog } from './ui'
 import { minPoints } from './vertexOps'
@@ -33,13 +34,13 @@ export type DraftRelease =
 
 /** The shape ✓ «Fertig» commits for the armed tool — a Linie from 2 points, a Fläche from 3
  *  (lib/vertexOps · minPoints) — or null when the draft is not one yet. */
-export function finishKind(tool: string, count: number): DraftKind | null {
+export function finishKind(tool: MapTool | BoardTool, count: number): DraftKind | null {
   const kind: DraftKind | null = tool === 'line' ? 'line' : tool === 'area' ? 'area' : null
   return kind && count >= minPoints(kind) ? kind : null
 }
 
 /** ✓ «Fertig» is enabled: a node-mode draft of the armed tool that would commit. */
-export function draftActive(tool: string, modes: { lineMode: DraftMode; areaMode: DraftMode }, count: number): boolean {
+export function draftActive(tool: MapTool | BoardTool, modes: { lineMode: DraftMode; areaMode: DraftMode }, count: number): boolean {
   const mode = tool === 'line' ? modes.lineMode : tool === 'area' ? modes.areaMode : null
   return mode === 'nodes' && finishKind(tool, count) != null
 }

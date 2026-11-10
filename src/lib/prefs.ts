@@ -10,8 +10,9 @@ const COOKIE = 'kp-front-prefs'
 const MAX_AGE = 60 * 60 * 24 * 365 // 1 year
 
 /** UI colour-scheme preference. 'auto' (the default) tracks local daylight so the app
- *  dims itself after dusk on its own; 'day'/'night' are explicit manual overrides. */
-export type ThemeMode = 'auto' | 'day' | 'night'
+ *  dims itself after dusk on its own; 'device' follows the OS light/dark setting
+ *  (`prefers-color-scheme`, live); 'day'/'night' are explicit manual overrides. */
+export type ThemeMode = 'auto' | 'device' | 'day' | 'night'
 
 /** Rail labelling: glyphs only, or the word stacked under each glyph. */
 export type RailLabels = 'off' | 'short'
@@ -325,10 +326,21 @@ export function applyTheme(theme: 'day' | 'night') {
   try { localStorage.setItem('kp.theme.boot', theme) } catch { /* boot falls back to the OS */ }
 }
 
+/** The OS light/dark query 'device' follows; useAutoTheme listens to its `change`. */
+export const DEVICE_DARK_QUERY = '(prefers-color-scheme: dark)'
+
 /** Resolve a ThemeMode to the concrete scheme to apply: explicit modes pass through,
+ *  'device' reads the OS setting (`deviceDark`, the live media query by default), and
  *  'auto' (and any legacy/absent value) resolves from daylight at `coord` (or the
  *  brigade region when no incident coordinate is known yet). */
-export function resolveTheme(mode: ThemeMode | undefined, coord: Coord | null, now: Date): 'day' | 'night' {
+export function resolveTheme(
+  mode: ThemeMode | undefined, coord: Coord | null, now: Date,
+  deviceDark?: boolean,
+): 'day' | 'night' {
   if (mode === 'day' || mode === 'night') return mode
+  if (mode === 'device') {
+    const dark = deviceDark ?? (typeof matchMedia === 'function' && matchMedia(DEVICE_DARK_QUERY).matches)
+    return dark ? 'night' : 'day'
+  }
   return isDaytime(coord, now) ? 'day' : 'night'
 }

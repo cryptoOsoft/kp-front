@@ -329,7 +329,7 @@ async def client(engine, session_factory):
     import httpx
 
     from app.auth.capture_limiter import capture_limiter, position_limiter
-    from app.auth.pin_limiter import login_aggregate, pin_limiter
+    from app.auth.pin_limiter import new_device_budget, pin_limiter
     from app.auth.token_blocklist import token_blocklist
     from app.database import get_db
     from app.main import app
@@ -344,9 +344,9 @@ async def client(engine, session_factory):
     capture_limiter.reset()
     position_limiter.reset()
     pin_limiter.reset()
-    # The per-account aggregate (M1a) is a FOURTH singleton: a test that seeds it over the
-    # throttle threshold would otherwise slow every later login for the same seeded user.
-    login_aggregate.reset()
+    # The account's new-device budget is a FOURTH singleton: a test that spends it would
+    # otherwise refuse every later first login of the same seeded user.
+    new_device_budget.reset()
     # …and a FIFTH: the crash sink's per-source bucket (api/diag, 24.09.2026). Every test client
     # is one source, so a file of client-error tests would otherwise 429 the next one.
     from app.api.diag import client_error_limiter

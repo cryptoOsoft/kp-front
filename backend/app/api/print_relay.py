@@ -23,7 +23,7 @@ from datetime import UTC, datetime
 import anyio
 from fastapi import APIRouter, Depends, Form, Header, HTTPException, Response, status
 from pydantic import BaseModel
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..alarms import get_config_model
@@ -191,6 +191,27 @@ def payload_wants_color(data: ReportPayload) -> bool:
     return bool(data.options.kroki and data.kroki is not None)
 
 
+#: Jobs one Einsatz may have waiting for the printer. Every account may print (the shared viewer
+#: PIN too) and each job stores a whole PDF, so without a ceiling a script fills the tray and
+#: the table. Five is past anything a crew queues by hand: Rapport, two Zeitplan sheets, a retry.
+MAX_QUEUED_PER_INCIDENT = 5
+
+
+async def refuse_when_backed_up(db: AsyncSession, incident_id: uuid.UUID) -> None:
+    """429 when this Einsatz already has `MAX_QUEUED_PER_INCIDENT` jobs waiting. Called before
+    the PDF is composed, by every route that queues one."""
+    queued = await db.scalar(
+        select(func.count())
+        .select_from(PrintJob)
+        .where(PrintJob.incident_id == incident_id, PrintJob.status == "queued")
+    )
+    if (queued or 0) >= MAX_QUEUED_PER_INCIDENT:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Es warten schon {MAX_QUEUED_PER_INCIDENT} Druckaufträge dieses Einsatzes auf den Stationsdrucker.",
+        )
+
+
 async def enqueue_print_job(
     db: AsyncSession,
     inc: Incident,
@@ -206,6 +227,7 @@ async def enqueue_print_job(
     the PDF the same caller could download."""
     if not relay_available():
         raise HTTPException(status_code=403, detail="Stationsdrucker nicht konfiguriert")
+    await refuse_when_backed_up(db, inc.id)
     pdf, data = await compose_report_from_payload(db, payload, scope=scope)
     # the PRINTER gets the stack it can deliver in order; the downloaded PDF stays as it reads
     if await wants_reverse_order(db):
@@ -286,6 +308,7 @@ async def zeitplan_print(
     if not relay_available():
         raise HTTPException(status_code=403, detail="Stationsdrucker nicht konfiguriert")
     inc = await get_incident_or_404(db, incident_id)
+    await refuse_when_backed_up(db, inc.id)
     # same letterhead as the downloaded sheet — the relay print is not the poor sibling
     pdf, data = compose_zeitplan_from_payload(payload, await _resolve_logo_bytes(db))
     job = PrintJob(

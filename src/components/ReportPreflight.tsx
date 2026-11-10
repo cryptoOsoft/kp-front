@@ -46,7 +46,9 @@ import type { ReportDraft, ReportOptions } from '../lib/report'
 import {
   defaultReportOptions, formatDateTime, hasVisiblePlanAnnotation, missingTranscriptCount, pendenzRows, proofLabel,
 } from '../lib/report'
-import { TAFEL_ID, findForms } from '../lib/boardForm'
+import { TAFEL_ID } from '../lib/boardForm'
+import { EF_PAGE_ID, RAPPORT_PAGE_ID, tafelKindPrints, tafelMenuKinds, tafelPrintKinds } from '../lib/tafelPicks'
+import { isDrawnBoardKind } from '../lib/workspace'
 import { abschlussFacts, missingSteps, nextOpenStep, stepDone, type AbschlussFacts, type AbschlussStep } from '../lib/abschluss'
 import { abschlussSheet, controlChipLabel } from '../lib/abschlussOpen'
 import { hoursRows, unresolvedHoursRows } from '../lib/attendanceHours'
@@ -292,11 +294,8 @@ export function ReportPreflight({
   const pendenzCount = useMemo(() => pendenzRows(events).length, [events])
   // the Gebäude section's count is its diagnostic, like the Pendenzen's: «(0)» says no storey
   // carries anything, which is why no Gebäude page will print
-  // the Tafel's pages, plus its Skizze when it carries ink (reportPdfDirect · tafelPayload)
-  const tafelPageCount = useMemo(() => {
-    const annos = board?.[TAFEL_ID] ?? []
-    return findForms(annos).length + (hasVisiblePlanAnnotation({ [TAFEL_ID]: annos }, TAFEL_ID) ? 1 : 0)
-  }, [board])
+  // the Tafel's Skizze, when it carries ink (reportPdfDirect · tafelPayload); its pages: `tafelKinds`
+  const tafelSkizze = useMemo(() => hasVisiblePlanAnnotation({ [TAFEL_ID]: (board?.[TAFEL_ID] ?? []).filter((a) => isDrawnBoardKind(a.kind)) }, TAFEL_ID), [board])
   const stackFloorCount = useMemo(() => {
     const stack = plans.find((p) => p.floorStack)
     return stack && building ? usedStackFloors(building, board?.[stack.id] ?? []).length : 0
@@ -311,6 +310,10 @@ export function ReportPreflight({
     warmTemplates().list.then((l) => { if (alive) setChecklistTemplates(l) }, () => {})
     return () => { alive = false }
   }, [checklists])
+  // the Tafel's pages, one tick per kind (lib/tafelPicks), and its Skizze when it carries ink
+  // (reportPdfDirect · tafelPayload). Judged on the pages as drawn, checklist problems included.
+  const tafelKinds = useMemo(() => tafelPrintKinds(board?.[TAFEL_ID] ?? [],
+    checklists ? { checklists, templates: checklistTemplates } : undefined), [board, checklists, checklistTemplates])
   // what this Einsatz's Rapport looked like when it was last left (useReportPlace · rapportKept),
   // read once: every seed below that it carries is a mount-time seed
   const [kept] = useState(() => rapportKept.read(incident.id))
@@ -1434,8 +1437,17 @@ export function ReportPreflight({
                   // ⚠️ NOT one of the «Pläne»: an Objektplan is reference, the Gebäude is the Einsatz's
                   // own work (Trupp positions per storey). Only storeys that carry something print.
                   { kind: 'check' as const, label: fillTemplate(P.toggleGebaeude, { n: stackFloorCount }), checked: options.gebaeude && stackFloorCount > 0, disabled: stackFloorCount === 0, onChange: (v: boolean) => patchOpt({ gebaeude: v }) },
-                  // the Tafel's pages (Erste Führung …) and its Skizze — the Einsatz's own work, ON
-                  { kind: 'check' as const, label: fillTemplate(P.toggleTafel, { n: tafelPageCount }), checked: options.tafel !== false && tafelPageCount > 0, disabled: tafelPageCount === 0, onChange: (v: boolean) => patchOpt({ tafel: v }) },
+                  // the Tafel's pages, each kind its own tick (owner, 09.11.2026 – lib/tafelPicks): the
+                  // Erste Führung and the Rapport sheet always stand here, disabled while the Tafel has
+                  // none (or, the EF, nothing on it), any other kind only while it is on the Tafel
+                  ...tafelMenuKinds(tafelKinds).map((k) => ({
+                    kind: 'check' as const,
+                    label: k.id === EF_PAGE_ID ? P.toggleErsteFuehrung : k.id === RAPPORT_PAGE_ID ? P.toggleRapportPage : fillTemplate(P.toggleTafelPage, { title: k.title, n: k.count }),
+                    checked: tafelKindPrints(k, options.tafelPages),
+                    disabled: k.count === 0 || (k.id !== RAPPORT_PAGE_ID && !k.filled),
+                    onChange: (v: boolean) => patchOpt({ tafelPages: { ...options.tafelPages, [k.id]: v } }),
+                  })),
+                  ...(tafelSkizze ? [{ kind: 'check' as const, label: P.toggleTafelSkizze, checked: options.tafel !== false, onChange: (v: boolean) => patchOpt({ tafel: v }) }] : []),
                   { kind: 'sep' as const },
                   { kind: 'check' as const, label: fillTemplate(P.toggleAtemschutz, { n: truppCount }), checked: options.atemschutz, onChange: (v: boolean) => patchOpt({ atemschutz: v }) },
                   { kind: 'check' as const, label: fillTemplate(P.toggleAttendance, { n: attendanceCount }), checked: options.attendance, onChange: (v: boolean) => patchOpt({ attendance: v }) },

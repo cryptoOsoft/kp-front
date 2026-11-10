@@ -1613,7 +1613,6 @@ a.adm-side-item { box-sizing: border-box; text-decoration: none; }
 .adm-cap-rows + .adm-actions { margin-top: 2px; }
 
 /* ─── `Offer` — a tinted panel that names a CONSEQUENCE and puts the fix next to it ─────
-   (mockups/admin-alarmeingang-b-anbindung.html · mockups/admin-geocoder-b-autoangebot.html)
    Two callers, one shape: «ohne Secret bleibt der Eingang zu» on the Alarmierung page, and
    «Kartenmitte gesetzt – Suchbereich daraus übernehmen?» in the Adresssuche card. Blue is an
    OFFER, amber a consequence that is already in force; neither is red — nothing here is
@@ -2050,7 +2049,6 @@ p.adm-sys-path { margin: 3px 0 0; }
 
 /* ════════════════════════════════════════════════════════════════════════════
    Mitglieder: Rolle als bewusste Wahl, und die PIN im eigenen Pinpad-Sheet
-   (mockups/admin-rolle-a-explizite-wahl.html · mockups/admin-pin-a-pinpad-sheet.html)
    ════════════════════════════════════════════════════════════════════════════ */
 
 /* Two side-by-side cards, one of them chosen. Named `.adm-pick` rather than after the first

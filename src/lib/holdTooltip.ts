@@ -1,5 +1,5 @@
 // The touch answer to the title-tooltip (28.08. field feedback, decision B of
-// mockups/atemschutz-kopf-beschriftung.html): every icon-only button in the app already carries
+// the Atemschutz head labelling mock): every icon-only button in the app already carries
 // its word as `aria-label`/`title`, and on a mouse the hover tooltip shows it — but the primary
 // devices are tablets, where `title` never appears and an untrained operator is left guessing
 // what 👣 or 💧 does. Holding such a button ~350 ms now shows that word as a bubble (with the

@@ -36,7 +36,7 @@
 
 /* ── one cell: an auto-growing textarea with no chrome of its own — the ruling is the frame ── */
 .cellWrap { position: relative; display: flex; flex: 1 1 auto; min-width: 0; }
-/* the touch floor (AGENTS · 3am tenet): every cell is at least --tap tall */
+/* the touch floor (the 3am tenet): every cell is at least --tap tall */
 .cell {
   display: block; box-sizing: border-box; width: 100%; min-height: var(--tap); margin: 0;
   padding: var(--sp-2) var(--sp-2); resize: none; overflow: hidden;
@@ -117,6 +117,10 @@
 /* its own bottom ruling as a shadow: shown above a sliver of plain space, clipped (overflow) when
    the last ruling sits flush on the box's border — never a doubled line */
 .fill > .tr:last-child { box-shadow: 0 1px 0 var(--ink-28); }
+/* a date row where a «Wann» column passes midnight (lib/formDays, owner pick 09.11.2026): one
+   ruling across the table, grey like the paper's band; not a tap target, nothing to write */
+.daySep { display: flex; align-items: center; padding: 0 var(--sp-2); background: var(--fill-soft);
+  font-size: var(--fs-1); font-weight: var(--fw-bold); color: var(--ink-dim); }
 .thead { min-height: 0; }
 .th { padding: var(--sp-1) var(--sp-2); font-size: var(--fs-1); color: var(--ink); border-right: 1px solid var(--ink-28);
   /* a head breaks where its template says: at its soft hyphens («Entwicklungs-tendenz» — the

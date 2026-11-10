@@ -14,7 +14,10 @@ and mirrors symbols in both directions (src/lib/georef.ts). It lives here becaus
 same kind of question as the calibration — a property of the SHEET, not of an incident — and so
 that a client loads and caches both in one request.
 
-GET is public (viewers measure too, and it must be offline-cacheable at boot); PUT is editor-only.
+GET needs a session — any account, the deployment admin or an Einsatz-Link (viewers measure
+too). It is NOT public: `georefByPlan` says where every referenced building's sheet sits, and a
+plan id carries the object's id. The client keeps its last answer in IndexedDB for offline boots.
+PUT is editor-only.
 
 Both answers carry a ``version`` — an opaque token of the STORED document, which the client
 sends back as ``If-Match`` on its next PUT (see ``put_plan_scales``).
@@ -37,7 +40,7 @@ from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..auth.dependencies import CurrentEditor
+from ..auth.dependencies import CurrentEditor, UserOrAdmin
 from ..database import get_db
 from ..models import DeploymentConfig
 
@@ -206,9 +209,9 @@ async def _row(db: AsyncSession) -> DeploymentConfig | None:
 
 
 @router.get("", response_model=PlanScalesOut)
-async def get_plan_scales(db: AsyncSession = Depends(get_db)) -> PlanScalesOut:
-    """PUBLIC — needed to measure on plans (viewers included) and cached offline at boot.
-    Never raises: whatever in the stored blob does not validate is dropped entry-wise, the rest
+async def get_plan_scales(_caller: UserOrAdmin, db: AsyncSession = Depends(get_db)) -> PlanScalesOut:
+    """Any session (viewers measure on plans too), never an anonymous caller — see the module
+    docstring. Never raises on the stored document: whatever in the stored blob does not validate is dropped entry-wise, the rest
     is served — with the `version` the caller sends back as `If-Match` when it writes."""
     row = await _row(db)
     raw = row.plan_scales_json if (row and row.plan_scales_json) else {}

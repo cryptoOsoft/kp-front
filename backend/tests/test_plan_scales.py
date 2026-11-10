@@ -1,6 +1,6 @@
 """Station plan-scale calibration + georeferencing endpoint.
 
-- GET is public and starts empty; PUT is editor-only and round-trips; a viewer cannot write.
+- GET needs a session (any role) and starts empty; PUT is editor-only and round-trips; a viewer cannot write.
 - The georeference (landmark pairs per plan) shares the document and stays backward compatible:
   a body without it still validates, and the PUT replaces the WHOLE document.
 - A stored document that is partly malformed is served entry by entry, never blanked wholesale.
@@ -26,7 +26,13 @@ async def _login(client, user) -> None:
     assert r.status_code == 200
 
 
-async def test_get_is_public_and_empty_by_default(client):
+async def test_an_anonymous_caller_reads_nothing(client):
+    """The document says where every referenced building's sheet sits — not for the open internet."""
+    assert (await client.get("/api/plan-scales")).status_code == 401
+
+
+async def test_a_viewer_reads_it_and_it_is_empty_by_default(client, viewer):
+    await _login(client, viewer)
     r = await client.get("/api/plan-scales")
     assert r.status_code == 200
     assert {k: v for k, v in r.json().items() if k != "version"} == {
@@ -111,13 +117,14 @@ async def test_rejects_out_of_range_coordinates(client, editor):
     assert r.status_code == 422
 
 
-async def test_one_bad_georef_entry_does_not_blank_the_others(client, db_session):
+async def test_one_bad_georef_entry_does_not_blank_the_others(client, db_session, editor):
     """The 3am case: ONE plan holds a georef the current format rejects (here a latitude of 947,
     the kind of value a pre-format or hand-edited entry carries). All-or-nothing validation made
     GET return empty, so every plan station-wide reverted to «kalibrieren» at once, with the cause
     only in the server log. Everything that still parses must survive its neighbour."""
     from app.models import DeploymentConfig
 
+    await _login(client, editor)
     db_session.add(
         DeploymentConfig(
             id=1,
@@ -147,8 +154,8 @@ async def test_one_bad_georef_entry_does_not_blank_the_others(client, db_session
 
 
 async def test_every_answer_carries_a_version(client, editor):
-    assert (await client.get("/api/plan-scales")).json()["version"]
     await _login(client, editor)
+    assert (await client.get("/api/plan-scales")).json()["version"]
     r = await client.put("/api/plan-scales", json={"default": SCALE, "byPlan": {}})
     assert r.json()["version"] == (await client.get("/api/plan-scales")).json()["version"]
 
@@ -236,9 +243,10 @@ async def test_rejects_an_aspect_that_is_not_one(client, editor):
     assert (await client.put("/api/plan-scales", json={"measuredArByPlan": {"m1": 1100}})).status_code == 422
 
 
-async def test_one_implausible_aspect_does_not_blank_the_others(client, db_session):
+async def test_one_implausible_aspect_does_not_blank_the_others(client, db_session, editor):
     from app.models import DeploymentConfig
 
+    await _login(client, editor)
     db_session.add(DeploymentConfig(id=1, plan_scales_json={"measuredArByPlan": {"bad": 0, "good": 0.75}}))
     await db_session.commit()
     got = (await client.get("/api/plan-scales")).json()
