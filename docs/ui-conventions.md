@@ -103,8 +103,9 @@ And **no native form
 control** on these surfaces: the app's own `Menu` instead of a `<select>`, the `Stepper`
 instead of a number field, `components/Slider` instead of `<input type="range">`.
 **One question, one name, one place, in every sheet that asks it** (29.09.2026): the Einsatz
-wizard and «Einsatzdaten bearbeiten» share the «Alarmierung» section – eyebrow, then
-«Alarmzeit», then «Alarmmeldung» (the Rapport's word). A one-step sheet's footer cancel is
+wizard and «Einsatzdaten bearbeiten» are ONE form – «Alarmzeit», then «Alarmmeldung» (the
+Rapport's word) – and a flat list of fields: its three section eyebrows (Standort, Stichwort &
+Kategorie, Alarmierung) went on 10.11.2026 (owner: «only like 5 things to put in»). A one-step sheet's footer cancel is
 «Abbrechen»; «Zurück» only where there is a real previous step. The composer's Art is ONE of
 three with «Info» preselected – «nothing» and «Info» were two ways to say one thing; «Info»
 still writes no `entryType` and no marker. An optional count with a «Keine» answer beside it

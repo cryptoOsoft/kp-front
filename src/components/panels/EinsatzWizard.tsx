@@ -418,8 +418,8 @@ export function EinsatzWizard({ edit, nearCoord, onClose, onCreated }: {
         {busy ? <><ShellLoader /> {edit ? ix.saving : ix.opening}</> : edit ? ix.save : isExercise ? ix.openExercise : ix.open}
       </button>
     </>}>
-      {/* --- Standort --- */}
-      <div className="ip-ix-head">{ix.locationHead}</div>
+      {/* ONE flat list of fields, no section eyebrows (owner review 10.11.2026: «only like 5
+          things to put in») – each field's own label says what it is. --- Standort --- */}
       <div className="ip-field ip-ac" ref={addrRef}>
         <span>{ix.addressLabel}</span>
         {/* «Hier» (GPS) is an icon-only button riding the field's own right edge — the EL usually
@@ -506,7 +506,6 @@ export function EinsatzWizard({ edit, nearCoord, onClose, onCreated }: {
       </div>
 
       {/* --- Stichwort & Kategorie --- */}
-      <div className="ip-ix-head">{ix.keywordHead}</div>
       <label ref={titleRef} className="ip-field"><span>{ix.titleLabel} *</span>
         {/* no autofocus — the EL usually sets the location (address / object / map) first, so
             opening with the keyboard up over the Stichwort field would be in the way */}
@@ -536,11 +535,11 @@ export function EinsatzWizard({ edit, nearCoord, onClose, onCreated }: {
           + the alarm message. The Rapportangaben hold the rest. ONE section in both modes
           (29.09.2026): the wizard asked «Meldungstext (optional)» then «Alarmzeit» with no
           eyebrow, the edit sheet «Alarmzeit» then «Alarmmeldung» under «Alarmierung» — one field,
-          two names, two places, and the Rapport says «Alarmmeldung».
+          two names, two places, and the Rapport says «Alarmmeldung». The eyebrow went with the
+          other two on 10.11.2026; order and names stay.
           Creating, the time is prefilled with now — leave it for a live incident, set it back to
           enter an analog one afterwards (the paper report keeps the bookkeeping; this row is what
           puts the right date into the catalogue). --- */}
-      <div className="ip-ix-head">{ix.alarmierungHead}</div>
       <label className="ip-field"><span>{ix.alarmTime}</span>
         <DateTimeField ariaLabel={ix.alarmTime} value={dtLocalToIso(alarmiertAt)}
           onCommit={(iso) => setAlarmiertAt(dtLocalValue(iso))} />
