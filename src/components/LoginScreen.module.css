@@ -1,0 +1,17 @@
+/* The login screen's «Ungesendete Änderungen von …» banner (sweep 09.11.2026, UX.2 — owner pick
+   «5B»). Its LOOK is THE form warning, amber (`.form-warn .form-warn-amber`, 13-incident) and its
+   action THE button; the classes here only lay it out, because the recipe is one line with one
+   compact framed action (`.form-warn-act`), and this notice stacks a line per account, each with
+   the screen's big sign-in button under its sentence. */
+.unsent { flex-direction: column; align-items: stretch; flex-wrap: nowrap; gap: var(--sp-4); padding: var(--sp-4); }
+.line { display: flex; flex-direction: column; gap: var(--sp-2); }
+/* the recipe tones a glyph that is the box's DIRECT child; here it leads each line's sentence */
+.title { margin: 0; display: flex; align-items: flex-start; gap: var(--sp-2);
+  font: var(--fw-bold) var(--fs-3)/1.3 var(--body); color: var(--ink); overflow-wrap: anywhere; }
+.title > svg { width: 18px; height: 18px; flex: none; margin-top: 2px; color: var(--warn-glyph); }
+/* the label keeps one line on a 390 px phone (the big button's own side padding cost it that),
+   and a longer name wraps inside the button instead of widening the card (12-login · .login).
+   Two classes: `.ip-btn.lg` sets that padding with two. */
+.unsent .line > button { height: auto; white-space: normal; text-align: center; padding: var(--sp-2) var(--sp-3); }
+.more, .body { margin: 0; font: var(--fw-medium) var(--fs-2)/1.45 var(--body); color: var(--ink-dim); }
+.more { font-weight: var(--fw-bold); }

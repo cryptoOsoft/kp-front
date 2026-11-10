@@ -77,6 +77,38 @@ const refusedCacheKey = (id: string) => `kp-front-ws-${id}::__refused__`
 // sichern»; the record part still goes up as before. Same shape as the refused slot.
 const roleCacheKey = (id: string, owner: string) => `kp-front-ws-${id}::__role__:${owner}`
 
+/** One Einsatz's unsent workspace edits on this device and whose they are. */
+export interface UnsentWorkspace {
+  /** AuthUser.id of the account that made the edits */
+  owner: string
+  incidentId: string
+  /** when the newest edit was made (server-aligned clock); 0 on an entry from before the stamp */
+  editedAt: number
+}
+
+/**
+ * Every owner-stamped, unsynced workspace entry this device holds: the main slots (a session that
+ * was refused or signed out leaves its work there) and the per-owner parking slots. For the login
+ * screen, which has no engine to ask and must say WHOSE work is waiting (sweep 09.11.2026, UX.2).
+ * It reports who and when, never what: the blobs stay under their keys, untouched. The orphan,
+ * refused and role slots are not listed (no sign-in sends them). An unreadable store or slot
+ * lists nothing — the answer only informs, it never decides anything.
+ */
+export async function unsentWorkspaces(): Promise<UnsentWorkspace[]> {
+  const prefix = cacheKey('')
+  const keys = await idbKeys(prefix)
+  if (!keys.ok) return []
+  const found = await Promise.all((keys.value ?? []).map(async (key): Promise<UnsentWorkspace | null> => {
+    const [incidentId, slot] = key.slice(prefix.length).split('::')
+    if (!incidentId || slot?.startsWith('__')) return null
+    const read = await idbRead<CacheEntry>(key)
+    const entry = read.ok ? read.value : null
+    if (!entry?.dirty || !entry.owner) return null
+    return { owner: entry.owner, incidentId, editedAt: entry.editedAt ?? 0 }
+  }))
+  return found.filter((u) => u !== null)
+}
+
 /** One save the server refused because the Einsatz was closed — the blob as this device had it. */
 export interface RefusedWorkspace {
   workspace: Workspace
@@ -434,6 +466,9 @@ export class WorkspaceSync {
    *  and «Einträge sichern». Not owed: no push of this session can deliver it. */
   private roleParked: RefusedWorkspace[] = []
   private roleParkedListeners = new Set<(count: number) => void>()
+  /** Who wants to hear which OTHER accounts have unsent work for this Einsatz parked on this
+   *  device — see `subscribeForeignParked`. */
+  private foreignParkedListeners = new Set<(owners: string[]) => void>()
 
   constructor(
     private readonly incidentId: string,
@@ -532,6 +567,7 @@ export class WorkspaceSync {
           const durable = stored.owner
             ? await idbSet(ownerCacheKey(this.incidentId, stored.owner), stored)
             : await this.parkOrphan(stored)
+          void this.announceForeignParked()
           if (this.disposed || !this.slotUnread) return
           // the only copy stays where it is; this session carries on in memory, as after init()
           if (!durable) { this.slotUnread = false; this.publish(); return }
@@ -871,6 +907,7 @@ export class WorkspaceSync {
           ? await idbSet(ownerCacheKey(this.incidentId, owner), { ...cached, owner })
           : await this.parkOrphan(cached)
         if (!durable) return this.serveServerWithoutCaching(ws, workspace_rev)
+        void this.announceForeignParked()
       }
       this.entry = { workspace: ws, base: ws, baseRev: workspace_rev, dirty: false, lastSyncedAt: Date.now(), owner: cacheOwner ?? undefined, requeuedRefused: cached?.requeuedRefused }
       this.writeCache()
@@ -1432,6 +1469,31 @@ export class WorkspaceSync {
   /** The refused saves for «Einträge sichern» — a copy; exporting acknowledges nothing. */
   refusedRecoveryData(): RefusedWorkspace[] {
     return structuredClone(this.refused)
+  }
+
+  /**
+   * The accounts OTHER than the signed-in one whose unsent work for this Einsatz is parked on this
+   * device (ownerCacheKey), as it changes: read on subscribing — init() has parked by then — and
+   * again after a later park (the slot probe, an identity switch mid-fetch). For the one
+   * Meldeleiste row that says so (sweep 09.11.2026, UX.2). ⚠️ It reads the KEYS only: a parked
+   * copy is never opened across owners, and nothing here moves or deletes one. Returns the
+   * unsubscribe.
+   */
+  subscribeForeignParked(listener: (owners: string[]) => void): () => void {
+    this.foreignParkedListeners.add(listener)
+    void this.announceForeignParked()
+    return () => { this.foreignParkedListeners.delete(listener) }
+  }
+
+  private async announceForeignParked() {
+    if (!this.foreignParkedListeners.size) return
+    const prefix = ownerCacheKey(this.incidentId, '')
+    const keys = await idbKeys(prefix)
+    if (!keys.ok || this.disposed) return
+    const owners = (keys.value ?? []).map((k) => k.slice(prefix.length))
+      // the orphan, refused and role slots share the prefix; my own parked copy is mine to re-home
+      .filter((owner) => owner && !owner.startsWith('__') && owner !== cacheOwner)
+    for (const l of [...this.foreignParkedListeners]) l(owners)
   }
 
   /** How many saves of a wider role are parked for this owner (roleCacheKey), as it changes.

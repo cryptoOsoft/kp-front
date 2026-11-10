@@ -160,12 +160,43 @@ describe('Mitglied bearbeiten — dort EXISTIERT der Wert', () => {
     const viewerCard = screen.getByRole('radio', { name: new RegExp(C.roleViewer) })
     expect(viewerCard.getAttribute('aria-checked')).toBe('true')
 
-    // switching to Bearbeiter and saving patches the role along with the rest
+    // switching to Bearbeiter and saving asks first — a new role signs the person out, through
+    // this door as through the ⋮ menu's (sweep 09.11.2026) — and patches the role after «Ja»
     fireEvent.click(screen.getByRole('radio', { name: new RegExp(C.roleEditor) }))
     apiPatch.mockResolvedValue({})
     fireEvent.click(screen.getByRole('button', { name: Cc.save }))
+    expect(apiPatch).not.toHaveBeenCalled()
+    expect(screen.getByRole('alertdialog').textContent)
+      .toContain('Kunz Bea zu «Bearbeiter» machen? Die Person wird auf ihren Geräten abgemeldet.')
+    fireEvent.click(screen.getByRole('button', { name: appConfig.copy.admin.common.confirmYes }))
     await waitFor(() => expect(apiPatch).toHaveBeenCalled())
     expect((apiPatch.mock.calls[0][1] as { role: string }).role).toBe('editor')
+  })
+
+  const editKunz = async () => {
+    apiGet.mockResolvedValue([EXISTING, { ...EXISTING, id: 'u2', username: 'kunz', display_name: 'Kunz Bea', role: 'viewer' }])
+    apiPatch.mockResolvedValue({})
+    await renderMembers()
+    fireEvent.click(screen.getByRole('button', { name: `Geschützte Aktionen für Kunz Bea` }))
+    fireEvent.click(await screen.findByText(Cc.edit))
+  }
+
+  it('«Abbrechen» on the role question writes nothing and leaves the form as it was typed', async () => {
+    await editKunz()
+    fireEvent.click(screen.getByRole('radio', { name: new RegExp(C.roleEl) }))
+    fireEvent.click(screen.getByRole('button', { name: Cc.save }))
+    fireEvent.click(screen.getByRole('button', { name: appConfig.copy.admin.common.confirmNo }))
+    expect(apiPatch).not.toHaveBeenCalled()
+    expect(screen.getByRole('radio', { name: new RegExp(C.roleEl) }).getAttribute('aria-checked')).toBe('true')
+    expect(screen.getByRole('button', { name: Cc.save })).toBeTruthy()
+  })
+
+  it('a save that keeps the role signs nobody out and is not asked about', async () => {
+    await editKunz()
+    fireEvent.change(document.querySelector<HTMLInputElement>('.adm-members-editbox .adm-input')!, { target: { value: 'Kunz Beatrice' } })
+    fireEvent.click(screen.getByRole('button', { name: Cc.save }))
+    await waitFor(() => expect(apiPatch).toHaveBeenCalled())
+    expect(apiPatch.mock.calls[0][1]).toMatchObject({ display_name: 'Kunz Beatrice', role: 'viewer' })
   })
 })
 
@@ -189,6 +220,10 @@ describe('«Deaktivieren» und der Rollenwechsel im ⋮-Menü', () => {
     expect(apiPatch).not.toHaveBeenCalled()
     const ask = screen.getByRole('alertdialog')
     expect(ask.textContent).toContain('Kunz Bea')
+    // on a line of its own under the member's row, not in the narrow Aktionen cell beside the name
+    const askRow = ask.closest('tr')
+    expect(askRow?.querySelector('td')?.colSpan).toBe(6)
+    expect(askRow?.previousElementSibling?.textContent).toContain('kunz')
     fireEvent.click(screen.getByRole('button', { name: appConfig.copy.admin.common.confirmYes }))
     await waitFor(() => expect(apiPatch).toHaveBeenCalledWith('/api/auth/users/u2', patch))
   })
@@ -197,6 +232,7 @@ describe('«Deaktivieren» und der Rollenwechsel im ⋮-Menü', () => {
     await pick(C.deactivate)
     fireEvent.click(screen.getByRole('button', { name: appConfig.copy.admin.common.confirmNo }))
     expect(apiPatch).not.toHaveBeenCalled()
-    expect(screen.getByRole('button', { name: 'Geschützte Aktionen für Kunz Bea' })).toBeTruthy()
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(screen.getByRole<HTMLButtonElement>('button', { name: 'Geschützte Aktionen für Kunz Bea' }).disabled).toBe(false)
   })
 })

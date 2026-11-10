@@ -19,6 +19,17 @@ vi.mock('../lib/api', () => ({
   },
 }))
 const cfg = vi.hoisted(() => ({ microsoft: false }))
+// what the device holds of unsent work (lib/unsentAccounts) — the store itself is pinned there
+const device = vi.hoisted(() => ({
+  unsent: [] as { id: string; at: number }[],
+  cachedRoster: [] as { id: string; display_name: string; color: null; role: 'editor' }[],
+}))
+vi.mock(import('../lib/unsentAccounts'), async (importOriginal) => ({
+  ...(await importOriginal()),
+  unsentAccounts: async () => device.unsent,
+  readCachedRoster: async () => device.cachedRoster,
+  cacheRoster: () => {},
+}))
 vi.mock(import('../lib/deploymentConfig'), async (importOriginal) => ({
   ...(await importOriginal()),
   demoNote: () => null,
@@ -27,6 +38,7 @@ vi.mock(import('../lib/deploymentConfig'), async (importOriginal) => ({
 }))
 
 const { LoginScreen } = await import('./LoginScreen')
+const { apiGet, ApiError } = await import('../lib/api')
 
 const typePin = (digits: string) => {
   for (const d of digits) fireEvent.click(screen.getByRole('button', { name: d }))
@@ -57,6 +69,8 @@ function installLocalStorage() {
 
 beforeEach(() => {
   cfg.microsoft = false
+  device.unsent = []
+  device.cachedRoster = []
   installLocalStorage()
   login.mockReset().mockResolvedValue(undefined)
 })
@@ -159,5 +173,61 @@ describe('LoginScreen — «Mit Microsoft anmelden»', () => {
     await act(async () => {})
     expect(screen.getByRole('alert').textContent).toContain('nicht freigeschaltet')
     expect(window.location.search).toBe('')
+  })
+})
+
+// Sweep 09.11.2026, UX.2 (owner pick «5B»): unsent work of an account waits on this device, and
+// the gate says whose — with the one tap that brings that person to their PIN pad.
+describe('LoginScreen — «Ungesendete Änderungen von …»', () => {
+  const person = (id: string, display_name: string) => ({ id, display_name, color: null, role: 'editor' as const })
+  const banner = () => document.querySelector('[role="status"].form-warn')
+  const lineTitles = () => [...(banner()?.querySelectorAll('p > span') ?? [])].map((n) => n.textContent)
+  const signIns = () => [...(banner()?.querySelectorAll('button') ?? [])].map((b) => b.textContent)
+
+  it('is not drawn while the device holds nobody’s unsent work', async () => {
+    render(<LoginScreen />)
+    await act(async () => {})
+    expect(banner()).toBeNull()
+  })
+
+  it('names the account and opens that person’s PIN pad; the grid stays for everybody else', async () => {
+    vi.mocked(apiGet).mockResolvedValueOnce([person('u1', 'Keller Anna'), person('u2', 'Graf Jonas')])
+    device.unsent = [{ id: 'u2', at: 5 }]
+    render(<LoginScreen />)
+    await act(async () => {})
+    expect(lineTitles()).toEqual(['Ungesendete Änderungen von Graf Jonas'])
+    expect(signIns()).toEqual(['Als Graf Jonas anmelden'])
+    expect(document.querySelectorAll('.roster-tile')).toHaveLength(2)
+    fireEvent.click(screen.getByRole('button', { name: 'Als Graf Jonas anmelden' }))
+    expect(document.querySelector('.pin-username')?.textContent).toBe('Graf Jonas')
+    expect(banner()).toBeNull() // the pad is the whole screen once somebody is picked
+  })
+
+  it('several accounts: one line each, most recent first, three at most, then «und n weitere»', async () => {
+    const people = ['A', 'B', 'C', 'D', 'E'].map((n) => person(n, `Person ${n}`))
+    vi.mocked(apiGet).mockResolvedValueOnce(people)
+    device.unsent = ['D', 'A', 'E', 'B', 'C'].map((id, i) => ({ id, at: 100 - i }))
+    render(<LoginScreen />)
+    await act(async () => {})
+    expect(signIns()).toEqual(['Als Person D anmelden', 'Als Person A anmelden', 'Als Person E anmelden'])
+    expect(banner()?.textContent).toContain('und 2 weitere')
+  })
+
+  it('an account gone from the roster is «einem früheren Konto», with nothing to tap', async () => {
+    device.unsent = [{ id: 'gone', at: 5 }]
+    render(<LoginScreen />)
+    await act(async () => {})
+    expect(lineTitles()).toEqual(['Ungesendete Änderungen von einem früheren Konto'])
+    expect(signIns()).toEqual([])
+  })
+
+  it('without a roster it still names the account from the one the device last saw, but offers no sign-in', async () => {
+    vi.mocked(apiGet).mockRejectedValueOnce(new ApiError(0, 'offline'))
+    device.unsent = [{ id: 'u2', at: 5 }]
+    device.cachedRoster = [person('u2', 'Graf Jonas')]
+    render(<LoginScreen />)
+    await act(async () => {})
+    expect(lineTitles()).toEqual(['Ungesendete Änderungen von Graf Jonas'])
+    expect(signIns()).toEqual([])
   })
 })
