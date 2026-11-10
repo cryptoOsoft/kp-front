@@ -1,3 +1,4 @@
+import { shownAlarms } from '../../lib/diveraDismiss'
 import { useMeldung, useMeldungKindPending } from '../../lib/useMeldung'
 import { appConfig } from '../../config/appConfig'
 import { shortAddress } from '../../lib/deploymentConfig'
@@ -23,21 +24,6 @@ import { fmtWhen } from '../../lib/format'
 // all — has no alarm behind it, so its Zeiten stay empty until one is attached and taking this
 // dispatch would open a second Einsatz next to the one the crew is in. There, «Zu Einsatz» is
 // the filled action. Same two buttons, swapped emphasis; nothing is hidden either way.
-const ALARM_MAX_AGE_MS = 3 * 60 * 60 * 1000 // only surface dispatches < 3h old
-
-/** The pool alarms the row can actually show: not dismissed on this device, younger than 3 h.
- *  ⚠️ Whoever asks «is the alarm row busy» asks THIS, never the raw pool – the pool endpoint has
- *  no age limit, and one stale or ×-ed alarm used to hide the «Neuer Einsatz» row for good
- *  (sweep 09.11.2026, UX.6). */
-export function shownAlarms(alarms: DiveraAlarm[], dismissed: ReadonlySet<number>, now = Date.now()): DiveraAlarm[] {
-  return alarms.filter((a) => {
-    if (dismissed.has(a.divera_id)) return false
-    // age < 3h; no lower bound so minor server/device clock skew can't hide a fresh alarm
-    const age = now - new Date(a.received_at).getTime()
-    return Number.isFinite(age) && age < ALARM_MAX_AGE_MS
-  })
-}
-
 export function IncomingAlarmBanner({ alarms, dismissed, taking, attachFirst, onTake, onAttach, onDismiss }: {
   alarms: DiveraAlarm[]
   /** the alarms hidden on this device (lib/diveraDismiss) – App's one set, shared with the

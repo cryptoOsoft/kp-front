@@ -41,10 +41,10 @@ import { unlockAlarm } from './lib/alarm'
 import { CRASH_HEALTHY_MS, clearCrash } from './lib/crashLoop'
 import { ApiError } from './lib/api'
 import { useDiveraWatch } from './lib/useDiveraWatch'
-import { dismissAlarm, loadDismissedAlarms } from './lib/diveraDismiss'
+import { dismissAlarm, loadDismissedAlarms, shownAlarms } from './lib/diveraDismiss'
 import { useIncidentWatch } from './lib/useIncidentWatch'
 import { loadReviewedIncidents, needsIntakeReview, sameIncidentList, saveReviewedIncident, shouldReopenClosed, undoTakeReturn } from './lib/incidentAlerts'
-import { EinsatzWizard, DatenquellenPanel, FeedbackSheet, HistoryPanel, IncomingAlarmBanner, NewIncidentBanner, SettingsSheet, shownAlarms } from './components/panels'
+import { EinsatzWizard, DatenquellenPanel, FeedbackSheet, HistoryPanel, IncomingAlarmBanner, NewIncidentBanner, SettingsSheet } from './components/panels'
 import { Meldeleiste } from './components/Meldeleiste'
 import { linkShowsMeldung } from './lib/meldungen'
 import { SessionExpiredMeldung } from './components/SessionExpiredMeldung'
@@ -972,7 +972,7 @@ export default function App() {
       )}
 
       {/* auto-opened / colleague-taken incident announced, never forced. Suppressed while an
-          alarm row SHOWS (Banners · shownAlarms) — the take banner owns that spot and the take
+          alarm row SHOWS (diveraDismiss · shownAlarms) — the take banner owns that spot and the take
           flow. Never on the raw pool: a stale or ×-ed alarm shows no row and hid this one too. */}
       {closedMedia.map((p) => (
         <MediaPendingMeldung key={p.id} pending={p} onDismiss={() => setClosedMedia((cur) => cur.filter((q) => q.id !== p.id))} />

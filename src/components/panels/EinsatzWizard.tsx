@@ -85,7 +85,7 @@ type WizardFields = {
 }
 
 /** The draft to keep for `now`, or null when nothing differs from what the sheet opened with. */
-export function wizardDraft(now: WizardFields, opened: WizardFields): WizardFields | null {
+function wizardDraft(now: WizardFields, opened: WizardFields): WizardFields | null {
   const same = now.title === opened.title && now.address === opened.address
     && now.kategorie === opened.kategorie && now.isExercise === opened.isExercise
     && now.coord?.[0] === opened.coord?.[0] && now.coord?.[1] === opened.coord?.[1]
@@ -138,19 +138,20 @@ export function EinsatzWizard({ edit, nearCoord, onClose, onCreated }: {
   // Übung — stats-excluded + deletable. A Probealarm that opened itself gets retro-tagged here.
   const [isExercise, setIsExercise] = useState(draft?.isExercise ?? !!edit?.is_exercise)
   const [busy, setBusy] = useState(false)
+  /** what the sheet opened with – frozen like `seed`: the draft is «what the operator changed» */
+  const [opened] = useState<WizardFields>(() => ({
+    title: edit?.title ?? '', address: edit?.address ?? '', kategorie: openedKategorie,
+    coord: realCoord(edit?.lng, edit?.lat), isExercise: !!edit?.is_exercise,
+  }))
   useEffect(() => {
     const kept = wizardDraft({
       title, address, kategorie, coord, isExercise,
       text: textTouched.current ? text : undefined,
       alarmiertAt: alarmiertAt !== openedAlarm ? alarmiertAt : undefined,
-    }, {
-      title: edit?.title ?? '', address: edit?.address ?? '', kategorie: openedKategorie,
-      coord: realCoord(edit?.lng, edit?.lat), isExercise: !!edit?.is_exercise,
-    })
+    }, opened)
     if (kept) keepDraft(draftKey, kept)
     else clearDraft(draftKey)
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- `edit` is what the sheet opened with
-  }, [title, address, kategorie, coord, isExercise, text, alarmiertAt])
+  }, [title, address, kategorie, coord, isExercise, text, alarmiertAt, opened, openedAlarm, draftKey])
   /** «Abbrechen»: the deliberate way out, so the draft goes too */
   const cancel = () => { clearDraft(draftKey); onClose() }
   // the Alarmmeldung fetch FAILED — the textarea is disabled and says so, and `text` stays out of
