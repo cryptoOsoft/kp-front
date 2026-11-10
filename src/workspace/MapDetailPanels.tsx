@@ -225,6 +225,7 @@ export function MapDetailPanels({
           // Symbol→Mittel: only where the station mapped at least one material to a symbol.
           // No switch to find — a Wehr that has not configured it never gets an offer.
           onFields={(fields) => { commitEntityFields(selected, fields); linkRosterFields(selected, fields) }}
+          onReadingAgain={selected.kind === 'symbol' && !selected.live ? () => commitEntityFields(selected, selected.fields ?? {}, true) : undefined}
           onNotes={!selected.live ? (v) => patchEntity(selected.id, { notes: v || undefined }) : undefined}
           onFloor={selected.kind === 'symbol' && !selected.live ? (f) => patchEntity(selected.id, { floor: f ?? undefined }) : undefined}
           onFloorFrom={selected.kind === 'symbol' && !selected.live ? (f) => patchEntity(selected.id, { floor: undefined, floorFrom: f ?? undefined, floorTo: selected.floorTo ?? selected.floor }) : undefined}

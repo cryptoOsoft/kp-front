@@ -6,6 +6,7 @@ import { Icon } from '../lib/icons'
 import { alarmBar, cleanMeasured, compareReadings, measuredInput, measuredValue, readingLevel, readingRows, readingScale, readingState, symbolReading } from '../lib/symbols'
 import { ReadingPill } from '../lib/symbolRender'
 import type { SymbolProps } from '../types'
+import { Button } from './Button'
 import { InfoToggle } from './InfoToggle'
 import { TickRow } from './TickRow'
 
@@ -13,7 +14,8 @@ import { TickRow } from './TickRow'
 // the visualisation – a colour bar under each measured field – and the history sits under all
 // fields as one list. No numbers on the bar, only the stages: calm, Voralarm (amber), Hauptalarm
 // (red); the numbers behind the stages are one ⓘ away (ReadingInfo, 28.10.2026). Since 10.11.2026
-// (owner pick 3B) the box takes a number only and «über Messbereich» is a tick beside it.
+// (owner picks 3B / 4A) the box takes a number only, «über Messbereich» is a tick beside it, and
+// «Gleich gemessen» under the fields records a Nachmessung that confirmed the values.
 
 /**
  * One measured gas of the panel (ContextPanel's row for a `readout` field): the number box – digits
@@ -52,6 +54,17 @@ export function MeasuredField({ symbol, fieldKey, value, placeholder, onInput, o
       <ReadingBar symbol={symbol} fieldKey={fieldKey} value={value} />
       {unreadable && <span className="reading-unreadable" role="status"><Icon id="warn" />{C.readingUnreadable}</span>}
     </span>
+  )
+}
+
+/** «Gleich gemessen» (pick 4A) under the measured fields: the values as they stand, measured once
+ *  more – a history row with the time now, so the point stops ageing. Nothing before a first value. */
+export function ReadingAgain({ entity, onAgain }: { entity: SymbolProps; onAgain: () => void }) {
+  if (!symbolReading(entity)?.text) return null
+  return (
+    <Button block className="reading-again" icon={<Icon id="rotate" />} onClick={onAgain}>
+      {appConfig.copy.contextPanel.readingAgain}
+    </Button>
   )
 }
 

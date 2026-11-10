@@ -20,7 +20,7 @@ import { IconButton } from './Button'
 import { compositeSpec } from '../lib/symbolRender'
 import { bareBlack } from '../lib/glyphTile'
 import { UN_CAPABLE, countFieldValue, isMeasuredSymbol, symbolFieldKind } from '../lib/symbols'
-import { MeasuredField, ReadingHistory, ReadingInfo } from './ReadingParts'
+import { MeasuredField, ReadingAgain, ReadingHistory, ReadingInfo } from './ReadingParts'
 import { sanitizeSvg } from '../lib/sanitizeSvg'
 import { bearing360 } from '../lib/planProjection'
 import { doneStatusText } from '../lib/objectDone'
@@ -213,6 +213,10 @@ export interface ContextPanelProps {
    *  else. Where it is wired, the footer's delete reads «Entfernen»: next to a «gelöschtes» Feuer,
    *  «Löschen» would say the opposite of what the button does. */
   onDone?: (done: boolean) => void
+  /** «Gleich gemessen» on a measured symbol (the Messpunkt, lib/readingLog · readingAct with
+   *  `again`): the surface appends a reading of the values as they stand, as one undoable step
+   *  with its Verlauf row. Wired by both surfaces; absent = no button. */
+  onReadingAgain?: () => void
   /** Clear a crew member's self-reported position (Selbstauskunft) from the command post.
    *  Editor-only, and offered ONLY on a live `person` dot: somebody drives home with sharing
    *  still on, or a phone dies holding its last fix, and the dot then claims a crew is
@@ -309,7 +313,7 @@ function LinkBtn({ onClick, text }: { onClick: () => void; text: string }) {
   )
 }
 
-export function ContextPanel({ entity, svg, onClose, onCenter, onOriginal, originalLabel, onTitle, onTitleLive, onFields, onNotes, onFloorFrom, onFloorTo, onSpread, onCount, onRotate, onErgRings, ergCoord, onAdoptRadius, ergAdopted, onRotate2, onCaption, captionDefault = 'auto', onAirflow, controls, titleOptions, fieldOptions, rosterRank, protectedKeys, onDelete, onDone, onStopSharing, readOnly, allowDelete = false, hasOverride, onPinGps, onResetGps, driver, origin, personStatus, fieldHints, connectedLines = [], onFocusLine, dockedToLabel, onUndock, dockedTeams = [], onNoteSize, autoFocusNote = false, onNotePlain, onColor }: ContextPanelProps) {
+export function ContextPanel({ entity, svg, onClose, onCenter, onOriginal, originalLabel, onTitle, onTitleLive, onFields, onNotes, onReadingAgain, onFloorFrom, onFloorTo, onSpread, onCount, onRotate, onErgRings, ergCoord, onAdoptRadius, ergAdopted, onRotate2, onCaption, captionDefault = 'auto', onAirflow, controls, titleOptions, fieldOptions, rosterRank, protectedKeys, onDelete, onDone, onStopSharing, readOnly, allowDelete = false, hasOverride, onPinGps, onResetGps, driver, origin, personStatus, fieldHints, connectedLines = [], onFocusLine, dockedToLabel, onUndock, dockedTeams = [], onNoteSize, autoFocusNote = false, onNotePlain, onColor }: ContextPanelProps) {
   // read per-render (not module-load) so the resolved locale is applied — see config/copy
   const C = appConfig.copy.contextPanel
   const N = appConfig.copy.notes
@@ -1098,7 +1102,10 @@ const GRENZE_GLYPH = { left: 'grenze-v', right: 'grenze-v', up: 'grenze-up', dow
             </div>
           )}
 
-          {/* a Messpunkt's limits behind an ⓘ, then its readings, one row per radio report (ReadingParts) */}
+          {/* a Messpunkt's «Gleich gemessen», its limits behind an ⓘ, then its readings, one row per
+              radio report (ReadingParts). A value still in a box is committed first: the button's
+              tap blurs it, and a reading must never be of what the box no longer says. */}
+          {isMeasuredSymbol(entity) && !readOnly && onReadingAgain && <ReadingAgain entity={entity} onAgain={onReadingAgain} />}
           {isMeasuredSymbol(entity) && <ReadingInfo symbol={entity.symbol} />}
           {isMeasuredSymbol(entity) && <ReadingHistory entity={entity} />}
 

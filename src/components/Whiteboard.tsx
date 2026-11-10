@@ -3032,6 +3032,7 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
               if (v.trim() && before[k] !== v) onRosterField?.(selSymbol.symbol, selSymbol.label, k, v)
             }
           }}
+          onReadingAgain={() => commitAnnoFields(selSymbol, selSymbol.fields ?? {}, true)}
           onNotes={(v) => patchCommit(selSymbol.id, { notes: v || undefined })}
           // Stockwerk — the Lage has always offered it, the Modul boards never did, so a Brand
           // drawn on «Modul 2» could not say which storey it was on. Absent on the Gebäude

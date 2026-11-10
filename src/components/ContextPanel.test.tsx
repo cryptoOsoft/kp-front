@@ -836,17 +836,17 @@ describe('ContextPanel — a typed field survives the panel closing', () => {
   })
 })
 
-// Owner pick 3B (10.11.2026): a measured field takes a number only, «über Messbereich» is a tick
-// beside it.
+// Owner picks 3B / 4A (10.11.2026): a measured field takes a number only, «über Messbereich» is a
+// tick beside it, and «Gleich gemessen» hands the surface a Nachmessung of the values as they stand.
 describe('ContextPanel — a Messpunkt\'s measured fields', () => {
   const C = appConfig.copy.contextPanel
   const coBox = () => screen.getByRole('textbox', { name: 'CO' }) as HTMLInputElement
   const coTick = () => within(coBox().parentElement as HTMLElement).getByRole('checkbox', { name: C.readingOver })
-  const mount = (fields: Record<string, string> = {}) => {
+  const mount = (fields: Record<string, string> = {}, extra: { onReadingAgain?: () => void } = {}) => {
     const onFields = vi.fn()
     render(
       <ContextPanel entity={{ id: 'm1', symbol: 'FW Messpunkt', label: '', fields }} onClose={vi.fn()}
-        onTitle={vi.fn()} onFields={onFields} onDelete={vi.fn()}
+        onTitle={vi.fn()} onFields={onFields} onDelete={vi.fn()} {...extra}
         protectedKeys={new Set(['Raum', 'CO', 'Ex', 'O₂', 'H₂S'])} />,
     )
     return onFields
@@ -879,6 +879,18 @@ describe('ContextPanel — a Messpunkt\'s measured fields', () => {
     expect(coBox().value).toBe('')
     expect((screen.getByRole('textbox', { name: 'Ex' }) as HTMLInputElement).value).toBe('ca. 60')
     expect(screen.getAllByText(C.readingUnreadable)).toHaveLength(1)
+  })
+
+  it('offers «Gleich gemessen» once a value stands, and hands the tap to the surface', () => {
+    const onReadingAgain = vi.fn()
+    mount({ CO: '0' }, { onReadingAgain })
+    fireEvent.click(screen.getByRole('button', { name: C.readingAgain }))
+    expect(onReadingAgain).toHaveBeenCalledOnce()
+  })
+
+  it('offers no «Gleich gemessen» before the first value', () => {
+    mount({}, { onReadingAgain: vi.fn() })
+    expect(screen.queryByRole('button', { name: C.readingAgain })).toBeNull()
   })
 })
 

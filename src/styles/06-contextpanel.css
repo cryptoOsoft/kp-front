@@ -342,6 +342,8 @@
 .reading-unreadable { display: flex; align-items: center; gap: var(--sp-2);
   font: var(--fw-medium) var(--fs-1)/1.35 var(--body); color: var(--amber-strong); }
 .reading-unreadable .i { width: 14px; height: 14px; flex: none; }
+/* «Gleich gemessen» under the measured fields: the shared Button, full width, with air above */
+.reading-again { margin-top: var(--sp-2); }
 /* nothing typed yet: the zones stay as a faint guide, so the first digit does not move the row */
 .reading-bar.empty { opacity: .35; }
 .reading-bar i { position: absolute; top: 0; height: 4px; border-radius: 2px; background: var(--hover-strong); }

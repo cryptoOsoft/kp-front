@@ -47,6 +47,7 @@ export const editorsCopy: Localizable<Pick<Copy, Keys>> = {
     readingInfoStale: 'Avec son âge (p. ex. 18′) et seul le contour coloré = plus de {min} min.',
     readingOver: 'hors plage de mesure',
     readingUnreadable: 'Illisible – saisir un nombre',
+    readingAgain: 'Mesure identique',
     removeField: 'Supprimer le champ',
     fieldKeyPlaceholder: 'Désignation',
     fieldNamePlaceholder: 'Nom …',
