@@ -45,6 +45,7 @@ export const journalCopy: Localizable<Pick<Copy, 'journal' | 'tafelPendenzen' | 
     attachDiscard: 'Remove attachment',
     attachOpen: 'Download attachment',
     attachOffline: 'File upload needs a connection. Select the file again later.',
+    attachOfflineSkip: 'Record without the file',
     attachTooLarge: 'File is too large. Maximum: {max} MB.',
     attachUnsupported: 'This file type is not supported.',
     attachUploadFailed: 'File upload failed. Check the connection and try again.',

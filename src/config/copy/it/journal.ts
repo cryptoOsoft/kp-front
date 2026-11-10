@@ -45,6 +45,7 @@ export const journalCopy: Localizable<Pick<Copy, 'journal' | 'tafelPendenzen' | 
     attachDiscard: 'Rimuovi allegato',
     attachOpen: 'Scarica allegato',
     attachOffline: 'Il caricamento richiede una connessione. Riselezionare il file più tardi.',
+    attachOfflineSkip: 'Registra senza l’allegato',
     attachTooLarge: 'File troppo grande. Massimo: {max} MB.',
     attachUnsupported: 'Questo tipo di file non è supportato.',
     attachUploadFailed: 'Caricamento del file non riuscito. Verificare la connessione e riprovare.',

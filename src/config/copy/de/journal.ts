@@ -59,6 +59,7 @@ export const journalCopy = {
     attachDiscard: 'Beilage entfernen',
     attachOpen: 'Beilage herunterladen',
     attachOffline: 'Datei-Upload benötigt eine Verbindung. Datei später erneut auswählen.',
+    attachOfflineSkip: 'Ohne Beilage erfassen',
     attachTooLarge: 'Datei ist zu gross. Maximum: {max} MB.',
     attachUnsupported: 'Dieser Dateityp wird nicht unterstützt.',
     attachUploadFailed: 'Datei-Upload fehlgeschlagen. Verbindung prüfen und erneut versuchen.',
