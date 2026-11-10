@@ -32,7 +32,6 @@ export const whiteboardCopy = {
     done: 'Fertig',
   },
   whiteboard: {
-    fit: 'Fit',
     pan: 'Auswahl',
     team: 'Trupp',
     draw: 'Zeichnen',

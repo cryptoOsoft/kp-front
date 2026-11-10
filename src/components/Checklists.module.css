@@ -82,7 +82,7 @@
 .cl-item-text { display: block; font-size: var(--fs-2); font-weight: var(--fw-bold); color: var(--ink); line-height: 1.35; }
 .cl-item.done .cl-item-text { color: var(--ink-dim); }
 .cl-item-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
-.cl-when { font-size: var(--fs-micro); font-weight: var(--fw-bold); color: var(--amber); background: var(--amber-12);
+.cl-when { font-size: var(--fs-micro); font-weight: var(--fw-bold); color: var(--amber-strong); background: var(--amber-12);
   padding: 1px var(--sp-2); border-radius: var(--r-xs); }
 .cl-milestone { display: inline-flex; align-items: center; gap: var(--sp-1); font-size: var(--fs-micro); font-weight: var(--fw-medium); color: var(--ink-faint); }
 .cl-milestone :global(.i) { width: 12px; height: 12px; }

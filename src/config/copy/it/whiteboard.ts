@@ -30,7 +30,6 @@ export const whiteboardCopy: Localizable<Pick<Copy, 'incidents' | 'entities' | '
     deleteMsg: 'Questa nota contiene del testo. Rimuoverla davvero?',
   },
   whiteboard: {
-    fit: 'Adatta',
     pan: 'Selezione',
     team: 'Squadra',
     draw: 'Disegna',

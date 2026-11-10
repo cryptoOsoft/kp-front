@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState, type Dispatch, type SetStateAction } from 'react'
 import { appConfig } from '../config/appConfig'
+import { fillTemplate } from './format'
 import { vehicleSymbolSvg, autoRotation } from './useVehiclePositions'
 import { normalizeBoard, type Saved } from './workspace'
 import type { VehicleAt } from './replay'
@@ -44,7 +45,7 @@ export function useReplay(): Replay {
     const veh: Entity[] = vehicles.map((v) => ({
       id: `replay-veh-${v.deviceId}`, kind: 'symbol', layer: appConfig.defaults.operationalLayerId,
       coord: v.coord, symbolSvg: vehicleSymbolSvg(String(v.deviceId), autoRotation(v.course), v.course != null),
-      label: `Fahrzeug ${v.deviceId}`, live: true,
+      label: fillTemplate(appConfig.copy.replay.vehicle, { id: v.deviceId }), live: true,
     }))
     return [...base, ...veh]
   }, [active, ws, vehicles])

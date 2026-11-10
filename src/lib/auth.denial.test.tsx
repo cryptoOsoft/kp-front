@@ -3,9 +3,8 @@ import { act, cleanup, renderHook, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-// SEC-10. `kp:session-expired` is fired by api.ts when a 401 could not be repaired — but the
-// refresh POST that decides it counts a NETWORK failure as a refusal too, so the event alone
-// cannot be trusted to mean «the server said no». AuthProvider therefore asks once more, and
+// SEC-10. `kp:session-expired` is fired by api.ts when the refresh was refused. AuthProvider
+// still asks once more before it locks anything, and
 // only a reachable server's 401/403 locks the device out of its caches. Silence changes nothing:
 // the cached session, the cached media and the cached workspace stay exactly as they were.
 const { apiGet, apiPost } = vi.hoisted(() => ({ apiGet: vi.fn(), apiPost: vi.fn() }))
@@ -22,7 +21,8 @@ const { denyWorkspaceCache, setWorkspaceCacheOwner } = vi.hoisted(() => ({
 }))
 vi.mock('./api/workspaceSync', () => ({ denyWorkspaceCache, setWorkspaceCacheOwner }))
 
-import { ApiError, SESSION_EXPIRED_EVENT } from './api'
+import { ApiError, SESSION_EXPIRED_EVENT, SESSION_RESTORED_EVENT } from './api'
+import { noteAnswered, noteUnreached } from './connectivity'
 import * as deploymentConfig from './deploymentConfig'
 import { AuthProvider, useAuth } from './auth'
 
@@ -87,6 +87,33 @@ describe('AuthProvider — a session the server has explicitly refused', () => {
 
     await waitFor(() => expect(result.current.sessionExpired).toBe(false))
     expect(result.current.user).toEqual(EDITOR_USER)
+    expect(denyWorkspaceCache).not.toHaveBeenCalled()
+  })
+
+  // UX.1 (sweep 09.11.2026): the row stood until somebody signed in, long after requests worked.
+  it('withdraws the warning when a later refresh succeeds', async () => {
+    const result = await signedIn()
+    apiGet.mockRejectedValueOnce(new ApiError(0, 'Netzwerkfehler')) // the confirming /me: silence
+
+    act(() => { window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT)) })
+    await waitFor(() => expect(result.current.sessionExpired).toBe(true))
+    act(() => { window.dispatchEvent(new Event(SESSION_RESTORED_EVENT)) })
+
+    expect(result.current.sessionExpired).toBe(false)
+    expect(result.current.user).toEqual(EDITOR_USER)
+  })
+
+  it('asks again once the server answers, and withdraws the warning on a live session', async () => {
+    const result = await signedIn()
+    apiGet.mockRejectedValueOnce(new ApiError(0, 'Netzwerkfehler')) // asked in the cellar
+    act(() => { noteUnreached(); window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT)) })
+    await waitFor(() => expect(apiGet).toHaveBeenCalledTimes(2))
+    expect(result.current.sessionExpired).toBe(true)
+
+    apiGet.mockResolvedValueOnce(EDITOR_USER)
+    act(() => { noteAnswered() }) // any answer from the server: reach is back
+
+    await waitFor(() => expect(result.current.sessionExpired).toBe(false))
     expect(denyWorkspaceCache).not.toHaveBeenCalled()
   })
 

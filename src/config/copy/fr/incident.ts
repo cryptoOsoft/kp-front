@@ -245,6 +245,7 @@ export const incidentCopy: Localizable<Pick<Copy, Keys>> = {
     region: 'Relecture du journal',
     banner: 'JOURNAL · RELECTURE',
     subtitle: 'Vue du passé en lecture seule',
+    vehicle: 'Véhicule {id}',
     backToLive: 'Retour au direct',
     loadFailed: 'Le journal n’a pas pu être chargé.',
     loading: 'Chargement du journal …',

@@ -667,10 +667,30 @@ export function JournalComposer({ onSubmit, onClose, incidentStartAt, uploadAudi
       audioMeta: clip ? { source: 'recorded', startedAt: clip.startedAt, durationSec: clip.secs } : undefined,
     })
   }
+  // the toast's «Ohne Beilage erfassen» outlives the render that raised it: it files the sheet
+  // as it stands THEN, and nothing once the sheet is gone or the row was filed another way
+  const fileWithoutRef = useRef(() => {})
+  useEffect(() => {
+    fileWithoutRef.current = () => {
+      if (!alive.current || filedRef.current) return
+      filedRef.current = true
+      submitRow([])
+    }
+  })
   /** save WITH Beilagen: they go up first, and only a complete upload files the row — offline is
    *  an explicit refusal here (not a queued promise), exactly as it is for an imported memo. */
   const submitWithFiles = async () => {
-    if (!navigator.onLine) { toast(C.attachOffline, { icon: 'warn', tone: 'warn' }); return }
+    if (!navigator.onLine) {
+      // ⚠️ The refusal holds the typed Eintrag back too, so it offers the way forward (sweep
+      // 09.11.2026, UX.12): «Ohne Beilage erfassen» files what was written, as it stands when the
+      // button is pressed. Only where there IS something besides the Beilage.
+      const rest = text.trim().length > 0 || clip != null || photos.length > 0
+      toast(C.attachOffline, {
+        icon: 'warn', tone: 'warn', kind: 'attach-offline',
+        ...(rest ? { action: { label: C.attachOfflineSkip, onClick: () => fileWithoutRef.current() } } : {}),
+      })
+      return
+    }
     setUploading(true)
     let attached: { url: string; name: string }[]
     try { attached = await uploadPickedFiles() } catch (e) {

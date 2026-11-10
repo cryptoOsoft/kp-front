@@ -715,7 +715,7 @@
    ink; the ↻ and the minutes say what it does. */
 .jr-again { display: inline-flex; gap: var(--sp-1); flex: none; }
 .jr-again-btn { border: 1px solid var(--glass-edge);
-  background: var(--surface); border-radius: var(--r-pill, 999px); padding: var(--sp-1) var(--sp-2); cursor: pointer;
+  background: var(--surface); border-radius: var(--r-xs); padding: var(--sp-1) var(--sp-2); cursor: pointer;
   font: var(--fw-medium) var(--fs-1) var(--body); color: var(--ink-dim); white-space: nowrap; }   /* 12.5px: the interactive-text floor (was 11.5, UI sweep 07.10.2026); --tap under a finger: 20-touch-floors */
 @media (hover: hover) {
   .jr-again-btn:hover { background: var(--hover-strong); color: var(--ink); }
@@ -1088,7 +1088,7 @@ a.jr-link-url { color: var(--blue); text-decoration: underline; text-underline-o
   border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--ink-faint); color: var(--ink);
   font: var(--fw-bold) var(--fs-1) var(--body); font-variant-numeric: tabular-nums; }
 .ig-step-text { font-size: var(--fs-2); line-height: 1.4; color: var(--ink); }
-.ig-step-text .i { width: 16px; height: 16px; vertical-align: -3px; margin: 0 2px; color: var(--accent); }
+.ig-step-text .i { width: 16px; height: 16px; vertical-align: -3px; margin: 0 2px; color: var(--ink-dim); }
 .ig-note { margin: var(--sp-3) 0 0; font-size: var(--fs-1); color: var(--ink-dim); }
 .ig-done { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-3); border-radius: var(--r-ctl);
   background: var(--green-12); color: var(--ink); font-size: var(--fs-2); font-weight: var(--fw-bold); }
