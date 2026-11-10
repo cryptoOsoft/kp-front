@@ -10,13 +10,14 @@ test('touch time picker stays reachable, commits a wheel selection and can clear
   await ensureIncidentOpen(page)
   expect(await page.evaluate(() => matchMedia('(pointer: coarse)').matches)).toBe(true)
   const rail = page.locator('nav.navrail')
-  if (await rail.getByRole('button', { name: 'Rapport', exact: true }).isVisible()) {
-    await rail.getByRole('button', { name: 'Rapport', exact: true }).tap()
-  } else {
-    const record = rail.getByRole('button', { name: /^Einsatz(?: ·|$)/ })
-    await record.tap()
-    await expect(record).toHaveAttribute('aria-pressed', 'true')
-    await record.tap()
+  // one tile on every width since 10.11.2026 («Rapport», with its open count on a phone). On a
+  // phone it is the group's door: with nobody present yet it opens the Anwesenheit, and a second
+  // tap offers the three pages.
+  const tile = rail.getByRole('button', { name: /^Rapport(?: ·|$)/ })
+  await tile.tap()
+  const body = page.locator('.report-preflight-body')
+  if (!(await body.waitFor({ timeout: 3000 }).then(() => true, () => false))) {
+    await tile.tap()
     await page.getByRole('dialog').getByRole('option', { name: /^Rapport/ }).tap()
   }
   await expect(page.locator('.report-preflight-body')).toBeVisible()

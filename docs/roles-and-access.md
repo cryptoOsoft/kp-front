@@ -16,9 +16,10 @@ wording unchanged.
   attributable, so a wider vocabulary costs the record nothing – lead's call, 22.10.2026), media
   uploads, and — since
   10.09.2026 — the EINSATZDATEN at the head of that record: `PATCH /incidents/{id}` limited to
-  the fields «Einsatzdaten bearbeiten» sends (`EL_META_FIELDS`); the full workspace PUT, the
-  trupps slice, the incident lifecycle (`status`, `is_archived`, `report_done_at`) and
-  everything tactical stay 403 for it), and `viewer`
+  the fields «Einsatzdaten bearbeiten» sends (`EL_META_FIELDS`); and – since 10.11.2026 –
+  the close and the reopen (`EL_LIFECYCLE_FIELDS`: `is_archived`, `report_done_at`); the full
+  workspace PUT, the trupps slice, `status`, creating and deleting an Einsatz and everything
+  tactical stay 403 for it), and `viewer`
   (read-only). The Führungsansicht is the LOGIN's (`el_view_default`, the admin's Benutzer · «Führungsansicht»);
   the per-device toggle in the Einstellungen is gone (05.10.2026, owner: «drop Führungsansicht in settings. We
   can use users») and a stored `prefs.elView` is ignored. Frontend: `isEl` behaves like an editor's Führungsansicht (`tacticalLocked`
@@ -42,7 +43,7 @@ wording unchanged.
   …» teach writers only (RBAC audit 22.10.2026). Every
   session that cannot share links (`canShareLink` false: el, Führungsansicht, viewer, link) gets
   no «Weitergeben» section, and so sends no GET for a link it may not read. The `el` also gets no
-  saved-view writes, no vehicle override, no «Wieder öffnen», no transcription
+  saved-view writes, no vehicle override, no transcription
   and no checklist «Zeichnen» link. No locked session (`tacticalLocked`: el, Führungsansicht,
   viewer, link, replay) gets the Plan's «Anderes Objekt wählen»; its object chip stays a read-out
   (RBAC audit 22.10.2026). A session that may write nothing (`roleReadOnly`: viewer, view and

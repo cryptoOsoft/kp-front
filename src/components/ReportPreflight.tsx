@@ -121,7 +121,7 @@ function MissingFact() {
 // «Später» that outlived a reload would turn the only surface that says «dieser Einsatz ist noch
 // offen» permanently silent — which is the failure this whole band exists to fix.
 const bandDismissed: { current: Set<string> } = { current: new Set() }
-/** …and the same for the «Rapport unterschreiben» strip of a closed Einsatz */
+/** …and the same for the «Rapport unterschreiben» strip of a closed Einsatz, per close (`signKey`) */
 const signBandDismissed = new Set<string>()
 
 /**
@@ -1212,10 +1212,12 @@ export function ReportPreflight({
   // …and ONE step later (owner pick A3, EL phone sweep 10.11.2026): the Einsatz is closed and
   // nobody has signed. The card sits at the end of «Personal & Mittel», reads «optional» and only
   // works after the close – nothing led there. The strip opens the Einsatzleiter's line of the
-  // same sheet; gone once one signature holds, or with ✕ (per Einsatz, like the band).
+  // same sheet; gone once one signature holds, or with ✕ – per CLOSE of this Einsatz (`signKey`):
+  // after «Wieder öffnen» and a new close the Rapport is unsigned again, and the strip is back.
   const [signFor, setSignFor] = useState<SignatureRole | null>(null)
-  const [signBandHidden, setSignBandHidden] = useState(() => signBandDismissed.has(incident.id))
-  const showSignBand = canSign && !SIGNATURE_ROLES.some(sigValid) && !signBandHidden
+  const signKey = `${incident.id}:${closedAt ?? ''}`
+  const [signDismissed, setSignDismissed] = useState(() => (signBandDismissed.has(signKey) ? signKey : null))
+  const showSignBand = canSign && !SIGNATURE_ROLES.some(sigValid) && signDismissed !== signKey
   // …and ONE step earlier (owner pick 15B, 28.10.2026): everything recorded, no PDF yet – the band
   // names the next step, «Einsatzrapport (PDF) erstellen». No «Später» on it (15x): it goes away by
   // itself once the PDF exists, and turns into the Abschluss band above.
@@ -1556,7 +1558,7 @@ export function ReportPreflight({
         {showSignBand && (
           <RpStrip done lead={P.bandClosed} title={appConfig.copy.signature.sheetTitle} icon={<Icon id="signature" />}
             onGo={() => setSignFor('el')} hideLabel={P.bandLater}
-            onHide={() => { signBandDismissed.add(incident.id); setSignBandHidden(true) }} />
+            onHide={() => { signBandDismissed.add(signKey); setSignDismissed(signKey) }} />
         )}
         {/* …and its counterpart: a print that has been handed over and has not come back. It is
             NOT dismissible — «Später» on the green band hides an offer, this one is an open
