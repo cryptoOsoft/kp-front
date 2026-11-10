@@ -91,8 +91,10 @@ function useFixes(refresh: () => void) {
   }
   // ⚠️ Says so, with the way back (sweep 09.11.2026, UX.8): on the card it sits beside «Später»,
   // and a slip turned alarm push off while the card went away exactly as it does for «Später».
-  const optOut = async () => {
-    await disablePush()
+  // `disablePush` turns the device record off at once; the unsubscribe behind it is a round trip
+  // and never answers where no service worker runs — the toast does not wait for it.
+  const optOut = () => {
+    void disablePush().finally(refresh)
     refresh()
     undoToast(A.optOutDone, () => void optIn(), undefined, { kind: 'alarm-optout' })
   }
@@ -166,7 +168,7 @@ export function AlarmReadinessRows({ className }: { className?: string }) {
         {head}
         {shown.map((r) => <Row key={r.key} row={r} onFix={(f) => void run(f)} />)}
         {open && !store.optedOut && (
-          <ListRow lead={<Icon id="bell-off" />} title={A.optOut} sub={A.optOutSub} chevron={false} onClick={() => void optOut()} data-alarm-optout="" />
+          <ListRow lead={<Icon id="bell-off" />} title={A.optOut} sub={A.optOutSub} chevron={false} onClick={optOut} data-alarm-optout="" />
         )}
       </ListCard>
       {guideEl}
@@ -218,7 +220,7 @@ export function AlarmNudgeCard({ inIncident, phone }: { inIncident: boolean; pho
         )}
         <div className={s.alarmActs}>
           <Button variant="quiet" onClick={() => patchReadinessStore({ laterUntil: Date.now() + LATER_DAYS * DAY })} data-alarm-later="">{A.later}</Button>
-          <Button variant="quiet" onClick={() => void optOut()} data-alarm-optout="">{A.optOut}</Button>
+          <Button variant="quiet" onClick={optOut} data-alarm-optout="">{A.optOut}</Button>
         </div>
       </section>
       {guideEl}

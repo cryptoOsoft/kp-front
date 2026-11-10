@@ -8,7 +8,8 @@ import { appConfig } from '../../config/appConfig'
 // toast now, and «Rückgängig» switches push on again.
 
 const { disablePush, enablePush } = vi.hoisted(() => ({
-  disablePush: vi.fn(() => Promise.resolve()), enablePush: vi.fn(() => Promise.resolve(true)),
+  // never answers, as in a browser with no service worker (navigator.serviceWorker.ready)
+  disablePush: vi.fn(() => new Promise<void>(() => {})), enablePush: vi.fn(() => Promise.resolve(true)),
 }))
 vi.mock('../../lib/push', () => ({
   disablePush, enablePush,
