@@ -1,5 +1,3 @@
-import { useState } from 'react'
-import { dismissAlarm, loadDismissedAlarms } from '../../lib/diveraDismiss'
 import { useMeldung, useMeldungKindPending } from '../../lib/useMeldung'
 import { appConfig } from '../../config/appConfig'
 import { shortAddress } from '../../lib/deploymentConfig'
@@ -27,8 +25,24 @@ import { fmtWhen } from '../../lib/format'
 // the filled action. Same two buttons, swapped emphasis; nothing is hidden either way.
 const ALARM_MAX_AGE_MS = 3 * 60 * 60 * 1000 // only surface dispatches < 3h old
 
-export function IncomingAlarmBanner({ alarms, taking, attachFirst, onTake, onAttach }: {
+/** The pool alarms the row can actually show: not dismissed on this device, younger than 3 h.
+ *  ⚠️ Whoever asks «is the alarm row busy» asks THIS, never the raw pool – the pool endpoint has
+ *  no age limit, and one stale or ×-ed alarm used to hide the «Neuer Einsatz» row for good
+ *  (sweep 09.11.2026, UX.6). */
+export function shownAlarms(alarms: DiveraAlarm[], dismissed: ReadonlySet<number>, now = Date.now()): DiveraAlarm[] {
+  return alarms.filter((a) => {
+    if (dismissed.has(a.divera_id)) return false
+    // age < 3h; no lower bound so minor server/device clock skew can't hide a fresh alarm
+    const age = now - new Date(a.received_at).getTime()
+    return Number.isFinite(age) && age < ALARM_MAX_AGE_MS
+  })
+}
+
+export function IncomingAlarmBanner({ alarms, dismissed, taking, attachFirst, onTake, onAttach, onDismiss }: {
   alarms: DiveraAlarm[]
+  /** the alarms hidden on this device (lib/diveraDismiss) – App's one set, shared with the
+   *  «Einsätze» list and the «Neuer Einsatz» gate */
+  dismissed: ReadonlySet<number>
   /** divera_id currently being taken (disables its button) */
   taking: number | null
   /** The open Einsatz was started by hand (Übung included), so no alarm routes anything to it
@@ -40,16 +54,11 @@ export function IncomingAlarmBanner({ alarms, taking, attachFirst, onTake, onAtt
   /** attach this alarm to the active incident (split dispatch; the caller confirms). Absent when
    *  there is nothing to attach TO — the active Einsatz is closed — and then only «Öffnen» shows. */
   onAttach?: (a: DiveraAlarm) => void
+  /** hide this alarm on this device (the row's ✕) */
+  onDismiss: (a: DiveraAlarm) => void
 }) {
   const ix = appConfig.copy.intake
-  const [dismissed, setDismissed] = useState<Set<number>>(loadDismissedAlarms)
-  const now = Date.now()
-  const live = alarms.filter((a) => {
-    if (dismissed.has(a.divera_id)) return false
-    // age < 3h; no lower bound so minor server/device clock skew can't hide a fresh alarm
-    const age = now - new Date(a.received_at).getTime()
-    return Number.isFinite(age) && age < ALARM_MAX_AGE_MS
-  })
+  const live = shownAlarms(alarms, dismissed)
   // pool is newest-first; ONE alarm is published — dismissing it (per device) surfaces the
   // next, and the landing launch list always carries the whole pool
   const top = live[0]
@@ -70,7 +79,7 @@ export function IncomingAlarmBanner({ alarms, taking, attachFirst, onTake, onAtt
     title: `${ix.newDiveraAlarm} — ${top.title}`,
     sub: `${shortAddress(top.address) ?? ix.addressUnknown} · ${fmtWhen(top.received_at)}`,
     actions: actionsFor(top),
-    dismiss: { label: ix.hide, onClick: () => setDismissed(dismissAlarm(top.divera_id)) },
+    dismiss: { label: ix.hide, onClick: () => onDismiss(top) },
   })
   return null
 }

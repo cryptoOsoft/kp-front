@@ -43,8 +43,8 @@ import { ApiError } from './lib/api'
 import { useDiveraWatch } from './lib/useDiveraWatch'
 import { dismissAlarm, loadDismissedAlarms } from './lib/diveraDismiss'
 import { useIncidentWatch } from './lib/useIncidentWatch'
-import { loadReviewedIncidents, needsIntakeReview, sameIncidentList, saveReviewedIncident, shouldReopenClosed } from './lib/incidentAlerts'
-import { EinsatzWizard, DatenquellenPanel, FeedbackSheet, HistoryPanel, IncomingAlarmBanner, NewIncidentBanner, SettingsSheet } from './components/panels'
+import { loadReviewedIncidents, needsIntakeReview, sameIncidentList, saveReviewedIncident, shouldReopenClosed, undoTakeReturn } from './lib/incidentAlerts'
+import { EinsatzWizard, DatenquellenPanel, FeedbackSheet, HistoryPanel, IncomingAlarmBanner, NewIncidentBanner, SettingsSheet, shownAlarms } from './components/panels'
 import { Meldeleiste } from './components/Meldeleiste'
 import { linkShowsMeldung } from './lib/meldungen'
 import { SessionExpiredMeldung } from './components/SessionExpiredMeldung'
@@ -751,6 +751,7 @@ export default function App() {
   const takeBack = screen === 'karte' ? 'karte' as const : undefined
 
   // the open Einsatz itself, while a surface covers it: step aside instead of reopening it
+  const hideAlarm = (a: DiveraAlarm) => setDismissedAlarms(dismissAlarm(a.divera_id))
   const openOrUncover = (i: IncidentMeta) => {
     if (i.id === activeId && activeMeta && einsatzBehind) uncoverEinsatz()
     else void openIncident(i.id, { meta: i })
@@ -763,7 +764,7 @@ export default function App() {
     user: { display_name: user?.display_name ?? '', color: user?.color ?? null, role: user?.role ?? 'viewer' },
     incidents: allIncidents, activeId, opening, alarms: landingAlarms, taking,
     onTake: (a) => void takeAndOpen(a, takeBack),
-    onDismissAlarm: (a) => setDismissedAlarms(dismissAlarm(a.divera_id)),
+    onDismissAlarm: hideAlarm,
     onOpenIncident: openOrUncover,
     onHistory: () => setOverlay('history'),
     onCreate: () => setOverlay('create'),
@@ -941,6 +942,8 @@ export default function App() {
           attachFirst={false}
           onTake={(a) => {
             if (screen === 'visits') { leaveObjectVisits('/'); void takeAndOpen(a) } else void takeAndOpen(a, 'karte')
+          dismissed={dismissedAlarms}
+          onDismiss={hideAlarm}
           }}
         />
       )}
@@ -951,17 +954,20 @@ export default function App() {
           // ⚠️ «Anhängen» only onto an Einsatz that is RUNNING (review of #235): attached to a closed
           // one, the dispatch's Zeiten and Meldung would land in a closed record
           attachFirst={activeMeta.source === 'manual' && isIncidentRunning(activeMeta)}
+          dismissed={dismissedAlarms}
+          onDismiss={hideAlarm}
           onTake={(a) => void takeAndOpen(a)}
           onAttach={isIncidentRunning(activeMeta) ? (a) => void attachToActive(a) : undefined}
         />
       )}
 
-      {/* auto-opened / colleague-taken incident announced, never forced. Suppressed while
-          untaken pool alarms exist — the take banner owns that spot and the take flow. */}
+      {/* auto-opened / colleague-taken incident announced, never forced. Suppressed while an
+          alarm row SHOWS (Banners · shownAlarms) — the take banner owns that spot and the take
+          flow. Never on the raw pool: a stale or ×-ed alarm shows no row and hid this one too. */}
       {closedMedia.map((p) => (
         <MediaPendingMeldung key={p.id} pending={p} onDismiss={() => setClosedMedia((cur) => cur.filter((q) => q.id !== p.id))} />
       ))}
-      {freshIncident && poolAlarms.length === 0 && (
+      {freshIncident && shownAlarms(poolAlarms, dismissedAlarms).length === 0 && (
         <NewIncidentBanner
           inc={freshIncident}
           active={!!activeId}
