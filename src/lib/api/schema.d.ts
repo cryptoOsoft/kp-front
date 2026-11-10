@@ -3778,70 +3778,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/diag/telemetry": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Telemetry Status
-         * @description Everything the admin screen needs to answer "what is this instance sending".
-         *
-         *     Includes the last few payloads verbatim. The queue is the honest answer to that
-         *     question and there is no reason to summarise it — a fire station should be able to read
-         *     the actual JSON without opening psql.
-         */
-        get: operations["telemetry_status_api_diag_telemetry_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/diag/telemetry/consent": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Update Consent
-         * @description Turn the background channel on or off. Off also discards whatever is still queued.
-         */
-        put: operations["update_consent_api_diag_telemetry_consent_put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/diag/telemetry/install-id": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Rotate Install Id
-         * @description Mint a fresh install id, cutting the link to everything sent so far.
-         */
-        post: operations["rotate_install_id_api_diag_telemetry_install_id_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/admin/visits": {
         parameters: {
             query?: never;
@@ -5062,11 +4998,6 @@ export interface components {
             changedSections?: string[];
             /** Version */
             version?: string | null;
-        };
-        /** ConsentUpdate */
-        ConsentUpdate: {
-            /** Consent */
-            consent: string;
         };
         /** CredentialAuditEntry */
         CredentialAuditEntry: {
@@ -14760,109 +14691,6 @@ export interface operations {
             path?: never;
             cookie?: {
                 access_token?: string | null;
-            };
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    telemetry_status_api_diag_telemetry_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: {
-                admin_session?: string | null;
-            };
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_consent_api_diag_telemetry_consent_put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: {
-                admin_session?: string | null;
-            };
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ConsentUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    rotate_install_id_api_diag_telemetry_install_id_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: {
-                admin_session?: string | null;
             };
         };
         requestBody?: never;

@@ -66,7 +66,7 @@ flowchart TB
     MS["Microsoft 365<br/>SharePoint pull · export · Entra login"]
     S3P["S3 plan library<br/>plan_pull"]
     IDX["Station index<br/>roster snapshot"]
-    OUT["Web Push · incident webhooks → KP Rück<br/>speech-to-text · healthcheck ping · telemetry (opt-in)"]
+    OUT["Web Push · incident webhooks → KP Rück<br/>speech-to-text · healthcheck ping"]
   end
 
   TILES["Raster map tiles<br/>swisstopo WMTS · OSM · canton WMS · CARTO"]
@@ -112,8 +112,8 @@ is bundled – see the geodata doc for why.
 
 What leaves the server unasked is outbound only and never carries a credential to the browser:
 Web Push notifications, the incident webhooks (`incident.created` / `alarm.attached`, e.g. to
-KP Rück's slip printer), Objektbesuche filed to SharePoint, the dead-man's-switch ping
-(`HEALTHCHECK_PING_URL`, every 60 s) and – only after an admin opts in – sanitised telemetry.
+KP Rück's slip printer), Objektbesuche filed to SharePoint and the dead-man's-switch ping
+(`HEALTHCHECK_PING_URL`, every 60 s).
 
 ## Backend modules
 
@@ -258,7 +258,7 @@ the registrations).
 | `positions_sweep` · `visit_hashes_sweep` | hourly · daily | deletes expired shared positions and visit-dedup rows (privacy promises, always on) |
 | `print_jobs_sweep` | hourly | deletes station-printer jobs (each holds a Rapport PDF) after 7 days, relay configured or not |
 | `object_footprints` | 120 s, idle once every object is asked | «Karte & Objekte»: the buildings of each station object, the Einsatzgebiet's houses and the underground buildings from the official sources ([`karte-objekte.md`](karte-objekte.md)) |
-| `credentials_refresh` · `telemetry_flush` | 30 s · minutes | keeps the credential snapshot fresh; sends opt-in telemetry |
+| `credentials_refresh` | 30 s | keeps the credential snapshot fresh |
 | `weather_radar` | 5 min, every process | the radar display cache – not leader-only, records nothing |
 | `demo_reset` | `DEMO_RESET_CRON` (Europe/Zurich), or every `DEMO_RESET_SECONDS` | the public demo only: wipes and reseeds the synthetic incident and roster – registered only when one of the two is set |
 

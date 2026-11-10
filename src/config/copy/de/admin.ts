@@ -608,7 +608,6 @@ export const adminCopy = {
         items: [
           { name: 'SECRET_KEY', why: 'verschlüsselt die PINs und die Werte auf dieser Seite – er kann nicht in der Datenbank liegen, die er schützt.' },
           { name: 'ADMIN_SECRET', why: 'öffnet genau diese Verwaltung. Wer sie öffnen kann, dürfte sich sonst selbst neuen Zugang geben.' },
-          { name: 'KP_TELEMETRY_ENABLED / _DSN', why: 'ist das Veto des Betreibers über die Verwaltung. Ein Veto, das die Verwaltung ändern kann, ist keins.' },
           { name: 'DATABASE_URL, POSTGRES_*', why: 'werden gebraucht, bevor überhaupt eine Datenbankverbindung besteht.' },
           { name: 'APP_PORT, DOMAIN, KP_FRONT_TAG', why: 'liest Docker Compose, nicht die App – ein Neustart ist hier unvermeidlich.' },
         ],

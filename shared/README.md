@@ -17,9 +17,11 @@ they are shared **by copy**. There is no package and no third repository:
 | `snail` | the two apps would show a different loading mascot |
 | `shared-check` | the two repositories would check different things |
 
-Some neighbours are left out on purpose. The telemetry package's `consent.py` and `dsn.py`
-are per-app glue: one talks to each app's own deployment-state table, the other holds a
-deployer's own ingest address. Everything that decides what a payload *contains* is shared.
+Some neighbours are left out on purpose. Of the telemetry package, only the sanitiser
+(`scrub.py`) and the local crash buffer (`recent.py`) are shared: KP Front deleted its
+crash-report forwarder on 09.11.2026, so `envelope.py`, `outbox.py`, `forwarder.py`,
+`consent.py`, `dsn.py` and the package's `__init__.py` are KP Rück's own. Everything that
+decides what a crash entry *contains* is shared.
 
 [`MANIFEST.json`](MANIFEST.json) lists every shared file with its path in each repository,
 the **owner** (the repository where an edit is made first) and its sha256.

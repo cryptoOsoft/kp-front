@@ -25,7 +25,6 @@ export interface DiagnosticsBundle {
   generatedAt: string
   app: string
   release: string
-  install: string | null
   device: string
   errors: unknown[]
   errorsKept: number

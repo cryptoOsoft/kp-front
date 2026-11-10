@@ -1479,7 +1479,6 @@ Four rules, and none of them is optional reading:
 |---|---|
 | `SECRET_KEY` | it peppers the PINs in the database it would live in, and seals the credential table itself |
 | `ADMIN_SECRET` | it gates writing the very document it would live in |
-| `KP_TELEMETRY_ENABLED`, `KP_TELEMETRY_DSN` | the deployer's veto **over** the admin UI – an admin-settable veto is not a veto |
 | `REQUIRE_PLAN_DIGEST` | it guards the config a stale automated publish would overwrite |
 | `DATABASE_URL`, `POSTGRES_*`, `APP_PORT`, `APP_BIND`, `DOMAIN`, `COOKIE_SECURE`, `KP_FRONT_TAG` | host-level: read before a database connection exists, or by `docker-compose.yml` rather than by the app |
 | everything else in the table below | not an integration credential – seeding, caps, tuning, provider URLs, the S3 pull keys |
@@ -1549,7 +1548,7 @@ and locks the field – see the rule above).
 >
 > If you add one yourself, note the second half of the trap: compose materialises a named
 > variable as an **empty string** when `.env` does not set it, and only some of these fields
-> tolerate that. `EXPOSE_API_DOCS`, `VISIT_STATS`, `TRACCAR_FAKE` and `KP_TELEMETRY_ENABLED` have
+> tolerate that. `EXPOSE_API_DOCS`, `VISIT_STATS` and `TRACCAR_FAKE` have
 > an explicit blank-is-false coercion in `app/config.py`; `REQUIRE_PLAN_DIGEST`, `DEV_CREATE_ALL`
 > and every numeric setting do **not**, so a blank fallback for those crashes the boot with a
 > pydantic validation error. Give them a fallback that parses – which is what the file does.

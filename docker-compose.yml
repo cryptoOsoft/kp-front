@@ -105,26 +105,12 @@ services:
       # blank-is-false validator in app/config.py, so `${DEV_CREATE_ALL:-}` would hand pydantic
       # an empty string and crash the boot of every compose deployment.
       DEV_CREATE_ALL: ${DEV_CREATE_ALL:-true}
-      # The deployer's telemetry veto (PRIVACY.md). It has to be named here to work at all:
-      # compose's .env is interpolation-only, so a KP_TELEMETRY_ENABLED=0 sitting in .env
-      # never reaches the process unless it is passed through like this.
-      #
-      # The flag's fallback deliberately repeats the application default rather than being
-      # blank. Blank is not "unset" to this app — a blank flag means "off" — so
-      # `${KP_TELEMETRY_ENABLED:-}` would quietly disable telemetry for every compose
-      # deployment instead of merely forwarding the operator's choice.
-      KP_TELEMETRY_ENABLED: ${KP_TELEMETRY_ENABLED:-1}
-      # The DSN is the opposite case, and deliberately so: empty means OFF, and empty is now
-      # the only default there is. The maintainer's ingest was retired, so there is no upstream
-      # to fall back to (PRIVACY.md § «Where it goes») and this line has nothing to repeat.
-      # Set it to a GlitchTip/Sentry you run and the forwarder starts delivering there.
-      KP_TELEMETRY_DSN: ${KP_TELEMETRY_DSN-}
       # Aggregate, cookie-free visit counters are for the public demo only. Keep the
       # self-host default off, but pass an explicit opt-in through: compose's .env is
       # interpolation-only, so a documented VISIT_STATS=true otherwise does nothing.
       VISIT_STATS: ${VISIT_STATS:-false}
-      # Overpass mirrors for the building-outline surface (PRIVACY.md). Same blank-is-not-unset
-      # trap as the telemetry pair above: an empty value switches the surface off, so the
+      # Overpass mirrors for the building-outline surface (PRIVACY.md). Blank is not unset
+      # here: an empty value switches the surface off, so the
       # fallback repeats the application default from app/config.py.
       OVERPASS_MIRRORS: ${OVERPASS_MIRRORS-https://overpass.kumi.systems/api/interpreter,https://overpass-api.de/api/interpreter,https://maps.mail.ru/osm/tools/overpass/api/interpreter}
       # «Karte & Objekte» building footprints (app/object_footprints) — empty = off, unset = default

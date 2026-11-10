@@ -5,12 +5,11 @@ the app does not send operational records to the maintainer. There is no cloud a
 check, usage beacon or "phone home" on start-up. Map/location lookups and integrations that a
 station explicitly configures can contact their named providers, as documented below.
 
-This document covers the one exception: the channels through which a station can *choose* to
-send something to the maintainer. Since **the maintainer's ingest server was retired, the app
-has no upstream destination at all** — the DSN that used to point at it is now empty, and a
-fresh install has nowhere to send anything even if every switch were on. The only way something
-reaches us today is that a person exports it and attaches it to an e-mail. You can verify all of
-that with `tcpdump`, and several of the tests in this repository exist to prove it stays true.
+This document covers the one exception: how a station can *choose* to send something to the
+maintainer. **The app has no upstream destination at all** — the maintainer's ingest server was
+retired in September 2026, and the code that could forward crash reports to one was removed in
+November 2026. The only way something reaches us is that a person exports it and attaches it to
+an e-mail or an issue. You can verify that with `tcpdump`.
 
 Separately, and unrelated to any installation, the project's public website has a contact form.
 That is a website, not the app — see [The project website](#the-project-website) at the end.
@@ -62,8 +61,7 @@ Where a station does configure one, two things are worth being deliberate about:
   path in a link, and prefer a form your own organisation restricts over one that is open to
   whoever has the address.
 
-Neither of these sends anything to the maintainer, and neither is affected by the telemetry
-switch below — this is your Wehr's own configuration talking to your Wehr's own choice of form
+Neither of these sends anything to the maintainer — this is your Wehr's own configuration talking to your Wehr's own choice of form
 provider. It is documented at this length because a link can carry incident text off the
 instance without an operator realising it. The other optional integrations that can carry
 incident data are listed in the next section.
@@ -138,42 +136,36 @@ sent anywhere else.
 
 ## The short version
 
-| | Diagnostics export | Background error reports |
-| --- | --- | --- |
-| Who starts it | An operator, in the **Rückmeldung** sheet | The app, after a crash |
-| Default | Always available | **Off** |
-| Consent | Saving the file and attaching it | An admin sets it through the admin API (`PUT /api/diag/telemetry/consent`); there is no switch in the UI |
-| Can be disabled entirely | It never leaves on its own | Yes, `KP_TELEMETRY_ENABLED=0` |
-| Content | The technical block, plus this server's sanitised crash traces since its last restart | A sanitised crash |
-| Where it goes | Wherever the operator sends it — an e-mail, a GitHub issue — and nowhere else | **Nowhere**, unless a deployer set `KP_TELEMETRY_DSN` to an ingest of their own |
+| | Diagnostics export («Diagnose-Datei») |
+| --- | --- |
+| Who starts it | An operator, in the **Rückmeldung** sheet |
+| Consent | Saving the file and attaching it |
+| Content | This server's sanitised crash traces since its last restart |
+| Where it goes | Wherever the operator sends it — an e-mail, a GitHub issue — and nowhere else |
 
-The app used to have a **Senden** button that posted a report to the maintainer's ingest. It
-went when the ingest did: a report queued for a destination that does not exist would sit in
-your outbox forever while the sheet said «gesendet». The sheet now opens your mail client or a
-GitHub issue form instead, and saves the diagnostics file for you to attach.
+There is no background channel. The app used to be able to forward sanitised crash reports to
+an ingest (off by default, and aimed at nothing since the maintainer's ingest was retired); that
+forwarder, its consent setting, its install id and its outbox table were removed in November
+2026, together with `KP_TELEMETRY_ENABLED` and `KP_TELEMETRY_DSN`. A leftover line in an `.env`
+is ignored.
 
-## What is sent
-
-Both channels send the same **context block** and nothing else besides it:
+## What the file contains
 
 | Field | Example | Why |
 | --- | --- | --- |
-| `install` | `9f1c…` (random UUID) | So two reports from the same station are recognisably the same station |
 | `app` | `kp-front` | Which of the two apps |
 | `release` | `0.2.0+a1b2c3d` | The single most useful field in any bug report |
 | `device` | `iPad Safari` | A rendering bug is usually a browser bug |
-| `viewport` | `1024×768` | A layout bug is a viewport bug |
-| `locale` | `de-CH` | Which copy catalogue was active |
-| `online` | `true` | Whether the tablet had a connection |
+| `errors` | up to 50 entries | The crashes this server has seen since its last restart |
 
-A background error report adds the exception type, a scrubbed message, a stack reduced to
-function names and module basenames, and the route shape. The diagnostics export carries those
-same crash entries, and whatever the operator types goes in the mail or the issue, in their own
-words, where they can read it before sending.
+Each crash entry carries the time, the exception type, a scrubbed message, a stack reduced to
+function names and module basenames, the route shape, and the release and device class it
+happened on. Whatever the operator types goes in the mail or the issue, in their own words,
+where they can read it before sending.
 
-## What is never sent
+## What is never in it
 
-Not "we try not to send" — these are constructed out of the payload and asserted by tests
+Not "we try not to include" — these are constructed out of the entries and asserted by tests
 (`backend/tests/test_telemetry_scrub.py`):
 
 - **Incident data of any kind**: addresses, coordinates (WGS84 *and* LV95), incident IDs, object
@@ -181,55 +173,26 @@ Not "we try not to send" — these are constructed out of the payload and assert
 - **People**: roster names, functions, phone numbers, e-mail addresses, Divera identities, PINs.
 - **Your instance**: hostname, station name, deployment config, database contents, file paths,
   usernames, environment variables, tokens, secrets.
-- **Network identity**: no IP address is placed in the payload, and no `user` object exists for
-  one to appear in later. See "The IP question" below for the part we cannot solve in code.
-- **Screenshots and photos.** There is no code path that captures a screen, and since the manual
-  send route was retired the app carries no picture at all. If a photo helps, you attach it to
-  your own mail or issue, where you can see exactly what you are attaching.
+- **Network identity**: no IP address and no raw user agent.
+- **Screenshots and photos.** There is no code path that captures a screen. If a photo helps,
+  you attach it to your own mail or issue, where you can see exactly what you are attaching.
 
-The payload is built by an **allow-list**: every field is named in
-`backend/app/telemetry/scrub.py` and the caller's object is never forwarded, merged or spread.
+Every entry is built by an **allow-list**: every field is named in
+`backend/app/telemetry/scrub.py` and the caller's object is never passed on, merged or spread.
 A field nobody wrote a line of code for cannot leak. Free text is additionally scrubbed, because
 the value is often *inside* the message — `TypeError … at Hauptstrasse 12` is a real shape.
 
 ## How to check, rather than trust
 
-You do not have to take any of the above on faith:
-
-1. **Your own log.** Every payload is written to your server's log in full, at `INFO`, *before*
-   it is sent. Look for `telemetry: queuing … exact content follows`.
-2. **Your own database.** The same payload stays verbatim in the `telemetry_outbox` table.
-   `SELECT payload_json FROM telemetry_outbox;` is the whole story, before and after delivery.
-3. ~~**The admin screen.**~~ *System & Wartung → Fehlerberichte* was removed on 2026-09-10. The
-   rows it showed are still in the database and the log, which is what points 1 and 2 are for;
-   there is now no way to switch consent on from the browser at all.
-4. **The diagnostics file itself.** It is plain JSON, it is on your device, and it is the exact
-   thing that would be attached — open it before you send it. The Rückmeldung sheet also shows
-   the technical block and the number of crash entries the file holds, before you decide.
+**The diagnostics file itself.** It is plain JSON, it is on your device, and it is the exact
+thing that would be attached — open it before you send it. The Rückmeldung sheet also shows
+the technical block and the number of crash entries the file holds, before you decide.
 
 ## Where it goes
 
-**Nowhere.** There is no maintainer-run ingest any more.
-
-Until 2026 this app shipped with a public Sentry DSN pointing at `ingest.kp-front.ch`, a
-GlitchTip instance run by the maintainer. That instance was retired — it cost more to run than
-the handful of reports it received were worth, and every install that had opted in belonged to
-the maintainer anyway. `KP_TELEMETRY_DSN` now defaults to the **empty string**, which the
-forwarder reads as "off": an instance with a crash queued and consent switched on still opens no
-connection, because it has no address to open one to.
-
-What that leaves is a purely local arrangement. A crash is written to your log, held in a small
-in-memory buffer on your server (`backend/app/telemetry/recent.py`, the last 50, cleared on
-restart) and — if the background switch is on — kept verbatim in your `telemetry_outbox` table.
-All three copies are yours. None of them moves on its own.
-
-**If you want the machinery back, aim it at yourself.** Set `KP_TELEMETRY_DSN` to a GlitchTip or
-Sentry you run and every part of this document applies again, with your server as the
-destination. This is now the only supported configuration in which anything is transmitted
-automatically at all.
-
-**Retention:** the in-memory buffer holds the last 50 errors and is emptied by any restart.
-Delivered rows in your own outbox are swept after 14 days (yours to change).
+**Nowhere on its own.** A crash is written to your server's log and held in a small in-memory
+buffer on your server (`backend/app/telemetry/recent.py`, the last 50, cleared on restart).
+Both copies are yours, and neither moves on its own. Nothing about it is stored in the database.
 
 ## Getting a bug report to the maintainer
 
@@ -246,10 +209,7 @@ You can open the file first — it is JSON, and it is the same content the app s
 
 ## The IP question
 
-It no longer arises for telemetry: with no ingest to contact, this app makes no request to the
-maintainer from which an address could be read. If you point `KP_TELEMETRY_DSN` at a server of
-your own, your instance's address is visible to *your* server, the same way it is to any host
-you make a request of.
+The app makes no request to the maintainer from which an address could be read.
 
 The manual routes are ordinary ones with the ordinary consequences: an e-mail carries your mail
 provider's headers, and a GitHub issue is public and tied to your GitHub account. Both are
@@ -323,11 +283,8 @@ rather than believing this section.
 
 ## Legal
 
-Your fire service is the data controller for everything in its instance. Background error
-reports have no maintainer recipient: with consent on and `KP_TELEMETRY_DSN` set, the recipient
-of the (sanitised, non-personal) data described above is the deployer's own ingest, and without
-a DSN there is none. That decision belongs to the organisation, which is why consent lives behind
-`ADMIN_SECRET` and not in the operator's settings sheet — and why nothing is enabled by an
-upgrade.
+Your fire service is the data controller for everything in its instance. Nothing is sent to the
+maintainer by the software; a Diagnose-Datei reaches us only when a person at the station
+decides to attach it.
 
 Questions, or a deletion request: **bastian.eichenberger@feuerwehr-oberwil.ch**.

@@ -719,8 +719,7 @@ roster-snapshot sources and tokens – are set at `/admin` → **Anbindungen**. 
   the Microsoft-login allow-list.
 - **What stays in `.env`, and why.** `SECRET_KEY` peppers the PINs in the database it would
   otherwise live in; `ADMIN_SECRET` gates writing the very document it would live in;
-  `KP_TELEMETRY_ENABLED`/`_DSN` are the deployer's veto *over* the admin UI, and an admin-settable
-  veto is not a veto; `REQUIRE_PLAN_DIGEST` guards the config a stale publish overwrites; and the
+  `REQUIRE_PLAN_DIGEST` guards the config a stale publish overwrites; and the
   `POSTGRES_*` / `APP_PORT` / `APP_BIND` / `DOMAIN` / `COOKIE_SECURE` / `KP_FRONT_TAG` values are
   read before a database connection exists.
 
