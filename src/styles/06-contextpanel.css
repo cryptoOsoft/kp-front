@@ -238,14 +238,16 @@
 /* a user-added field: same run as .field above, so the same treatment — no rule, and its key box
    IS the label column (27B), so its value starts at the edge every preset row's control does */
 .kv-row { display: flex; align-items: center; gap: var(--ctx-col-gap); min-height: 52px; padding: 4px 0; }
-/* both boxes --tap tall (27x): every box control in the panel is, at every pointer */
-.kv-key, .kv-val { box-sizing: border-box; min-height: var(--tap); font-size: var(--fs-2); color: var(--ink); border: none; background: var(--fill-soft); border-radius: var(--r-sm);
+/* both boxes --tap tall (27x): every box control in the panel is, at every pointer; what is typed
+   in them is 16px like every other field (`.ip-input`; it was 14 until the sweep of 09.11.2026, UI.12) */
+.kv-key, .kv-val { box-sizing: border-box; min-height: var(--tap); font-size: var(--fs-3); color: var(--ink); border: none; background: var(--fill-soft); border-radius: var(--r-sm);
   padding: 8px 12px; min-width: 0; font-family: var(--body); }
 /* …but the KEY reads as the label it is (r36, 06.11.2026): bare at rest, in the label column like
    «Von Geschoss» / «Horizontal», only the value on the field plate. Still an input – its plate
    comes back under a hovering mouse and on focus. Its 12px text inset is paid into the gutter
-   (the negative margin), so the word starts at the label column's edge, not 12px inside it. */
-.kv-key { flex: 0 0 calc(var(--ctx-lbl) + var(--sp-3)); margin-left: calc(-1 * var(--sp-3)); font-weight: var(--fw-medium); color: var(--ink-dim);
+   (the negative margin), so the word starts at the label column's edge, not 12px inside it.
+   And it keeps the labels' 14px: at the fields' 16 it would be the one bigger word in that column. */
+.kv-key { flex: 0 0 calc(var(--ctx-lbl) + var(--sp-3)); margin-left: calc(-1 * var(--sp-3)); font-size: var(--fs-2); font-weight: var(--fw-medium); color: var(--ink-dim);
   background: transparent; }
 @media (hover: hover) { .kv-key:hover:not(:focus) { background: var(--fill-soft); } }
 .kv-val { flex: 1; font-family: var(--mono); }

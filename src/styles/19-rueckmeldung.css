@@ -28,7 +28,7 @@ p.fb-prompt-q { margin: 0; font: var(--fw-bold) var(--fs-2) var(--body); color: 
 .fb-intro { margin: 0; font: var(--fw-regular) var(--fs-2) var(--body); color: var(--ink-dim); }
 .fb-input { width: 100%; min-height: 110px; padding: var(--sp-2) var(--sp-3); resize: vertical;
   border: 1px solid var(--glass-edge); border-radius: var(--r-sm); background: var(--surface);
-  color: var(--ink); font: var(--fw-regular) var(--fs-2) var(--body); }
+  color: var(--ink); font: var(--fw-regular) var(--fs-3) var(--body); }   /* typed text is 16px, as in .ip-textarea (sweep 09.11.2026, UI.12) */
 /* --blue, not --accent: focus is a system signal, not brand. A station whose accent is its own
    red would otherwise ring this one field in the danger colour. Since 28.09.2026 it is the app's
    one field focus (--focus-*) instead of a 2px outline of its own. */
