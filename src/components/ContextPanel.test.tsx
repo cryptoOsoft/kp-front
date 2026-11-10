@@ -838,10 +838,11 @@ describe('ContextPanel — a typed field survives the panel closing', () => {
 
 // Owner picks 3B / 4A (10.11.2026): a measured field takes a number only, «über Messbereich» is a
 // tick beside it, and «Gleich gemessen» hands the surface a Nachmessung of the values as they stand.
+// The tick is a bare box named per gas; its words stand once, above the column (review 10.11.2026).
 describe('ContextPanel — a Messpunkt\'s measured fields', () => {
   const C = appConfig.copy.contextPanel
   const coBox = () => screen.getByRole('textbox', { name: 'CO' }) as HTMLInputElement
-  const coTick = () => within(coBox().parentElement as HTMLElement).getByRole('checkbox', { name: C.readingOver })
+  const coTick = () => within(coBox().parentElement as HTMLElement).getByRole('checkbox', { name: `CO: ${C.readingOver}` })
   const mount = (fields: Record<string, string> = {}, extra: { onReadingAgain?: () => void } = {}) => {
     const onFields = vi.fn()
     render(
@@ -871,6 +872,14 @@ describe('ContextPanel — a Messpunkt\'s measured fields', () => {
     expect(coBox().value).toBe('100') // the box keeps the number, the tick carries the «>»
     fireEvent.click(coTick())
     expect(onFields).toHaveBeenLastCalledWith(expect.objectContaining({ CO: '100' }))
+  })
+
+  it('every gas has a bare tick named for it, and the words stand once above the column', () => {
+    mount()
+    const ticks = screen.getAllByRole('checkbox')
+    expect(ticks.map((t) => t.getAttribute('aria-label'))).toEqual(['CO', 'Ex', 'O₂', 'H₂S'].map((g) => `${g}: ${C.readingOver}`))
+    for (const t of ticks) expect(t.textContent).toBe('')
+    expect(screen.getAllByText(C.readingOver)).toHaveLength(1)
   })
 
   it('shows what an older record typed: «OL» ticked, «ca. 60» kept and called unreadable', () => {

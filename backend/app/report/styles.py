@@ -276,6 +276,16 @@ def _esc(s: str | None) -> str:
     return (s or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
+_SUBSCRIPTS = str.maketrans({chr(0x2080 + d): f"<sub>{d}</sub>" for d in range(10)})
+
+
+def _esc_sub(s: str | None) -> str:
+    """`_esc` with «O₂» / «H₂S» as real subscripts: Helvetica has no glyph for the subscript
+    digits, and ReportLab would print a black box where the gas is named. For every Paragraph that
+    can carry a gas — the Messungen section and the numbered legend under a Kroki or a plan."""
+    return _esc(s).translate(_SUBSCRIPTS)
+
+
 def _esc_attr(s: str | None) -> str:
     """`_esc` for a double-quoted ReportLab attribute value — the quote characters too. A decoded
     link (`&quot;` in the source becomes a literal `"` after the parser) would otherwise close the
@@ -813,6 +823,8 @@ def _legend_table(lines: list[str], width: float, st: dict[str, ParagraphStyle])
     (the block claims its room below) and put number 8 a hand's width away from the disc it
     belongs to. Reading «wo ist die 4» is a scan between two places; the shorter that distance,
     the less the numbering costs.
+
+    A Messpunkt's line names its gas («O₂ 20,4»): `_esc_sub`, or the «₂» prints as a black box.
     """
     half = (len(lines) + 1) // 2
     left, right = lines[:half], lines[half:]
@@ -821,9 +833,9 @@ def _legend_table(lines: list[str], width: float, st: dict[str, ParagraphStyle])
     rows = [
         [
             Paragraph(f"<b>{i + 1}</b>", st["cell"]),
-            Paragraph(_esc(left[i]), st["cell"]),
+            Paragraph(_esc_sub(left[i]), st["cell"]),
             Paragraph(f"<b>{half + i + 1}</b>", st["cell"]) if i < len(right) else "",
-            Paragraph(_esc(right[i]), st["cell"]) if i < len(right) else "",
+            Paragraph(_esc_sub(right[i]), st["cell"]) if i < len(right) else "",
         ]
         for i in range(len(left))
     ]

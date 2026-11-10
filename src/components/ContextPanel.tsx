@@ -20,7 +20,7 @@ import { IconButton } from './Button'
 import { compositeSpec } from '../lib/symbolRender'
 import { bareBlack } from '../lib/glyphTile'
 import { UN_CAPABLE, countFieldValue, isMeasuredSymbol, symbolFieldKind } from '../lib/symbols'
-import { MeasuredField, ReadingAgain, ReadingHistory, ReadingInfo } from './ReadingParts'
+import { MeasuredField, ReadingAgain, ReadingHistory, ReadingInfo, ReadingOverHead } from './ReadingParts'
 import { sanitizeSvg } from '../lib/sanitizeSvg'
 import { bearing360 } from '../lib/planProjection'
 import { doneStatusText } from '../lib/objectDone'
@@ -726,6 +726,8 @@ const GRENZE_GLYPH = { left: 'grenze-v', right: 'grenze-v', up: 'grenze-up', dow
 
   // the header shares the grip's drag (tap stays a tap there — see useSheetDrag)
   const sheetDrag = useSheetDrag({ onClose, tapToggles: false })
+  // the first measured gas (the Messpunkt) – the tick column's caption stands above it
+  const firstMeasured = rows.findIndex((r) => symbolFieldKind(entity.symbol, r.k) === 'measured')
   return (
     <CtxShell onClose={onClose}>
       <SheetGrip onClose={onClose} />
@@ -1044,7 +1046,7 @@ const GRENZE_GLYPH = { left: 'grenze-v', right: 'grenze-v', up: 'grenze-up', dow
                         searchPlaceholder={C.stoffSearch}
                         onChange={(v) => setRowValue(i, v)} />
                     ) : symbolFieldKind(entity.symbol, r.k) === 'measured' ? (
-                      // a measured gas (the Messpunkt): the number box, its «über Messbereich» tick
+                      // a measured gas (the Messpunkt): the number box, its bare «über Messbereich» tick
                       // and the calm/amber/red bar under them, following the value as it is typed
                       <MeasuredField symbol={entity.symbol} fieldKey={r.k.trim()} value={r.v} placeholder={valuePlaceholder(r.k)}
                         onInput={(v) => setRow(i, { v })} onCommit={(v) => setRowValue(i, v)} />
@@ -1068,8 +1070,11 @@ const GRENZE_GLYPH = { left: 'grenze-v', right: 'grenze-v', up: 'grenze-up', dow
                   && rows.some((x) => (x.k.trim() === EL_NAME || x.k.trim() === EL_STV) && x.v.trim())
                 const swap = pair && k === EL_NAME
                 const swapGap = pair && k === EL_STV
+                // the caption of the tick column, once, above the first measured gas (ReadingParts)
+                const overHead = !readOnly && i === firstMeasured && <ReadingOverHead />
                 return fixed ? (
                   <Fragment key={i}>
+                    {overHead}
                     <div className="field">
                       <span className="kv-key-ro">{rowLabel(r.k)}</span>
                       {readOnly ? <b className="kv-val-ro">{r.v || '–'}</b> : field}
@@ -1083,6 +1088,7 @@ const GRENZE_GLYPH = { left: 'grenze-v', right: 'grenze-v', up: 'grenze-up', dow
                   </Fragment>
                 ) : (
                   <Fragment key={i}>
+                    {overHead}
                     <div className={`kv-row${dupRow[i] ? ' dup' : ''}`}>
                       <input className="kv-key" value={r.k} placeholder={C.fieldKeyPlaceholder}
                         aria-invalid={dupRow[i] || undefined}

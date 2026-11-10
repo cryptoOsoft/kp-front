@@ -68,6 +68,17 @@ def test_a_subscript_gas_prints_as_text_not_as_a_missing_glyph():
     assert "O2 16 Vol-%" in text or "O 2 16 Vol-%" in text
 
 
+def test_the_legend_under_a_picture_names_a_subscript_gas_without_a_missing_glyph():
+    """The numbered legend under the Kroki and under a plan is one table (`_legend_table`); a
+    Messpunkt's line there carries its gas. A blank plan page reaches it without map tiles."""
+    anno = {"kind": "symbol", "x": 0.5, "y": 0.5, "symbol": "VKF Feuer", "caption": "Schacht · O₂ 16 · H₂S 12"}
+    text = _text(_payload(planPages=[{"label": "Gebäude · EG", "blankAspect": 1.0, "annos": [anno]}]))
+    assert "Schacht" in text
+    assert "₂" not in text and "\ufffe" not in text
+    # the subscript is its own text run: where the extractor puts a space around it is layout
+    assert "Schacht·O216·H2S12" in text.replace(" ", "")
+
+
 def test_no_readings_no_section():
     assert "Messungen" not in _text(_payload())
     # a point placed but never measured is not a reading either
