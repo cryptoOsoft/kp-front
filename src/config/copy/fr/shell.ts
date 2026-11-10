@@ -14,7 +14,7 @@ export const shellCopy: Localizable<Pick<Copy, Keys>> = {
   modes: { map: 'Carte', plans: 'Plan', checklists: 'Checklist', atemschutz: 'Binômes', anwesenheit: 'Présence', rapport: 'Rapport',
     mittel: 'Matériel',
   },
-  navRail: { map: 'Carte', plansGroup: 'Plans', plansChoose: 'Choisir le plan', rapportGroup: 'Intervention', pageGroup: 'Choisir la page', assign: 'Attribuer le plan', expand: 'Déplier', collapse: 'Replier', resize: 'Ajuster la barre',
+  navRail: { map: 'Carte', plansGroup: 'Plans', plansChoose: 'Choisir le plan', pageGroup: 'Choisir la page', assign: 'Attribuer le plan', expand: 'Déplier', collapse: 'Replier', resize: 'Ajuster la barre',
     scrollMore: 'Afficher plus', viewBar: 'Affichage',
   },
   panels: { layers: 'Couches', history: 'Journal' },

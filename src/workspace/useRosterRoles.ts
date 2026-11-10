@@ -28,6 +28,8 @@ export interface UseRosterRolesInputs {
   attendance: AttendanceState
   allTrupps: Trupp[]
   phoneFold: boolean
+  /** the bar's tile opens the Rapport itself: the `el` role, a closed Einsatz (lib/rapportPages) */
+  rapportFirst: boolean
   mode: WorkspaceMode
   incidentMeta: IncidentMeta
   rosterIdByName: Map<string, string>
@@ -48,7 +50,7 @@ export interface UseRosterRolesInputs {
 }
 
 export function useRosterRoles({
-  linkedTrupps, truppOfPerson, pickablePersonnel, attendance, allTrupps, phoneFold, mode, incidentMeta,
+  linkedTrupps, truppOfPerson, pickablePersonnel, attendance, allTrupps, phoneFold, rapportFirst, mode, incidentMeta,
   rosterIdByName, rosterById, trupps, setSelectedId, log, canWriteRecord, attSet, openTruppSave,
   addGuest, replayActive, setAttendance, setTrupps, createTrupp, editTrupp, reactivateTrupp,
 }: UseRosterRolesInputs) {
@@ -102,14 +104,15 @@ export function useRosterRoles({
   useEffect(() => {
     if (phoneFold && isRapportPage(mode)) writeRapportPage(incidentMeta.id, mode)
   }, [phoneFold, mode, incidentMeta.id])
-  /** where the bar's «Rapport» tile goes: back to the page this device left the group on, else
-   *  the first-open rule (nobody present yet → Anwesenheit, else the Rapport itself). */
+  /** where the bar's «Rapport» tile goes: the Rapport where it comes first (`rapportFirst`), else
+   *  back to the page this device left the group on, else the first-open rule (nobody present
+   *  yet → Anwesenheit, else the Rapport itself). */
   const rapportTarget = useMemo(
     // ⚠️ INSIDE the group the target is the page already showing: the memory is written by the
     // effect above, i.e. AFTER this render, so reading it here named the page just left and the
     // lit tile bounced between the last two pages. The memory only answers a tap from outside.
-    () => (isRapportPage(mode) ? mode : initialRapportPage({ incidentId: incidentMeta.id, presentCount: presentIds.size })),
-    [incidentMeta.id, presentIds.size, mode],
+    () => (isRapportPage(mode) ? mode : initialRapportPage({ incidentId: incidentMeta.id, presentCount: presentIds.size, rapportFirst })),
+    [incidentMeta.id, presentIds.size, mode, rapportFirst],
   )
 
   /** What is already known about a roster NAME — «unter AS», «Magazin», «gegangen». Shown on

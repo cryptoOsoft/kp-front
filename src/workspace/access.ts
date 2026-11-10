@@ -130,10 +130,13 @@ export function workspaceFlags({ user, asLink, isEl, isEditor, roleReadOnly, for
   /** «may correct the EINSATZDATEN» — the dispatch facts at the head of the record: Stichwort,
    *  Kategorie, Priorität, Ort, Alarmierungszeit, Alarmmeldung, Übung. The `el` role keeps the
    *  record, so it owns the head of it too (10.09.) — the asLink pattern again: not an editor,
-   *  but the one surface outside its slice it may write. The LIFECYCLE stays with the editors
-   *  (Abschluss, Archivieren, Rapport fertig) and gates on `canEditIncident` as before; the
-   *  backend draws the identical line (PATCH /incidents/{id} · EL_META_FIELDS). */
+   *  but the one surface outside its slice it may write. The backend draws the identical line
+   *  (PATCH /incidents/{id} · EL_META_FIELDS). */
   const canEditMeta = canEditIncident || (isEl && !readOnly)
+  /** «may CLOSE this Einsatz» — the editors, and the `el` role (owner, 10.11.2026, EL phone sweep
+   *  A2: who writes the Rapport ends the Einsatz). Not the Führungsansicht, as before. Reopening
+   *  is App's `canLifecycle`, the same two; the backend draws the line in EL_LIFECYCLE_FIELDS. */
+  const canCloseIncident = canEditIncident || (isEl && !readOnly)
   /**
    * «may write the incident RECORD at large» — the flag every writer that used to gate on bare
    * `readOnly` now uses.
@@ -159,7 +162,7 @@ export function workspaceFlags({ user, asLink, isEl, isEditor, roleReadOnly, for
   // (stacked above the surface bar). Viewers and the EL-Ansicht stay hands-off; a brigade
   // that wants a view-only phone uses exactly those.
   const tacticalLocked = readOnly || elView || isEl
-  return { running, readOnly, outboxReadOnly, elView, canEditIncident, canEditTrupps, canEditRecord, canEditRapport, canEditMeta, canWriteRecord, canWriteBlob, tacticalLocked }
+  return { running, readOnly, outboxReadOnly, elView, canEditIncident, canEditTrupps, canEditRecord, canEditRapport, canEditMeta, canCloseIncident, canWriteRecord, canWriteBlob, tacticalLocked }
 }
 
 /** …as the workspace reads them. A hook only so the React Compiler treats the flags as frozen:

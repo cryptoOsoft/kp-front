@@ -262,6 +262,8 @@ export const reportCopy = {
     bandPdf: 'Einsatzrapport (PDF) erstellen',
     bandDone: 'Rapport erstellt · Nächster Schritt',
     bandZipLead: 'Danach für die Ablage:',
+    // …and on a closed Einsatz nobody has signed yet: the strip opens «Rapport unterschreiben»
+    bandClosed: 'Abgeschlossen · Nächster Schritt',
     bandLater: 'Später',
     exportIncompleteTitle: 'Angaben fehlen noch',
     // …once the last open point is answered IN that confirm (lib/abschlussOpen · abschlussSheet)
@@ -568,9 +570,6 @@ export const reportCopy = {
     controlHints: '{n} Hinweise',
     // the heading of the open steps inside the chip's popover
     controlOpenHead: 'Noch offen',
-    plansPrintNone: 'Pläne werden nicht gedruckt – bei Bedarf im Menü ▾ zuschalten.',
-    plansPrintAnnotated: '{n} Pläne mit Anmerkungen werden gedruckt.',
-    plansPrintAll: 'Alle Pläne werden gedruckt.',
     missingTranscripts: '{n} Audioeintrag/-einträge ohne Transkript – fürs Protokoll nachtragen.',
     fixTranscripts: 'Im Verlauf ergänzen',
     // Names WHO and WHY. On paper it said «N Person(en) ohne verwertbare Zeiten» – a number over
@@ -584,7 +583,6 @@ export const reportCopy = {
     // letzte Moment, in dem gefragt wird. Ohne Zahlwort-Plural: «Noch im Einsatz: 1» liest sich
     // genauso wie «Noch im Einsatz: 3».
     truppsDeployedConfirm: 'Noch im Einsatz: {n} – nie rausgemeldet',
-    stateNote: 'Stand: ganzer Einsatz bis Rapport-Erstellung ({at}).',
   },
   // Station print relay — «Ausdrucken» (preflight + capture)
   printRelay: {

@@ -20,6 +20,14 @@ describe('stepDone', () => {
     expect(stepDone('mittel', facts({ reportMeta: { mittelConfirmedNone: true } }))).toBe(true)
   })
 
+  // EL phone sweep C11 (10.11.2026): on a closed Einsatz the Anwesenheit is read-only, so an
+  // empty one is not an open point any more – it could not be answered from the Rapport
+  it('anwesenheit: somebody recorded – or the Einsatz is closed', () => {
+    expect(stepDone('anwesenheit', facts())).toBe(false)
+    expect(stepDone('anwesenheit', facts({ attendanceCount: 3 }))).toBe(true)
+    expect(stepDone('anwesenheit', facts({ closed: true }))).toBe(true)
+  })
+
   it('abschluss needs a non-blank Zusammenfassung', () => {
     expect(stepDone('kurzbericht', facts({ reportMeta: { summary: '   ' } }))).toBe(false)
     expect(stepDone('kurzbericht', facts({ reportMeta: { summary: 'BMA, Fehlalarm.' } }))).toBe(true)

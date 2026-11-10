@@ -50,6 +50,7 @@ export interface WorkspaceTopBarProps {
   undoLabel: string | null
   redoLabel: string | null
   canEditIncident: boolean
+  canCloseIncident: boolean
   canEditRecord: boolean
   displayWeather: WeatherData | null
   openWeatherDetails: () => void
@@ -114,7 +115,7 @@ export interface WorkspaceTopBarProps {
 export function WorkspaceTopBar({
   incidentView, incidentMeta, reportMeta, running, voice, journalOpen, setJournalOpen, reminders,
   linkScoped, readOnly, setComposerOpen, tabLockLost, isEditor, onTakeOverTab, startVoiceMemo,
-  startQuickPhoto, onHistoryPress, histCanUndo, histCanRedo, undoLabel, redoLabel, canEditIncident,
+  startQuickPhoto, onHistoryPress, histCanUndo, histCanRedo, undoLabel, redoLabel, canEditIncident, canCloseIncident,
   canEditRecord, displayWeather, openWeatherDetails, view, azAlarm, mode, azRowsShown, setMode,
   setPanel, setTruppFocus, mapUI, replayActive, gpsStale, gpsAgeMs, share, onShareChangeName,
   onBackFromArchive, onReactivateActive, isPhone, phoneTools, planFit, incidents, syncStatus, journal,
@@ -241,7 +242,7 @@ export function WorkspaceTopBar({
             // ⚠️ The SAME confirm the Rapport runs, with the same count in front of it — this row
             // used to archive plainly (see confirmAndComplete). The badge puts the check where it
             // can be read before the row is pressed, not only after.
-            onArchive={canEditIncident && !readOnly && !incidentMeta.is_archived ? () => { void confirmAndComplete() } : undefined}
+            onArchive={canCloseIncident && !readOnly && !incidentMeta.is_archived ? () => { void confirmAndComplete() } : undefined}
             // ONE number, the nav tile's and the Rapport head's (29.09.2026): a +1 for Trupps still
             // out made this badge say 5 where the nav said 4 one tap away. The confirm names
             // the Trupps that are still out («Trupps noch drin»), so nothing is lost.

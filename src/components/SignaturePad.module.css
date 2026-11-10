@@ -7,8 +7,9 @@
   border: 1.5px solid var(--ink-tint-strong); background: #fff;
   touch-action: none; user-select: none; -webkit-user-select: none; cursor: crosshair;
 }
-/* a phone's sheet must stand on one screen */
-.compact { height: 150px; }
+/* a phone: room for a finger's signature (EL phone sweep D4, 10.11.2026 – the sheet's column
+   squeezed the pad to ≈ 95px), and never shrunk by the sheet around it */
+.compact { height: 200px; flex: none; }
 /* the hand lands on the lower half, where the line is — the pad is taller than a signature so a
    big hand has room above it */
 .rule { position: absolute; left: var(--sp-5); right: var(--sp-5); bottom: var(--sp-6); border-bottom: 1.5px solid #6c7686; }

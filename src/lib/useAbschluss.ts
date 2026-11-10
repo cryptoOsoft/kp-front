@@ -74,8 +74,8 @@ export function useAbschluss({
   patchReportMeta,
 }: Args) {
   const abschlussMissing = useMemo(
-    () => missingSteps(abschlussFacts(reportMeta, Object.keys(attendance).length, mittelLineCount(mittel), openConflictCount)),
-    [reportMeta, attendance, mittel, openConflictCount],
+    () => missingSteps(abschlussFacts(reportMeta, Object.keys(attendance).length, mittelLineCount(mittel), openConflictCount, incidentMeta.is_archived)),
+    [reportMeta, attendance, mittel, openConflictCount, incidentMeta.is_archived],
   )
   /** How many Trupps are still recorded as being out there (lib/atemschutz · truppStillDeployed).
    *  NOT an ABSCHLUSS_STEP: those are the Rapport's Mindestangaben, and this is a state of the

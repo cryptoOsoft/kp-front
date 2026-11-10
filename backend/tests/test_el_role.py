@@ -198,28 +198,36 @@ async def test_el_corrects_the_whole_panel_in_one_save(client, editor, el):
     assert r.json()["address"] == "Hauptstrasse 3, Oberwil"
 
 
-@pytest.mark.parametrize(
-    "body",
-    [
-        {"status": "abgeschlossen"},
-        {"is_archived": True},
-        {"report_done_at": "2026-09-10T21:00:00Z"},
-    ],
-)
-async def test_el_cannot_touch_the_incident_lifecycle(client, editor, el, body):
+async def test_el_closes_and_reopens_the_einsatz(client, editor, el):
+    """The Abschluss is the EL's too (EL phone sweep, 10.11.2026): the stamp and the close the
+    Rapport's band sends, then «Wieder öffnen»."""
     inc_id = await _as_el_on_editor_incident(client, editor, el)
-    r = await client.patch(f"/api/incidents/{inc_id}", json=body)
+    assert (
+        await client.patch(f"/api/incidents/{inc_id}", json={"report_done_at": "2026-09-10T21:00:00Z"})
+    ).status_code == 200
+    closed = await client.patch(f"/api/incidents/{inc_id}", json={"is_archived": True})
+    assert closed.status_code == 200, closed.text
+    assert closed.json()["is_archived"] is True
+    assert closed.json()["closed_at"] is not None
+    reopened = await client.patch(f"/api/incidents/{inc_id}", json={"is_archived": False})
+    assert reopened.status_code == 200, reopened.text
+    assert reopened.json()["is_archived"] is False
+
+
+async def test_el_cannot_set_the_status(client, editor, el):
+    inc_id = await _as_el_on_editor_incident(client, editor, el)
+    r = await client.patch(f"/api/incidents/{inc_id}", json={"status": "abgeschlossen"})
     assert r.status_code == 403
 
 
-async def test_a_lifecycle_field_refuses_the_whole_correction(client, editor, el):
+async def test_a_refused_field_refuses_the_whole_correction(client, editor, el):
     """Not «apply what you may» — a partly-written save is the one outcome nobody can read back."""
     inc_id = await _as_el_on_editor_incident(client, editor, el)
-    r = await client.patch(f"/api/incidents/{inc_id}", json={"title": "Brand Werkhof", "is_archived": True})
+    r = await client.patch(f"/api/incidents/{inc_id}", json={"title": "Brand Werkhof", "status": "abgeschlossen"})
     assert r.status_code == 403
     inc = (await client.get(f"/api/incidents/{inc_id}")).json()
     assert inc["title"] == "Test Einsatz"
-    assert inc["is_archived"] is False
+    assert inc["status"] != "abgeschlossen"
 
 
 async def test_viewer_cannot_correct_the_einsatzdaten(client, editor, viewer):

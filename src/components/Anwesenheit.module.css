@@ -197,7 +197,13 @@ button.ortStation:active:not(:disabled) { background-image: linear-gradient(var(
 
 
 
+/* the head buttons' word (phone only, below) */
+.iconWord { display: none; }
 @media (--phone) {
+  /* …under its glyph, like a nav tile: the button grows to its word, the search gives the room */
+  .iconWord { display: block; font: var(--fw-bold) var(--fs-micro)/1 var(--body); letter-spacing: -.02em; }
+  button:has(> .iconWord) { grid-auto-flow: row; row-gap: var(--sp-1); align-content: center; padding: 0 var(--sp-2); }
+
   /* (the full-width inset is the shared shell's — Surface.module.css) */
   /* The counts are never cut: «13 anwesend · 2 gegange…» answers nothing. They are
      `data-fit-check` (AnwesenheitView), so a cut line makes the head's ladder fold the tiles'
@@ -215,13 +221,14 @@ button.ortStation:active:not(:disabled) { background-image: linear-gradient(var(
   /* one full-width column: two columns truncated most names («Binggeli Mic…») on a phone —
      a readable name beats density here (field feedback 2026-07-08) */
   /* ⚠️ The pair (Ort + Uhr) narrows on a phone: at 46px they were the widest things on the row
-     after the name, and the name is what the list is read for. 38px is what the clock measured
-     before both were pinned to --row-act (11px padding around a 16px glyph). */
-  .person { --row-act: 38px; }
+     after the name, and the name is what the list is read for. Not below the tap floor though:
+     they stood at 38px until the EL phone sweep (D1, 10.11.2026). */
+  .person { --row-act: var(--tap); }
   /* the last person row clears the Eintrag FAB — the circle sat on a row's presence toggle and on
      its time chip, i.e. on the two controls this list exists for. --fab-safe is 0 without a FAB. */
   .grid { padding: 2px var(--head-pad-x) calc(var(--sp-4) + var(--fab-safe, 0px)); grid-template-columns: 1fr; gap: var(--sp-2); }
-  .person { min-height: 44px; font-size: var(--fs-2); }
+  /* 46 = the tap floor inside the row's 1px border (the buttons measured 42 at 44) */
+  .person { min-height: calc(var(--tap) + 2px); font-size: var(--fs-2); }
   .personMain { padding: var(--sp-2) var(--sp-3); gap: var(--sp-2); }
 }
 

@@ -20,7 +20,7 @@ async def test_client_cannot_forge_or_patch_alarm_boundaries(client, editor, db_
     if writer == "el":
         user = await _make_user(db_session, username="el-boundary", role="el")
         await client.post("/api/auth/login", json={"user_id": str(user.id), "pin": "135790"})
-        assert (await client.patch(f"/api/incidents/{inc}", json={"is_archived": True})).status_code == 403
+        assert (await client.patch(f"/api/incidents/{inc}", json={"status": "abgeschlossen"})).status_code == 403
     elif writer == "poster":
         db_session.add(DeploymentConfig(id=1, capture_secret="boundary-test-poster"))
         await db_session.commit()

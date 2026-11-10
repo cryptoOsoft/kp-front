@@ -198,9 +198,12 @@ The door rule above, applied to the Rapport, Anwesenheit and lifecycle (RBAC aud
   opens read-only. Writer hints (empty roster «Synchronisiere …», «Hier korrigieren …», the
   Trupp-lock title, the Zeitplan's gesture help) are not shown.
 - A disabled tick (`TickRow`) is a read-out at full opacity.
-- **Closed Einsatz**: «… für alles andere wieder öffnen» only beside «Wieder öffnen»; the el and a
-  Führungsansicht hear «Der Rapport bleibt korrigierbar», a viewer «Nur ansehen». The
-  Führungsansicht reopens and closes nothing (no «Wieder öffnen» in the Einsatz card's closed pill or in «Alle
+- **Closed Einsatz**: «… für alles andere wieder öffnen» only beside «Wieder öffnen»; a
+  Führungsansicht hears «Der Rapport bleibt korrigierbar», a viewer «Nur ansehen». The `el`
+  closes and reopens like an editor (owner, 10.11.2026: who writes the Rapport ends the Einsatz –
+  `PATCH /incidents/{id}` · `EL_LIFECYCLE_FIELDS` = `is_archived`, `report_done_at`; `status`,
+  creating and deleting stay the editor's; client `access · canCloseIncident`, App ·
+  `canLifecycle`). The Führungsansicht reopens and closes nothing (no «Wieder öffnen» in the Einsatz card's closed pill or in «Alle
   Einsätze»).
 - **«Alle Einsätze»** tells a viewer its window in a foot line (read from
   `access.viewerHistoryDays` in `GET /api/config`); the Einsatz card says «Gespeichert» only to a

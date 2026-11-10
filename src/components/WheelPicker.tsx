@@ -122,8 +122,8 @@ function parseTyped(raw: string): [number, number] | null {
   return h <= 23 && mi <= 59 ? [h, mi] : null
 }
 
-/** The popover itself. A day column appears when `days` holds more than one day. */
-export function WheelPopover({ anchor, initial, onCommit, onClose, onClear, shortcut, clearLabel, clearActive, days, title, note, noNow }: {
+/** The popover itself. A day column appears when `days` holds more than one day (`dayAlways`: one). */
+export function WheelPopover({ anchor, initial, onCommit, onClose, onClear, shortcut, clearLabel, clearActive, days, dayAlways = false, title, note, noNow }: {
   anchor: DOMRect
   initial: Date
   onCommit: (v: WheelValue) => void
@@ -149,6 +149,9 @@ export function WheelPopover({ anchor, initial, onCommit, onClose, onClear, shor
    * single-day: no wheel appears, so the everyday case pays nothing.
    */
   days?: Date[]
+  /** show the day column for a SINGLE day too: the Rapport's Einsatzende, whose wheel then says
+   *  which date it sets instead of assuming today unseen (owner, EL phone sweep C10, 10.11.2026) */
+  dayAlways?: boolean
   /** a heading over the wheels, for a popover opened from a menu row rather than from a field
    *  that already says what it holds — «Erinnern um» */
   title?: string
@@ -181,6 +184,7 @@ export function WheelPopover({ anchor, initial, onCommit, onClose, onClear, shor
     }
     return [...seen.values()].sort((a, b) => a.getTime() - b.getTime())
   }, [days])
+  const dayShown = dayList.length > (dayAlways ? 0 : 1)
   const dayIndex = dayList.findIndex((d) =>
     d.getFullYear() === v.y && d.getMonth() + 1 === v.mo && d.getDate() === v.d)
 
@@ -244,7 +248,7 @@ export function WheelPopover({ anchor, initial, onCommit, onClose, onClear, shor
   // A shortcut or a named state choice needs its sentence on one line; bare wheels do not.
   // The day column is the widest label in the popover («Mo 05.10.», «lun 05.10.») and gets the
   // room; hour and minute are two digits and keep a full-width 44px row each regardless.
-  const dayWheel = dayList.length > 1 ? 104 : 0
+  const dayWheel = dayShown ? 104 : 0
   const width = Math.min(window.innerWidth - 16,
     (onClear && !clearLabel ? 264 : shortcut || clearLabel ? 236 : 196) + dayWheel)
   const left = Math.max(8, Math.min(anchor.left, window.innerWidth - width - 8))
@@ -289,7 +293,7 @@ export function WheelPopover({ anchor, initial, onCommit, onClose, onClear, shor
         </div>
       )}
       <div className="wheelpop-cols">
-        {dayList.length > 1 && coarse && (
+        {dayShown && coarse && (
           <Wheel day ariaLabel={C.day} items={dayList.map(fmtWheelDay)} index={Math.max(0, dayIndex)}
             onIndex={(i) => {
               const d = dayList[i]
@@ -321,7 +325,7 @@ export function WheelPopover({ anchor, initial, onCommit, onClose, onClear, shor
               }}
               onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); commit() } }}
             />
-            {dayList.length > 1 && (
+            {dayShown && (
               <select className={w.daySel} aria-label={C.day} value={Math.max(0, dayIndex)}
                 onChange={(e) => {
                   const d = dayList[Number(e.target.value)]

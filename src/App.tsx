@@ -21,6 +21,7 @@ import { HomeMenu, LauncherBody, type HomeActions } from './components/HomeMenus
 import { Brand } from './components/Brand'
 import { DemoWelcome } from './components/DemoWelcome'
 import { hasSeenDemoWelcome, markDemoWelcomeSeen } from './lib/demoWelcome'
+import { InstallBanner } from './components/InstallBanner'
 import { InstallGuide } from './components/InstallGuide'
 import { getInstallPlatform, isStandalone } from './lib/installPrompt'
 import { installOffered } from './lib/installPolicy'
@@ -101,8 +102,10 @@ export default function App() {
   const { user, logout, sessionExpired } = useAuth()
   const isEditor = user?.role === 'editor'
   /** may close and reopen Einsätze – an editor, but not in the Führungsansicht, the editor's
-   *  locked view (workspace/access · elView; RBAC audit 22.10.2026: it got «Wieder öffnen») */
-  const canLifecycle = isEditor && !user?.el_view_default
+   *  locked view (workspace/access · elView; RBAC audit 22.10.2026: it got «Wieder öffnen»), and
+   *  the `el` role, whose Rapport the close ends (owner, 10.11.2026; workspace/access ·
+   *  canCloseIncident, backend api/incidents · EL_LIFECYCLE_FIELDS) */
+  const canLifecycle = (isEditor && !user?.el_view_default) || user?.role === 'el'
   // Einsatz-Link session (/l/<token>): a viewer narrowed to ONE incident. The backend answers
   // 403 for everything outside a read allowlist — reports, printing, push, the incident LIST —
   // so the rule here is the same as for `isEditor`: a link holder must never see a control
@@ -927,6 +930,11 @@ export default function App() {
       )}
       {screen !== 'einsatz' && landingSheet === 'help' && <HelpOverlay onClose={() => setLandingSheet(null)} />}
       {screen !== 'einsatz' && landingSheet === 'install' && <InstallGuide onClose={() => setLandingSheet(null)} />}
+      {/* «Als App installieren» nudge – browser tab only, one ✕ puts it away for good on this
+          device (the menu keeps the permanent entry). Never inside an Einsatz (EL phone sweep C1,
+          10.11.2026: it took 115 px of every page there), and not on the demo: a visitor is not
+          installing the demo as their command app. */}
+      {screen !== 'einsatz' && !asLink && !isDemoMode() && <InstallBanner onOpenGuide={() => setLandingSheet('install')} />}
       {screen !== 'einsatz' && feedbackFor && (
         <FeedbackSheet
           trouble={feedbackFor === 'plain' ? undefined : feedbackFor}
