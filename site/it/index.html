@@ -114,7 +114,10 @@
       "applicationCategory": "BusinessApplication",
       "operatingSystem": "Web browser",
       "inLanguage": [
-        "de"
+        "de",
+        "fr",
+        "it",
+        "en"
       ],
       "softwareVersion": "0.12.0",
       "dateModified": "2026-10-13",
@@ -267,6 +270,14 @@
         },
         {
           "@type": "Question",
+          "name": "Su quali dispositivi funziona KP Front?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "KP Front funziona nel browser – senza App Store. È pensato per il tablet: su iPad e sui tablet Android si installa sulla schermata Home come un’app e funziona poi anche senza connessione. Sul portatile, nel veicolo di comando o in caserma, la stessa interfaccia si usa con mouse e tastiera. Il telefono è il compagno: guardare la situazione, registrare annotazioni, tenere d’occhio la protezione respiratoria – si disegna e si conduce sullo schermo più grande. Tutti i dispositivi mostrano lo stesso intervento."
+          }
+        },
+        {
+          "@type": "Question",
           "name": "Cosa serve per farlo funzionare?",
           "acceptedAnswer": {
             "@type": "Answer",
@@ -310,7 +321,7 @@
           "name": "In quali lingue è disponibile KP Front?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "L’interfaccia utente di KP Front è attualmente disponibile in tedesco. Essendo un’applicazione open source, KP Front può essere esteso ad altre lingue. A tal fine è necessaria una traduzione completa e verificata da specialisti della terminologia dei pompieri."
+            "text": "L’interfaccia utente di KP Front esiste in tedesco, francese, italiano e inglese. Fa stato il tedesco; le altre tre lingue sono complete, ma non sono ancora state rilette da pompieri. Essendo un’applicazione open source, KP Front può essere esteso ad altre lingue. A tal fine è necessaria una traduzione completa e verificata da specialisti della terminologia dei pompieri."
           }
         },
         {
@@ -318,7 +329,7 @@
           "name": "Come cominciamo?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Con la demo, senza registrazione – a Musterdorf sta già bruciando, e tutti i visitatori condividono lo stesso intervento (si riavvia ogni giorno alle 00:00, fuso orario Europe/Zurich). Poi provatela a un’esercitazione. Se va bene, la guida all’installazione porta alla vostra istanza."
+            "text": "Con la demo, senza registrazione – a Musterdorf sta già bruciando, e tutti i visitatori condividono lo stesso intervento (si riavvia due volte al giorno, alle 00:00 e alle 12:00, fuso orario Europe/Zurich). Poi provatela a un’esercitazione. Se va bene, la guida all’installazione porta alla vostra istanza."
           }
         }
       ]
@@ -400,12 +411,13 @@
 </div>
 <main>
   <section class="hero wrap">
-    <p class="eyebrow">Open source&nbsp;· Svizzera</p>
+    <p class="eyebrow">Open source&nbsp;· gratuito&nbsp;· Svizzera</p>
     <h1>La condotta d’intervento digitale per i pompieri.</h1>
     <p class="lede">KP Front è il posto di comando digitale sul posto:
       <strong>mappa, piani, squadre, diario e rapporto</strong> in un’unica app.</p>
     <div class="cta-row">
       <a class="btn btn-primary" href="https://demo.kp-front.ch" target="_blank" rel="noopener"><svg class="ico"><use href="#i-play"/></svg>Apri la demo</a>
+      <a class="btn btn-ghost" href="https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md" target="_blank" rel="noopener">Gestirlo in proprio</a>
       <span class="cta-note">Senza registrazione – nella demo Musterdorf sta bruciando adesso (interfaccia in tedesco)</span>
     </div>
     <figure class="frame">
@@ -732,8 +744,10 @@
           <li><strong>Prontuario delle sostanze pericolose</strong>: numeri ONU, informazioni sulle sostanze e indicazioni sulle distanze di isolamento e protezione, disponibili direttamente durante l’intervento</li>
           <li>Informazioni meteorologiche e sul vento a supporto della valutazione della situazione, più il radar delle precipitazioni di MeteoSvizzera come livello</li>
           <li>Piani d’oggetto come lavagna e piani sovrapposti</li>
+          <li><strong>Carta &amp; oggetti</strong>: senza intervento, la carta del proprio corpo – consultare oggetti, pericoli, idranti e piani d’oggetto</li>
           <li><strong>Lavagna con pagine CSP</strong>: schizzo libero, Prima coordinazione e fogli del manuale – stampati nel rapporto come l’originale</li>
           <li><strong>Info edificio</strong>: dati del registro degli edifici – gas, olio combustibile, fotovoltaico – e misure immediate per l’oggetto</li>
+          <li><strong>Misurazioni</strong>: punti di misura con valori dei gas per locale e per piano, con cronologia e soglie d’allarme</li>
           <li><strong>Georeferenziazione</strong>: collegare una planimetria alla mappa tramite punti di riferimento comuni – un solo oggetto, visibile su entrambe le superfici, con un’indicazione onesta della precisione. La stazione fa allineare le planimetrie in anticipo e le approva</li>
           <li>Annulla/ripristina su ogni superficie – le attività documentate restano tracciabili</li>
         </ul>
@@ -752,6 +766,7 @@
             carta della situazione – volontario, e solo per questo intervento</li>
           <li>Condividere l’intervento tramite link; l’accesso è indicato chiaramente e può essere
             revocato in qualsiasi momento</li>
+          <li><strong>Modalità presentazione</strong>: chi ha l’intervento aperto segue lo schermo di chi presenta – tutti possono indicare, nulla viene salvato</li>
           <li>Materiale con scorte e consumo</li>
           <li>Liste di controllo per il supporto alla condotta e la direzione dell’intervento</li>
           <li>Ruolo capo intervento: tenere presenze, mezzi, check-list e rapporto – leggere carta e squadre senza spostare nulla</li>
@@ -766,6 +781,7 @@
             attese saltate – per il debriefing</li>
           <li>Rapporto d’intervento pronto in PDF, con personale, materiale, orari, diario, croquis,
             foto e sorveglianza della protezione respiratoria</li>
+          <li>Stampare rapporto e piano orario direttamente sulla <strong>stampante della caserma</strong> <span class="opt">opzionale</span></li>
           <li><strong>Analisi</strong> per il debriefing: cifre chiave e linea del tempo su un foglio a parte, alla fine del rapporto</li>
           <li>Foto come allegati al rapporto</li>
           <li><strong>Controllo finale</strong>: prima della chiusura, KP Front mostra quali informazioni o chiarimenti mancano ancora nel rapporto</li>
@@ -779,7 +795,7 @@
         <ul class="flist">
           <li><strong>Funziona offline</strong> come app installabile – la verifica di prontezza indica prima dell’intervento se i dati necessari sono sul dispositivo</li>
           <li>Più dispositivi collegati lavorano sullo stesso stato – dopo un’interruzione della connessione, le modifiche vengono nuovamente sincronizzate</li>
-          <li>Ruoli: modificare, oppure solo leggere</li>
+          <li>Tre ruoli: l’aiuto alla condotta modifica tutto, il capo intervento tiene la documentazione e segue la situazione, gli osservatori leggono soltanto</li>
           <li>Modo giorno/notte, dimensione dei simboli, superfici di comando grandi per il tablet</li>
           <li>Può riprendere allarmi da Divera o FireHub; altri sistemi di allertamento possono essere collegati tramite l’interfaccia aperta <span class="opt">opzionale</span></li>
           <li>Posizioni dei veicoli via GPS <span class="opt">opzionale</span></li>
@@ -857,6 +873,10 @@
         <p>KP Front è open source (AGPL-3.0): <strong>nessuna tassa di licenza, nessun abbonamento, nessun costo per dispositivo</strong>. Ogni corpo gestisce la propria installazione e mantiene così il controllo sui propri dati. Restano i costi propri per l’esercizio, l’infrastruttura ed eventualmente il supporto esterno. Lo sviluppo nasce direttamente dalla pratica dei pompieri di Oberwil BL; segnalazioni di errori, idee e contributi dalla comunità open source sono benvenuti.</p>
       </div>
       <div class="faq-item">
+        <h3>Su quali dispositivi funziona KP Front?</h3>
+        <p>KP Front funziona nel browser – senza App Store. È pensato per il tablet: su iPad e sui tablet Android si installa sulla schermata Home come un’app e funziona poi anche senza connessione. Sul portatile, nel veicolo di comando o in caserma, la stessa interfaccia si usa con mouse e tastiera. Il telefono è il compagno: guardare la situazione, registrare annotazioni, tenere d’occhio la protezione respiratoria – si disegna e si conduce sullo schermo più grande. Tutti i dispositivi mostrano lo stesso intervento.</p>
+      </div>
+      <div class="faq-item">
         <h3>Cosa serve per farlo funzionare?</h3>
         <p>Basta un piccolo mini-PC o server in rimessa. Per l’installazione, gli aggiornamenti
           e i backup serve qualcuno con esperienza nell’uso di Docker e della riga di comando, che
@@ -893,13 +913,13 @@
       </div>
       <div class="faq-item">
         <h3>In quali lingue è disponibile KP Front?</h3>
-        <p>L’interfaccia utente di KP Front è attualmente disponibile in tedesco. Essendo un’applicazione open source, KP Front può essere esteso ad altre lingue. A tal fine è necessaria una traduzione completa e verificata da specialisti della terminologia dei pompieri.</p>
+        <p>L’interfaccia utente di KP Front esiste in tedesco, francese, italiano e inglese. Fa stato il tedesco; le altre tre lingue sono complete, ma non sono ancora state rilette da pompieri. Essendo un’applicazione open source, KP Front può essere esteso ad altre lingue. A tal fine è necessaria una traduzione completa e verificata da specialisti della terminologia dei pompieri.</p>
       </div>
       <div class="faq-item">
         <h3>Come cominciamo?</h3>
         <p>Con la <a href="https://demo.kp-front.ch" target="_blank" rel="noopener">demo</a>,
           senza registrazione – a Musterdorf sta già bruciando, e tutti i visitatori condividono lo
-          stesso intervento (si riavvia ogni giorno alle 00:00, fuso orario Europe/Zurich). Poi provatela a un’esercitazione.
+          stesso intervento (si riavvia due volte al giorno, alle 00:00 e alle 12:00, fuso orario Europe/Zurich). Poi provatela a un’esercitazione.
           Se va bene, la <a href="https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md" target="_blank" rel="noopener">guida all’installazione</a> porta alla vostra istanza.</p>
       </div>
     </div>

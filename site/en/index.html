@@ -114,7 +114,10 @@
       "applicationCategory": "BusinessApplication",
       "operatingSystem": "Web browser",
       "inLanguage": [
-        "de"
+        "de",
+        "fr",
+        "it",
+        "en"
       ],
       "softwareVersion": "0.12.0",
       "dateModified": "2026-10-13",
@@ -267,6 +270,14 @@
         },
         {
           "@type": "Question",
+          "name": "Which devices does KP Front run on?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "KP Front runs in the browser – no app store. It is built for the tablet: on an iPad and on Android tablets it installs to the home screen like an app and then also works without a connection. On a laptop in the command vehicle or at the station, the same interface runs with mouse and keyboard. The phone is the companion: look at the situation, add entries, keep an eye on the SCBA teams – drawing and commanding happen on the larger screen. All devices show the same incident."
+          }
+        },
+        {
+          "@type": "Question",
           "name": "What does it take to run?",
           "acceptedAnswer": {
             "@type": "Answer",
@@ -310,7 +321,7 @@
           "name": "Which languages are available for KP Front?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "The KP Front user interface is currently available in German. As an open-source application, KP Front can be extended to further languages. This requires a complete translation of the firefighting terminology and a professional review."
+            "text": "The KP Front user interface comes in German, French, Italian and English. German is the authoritative version; the other three are complete but have not yet been proofread by firefighters. As an open-source application, KP Front can be extended to further languages. This requires a complete translation of the firefighting terminology and a professional review."
           }
         },
         {
@@ -318,7 +329,7 @@
           "name": "How do we start?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "With the demo, no sign-up – Musterdorf is already on fire, and all visitors share the same incident (it resets every day at 00:00 in the Europe/Zurich time zone). Then try it at an exercise. If it fits, the setup guide leads to your own installation."
+            "text": "With the demo, no sign-up – Musterdorf is already on fire, and all visitors share the same incident (it resets twice a day, at 00:00 and 12:00 in the Europe/Zurich time zone). Then try it at an exercise. If it fits, the setup guide leads to your own installation."
           }
         }
       ]
@@ -397,12 +408,13 @@
 
 <main>
   <section class="hero wrap">
-    <p class="eyebrow">Open source&nbsp;· Switzerland</p>
+    <p class="eyebrow">Open source&nbsp;· free&nbsp;· Switzerland</p>
     <h1>Digital incident command for the fire brigade.</h1>
     <p class="lede">KP Front is the digital command post at the scene:
       <strong>map, plans, teams, log and report</strong> in one app.</p>
     <div class="cta-row">
       <a class="btn btn-primary" href="https://demo.kp-front.ch" target="_blank" rel="noopener"><svg class="ico"><use href="#i-play"/></svg>Open the demo</a>
+      <a class="btn btn-ghost" href="https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md" target="_blank" rel="noopener">Run it yourself</a>
       <span class="cta-note">No login – in the demo, Musterdorf is on fire right now (interface in German)</span>
     </div>
     <figure class="frame">
@@ -729,8 +741,10 @@
           <li><strong>Hazardous materials reference</strong>: UN numbers, substance information and guidance on isolation and protective distances, available directly during the incident</li>
           <li>Weather and wind information to support the situation assessment, plus the MeteoSwiss precipitation radar as a layer</li>
           <li>Building plans as a whiteboard and a stack of floors</li>
+          <li><strong>Map &amp; objects</strong>: outside an incident, your brigade’s own map – look up objects, hazards, hydrants and building plans</li>
           <li><strong>Board with FKS pages</strong>: free sketch, First command and handbook sheets – printed in the report like the original</li>
           <li><strong>Building info</strong>: facts from the building register – gas, heating oil, solar PV – and the immediate measures for the object</li>
+          <li><strong>Readings</strong>: measuring points with gas readings per room and floor, with their history and alarm levels</li>
           <li><strong>Georeferencing</strong>: link a plan to the map through shared landmarks – one object, visible on both surfaces, with an honest read-out of the accuracy. The station has its plans aligned ahead of time and approves them</li>
           <li>Undo/redo on every surface – documented events remain traceable</li>
         </ul>
@@ -748,6 +762,7 @@
           <li><strong>Share location</strong>: whoever opens the link appears as a dot on the
             situation map – voluntary, and only for this incident</li>
           <li>Share the incident by link; access is clearly indicated and can be revoked at any time</li>
+          <li><strong>Presentation mode</strong>: everyone who has the incident open follows the presenter’s screen – all can point, nothing is stored</li>
           <li>Material with stock and consumption</li>
           <li>Checklists for command support and incident command</li>
           <li>Incident commander role: keep attendance, resources, checklists and the report – read the map and the teams without moving anything</li>
@@ -762,6 +777,7 @@
             for the debrief</li>
           <li>Ready-made incident report as a PDF, including crew, material, times, log, sketch,
             photos and SCBA monitoring</li>
+          <li>Print the report and the shift plan straight to the <strong>station printer</strong> <span class="opt">optional</span></li>
           <li><strong>Debrief sheet</strong> for the after-action review: key figures and a timeline on a page of its own at the end of the report</li>
           <li>Photos as attachments to the report</li>
           <li><strong>Completion check</strong>: before closing, KP Front shows which information or clarifications are still missing from the report</li>
@@ -775,7 +791,7 @@
         <ul class="flist">
           <li><strong>Offline-capable</strong> as an installable app – the readiness check shows before an incident whether the required data is on the device</li>
           <li>Several connected devices work on the same state – after a connection interruption, changes are synchronised again</li>
-          <li>Roles: edit, or read along only</li>
+          <li>Three roles: command support edits everything, the incident commander keeps the record and reads the situation, viewers read along only</li>
           <li>Day/night mode, symbol size, large touch targets for the tablet</li>
           <li>Can take over alerts from Divera or FireHub; further alerting systems can be connected through the open interface <span class="opt">optional</span></li>
           <li>Vehicle positions by GPS <span class="opt">optional</span></li>
@@ -852,6 +868,10 @@
         <p>KP Front is open source (AGPL-3.0): <strong>no licence fees, no subscription, no per-device fee</strong>. Every fire brigade runs its own installation and so keeps control of its data. What remains are its own costs for operation, infrastructure and any external support. Development comes straight from the practice of Feuerwehr Oberwil BL; bug reports, ideas and contributions from the open-source community are welcome.</p>
       </div>
       <div class="faq-item">
+        <h3>Which devices does KP Front run on?</h3>
+        <p>KP Front runs in the browser – no app store. It is built for the tablet: on an iPad and on Android tablets it installs to the home screen like an app and then also works without a connection. On a laptop in the command vehicle or at the station, the same interface runs with mouse and keyboard. The phone is the companion: look at the situation, add entries, keep an eye on the SCBA teams – drawing and commanding happen on the larger screen. All devices show the same incident.</p>
+      </div>
+      <div class="faq-item">
         <h3>What does it take to run?</h3>
         <p>A small mini-PC or server at the station is enough. Setup, updates and backups
           require someone with Docker and command-line experience, whether in the brigade, the
@@ -887,13 +907,13 @@
       </div>
       <div class="faq-item">
         <h3>Which languages are available for KP Front?</h3>
-        <p>The KP Front user interface is currently available in German. As an open-source application, KP Front can be extended to further languages. This requires a complete translation of the firefighting terminology and a professional review.</p>
+        <p>The KP Front user interface comes in German, French, Italian and English. German is the authoritative version; the other three are complete but have not yet been proofread by firefighters. As an open-source application, KP Front can be extended to further languages. This requires a complete translation of the firefighting terminology and a professional review.</p>
       </div>
       <div class="faq-item">
         <h3>How do we start?</h3>
         <p>With the <a href="https://demo.kp-front.ch" target="_blank" rel="noopener">demo</a>,
           no sign-up – Musterdorf is already on fire, and all visitors share the same incident
-          (it resets every day at 00:00 in the Europe/Zurich time zone). Then try it at an exercise. If it fits, the
+          (it resets twice a day, at 00:00 and 12:00 in the Europe/Zurich time zone). Then try it at an exercise. If it fits, the
           <a href="https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md" target="_blank" rel="noopener">setup guide</a> leads to your own installation.</p>
       </div>
     </div>

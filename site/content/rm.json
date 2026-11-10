@@ -45,10 +45,11 @@
     "demo": "Avrir la demo"
   },
   "hero": {
-    "eyebrow": "Open source&nbsp;· Svizra",
+    "eyebrow": "Open source&nbsp;· gratuit&nbsp;· Svizra",
     "h1": "Direcziun digitala d’acziun per ils pumpiers.",
     "lede": "KP Front è il post da commando digital al lieu d’acziun:\n      <strong>charta, plans, gruppas, decurs e rapport</strong> en ina applicaziun.",
     "cta": "Avrir la demo",
+    "ctaSelf": "Manar sez",
     "ctaNote": "Senza login – en la demo arda gist insatge a Musterdorf",
     "frameAddr": "KARTE · ZIMMERBRAND · 2611624 / 1263070",
     "frameAlt": "Vista da la charta: segns tactics tenor FKS, secturs e lingias da stizzar"
@@ -244,8 +245,10 @@
           "<strong>Register da materias privlusas</strong>: nums ONU, infurmaziuns davart substanzas e recumandaziuns per distanzas da bloccada e da protecziun, disponibel directamain durant l’acziun",
           "Infurmaziuns meteorologicas e da vent per sustegnair la valitaziun da la situaziun, ed il radar da precipitaziuns da MeteoSvizra sco nivel",
           "Plans d’object sco tavla da lavur e plauns superposts",
+          "<strong>Charta &amp; objects</strong>: senza acziun la charta da l’agen corp – consultar objects, privels, idrants e plans d’object",
           "<strong>Tavla cun paginas FKS</strong>: skizza libra, «Erste Führung» e fegls dal manual FKS – stampads en il rapport sco l’original",
           "<strong>Infurmaziuns davart l’edifizi</strong>: datas dal register d’edifizis – gas, ieli da stgaudar, PV – e mesiras immediatas per l’object",
+          "<strong>Mesiraziuns</strong>: puncts da mesiraziun cun valurs da gas per local e per plaun, cun decurs e stgalims d’alarm",
           "<strong>Georeferenziaziun</strong>: colliar plan e charta sur puncts da referenza cuminaivels – in object, visibel sin omaduas surfatschas, cun indicaziun da la precisiun. Il corps da pumpiers po orientar e deliberar ils plans d’object ordavant",
           "Revocar e restabilir sin mintga surfatscha – process documentads restan chapibels"
         ]
@@ -261,6 +264,7 @@
           "<strong>Plan da temp</strong>: planisar disponibilitads e servetschs per mintga persuna,\n            vesair la cuvrida durant l’entira acziun ed edir in formular da direcziun",
           "<strong>Cundivider la posiziun</strong>: tgi che avra il link cumpara sco punct sin la\n            charta da situaziun – voluntarmain, e mo per questa acziun",
           "Dar vinavant l’access ad in’acziun cun in link; l’access è visibel e po vegnir\n            revocà",
+          "<strong>Modus da preschentaziun</strong>: tgi che ha averta l’acziun suonda il visur da la persuna che preschenta – tuts pon mussar, nagut vegn memorisà",
           "Material cun inventari e consum",
           "Glistas da controlla adattablas cun access direct als instruments correspundents",
           "Rolla da direcziun d’acziun: administrar preschientscha, meds, glistas da controlla e rapport – leger charta e gruppas senza dretg da modifitgar"
@@ -273,6 +277,7 @@
           "Endataziuns cun text, audio, fotografias e memoraziuns; cun in servetsch da transcripziun configurà vegnan notizias vocalas transfurmadas en text",
           "<strong>Viadi en il temp</strong>: reproducziun da l’acziun minuta per minuta, temps d’attesa\n            lungs vegnan sursiglids – per la discussiun finala",
           "Rapport d’acziun sco PDF cun persunal, material, temps, decurs, skizza,\n            fotografias e surveglianza respiratorica",
+          "Stampar rapport ed urari directamain sin il <strong>stampader dal magazin</strong> <span class=\"opt\">opziunal</span>",
           "<strong>Evaluaziun</strong> per la discussiun finala: cifras clav ed ina lingia dal temp sin in agen fegl a la fin dal rapport",
           "Fotografias sco annexas al rapport",
           "<strong>Controlla finala</strong> che mussa indicaziuns mancantas",
@@ -286,7 +291,7 @@
         "items": [
           "<strong>Utilisabel offline</strong> sco applicaziun installabla – ina controlla da prontezza mussa avant l’acziun sche las datas necessarias èn memorisadas sin l’apparat",
           "Plirs apparats lavuran cun il medem stadi – modificaziuns registradas durant in’interrupziun vegnan sincronisadas uschespert ch’ina connexiun è puspè disponibla",
-          "Rollas per modifitgar u mo leger",
+          "Trais rollas: il sustegn da direcziun modifitgescha tut, il manader d’acziun maina la documentaziun e legia la situaziun, observaders legian mo",
           "Modus da di e da notg, grondezza dals simbols e surfatschas grondas per tablets",
           "Surpigliar alarms da Divera u FireHub ed integrar ulteriurs sistems d’alarmaziun sur ina interfatscha averta <span class=\"opt\">opziunal</span>",
           "Posiziuns GPS dals vehichels <span class=\"opt\">opziunal</span>",
@@ -343,6 +348,10 @@
         "a": "KP Front è open source (AGPL-3.0): <strong>naginas taxas da licenza, nagin abunament, nagins custs per apparat</strong>. Mintga corps maina si’atgna installaziun e mantegna uschia la controlla da sias datas. Restan ils agens custs da manaschi, infrastructura ed eventual sustegn extern. Il svilup deriva directamain da la pratica dals pumpiers d’Oberwil BL; annunzias d’errurs, ideas e contribuziuns da la cuminanza open source èn bainvegnidas."
       },
       {
+        "q": "Sin tge apparats funcziuna KP Front?",
+        "a": "KP Front funcziuna en il browser – senza App Store. El è fatg per il tablet: sin l’iPad e sin tablets Android sa lascha el installar sco ina app sin il visur da partenza e funcziuna lura er senza connexiun. Sin il laptop en il vehichel da commando u en il magazin funcziuna la medema interfatscha cun mieur e tastatura. Il telefonin è l’accumpagnader: guardar la situaziun, registrar endataziuns, tegnair en egl la protecziun respiratorica – dissegnà e manà vegn sin il visur pli grond. Tut ils apparats mussan la medema acziun."
+      },
+      {
         "q": "Tge dovri per il manaschi?",
         "a": "In pitschen mini-PC u server en il magazin basta. Per l’installaziun, actualisaziuns e\n          backups dovri ina persuna cun experientscha da Docker e da la lingia da commandos, saja quai\n          en il corps da pumpiers, en la vischnanca u tar ina IT che sustegna. L’instrucziun ed il\n          sectur d’administraziun mainan tras l’installaziun. Nus respundain gugent a dumondas generalas;\n          las datas ed il manaschi restan en la responsabladad dal corps da pumpiers respectiv."
       },
@@ -364,11 +373,11 @@
       },
       {
         "q": "En tge linguas è KP Front disponibel?",
-        "a": "L’interfatscha d’utilisader da KP Front è actualmain disponibla per tudestg. Sco applicaziun open source po KP Front vegnir amplifitgà cun ulteriuras linguas. Per quai dovri ina translaziun cumpletta e controllada professiunalmain dals terms dals pumpiers."
+        "a": "L’interfatscha d’utilisader da KP Front datti per tudestg, franzos, talian ed englais. Il tudestg è decisiv; las autras trais linguas èn cumplettas, ma n’èn anc betg vegnidas controlladas da pumpiers. Sco applicaziun open source po KP Front vegnir amplifitgà cun ulteriuras linguas. Per quai dovri ina translaziun cumpletta e controllada professiunalmain dals terms dals pumpiers."
       },
       {
         "q": "Co cumenzar?",
-        "a": "Cun la <a href=\"https://demo.kp-front.ch\" target=\"_blank\" rel=\"noopener\">demo</a>,\n          senza registraziun – a Musterdorf arda gia, e tut ils visitaders partan la medema\n          intervenziun (ella cumenza mintga di da nov a las 00:00, zona d’urari Europe/Zurich). Suenter testar durant in exercizi. Sche l’applicaziun cunvegna, maina\n          l’<a href=\"https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md\" target=\"_blank\" rel=\"noopener\">instrucziun d’installaziun</a> a l’atgna instanza."
+        "a": "Cun la <a href=\"https://demo.kp-front.ch\" target=\"_blank\" rel=\"noopener\">demo</a>,\n          senza registraziun – a Musterdorf arda gia, e tut ils visitaders partan la medema\n          intervenziun (ella cumenza duas giadas per di da nov, a las 00:00 ed a las 12:00, zona d’urari Europe/Zurich). Suenter testar durant in exercizi. Sche l’applicaziun cunvegna, maina\n          l’<a href=\"https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md\" target=\"_blank\" rel=\"noopener\">instrucziun d’installaziun</a> a l’atgna instanza."
       }
     ]
   },
