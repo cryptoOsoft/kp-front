@@ -24,7 +24,13 @@ export function UpdateBanner() {
 
   // A fresh waiting build re-shows the message even if a previous one was dismissed; an
   // update that resolves on its own (the announced worker took over) retracts it.
-  useEffect(() => onUpdateAvailable((avail) => { setAvailable(avail); if (avail) setDismissed(false) }), [])
+  // ⚠️ Announced AGAIN, the row is tappable again: an in-place apply that gave up (swUpdate's
+  // backstop) re-announces, and the row used to stay on a disabled «Wird aktualisiert …» with
+  // no ✕ for good (sweep 09.11.2026, UX.11).
+  useEffect(() => onUpdateAvailable((avail) => {
+    setAvailable(avail)
+    if (avail) { setDismissed(false); setApplying(false) }
+  }), [])
 
   // read per-render (not module-load) so the resolved locale is applied — see config/copy
   const C = appConfig.copy.update
