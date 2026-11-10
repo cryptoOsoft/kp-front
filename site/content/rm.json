@@ -418,7 +418,8 @@
     "close": "Serrar",
     "prev": "Maletg precedent",
     "next": "Proxim maletg",
-    "zoom": "Engrondir"
+    "zoom": "Engrondir",
+    "hint": "Stuschar il maletg da la vart"
   },
   "footer": {
     "origin": "Nascì dal manaschi d’acziun dals <a href=\"https://www.feuerwehr-oberwil.ch\" target=\"_blank\" rel=\"noopener\">pumpiers d’Oberwil BL</a> –\n      perquai che nus avain adina puspè vesì las medemas funtaunas d’errurs: attribuziuns dublas, infurmaziuns\n      sparpagliadas ed errurs da transcripziun a maun.\n      Mintga corps da pumpiers maina ses agen KP Front cun atgnas chartas, agens plans ed atgnas datas.",

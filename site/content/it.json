@@ -418,7 +418,8 @@
     "close": "Chiudi",
     "prev": "Immagine precedente",
     "next": "Immagine successiva",
-    "zoom": "Ingrandisci"
+    "zoom": "Ingrandisci",
+    "hint": "Far scorrere l’immagine di lato"
   },
   "footer": {
     "origin": "Nato nell’attività operativa dei <a href=\"https://www.feuerwehr-oberwil.ch\" target=\"_blank\" rel=\"noopener\">pompieri di Oberwil BL</a> –\n      perché in intervento vedevamo sempre le stesse fonti di errore: doppie assegnazioni, informazioni\n      sparse e errori di trascrizione a mano.\n      Ogni corpo pompieri gestisce il proprio KP Front, con carte, piani e dati propri.",

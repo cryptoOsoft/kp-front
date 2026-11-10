@@ -1077,6 +1077,11 @@
   })();
 
   // Both the gallery and its enlarged picture use native theme-aware sources.
+  // On a phone (landing.css, max-width 620px) a 1500 px tablet capture at viewport width is
+  // unreadable, so there the picture is shown taller than it is wide enough for: it scrolls
+  // sideways inside <picture>, a track and a hint say so, and «‹ 2 / 9 ›» sits at the bottom.
+  // A swipe changes the picture – on the picture itself only from the edge it is scrolled to,
+  // so that sliding it never flips it. Nothing here animates.
   (function () {
     var btns = [].slice.call(document.querySelectorAll('.shot-zoom'));
     if (!btns.length || typeof HTMLDialogElement === 'undefined') return;
@@ -1087,13 +1092,32 @@
       '<button class="lb-x" type="button" aria-label="Schliessen">×</button>' +
       '<button class="lb-nav lb-prev" type="button" aria-label="Vorheriges Bild">‹</button>' +
       '<button class="lb-nav lb-next" type="button" aria-label="Nächstes Bild">›</button>' +
-      '<figure class="lb-fig"><picture><source data-theme-dark><img alt=""></picture><figcaption></figcaption></figure>';
+      '<span class="lb-count"></span>' +
+      '<figure class="lb-fig"><picture><source data-theme-dark><img alt=""></picture>' +
+      '<div class="lb-track" aria-hidden="true" hidden><i></i></div>' +
+      '<p class="lb-hint" aria-hidden="true" hidden>← Bild seitwärts schieben →</p>' +
+      '<figcaption></figcaption></figure>';
     document.body.appendChild(dlg);
 
     var img = dlg.querySelector('.lb-fig img');
     var dark = dlg.querySelector('source');
     var cap = dlg.querySelector('.lb-fig figcaption');
+    var pan = dlg.querySelector('.lb-fig picture');
+    var track = dlg.querySelector('.lb-track');
+    var thumb = track.firstChild;
+    var hint = dlg.querySelector('.lb-hint');
+    var count = dlg.querySelector('.lb-count');
     var idx = 0;
+
+    // The track mirrors the sideways scroll; it and the hint exist only while the picture
+    // really is wider than its box (never on a desktop, where the picture is fitted).
+    var syncPan = function () {
+      var fits = pan.scrollWidth <= pan.clientWidth + 1;
+      track.hidden = hint.hidden = fits;
+      if (fits) return;
+      thumb.style.left = (pan.scrollLeft / pan.scrollWidth * 100) + '%';
+      thumb.style.width = (pan.clientWidth / pan.scrollWidth * 100) + '%';
+    };
 
     var show = function (i) {
       idx = (i + btns.length) % btns.length;
@@ -1105,10 +1129,13 @@
       img.alt = src.alt;
       cap.innerHTML = '<b>' + s.querySelector('.cap-t').textContent + '</b> – '
         + s.querySelector('.cap-s').textContent;
+      count.textContent = (idx + 1) + ' / ' + btns.length;
+      pan.scrollLeft = 0;
+      syncPan();
     };
 
     btns.forEach(function (btn, i) {
-      btn.addEventListener('click', function () { show(i); dlg.showModal(); });
+      btn.addEventListener('click', function () { show(i); dlg.showModal(); syncPan(); });
     });
     dlg.querySelector('.lb-x').addEventListener('click', function () { dlg.close(); });
     dlg.querySelector('.lb-prev').addEventListener('click', function () { show(idx - 1); });
@@ -1118,5 +1145,30 @@
       if (e.key === 'ArrowLeft') { e.preventDefault(); show(idx - 1); }
       if (e.key === 'ArrowRight') { e.preventDefault(); show(idx + 1); }
     });
+
+    pan.addEventListener('scroll', syncPan, { passive: true });
+    img.addEventListener('load', syncPan);
+    addEventListener('resize', syncPan);
+
+    var touch = null;
+    dlg.addEventListener('touchstart', function (e) {
+      if (e.touches.length !== 1) { touch = null; return; }
+      var onPicture = pan.contains(e.target);
+      touch = {
+        x: e.touches[0].clientX, y: e.touches[0].clientY,
+        prev: !onPicture || pan.scrollLeft <= 1,
+        next: !onPicture || pan.scrollLeft >= pan.scrollWidth - pan.clientWidth - 1
+      };
+    }, { passive: true });
+    dlg.addEventListener('touchend', function (e) {
+      if (!touch) return;
+      var dx = e.changedTouches[0].clientX - touch.x;
+      var dy = e.changedTouches[0].clientY - touch.y;
+      if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        if (dx > 0 && touch.prev) show(idx - 1);
+        if (dx < 0 && touch.next) show(idx + 1);
+      }
+      touch = null;
+    }, { passive: true });
   })();
 </script>

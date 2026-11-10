@@ -418,7 +418,8 @@
     "close": "Fermer",
     "prev": "Image précédente",
     "next": "Image suivante",
-    "zoom": "Agrandir"
+    "zoom": "Agrandir",
+    "hint": "Faire glisser l’image de côté"
   },
   "footer": {
     "origin": "Né du service opérationnel des <a href=\"https://www.feuerwehr-oberwil.ch\" target=\"_blank\" rel=\"noopener\">sapeurs-pompiers d’Oberwil BL</a> –\n      parce qu’en intervention nous avons vu revenir les mêmes sources d’erreur : doubles\n      affectations, informations éparpillées et erreurs de recopie à la main.\n      Chaque corps exploite son propre KP Front, avec ses cartes, ses plans et ses données.",
