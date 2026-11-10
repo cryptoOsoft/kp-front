@@ -27,6 +27,7 @@ import { placedTrupps, type PlacedTrupp } from '../lib/placedTrupps'
 import { motionDuration, prefersReducedMotion } from '../lib/reducedMotion'
 import { centroid, rotateAround, turnedBy } from '../lib/selectionTransform'
 import { serverNow, serverNowIso } from '../lib/serverClock'
+import { READING_ICON, readingAct } from '../lib/readingLog'
 import { ROTATION_DEFAULT_RUN_M, ROTATION_W_M, SHAPE_DEFS, SHAPE_MIN_M, SHAPE_TWO_POINT, rotationBox } from '../lib/shapes'
 import { seedSymbolProps, VEHICLE_SYMBOLS } from '../lib/symbols'
 import type { TacticalObject } from '../lib/tacticalObjects'
@@ -968,5 +969,21 @@ export function useMapActions({
     for (const [op, payload] of act.events) emit(op, payload)
     log(on ? 'check' : 'undo', act.text, 'symbol', undefined, ent.id)
   }
-  return { deleteGroup, deleteEntity, placed, goToModule, finishSelection, onMapClick, startEntityMove, streamEntityMove, finishEntityMove, onMarquee, transformGroup, goToTrupp, viewsApi, toggleViews, selected, undockTeam, setEntityDone, focusDrawing, noteEntity, pick, pickShape, moveLiveOnSheet }
+  /**
+   * A symbol's fields committed in the Karte's panel – and, for a Messpunkt, the reading that
+   * comes of it (lib/readingLog · readingAct): the history row rides in the SAME undoable step,
+   * named by the reading's sentence, and the Verlauf gets that sentence as its row. `again` =
+   * «Gleich gemessen»: no field changed, the values as they stand are a reading of their own.
+   * Everything else about a field commit is `patchEntity`'s (audit event, the settle row for the
+   * fields that are not measured values – lib/entityEdit).
+   */
+  const commitEntityFields = (ent: Entity, fields: Record<string, string>, again = false) => {
+    if (tacticalLocked) return
+    const act = readingAct(ent, fields, { now: serverNow(), place: donePlace(ent.floorFrom ?? ent.floor, ent.floorTo), again })
+    if (again && !act) return
+    if (act) stepLabelRef.current = act.text
+    patchEntity(ent.id, { ...(again ? {} : { fields }), ...(act && { readings: act.readings }) })
+    if (act) log(READING_ICON, act.text, 'symbol', undefined, ent.id)
+  }
+  return { deleteGroup, deleteEntity, placed, goToModule, finishSelection, onMapClick, startEntityMove, streamEntityMove, finishEntityMove, onMarquee, transformGroup, goToTrupp, viewsApi, toggleViews, selected, undockTeam, setEntityDone, commitEntityFields, focusDrawing, noteEntity, pick, pickShape, moveLiveOnSheet }
 }

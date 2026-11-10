@@ -2,7 +2,6 @@ import { appConfig } from '../config/appConfig'
 import { getDeploymentConfig } from './deploymentConfig'
 import { formatSymbolName } from './format'
 import { doneStatusText } from './objectDone'
-import { serverNow } from './serverClock'
 import type { CaptionMode, Reading, SymbolControl, SymbolProps } from '../types'
 
 const presets = appConfig.symbols.presets
@@ -459,13 +458,6 @@ export function recordReading(props: SymbolProps, fields: Record<string, string>
     Object.keys(a).length === Object.keys(b).length && Object.entries(a).every(([k, x]) => b[k] === x)
   if (!Object.keys(v).length || (!again && last && same(last.v, v))) return props.readings
   return [...(props.readings ?? []), { t: now, v }]
-}
-
-/** The `readings` half of a field commit – empty for every symbol without a measured field and
- *  for a change that left the measured values as they were, so no other object grows the key. */
-export function readingPatch(props: SymbolProps, fields: Record<string, string>, now = serverNow()): { readings?: Reading[] } {
-  const readings = recordReading(props, fields, now)
-  return readings === props.readings ? {} : { readings }
 }
 
 /** Rows typed within this long of the next one belong to the same radio report. */

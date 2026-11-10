@@ -2283,7 +2283,7 @@ export function IncidentWorkspace({
   })
   const {
     deleteGroup, deleteEntity, placed, goToModule, goToTrupp, viewsApi, toggleViews, selected,
-    undockTeam, setEntityDone, focusDrawing, noteEntity, pick, pickShape,
+    undockTeam, setEntityDone, commitEntityFields, focusDrawing, noteEntity, pick, pickShape,
   } = mapActions
   // a generic (untracked) team marker — the map twin of the plan's placeTeamChip
   const teamMarkers = useTeamMarkerActions({
@@ -3191,7 +3191,7 @@ export function IncidentWorkspace({
         detailSlotFree, tacticalLocked, tool, selected, commit, setSelectedId, flyToMapVisible, deleteEntity,
         timeline, sym, entityTypedAt, titleLiveRef, beginDrag,
         setDocRaw, endDrag, emit, patchEntity, linkRosterFields, createCircle, doc, undockTeam, effTrupps,
-        symbolCaptions, rosterNames, rosterRank, personStatus, rosterFieldHints, setEntityDone,
+        symbolCaptions, rosterNames, rosterRank, personStatus, rosterFieldHints, setEntityDone, commitEntityFields,
         vehicleOverrides, canEditIncident, readOnly, stopPersonSharing, setVehicleOverrides, log,
         assignTypedName, drawings, entities, focusDrawing, noteEntity, notePlacedId, setNotePanelId,
         noteTextLive, setNoteDefaults, selectedDrawing, patchDrawing,

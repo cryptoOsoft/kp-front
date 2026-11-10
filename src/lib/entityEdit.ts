@@ -3,6 +3,7 @@ import { fillTemplate } from './format'
 import { floorLabel } from './whiteboard'
 import type { Entity } from '../types'
 import { jsonEqual } from './jsonEqual'
+import { symbolFieldKind } from './symbols'
 
 /**
  * What changed on a tactical symbol, in words — the Verlauf line for editing the Kroki.
@@ -45,6 +46,9 @@ export function entityEditChanges(prev: Entity, next: Entity): string[] {
     const a = (before[key] ?? '').trim()
     const b = (after[key] ?? '').trim()
     if (a === b) continue
+    // a measured value (the Messpunkt's CO) has its own row, with unit and stage, written by the
+    // commit itself (lib/readingLog · readingAct) – this one would say it a second time, bare
+    if (symbolFieldKind(next.symbol, key) === 'measured') continue
     // Dropped from the TEMPLATE, not from the finished string: every locale's three templates
     // lead with {field}, so an empty one leaves exactly the statement («auf X geändert»,
     // «geleert»). `fieldSet` is «{field}: {value}» — minus the field that IS the bare value.

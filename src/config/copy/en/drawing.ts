@@ -4,7 +4,7 @@
 import type { Copy, Localizable } from '../index'
 
 type Keys =
-  | 'measure' | 'relay' | 'shapes' | 'log' | 'objectDone' | 'addSheet' | 'toolDock'
+  | 'measure' | 'relay' | 'shapes' | 'log' | 'objectDone' | 'readingLog' | 'addSheet' | 'toolDock'
 
 export const drawingCopy: Localizable<Pick<Copy, Keys>> = {
   measure: {
@@ -186,6 +186,14 @@ export const drawingCopy: Localizable<Pick<Copy, Keys>> = {
     removeHint: 'only for a mistake',
     logDone: '{name} {word}',
     logReopened: '{name} active again',
+  },
+  readingLog: {
+    row: 'Reading {name}: {values}',
+    rowAgain: 'Reading {name}: {values} – measured the same',
+    state: { a1: 'A1 pre-alarm', a2: 'A2 main alarm', over: 'over range', unreadable: 'unreadable' },
+    reached: '{stage} reached',
+    backTo: 'back to {stage}',
+    calmAgain: 'back in the normal range',
   },
   addSheet: { tile: 'Add', tools: 'Draw & crew' },
   toolDock: {

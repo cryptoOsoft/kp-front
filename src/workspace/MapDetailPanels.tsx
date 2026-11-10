@@ -22,7 +22,7 @@ import { canBeDone, offersDone, doneOf } from '../lib/objectDone'
 import { withResolvedPhotos } from '../lib/photoGeo'
 import type { AssignableRole } from '../lib/roleAssignment'
 import { SHAPE_MIN_M, SHAPE_MAX_M, SHAPE_DEFS, rotationRun, ROTATION_MAX_M, rotationBox, ROTATION_W_M, shapeAspect } from '../lib/shapes'
-import { readingPatch, symbolControls, symbolTitleOptions, symbolFieldOptions, symbolPresetFieldKeys, vehicleOriginOptions } from '../lib/symbols'
+import { symbolControls, symbolTitleOptions, symbolFieldOptions, symbolPresetFieldKeys, vehicleOriginOptions } from '../lib/symbols'
 import { truppForLine, truppIsOut } from '../lib/truppLines'
 import type { useSymbols } from '../lib/useSymbols'
 import type { VehicleOverrides } from '../lib/useVehicleLayer'
@@ -61,6 +61,8 @@ export interface MapDetailPanelsProps {
   personStatus: (name: string) => { label: string; tone?: 'warn' | 'muted' | 'info' } | undefined
   rosterFieldHints: (e: Entity | undefined) => Record<string, string | undefined> | undefined
   setEntityDone: (ent: Entity, on: boolean) => void
+  /** a field commit of the Karte's symbol panel, with a Messpunkt's reading (useMapActions) */
+  commitEntityFields: (ent: Entity, fields: Record<string, string>, again?: boolean) => void
   vehicleOverrides: VehicleOverrides
   canEditIncident: boolean
   readOnly: boolean
@@ -111,7 +113,7 @@ export function MapDetailPanels({
   detailSlotFree, tacticalLocked, tool, selected, commit, setSelectedId, flyToMapVisible, deleteEntity,
   timeline, sym, entityTypedAt, titleLiveRef, beginDrag,
   setDocRaw, endDrag, emit, patchEntity, linkRosterFields, createCircle, doc, undockTeam, effTrupps,
-  symbolCaptions, rosterNames, rosterRank, personStatus, rosterFieldHints, setEntityDone,
+  symbolCaptions, rosterNames, rosterRank, personStatus, rosterFieldHints, setEntityDone, commitEntityFields,
   vehicleOverrides, canEditIncident, readOnly, stopPersonSharing, setVehicleOverrides, log,
   assignTypedName, drawings, entities, focusDrawing, noteEntity, notePlacedId, setNotePanelId,
   noteTextLive, setNoteDefaults, selectedDrawing, patchDrawing,
@@ -222,7 +224,7 @@ export function MapDetailPanels({
           }}
           // Symbol→Mittel: only where the station mapped at least one material to a symbol.
           // No switch to find — a Wehr that has not configured it never gets an offer.
-          onFields={(fields) => { patchEntity(selected.id, { fields, ...readingPatch(selected, fields) }); linkRosterFields(selected, fields) }}
+          onFields={(fields) => { commitEntityFields(selected, fields); linkRosterFields(selected, fields) }}
           onNotes={!selected.live ? (v) => patchEntity(selected.id, { notes: v || undefined }) : undefined}
           onFloor={selected.kind === 'symbol' && !selected.live ? (f) => patchEntity(selected.id, { floor: f ?? undefined }) : undefined}
           onFloorFrom={selected.kind === 'symbol' && !selected.live ? (f) => patchEntity(selected.id, { floor: undefined, floorFrom: f ?? undefined, floorTo: selected.floorTo ?? selected.floor }) : undefined}
