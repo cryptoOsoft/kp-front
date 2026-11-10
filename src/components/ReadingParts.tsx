@@ -67,11 +67,13 @@ export function ReadingOverHead() {
 }
 
 /** «Gleich gemessen» (pick 4A) under the measured fields: the values as they stand, measured once
- *  more – a history row with the time now, so the point stops ageing. Nothing before a first value. */
+ *  more – a history row with the time now, so the point stops ageing. Nothing before a first value.
+ *  The app's ordinary secondary button, right-aligned under the value column (owner review
+ *  10.11.2026 – it was a full-width block), on a phone too. */
 export function ReadingAgain({ entity, onAgain }: { entity: SymbolProps; onAgain: () => void }) {
   if (!symbolReading(entity)?.text) return null
   return (
-    <Button block className="reading-again" icon={<Icon id="rotate" />} onClick={onAgain}>
+    <Button className="reading-again" icon={<Icon id="rotate" />} onClick={onAgain}>
       {appConfig.copy.contextPanel.readingAgain}
     </Button>
   )

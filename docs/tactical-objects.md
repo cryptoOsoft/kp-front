@@ -87,7 +87,7 @@ One object, two surfaces: how a tactical object is stored, anchored, projected a
   measured value appends a row (`recordReading`); rows are never rewritten, so two tablets merge
   as a union (`lib/mergeWorkspace · withMergedSymbolReadings`), and «one radio report typed gas by
   gas is one reading» is a display rule (`readingRows`). «Gleich gemessen» under the fields
-  (owner pick 4A, 10.11.2026) appends the values as they stand with the time now – a Nachmessung
+  (owner pick 4A, 10.11.2026; an ordinary button at the right edge) appends the values as they stand with the time now – a Nachmessung
   that confirms «CO 0» is a reading, and the point stops ageing. Every appended row is ONE act on
   both surfaces (`lib/readingLog · readingAct`, called by `useMapActions · commitEntityFields` and
   `Whiteboard · commitAnnoFields`): the props in one undoable step named by the reading's
