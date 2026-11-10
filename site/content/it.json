@@ -45,10 +45,11 @@
     "demo": "Apri la demo"
   },
   "hero": {
-    "eyebrow": "Open source&nbsp;· Svizzera",
+    "eyebrow": "Open source&nbsp;· gratuito&nbsp;· Svizzera",
     "h1": "La condotta d’intervento digitale per i pompieri.",
     "lede": "KP Front è il posto di comando digitale sul posto:\n      <strong>mappa, piani, squadre, diario e rapporto</strong> in un’unica app.",
     "cta": "Apri la demo",
+    "ctaSelf": "Gestirlo in proprio",
     "ctaNote": "Senza registrazione – nella demo Musterdorf sta bruciando adesso (interfaccia in tedesco)",
     "frameAddr": "KARTE · ZIMMERBRAND · 2611624 / 1263070",
     "frameAlt": "Vista Mappa: simboli tattici CSP, settori e condotte sulla carta tattica"
@@ -244,8 +245,10 @@
           "<strong>Prontuario delle sostanze pericolose</strong>: numeri ONU, informazioni sulle sostanze e indicazioni sulle distanze di isolamento e protezione, disponibili direttamente durante l’intervento",
           "Informazioni meteorologiche e sul vento a supporto della valutazione della situazione, più il radar delle precipitazioni di MeteoSvizzera come livello",
           "Piani d’oggetto come lavagna e piani sovrapposti",
+          "<strong>Carta &amp; oggetti</strong>: senza intervento, la carta del proprio corpo – consultare oggetti, pericoli, idranti e piani d’oggetto",
           "<strong>Lavagna con pagine CSP</strong>: schizzo libero, Prima coordinazione e fogli del manuale – stampati nel rapporto come l’originale",
           "<strong>Info edificio</strong>: dati del registro degli edifici – gas, olio combustibile, fotovoltaico – e misure immediate per l’oggetto",
+          "<strong>Misurazioni</strong>: punti di misura con valori dei gas per locale e per piano, con cronologia e soglie d’allarme",
           "<strong>Georeferenziazione</strong>: collegare una planimetria alla mappa tramite punti di riferimento comuni – un solo oggetto, visibile su entrambe le superfici, con un’indicazione onesta della precisione. La stazione fa allineare le planimetrie in anticipo e le approva",
           "Annulla/ripristina su ogni superficie – le attività documentate restano tracciabili"
         ]
@@ -261,6 +264,7 @@
           "<strong>Piano turni</strong>: pianificare disponibilità e turni per persona,\n            visualizzare la copertura dell’intero intervento e stampare i formulari di condotta",
           "<strong>Condividere la posizione</strong>: chi apre il link appare come punto sulla\n            carta della situazione – volontario, e solo per questo intervento",
           "Condividere l’intervento tramite link; l’accesso è indicato chiaramente e può essere\n            revocato in qualsiasi momento",
+          "<strong>Modalità presentazione</strong>: chi ha l’intervento aperto segue lo schermo di chi presenta – tutti possono indicare, nulla viene salvato",
           "Materiale con scorte e consumo",
           "Liste di controllo per il supporto alla condotta e la direzione dell’intervento",
           "Ruolo capo intervento: tenere presenze, mezzi, check-list e rapporto – leggere carta e squadre senza spostare nulla"
@@ -273,6 +277,7 @@
           "Note vocali con trascrizione, foto, promemoria",
           "<strong>Viaggio nel tempo</strong>: riprodurre l’intervento minuto per minuto, con le\n            attese saltate – per il debriefing",
           "Rapporto d’intervento pronto in PDF, con personale, materiale, orari, diario, croquis,\n            foto e sorveglianza della protezione respiratoria",
+          "Stampare rapporto e piano orario direttamente sulla <strong>stampante della caserma</strong> <span class=\"opt\">opzionale</span>",
           "<strong>Analisi</strong> per il debriefing: cifre chiave e linea del tempo su un foglio a parte, alla fine del rapporto",
           "Foto come allegati al rapporto",
           "<strong>Controllo finale</strong>: prima della chiusura, KP Front mostra quali informazioni o chiarimenti mancano ancora nel rapporto",
@@ -286,7 +291,7 @@
         "items": [
           "<strong>Funziona offline</strong> come app installabile – la verifica di prontezza indica prima dell’intervento se i dati necessari sono sul dispositivo",
           "Più dispositivi collegati lavorano sullo stesso stato – dopo un’interruzione della connessione, le modifiche vengono nuovamente sincronizzate",
-          "Ruoli: modificare, oppure solo leggere",
+          "Tre ruoli: l’aiuto alla condotta modifica tutto, il capo intervento tiene la documentazione e segue la situazione, gli osservatori leggono soltanto",
           "Modo giorno/notte, dimensione dei simboli, superfici di comando grandi per il tablet",
           "Può riprendere allarmi da Divera o FireHub; altri sistemi di allertamento possono essere collegati tramite l’interfaccia aperta <span class=\"opt\">opzionale</span>",
           "Posizioni dei veicoli via GPS <span class=\"opt\">opzionale</span>",
@@ -343,6 +348,10 @@
         "a": "KP Front è open source (AGPL-3.0): <strong>nessuna tassa di licenza, nessun abbonamento, nessun costo per dispositivo</strong>. Ogni corpo gestisce la propria installazione e mantiene così il controllo sui propri dati. Restano i costi propri per l’esercizio, l’infrastruttura ed eventualmente il supporto esterno. Lo sviluppo nasce direttamente dalla pratica dei pompieri di Oberwil BL; segnalazioni di errori, idee e contributi dalla comunità open source sono benvenuti."
       },
       {
+        "q": "Su quali dispositivi funziona KP Front?",
+        "a": "KP Front funziona nel browser – senza App Store. È pensato per il tablet: su iPad e sui tablet Android si installa sulla schermata Home come un’app e funziona poi anche senza connessione. Sul portatile, nel veicolo di comando o in caserma, la stessa interfaccia si usa con mouse e tastiera. Il telefono è il compagno: guardare la situazione, registrare annotazioni, tenere d’occhio la protezione respiratoria – si disegna e si conduce sullo schermo più grande. Tutti i dispositivi mostrano lo stesso intervento."
+      },
+      {
         "q": "Cosa serve per farlo funzionare?",
         "a": "Basta un piccolo mini-PC o server in rimessa. Per l’installazione, gli aggiornamenti\n          e i backup serve qualcuno con esperienza nell’uso di Docker e della riga di comando, che\n          si trovi nel corpo, in Comune o presso un supporto informatico esterno. La guida e\n          l’area amministrativa accompagnano la configurazione. Rispondiamo volentieri alle\n          domande generali; i dati e l’esercizio restano sotto la responsabilità di ciascun corpo."
       },
@@ -364,11 +373,11 @@
       },
       {
         "q": "In quali lingue è disponibile KP Front?",
-        "a": "L’interfaccia utente di KP Front è attualmente disponibile in tedesco. Essendo un’applicazione open source, KP Front può essere esteso ad altre lingue. A tal fine è necessaria una traduzione completa e verificata da specialisti della terminologia dei pompieri."
+        "a": "L’interfaccia utente di KP Front esiste in tedesco, francese, italiano e inglese. Fa stato il tedesco; le altre tre lingue sono complete, ma non sono ancora state rilette da pompieri. Essendo un’applicazione open source, KP Front può essere esteso ad altre lingue. A tal fine è necessaria una traduzione completa e verificata da specialisti della terminologia dei pompieri."
       },
       {
         "q": "Come cominciamo?",
-        "a": "Con la <a href=\"https://demo.kp-front.ch\" target=\"_blank\" rel=\"noopener\">demo</a>,\n          senza registrazione – a Musterdorf sta già bruciando, e tutti i visitatori condividono lo\n          stesso intervento (si riavvia ogni giorno alle 00:00, fuso orario Europe/Zurich). Poi provatela a un’esercitazione.\n          Se va bene, la <a href=\"https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md\" target=\"_blank\" rel=\"noopener\">guida all’installazione</a> porta alla vostra istanza."
+        "a": "Con la <a href=\"https://demo.kp-front.ch\" target=\"_blank\" rel=\"noopener\">demo</a>,\n          senza registrazione – a Musterdorf sta già bruciando, e tutti i visitatori condividono lo\n          stesso intervento (si riavvia due volte al giorno, alle 00:00 e alle 12:00, fuso orario Europe/Zurich). Poi provatela a un’esercitazione.\n          Se va bene, la <a href=\"https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md\" target=\"_blank\" rel=\"noopener\">guida all’installazione</a> porta alla vostra istanza."
       }
     ]
   },
@@ -409,7 +418,8 @@
     "close": "Chiudi",
     "prev": "Immagine precedente",
     "next": "Immagine successiva",
-    "zoom": "Ingrandisci"
+    "zoom": "Ingrandisci",
+    "hint": "Far scorrere l’immagine di lato"
   },
   "footer": {
     "origin": "Nato nell’attività operativa dei <a href=\"https://www.feuerwehr-oberwil.ch\" target=\"_blank\" rel=\"noopener\">pompieri di Oberwil BL</a> –\n      perché in intervento vedevamo sempre le stesse fonti di errore: doppie assegnazioni, informazioni\n      sparse e errori di trascrizione a mano.\n      Ogni corpo pompieri gestisce il proprio KP Front, con carte, piani e dati propri.",

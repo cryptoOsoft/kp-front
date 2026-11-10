@@ -70,7 +70,8 @@
 <link rel="alternate" hreflang="rm-CH" href="https://kp-front.ch/rm/">
 <link rel="alternate" hreflang="en" href="https://kp-front.ch/en/">
 <link rel="alternate" hreflang="x-default" href="https://kp-front.ch/">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231b2330'/%3E%3Cg transform='translate(16 16.5) scale(0.085) translate(-257 -274)'%3E%3Cellipse cx='256' cy='398' rx='150' ry='19' fill='%23000' opacity='0.22'/%3E%3Cg stroke='%23c4cedb' stroke-width='3' stroke-linejoin='round'%3E%3Cpolygon points='100,216 198,190 198,380 100,406' fill='%23e7edf4'/%3E%3Cpolygon points='208,190 306,216 306,406 208,380' fill='%23ffffff'/%3E%3Cpolygon points='316,216 414,190 414,380 316,406' fill='%23d8e1ec'/%3E%3C/g%3E%3Cpath fill='%23e8392b' d='M256 350 C221 297 186 260 186 206 A70 70 0 1 1 326 206 C326 260 291 297 256 350 Z'/%3E%3Ccircle cx='256' cy='200' r='30' fill='%23fff'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <meta property="og:type" content="website">
 <meta property="og:title" content="KP Front – Digital incident command for fire brigades">
 <meta property="og:description" content="The digital command post at the scene: map, plans, teams, log and report – offline-capable and open source.">
@@ -113,7 +114,10 @@
       "applicationCategory": "BusinessApplication",
       "operatingSystem": "Web browser",
       "inLanguage": [
-        "de"
+        "de",
+        "fr",
+        "it",
+        "en"
       ],
       "softwareVersion": "0.12.0",
       "dateModified": "2026-10-13",
@@ -227,7 +231,7 @@
         "height": 937
       },
       "inLanguage": "en",
-      "dateModified": "2026-11-08",
+      "dateModified": "2026-11-10",
       "isPartOf": {
         "@id": "https://kp-front.ch/#website"
       },
@@ -262,6 +266,14 @@
           "acceptedAnswer": {
             "@type": "Answer",
             "text": "KP Front is open source (AGPL-3.0): no licence fees, no subscription, no per-device fee. Every fire brigade runs its own installation and so keeps control of its data. What remains are its own costs for operation, infrastructure and any external support. Development comes straight from the practice of Feuerwehr Oberwil BL; bug reports, ideas and contributions from the open-source community are welcome."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which devices does KP Front run on?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "KP Front runs in the browser – no app store. It is built for the tablet: on an iPad and on Android tablets it installs to the home screen like an app and then also works without a connection. On a laptop in the command vehicle or at the station, the same interface runs with mouse and keyboard. The phone is the companion: look at the situation, add entries, keep an eye on the SCBA teams – drawing and commanding happen on the larger screen. All devices show the same incident."
           }
         },
         {
@@ -309,7 +321,7 @@
           "name": "Which languages are available for KP Front?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "The KP Front user interface is currently available in German. As an open-source application, KP Front can be extended to further languages. This requires a complete translation of the firefighting terminology and a professional review."
+            "text": "The KP Front user interface comes in German, French, Italian and English. German is the authoritative version; the other three are complete but have not yet been proofread by firefighters. As an open-source application, KP Front can be extended to further languages. This requires a complete translation of the firefighting terminology and a professional review."
           }
         },
         {
@@ -317,7 +329,7 @@
           "name": "How do we start?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "With the demo, no sign-up – Musterdorf is already on fire, and all visitors share the same incident (it resets every day at 00:00 in the Europe/Zurich time zone). Then try it at an exercise. If it fits, the setup guide leads to your own installation."
+            "text": "With the demo, no sign-up – Musterdorf is already on fire, and all visitors share the same incident (it resets twice a day, at 00:00 and 12:00 in the Europe/Zurich time zone). Then try it at an exercise. If it fits, the setup guide leads to your own installation."
           }
         }
       ]
@@ -396,12 +408,13 @@
 
 <main>
   <section class="hero wrap">
-    <p class="eyebrow">Open source&nbsp;· Switzerland</p>
+    <p class="eyebrow">Open source&nbsp;· free&nbsp;· Switzerland</p>
     <h1>Digital incident command for the fire brigade.</h1>
     <p class="lede">KP Front is the digital command post at the scene:
       <strong>map, plans, teams, log and report</strong> in one app.</p>
     <div class="cta-row">
       <a class="btn btn-primary" href="https://demo.kp-front.ch" target="_blank" rel="noopener"><svg class="ico"><use href="#i-play"/></svg>Open the demo</a>
+      <a class="btn btn-ghost" href="https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md" target="_blank" rel="noopener">Run it yourself</a>
       <span class="cta-note">No login – in the demo, Musterdorf is on fire right now (interface in German)</span>
     </div>
     <figure class="frame">
@@ -728,8 +741,10 @@
           <li><strong>Hazardous materials reference</strong>: UN numbers, substance information and guidance on isolation and protective distances, available directly during the incident</li>
           <li>Weather and wind information to support the situation assessment, plus the MeteoSwiss precipitation radar as a layer</li>
           <li>Building plans as a whiteboard and a stack of floors</li>
+          <li><strong>Map &amp; objects</strong>: outside an incident, your brigade’s own map – look up objects, hazards, hydrants and building plans</li>
           <li><strong>Board with FKS pages</strong>: free sketch, First command and handbook sheets – printed in the report like the original</li>
           <li><strong>Building info</strong>: facts from the building register – gas, heating oil, solar PV – and the immediate measures for the object</li>
+          <li><strong>Readings</strong>: measuring points with gas readings per room and floor, with their history and alarm levels</li>
           <li><strong>Georeferencing</strong>: link a plan to the map through shared landmarks – one object, visible on both surfaces, with an honest read-out of the accuracy. The station has its plans aligned ahead of time and approves them</li>
           <li>Undo/redo on every surface – documented events remain traceable</li>
         </ul>
@@ -747,6 +762,7 @@
           <li><strong>Share location</strong>: whoever opens the link appears as a dot on the
             situation map – voluntary, and only for this incident</li>
           <li>Share the incident by link; access is clearly indicated and can be revoked at any time</li>
+          <li><strong>Presentation mode</strong>: everyone who has the incident open follows the presenter’s screen – all can point, nothing is stored</li>
           <li>Material with stock and consumption</li>
           <li>Checklists for command support and incident command</li>
           <li>Incident commander role: keep attendance, resources, checklists and the report – read the map and the teams without moving anything</li>
@@ -761,6 +777,7 @@
             for the debrief</li>
           <li>Ready-made incident report as a PDF, including crew, material, times, log, sketch,
             photos and SCBA monitoring</li>
+          <li>Print the report and the shift plan straight to the <strong>station printer</strong> <span class="opt">optional</span></li>
           <li><strong>Debrief sheet</strong> for the after-action review: key figures and a timeline on a page of its own at the end of the report</li>
           <li>Photos as attachments to the report</li>
           <li><strong>Completion check</strong>: before closing, KP Front shows which information or clarifications are still missing from the report</li>
@@ -774,7 +791,7 @@
         <ul class="flist">
           <li><strong>Offline-capable</strong> as an installable app – the readiness check shows before an incident whether the required data is on the device</li>
           <li>Several connected devices work on the same state – after a connection interruption, changes are synchronised again</li>
-          <li>Roles: edit, or read along only</li>
+          <li>Three roles: command support edits everything, the incident commander keeps the record and reads the situation, viewers read along only</li>
           <li>Day/night mode, symbol size, large touch targets for the tablet</li>
           <li>Can take over alerts from Divera or FireHub; further alerting systems can be connected through the open interface <span class="opt">optional</span></li>
           <li>Vehicle positions by GPS <span class="opt">optional</span></li>
@@ -851,6 +868,10 @@
         <p>KP Front is open source (AGPL-3.0): <strong>no licence fees, no subscription, no per-device fee</strong>. Every fire brigade runs its own installation and so keeps control of its data. What remains are its own costs for operation, infrastructure and any external support. Development comes straight from the practice of Feuerwehr Oberwil BL; bug reports, ideas and contributions from the open-source community are welcome.</p>
       </div>
       <div class="faq-item">
+        <h3>Which devices does KP Front run on?</h3>
+        <p>KP Front runs in the browser – no app store. It is built for the tablet: on an iPad and on Android tablets it installs to the home screen like an app and then also works without a connection. On a laptop in the command vehicle or at the station, the same interface runs with mouse and keyboard. The phone is the companion: look at the situation, add entries, keep an eye on the SCBA teams – drawing and commanding happen on the larger screen. All devices show the same incident.</p>
+      </div>
+      <div class="faq-item">
         <h3>What does it take to run?</h3>
         <p>A small mini-PC or server at the station is enough. Setup, updates and backups
           require someone with Docker and command-line experience, whether in the brigade, the
@@ -886,13 +907,13 @@
       </div>
       <div class="faq-item">
         <h3>Which languages are available for KP Front?</h3>
-        <p>The KP Front user interface is currently available in German. As an open-source application, KP Front can be extended to further languages. This requires a complete translation of the firefighting terminology and a professional review.</p>
+        <p>The KP Front user interface comes in German, French, Italian and English. German is the authoritative version; the other three are complete but have not yet been proofread by firefighters. As an open-source application, KP Front can be extended to further languages. This requires a complete translation of the firefighting terminology and a professional review.</p>
       </div>
       <div class="faq-item">
         <h3>How do we start?</h3>
         <p>With the <a href="https://demo.kp-front.ch" target="_blank" rel="noopener">demo</a>,
           no sign-up – Musterdorf is already on fire, and all visitors share the same incident
-          (it resets every day at 00:00 in the Europe/Zurich time zone). Then try it at an exercise. If it fits, the
+          (it resets twice a day, at 00:00 and 12:00 in the Europe/Zurich time zone). Then try it at an exercise. If it fits, the
           <a href="https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md" target="_blank" rel="noopener">setup guide</a> leads to your own installation.</p>
       </div>
     </div>
@@ -1054,6 +1075,11 @@
   })();
 
   // Both the gallery and its enlarged picture use native theme-aware sources.
+  // On a phone (landing.css, max-width 620px) a 1500 px tablet capture at viewport width is
+  // unreadable, so there the picture is shown taller than it is wide enough for: it scrolls
+  // sideways inside <picture>, a track and a hint say so, and «‹ 2 / 9 ›» sits at the bottom.
+  // A swipe changes the picture – on the picture itself only from the edge it is scrolled to,
+  // so that sliding it never flips it. Nothing here animates.
   (function () {
     var btns = [].slice.call(document.querySelectorAll('.shot-zoom'));
     if (!btns.length || typeof HTMLDialogElement === 'undefined') return;
@@ -1064,13 +1090,32 @@
       '<button class="lb-x" type="button" aria-label="Close">×</button>' +
       '<button class="lb-nav lb-prev" type="button" aria-label="Previous image">‹</button>' +
       '<button class="lb-nav lb-next" type="button" aria-label="Next image">›</button>' +
-      '<figure class="lb-fig"><picture><source data-theme-dark><img alt=""></picture><figcaption></figcaption></figure>';
+      '<span class="lb-count"></span>' +
+      '<figure class="lb-fig"><picture><source data-theme-dark><img alt=""></picture>' +
+      '<div class="lb-track" aria-hidden="true" hidden><i></i></div>' +
+      '<p class="lb-hint" aria-hidden="true" hidden>← Slide the image sideways →</p>' +
+      '<figcaption></figcaption></figure>';
     document.body.appendChild(dlg);
 
     var img = dlg.querySelector('.lb-fig img');
     var dark = dlg.querySelector('source');
     var cap = dlg.querySelector('.lb-fig figcaption');
+    var pan = dlg.querySelector('.lb-fig picture');
+    var track = dlg.querySelector('.lb-track');
+    var thumb = track.firstChild;
+    var hint = dlg.querySelector('.lb-hint');
+    var count = dlg.querySelector('.lb-count');
     var idx = 0;
+
+    // The track mirrors the sideways scroll; it and the hint exist only while the picture
+    // really is wider than its box (never on a desktop, where the picture is fitted).
+    var syncPan = function () {
+      var fits = pan.scrollWidth <= pan.clientWidth + 1;
+      track.hidden = hint.hidden = fits;
+      if (fits) return;
+      thumb.style.left = (pan.scrollLeft / pan.scrollWidth * 100) + '%';
+      thumb.style.width = (pan.clientWidth / pan.scrollWidth * 100) + '%';
+    };
 
     var show = function (i) {
       idx = (i + btns.length) % btns.length;
@@ -1082,10 +1127,13 @@
       img.alt = src.alt;
       cap.innerHTML = '<b>' + s.querySelector('.cap-t').textContent + '</b> – '
         + s.querySelector('.cap-s').textContent;
+      count.textContent = (idx + 1) + ' / ' + btns.length;
+      pan.scrollLeft = 0;
+      syncPan();
     };
 
     btns.forEach(function (btn, i) {
-      btn.addEventListener('click', function () { show(i); dlg.showModal(); });
+      btn.addEventListener('click', function () { show(i); dlg.showModal(); syncPan(); });
     });
     dlg.querySelector('.lb-x').addEventListener('click', function () { dlg.close(); });
     dlg.querySelector('.lb-prev').addEventListener('click', function () { show(idx - 1); });
@@ -1095,5 +1143,30 @@
       if (e.key === 'ArrowLeft') { e.preventDefault(); show(idx - 1); }
       if (e.key === 'ArrowRight') { e.preventDefault(); show(idx + 1); }
     });
+
+    pan.addEventListener('scroll', syncPan, { passive: true });
+    img.addEventListener('load', syncPan);
+    addEventListener('resize', syncPan);
+
+    var touch = null;
+    dlg.addEventListener('touchstart', function (e) {
+      if (e.touches.length !== 1) { touch = null; return; }
+      var onPicture = pan.contains(e.target);
+      touch = {
+        x: e.touches[0].clientX, y: e.touches[0].clientY,
+        prev: !onPicture || pan.scrollLeft <= 1,
+        next: !onPicture || pan.scrollLeft >= pan.scrollWidth - pan.clientWidth - 1
+      };
+    }, { passive: true });
+    dlg.addEventListener('touchend', function (e) {
+      if (!touch) return;
+      var dx = e.changedTouches[0].clientX - touch.x;
+      var dy = e.changedTouches[0].clientY - touch.y;
+      if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        if (dx > 0 && touch.prev) show(idx - 1);
+        if (dx < 0 && touch.next) show(idx + 1);
+      }
+      touch = null;
+    }, { passive: true });
   })();
 </script>

@@ -732,9 +732,45 @@ dialog.lb::backdrop { background: rgba(12, 14, 17, .9); }
 .lb-prev { left: 14px; }
 .lb-next { right: 14px; }
 .lb-x:hover, .lb-nav:hover { background: rgba(255, 255, 255, .24); }
+/* Phone-only parts of the lightbox: the scroll track, its hint and the «2 / 9» counter. */
+.lb-track, .lb-hint, .lb-count { display: none; }
 @media (max-width: 620px) {
-  .lb-nav { display: none; }
-  dialog.lb { padding: 56px 12px 20px; }
+  /* A tablet capture fitted to a phone's width is a quarter of its size and unreadable. So
+     the picture keeps a readable height and scrolls sideways inside <picture>; prev/next and
+     the counter stand in one row at the bottom, where a thumb reaches them. */
+  dialog.lb { padding: 64px 0 calc(84px + env(safe-area-inset-bottom)); }
+  .lb-fig { width: 100%; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .lb-fig picture {
+    width: 100%; justify-content: flex-start; overflow-x: auto;
+    overscroll-behavior-x: contain; scrollbar-width: none;
+  }
+  .lb-fig picture::-webkit-scrollbar { display: none; }
+  .lb-fig img {
+    flex: none; max-width: none; max-height: none;
+    height: min(460px, calc(100dvh - 330px)); min-height: 180px;
+    border-radius: 0; box-shadow: none;
+  }
+  .lb-track:not([hidden]) {
+    display: block; position: relative; justify-self: stretch;
+    height: 4px; margin: 0 22px; border-radius: 2px; background: rgba(255, 255, 255, .18);
+  }
+  .lb-track i { position: absolute; top: 0; bottom: 0; border-radius: 2px; background: #fff; }
+  .lb-hint:not([hidden]) {
+    display: block; font-family: var(--mono); font-size: 12.5px; color: #9aa3b0;
+  }
+  .lb-fig figcaption { padding: 0 22px; }
+  .lb-nav {
+    top: auto; bottom: calc(18px + env(safe-area-inset-bottom)); transform: none;
+    width: 48px; height: 48px;
+  }
+  .lb-prev { left: calc(50% - 104px); }
+  .lb-next { right: calc(50% - 104px); }
+  .lb-count {
+    display: block; position: fixed; left: 0; right: 0;
+    bottom: calc(18px + env(safe-area-inset-bottom)); line-height: 48px;
+    text-align: center; pointer-events: none;
+    font-family: var(--mono); font-size: 14px; color: #d5dae1;
+  }
 }
 
 @media (max-width: 1180px) {

@@ -6,7 +6,7 @@
     "license": "https://www.gnu.org/licenses/agpl-3.0.html",
     "screenshot": "shots/lage.jpg",
     "demo": "https://demo.kp-front.ch/",
-    "inLanguage": ["de"],
+    "inLanguage": ["de", "fr", "it", "en"],
     "suite": {
       "id": "https://kp-front.ch/#kp-suite",
       "name": "KP Front & KP Rück",

@@ -14,6 +14,8 @@ site/
   capture.mjs           ← re-captures shots/
   build.mjs             ← builds the pages from template + texts
   llms.txt              ← product facts for language models – written by hand, not built
+  favicon.svg           ← the tab icon, as a file a crawler can fetch
+  apple-touch-icon.png  ← the same mark full-bleed at 180 px (iOS home screen, bookmarks)
 
   index.html            ← built, checked in, what gets served
   fr|it|rm|en/index.html ← ditto
@@ -126,6 +128,11 @@ the script.
 Two things about the demo: it is shared with visitors and reset twice a day (00:00 and
 12:00 Europe/Zurich). So for clean images, capture shortly after a reset – or use `--base`
 against a local instance.
+
+A local demo instance (the Musterdorf dataset with `demoMode`, seeded by `app.demo_reset`)
+lets the capture in without `--pin`. ⚠️ It needs a `CARTO_API_KEY` that CARTO accepts for
+`localhost`: without one the base map is tiled with «API KEY REQUIRED», which spoils `lage`
+(the hero) and `verlauf`. The other eight views have no base map.
 
 ## Contact
 

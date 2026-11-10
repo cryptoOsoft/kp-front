@@ -15,7 +15,7 @@
 - The application is developed from operational use at Feuerwehr Oberwil BL.
 - Each fire brigade runs its own installation and controls its own incident data.
 - The application is licensed under AGPL-3.0.
-- The application interface is currently available in German.
+- The application interface is available in German, French, Italian and English. German is the authoritative version; the other three have not yet been proofread by firefighters.
 - External integrations such as alarm intake, GPS, weather services, map services, transcription and Microsoft sign-in are optional.
 - The website is available in German, French, Italian, Romansh and English.
 
