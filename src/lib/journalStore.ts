@@ -4,6 +4,7 @@
 
 import { ApiError, apiBeacon, apiGet, apiPost, LONG_POLL_TIMEOUT_MS } from './api'
 import { idbDel, idbKeys, idbRead, idbSet } from './idb'
+import { journalSlot as KEY, legacyJournalSlot as LEGACY_KEY } from './journalSlots'
 import { newId } from './ids'
 import { rowPhotos, swapUrl } from './verlauf'
 import type { TimelineEvent } from '../types'
@@ -50,17 +51,6 @@ interface JournalPage { entries: ServerRow[]; latest_seq: number }
  *  sent again once the Einsatz runs again (`requeueRefused`, «Wieder öffnen»). Absent in older
  *  caches. */
 interface Persisted { rows: ServerRow[]; latestSeq: number; outbox: TimelineEvent[]; dead?: TimelineEvent[]; refused?: TimelineEvent[] }
-
-/** The outbox slot of one identity on one Einsatz (RBAC audit S5, 22.10.2026) — like the audit
- *  store's (`kp-audit-<incident>:<owner>`). One slot per Einsatz used to be shared by every
- *  identity on the device: an Atemschutz-Link opened on the FU's own phone hydrated the FU's
- *  unsent rows and sent them as the link — a Meldung was the link's 403 (and the page froze as
- *  «Link widerrufen»), a Trupp row went in stamped `via: atemschutz-link`. */
-const KEY = (incidentId: string, owner: string | null) => (owner ? `kp-journal-${incidentId}:${owner}` : LEGACY_KEY(incidentId))
-/** The pre-22.10.2026 slot, shared by every identity. A device LOGIN adopts it once (see
- *  `JournalOwner.adoptsLegacy`) — on a shared device the login is who wrote those rows; a link
- *  page never reads it. */
-const LEGACY_KEY = (incidentId: string) => `kp-journal-${incidentId}`
 
 /** Whose outbox a store keeps: `key` is the identity (`<user id>:<link kind or 'login'>`), and
  *  `adoptsLegacy` says whether it takes over the shared pre-owner slot (the device login only). */

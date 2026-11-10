@@ -161,6 +161,7 @@ import { useTafelPages } from './workspace/useTafelPages'
 import { useTafelPendenzen } from './workspace/useTafelPendenzen'
 import type { OneShotRows, WorkspaceMode } from './workspace/types'
 import { WorkspaceMeldungen } from './workspace/WorkspaceMeldungen'
+import { ForeignUnsentMeldungen } from './components/ForeignUnsentMeldung'
 import { WorkspaceSheets } from './workspace/WorkspaceSheets'
 import { JournalLayer } from './workspace/JournalLayer'
 import { MapToolDocks } from './workspace/MapToolDocks'
@@ -3140,6 +3141,10 @@ export function IncidentWorkspace({
         helpOpen, installGuideOpen, offlineReadyOpen, shareLink,
         canEditRapport,
       }} />
+
+      {/* unsent edits of ANOTHER account for this Einsatz are parked on this device (sweep
+          09.11.2026, UX.2): one dismissible row; a link page has no account of its own to tell */}
+      {!linkScoped && <ForeignUnsentMeldungen sync={sync} incidentId={incidentMeta.id} viewerId={user?.id ?? null} />}
 
       <WorkspaceMeldungen {...{
         reminders, setJournalOpen, setJournalLandOn, sym, symbolsRowHidden, setSymbolsRowHidden, noBasemap,

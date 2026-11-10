@@ -73,6 +73,18 @@ the module they concern (`lib/connectivity`, `lib/eventScope`, `lib/jsonEqual`,
   only a refused READ of its own workspace/Verlauf/events as «Link widerrufen» (`api ·
   LINK_REFUSED_EVENT`): the server words every link refusal alike, so a write's 403 says nothing
   about the link, and the live follow reads every round.
+- **Unsent work of another account is SAID, never shown** (sweep 09.11.2026, UX.2). On a shared
+  tablet a session ends and the next person signs in as themselves: the first person's unsent
+  workspace edits stay under that person's key (`workspaceSync · ownerCacheKey`, the main slot
+  until somebody else opens the Einsatz) and their Verlauf rows in that login's outbox, and go
+  out only when THAT account signs in on this device. Two surfaces say so, from keys and owner
+  stamps alone (`lib/unsentAccounts`): the login screen's banner «Ungesendete Änderungen von
+  {Name}» with «Als {Name} anmelden» (one line per account, most recent first, three at most),
+  and one dismissible Meldeleiste row when an Einsatz opens under another account
+  (`ForeignUnsentMeldung`, `WorkspaceSync · subscribeForeignParked`). Neither reads a parked
+  blob out, moves or deletes one. The name comes from the roster the login screen last received
+  (cached in IndexedDB); an account no longer on it is «einem früheren Konto». The orphan,
+  refused and role slots name nobody here — no sign-in sends them.
 - **The live follow never hands a device back its own save** (18.10.2026). Every save wakes every
   parked follower, the saving device's own long poll too, which downloaded the whole blob it had
   just sent (~38 KB gzipped per Funkkontakt on the busiest Einsatz on record) and threw it away.

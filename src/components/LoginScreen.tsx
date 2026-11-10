@@ -8,6 +8,10 @@ import { IconSprite, Icon } from '../lib/icons'
 import { fillTemplate, initials, roleLabel } from '../lib/format'
 import { appConfig } from '../config/appConfig'
 import { isValidPin, PinPad } from './PinPad'
+import { Button } from './Button'
+import { cx } from '../lib/cx'
+import { cacheRoster, readCachedRoster, unsentAccounts, unsentLines, type UnsentAccount } from '../lib/unsentAccounts'
+import s from './LoginScreen.module.css'
 
 const NEUTRAL_COLOR = '#6c7686' // --ink-faint, for roster tiles without an assigned colour
 
@@ -28,13 +32,22 @@ export function LoginScreen() {
   // Why a Microsoft sign-in came back without a session (backend auth/microsoft · `?msLogin=`) —
   // read once, then taken out of the address bar so a reload does not repeat it.
   const [msError] = useState(takeMicrosoftError)
+  // Whose unsent work this device holds, and the roster it last saw (lib/unsentAccounts) — read
+  // once per visit to the gate, so going to a PIN pad and back does not ask again.
+  const [unsent, setUnsent] = useState<{ accounts: UnsentAccount[]; cached: RosterEntry[] } | null>(null)
+  useEffect(() => {
+    let alive = true
+    void Promise.all([unsentAccounts(), readCachedRoster()])
+      .then(([accounts, cached]) => { if (alive) setUnsent({ accounts, cached }) })
+    return () => { alive = false }
+  }, [])
 
   useEffect(() => {
     let alive = true
     setRosterError(null)
     setRoster(null)
     apiGet<RosterEntry[]>('/api/auth/roster')
-      .then((r) => { if (alive) setRoster(r) })
+      .then((r) => { cacheRoster(r); if (alive) setRoster(r) })
       .catch((e: unknown) => {
         if (!alive) return
         setRosterError(e instanceof ApiError
@@ -58,6 +71,11 @@ export function LoginScreen() {
         <Brand sub={selected ? appConfig.copy.login.pinEnter : appConfig.copy.login.subtitle} />
 
         {demoNote() && <p className="login-demo-note">{demoNote()}</p>}
+
+        {/* once the roster has answered either way, so the lines do not gain their buttons late */}
+        {!selected && unsent && (roster || rosterError) && (
+          <UnsentBanner accounts={unsent.accounts} roster={roster} cached={unsent.cached} onPick={setSelected} />
+        )}
 
         {selected
           ? <LoginPinPad user={selected} onLogin={login} onBack={() => setSelected(null)} />
@@ -97,6 +115,49 @@ function MicrosoftLogin({ error }: { error: MicrosoftError | null }) {
         {C.microsoft}
       </a>
     </div>
+  )
+}
+
+/**
+ * «Ungesendete Änderungen von {Name}» above the grid (sweep 09.11.2026, UX.2 — owner pick «5B»):
+ * this device holds edits that only reach the server when THEIR account signs in here, and on a
+ * shared tablet the next person would otherwise tap their own face without ever learning that.
+ * One line per account, most recent first; «Als {Name} anmelden» opens that person's PIN pad.
+ * The grid below is untouched — anybody else can still sign in, and that harms nothing: the edits
+ * stay parked under their owner's key (api/workspaceSync · ownerCacheKey).
+ *
+ * `roster` is the live one (null when it could not be loaded): only an account on it can be signed
+ * in, so only its line carries the button. Without it the names come from the roster this device
+ * last saw (`cached`); an account on neither is «einem früheren Konto».
+ */
+function UnsentBanner({ accounts, roster, cached, onPick }: {
+  accounts: readonly UnsentAccount[]
+  roster: RosterEntry[] | null
+  cached: readonly RosterEntry[]
+  onPick: (r: RosterEntry) => void
+}) {
+  const C = appConfig.copy.login
+  const { lines, more } = unsentLines(accounts, roster ?? cached)
+  if (!lines.length) return null
+  return (
+    <section className={cx('form-warn form-warn-amber', s.unsent)} role="status">
+      {lines.map(({ key, entry }, i) => (
+        <div key={key} className={s.line}>
+          <p className={s.title}>
+            <Icon id="warn" />
+            <span>{fillTemplate(C.unsentTitle, { name: entry?.display_name ?? C.unsentFormer })}</span>
+          </p>
+          {entry && roster && (
+            // the one filled action is the most recent account's; a second account's is framed
+            <Button variant={i === 0 ? 'primary' : 'secondary'} size="lg" block onClick={() => onPick(entry)}>
+              {fillTemplate(C.unsentLogin, { name: entry.display_name })}
+            </Button>
+          )}
+        </div>
+      ))}
+      {more > 0 && <p className={s.more}>{fillTemplate(C.unsentMore, { n: more })}</p>}
+      <p className={s.body}>{C.unsentBody}</p>
+    </section>
   )
 }
 
