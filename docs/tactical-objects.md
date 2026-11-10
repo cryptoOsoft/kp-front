@@ -95,7 +95,9 @@ One object, two surfaces: how a tactical object is stored, anchored, projected a
   Messungen); the Rapport prints the readings as their own section ([`rapport.md`](rapport.md)).
 - **A measured field holds a number, or says why not** (owner pick 3B, 10.11.2026, `lib/symbols ·
   measuredOf`). The panel's box takes digits and one decimal mark (`cleanMeasured`,
-  `ReadingParts · MeasuredField`); «über Messbereich» is the shared `TickRow` beside it and is
+  `ReadingParts · MeasuredField`); «über Messbereich» is the shared `TickRow` beside it – a bare box
+  named per gas, its words once as the column's caption above the first gas (`ReadingOverHead`,
+  owner review 10.11.2026) – and is
   stored IN the value as a leading «>» («>100», a bare «>» without a number) – ⚠️ no second synced
   field, so the history rows, the merge and an older build carry it unchanged. Over range draws,
   sorts and records as the Hauptalarm (`readingState` → `stateLevel`: A2, past every measured
