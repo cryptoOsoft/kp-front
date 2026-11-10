@@ -5,7 +5,7 @@
 // file gathers the facts (display mode, Notification.permission, the device record, the login's
 // expiry) and wires the fixes: «Erlauben» = the permission ask + the push registration,
 // «Erneuern» = re-register, «Installieren» = the InstallGuide, «Testalarm senden» = one push to
-// this browser, «Keine Alarme auf diesem Gerät» = push off (reversible in the rows).
+// this browser, «Keine Alarme auf diesem Gerät» = push off (undo toast; reversible in the rows).
 // The 3am rule: nothing modal by itself, no OS dialog without a tap.
 
 import { useCallback, useEffect, useState } from 'react'
@@ -15,7 +15,7 @@ import { cx } from '../../lib/cx'
 import { fillTemplate } from '../../lib/format'
 import { fmtDay } from '../../lib/buildingCard'
 import { Icon } from '../../lib/icons'
-import { toast } from '../../lib/ui'
+import { toast, undoToast } from '../../lib/ui'
 import { ensureNotifyPermission } from '../../lib/alarm'
 import { getInstallPlatform, isStandalone, onInstallStateChange } from '../../lib/installPrompt'
 import {
@@ -83,12 +83,18 @@ function useFixes(refresh: () => void) {
     toast(text, r === 'sent' ? { icon: 'bell' } : { icon: 'warn', tone: 'warn' })
     refresh()
   }
-  const optOut = async () => { await disablePush(); refresh() }
   const optIn = async () => {
     // the permission may never have been asked for: this tap is the gesture that may ask
     if (permissionNow() === 'default') await ensureNotifyPermission()
     await enablePush()
     refresh()
+  }
+  // ⚠️ Says so, with the way back (sweep 09.11.2026, UX.8): on the card it sits beside «Später»,
+  // and a slip turned alarm push off while the card went away exactly as it does for «Später».
+  const optOut = async () => {
+    await disablePush()
+    refresh()
+    undoToast(A.optOutDone, () => void optIn(), undefined, { kind: 'alarm-optout' })
   }
   const guideEl = guide ? <InstallGuide onClose={() => setGuide(false)} /> : null
   return { run, test, optOut, optIn, guideEl }

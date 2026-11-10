@@ -164,6 +164,7 @@ export const karteCopy: Localizable<Pick<Copy, 'karte'>> = {
         testFailed: 'The test alarm could not be sent',
         optOut: 'No alarms on this device',
         optOutSub: 'Push off – can be switched on again any time',
+        optOutDone: 'Alarms off on this device',
         optedOut: 'Alarms off',
         optedOutSub: 'This device gets no «Neuer Einsatz»',
         optIn: 'Switch on',
