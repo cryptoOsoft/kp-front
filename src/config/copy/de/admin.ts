@@ -1204,6 +1204,9 @@ export const adminCopy = {
       guardLastCmdRole: 'Das letzte aktive Bearbeiter-Konto kann nicht herabgestuft werden.',
       guardLastCmdDeactivate: 'Das letzte aktive Bearbeiter-Konto kann nicht deaktiviert werden.',
       guardLabel: 'Geschützte Aktionen für {name}',
+      // the ⋮ menu's second step (ui · ConfirmPrompt, sweep 09.11.2026 UX.14)
+      deactivateConfirm: '{name} deaktivieren? Die Person wird auf ihren Geräten abgemeldet.',
+      roleConfirm: '{name} zu «{role}» machen? Die Person wird auf ihren Geräten abgemeldet.',
       // Rolle als bewusste Wahl (keine Vorauswahl) — die Karten benennen die Folge im
       // Einsatz, nicht das Datenmodell.
       roleQuestion: 'Was darf {name} im Einsatz?',

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { freshAlarmCandidate, needsIntakeReview, pickBootIncident, sameIncidentList, shouldReopenClosed } from './incidentAlerts'
+import { freshAlarmCandidate, needsIntakeReview, pickBootIncident, sameIncidentList, shouldReopenClosed, undoTakeReturn } from './incidentAlerts'
 import type { IncidentMeta } from './incidents'
 
 const NOW = new Date('2026-07-08T12:00:00Z').getTime()
@@ -245,5 +245,19 @@ describe('needsIntakeReview', () => {
     expect(needsIntakeReview(inc({ ...auto, started_at: '2026-07-08T08:00:00Z' }), base)).toBe(false)
     expect(needsIntakeReview(inc({ ...auto, is_archived: true }), base)).toBe(false)
     expect(needsIntakeReview(null, base)).toBe(false)
+  })
+})
+
+describe('undoTakeReturn', () => {
+  const uebung = inc({ id: 'u', is_exercise: true })
+  const real = inc({ id: 'r' })
+
+  it('returns to the Einsatz that was open before the take, wherever it sits in the list', () => {
+    expect(undoTakeReturn([uebung, real], 'r')).toBe(real)
+  })
+
+  it('is home when that Einsatz is gone, or when there was none', () => {
+    expect(undoTakeReturn([uebung], 'r')).toBeNull()
+    expect(undoTakeReturn([uebung, real], null)).toBeNull()
   })
 })

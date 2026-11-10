@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
-import { apiGet, apiPost, ApiError, isDenial, isUnverifiable, SESSION_EXPIRED_EVENT } from './api'
+import { apiGet, apiPost, ApiError, isDenial, isUnverifiable, SESSION_EXPIRED_EVENT, SESSION_RESTORED_EVENT } from './api'
+import { onReachable } from './connectivity'
 import { idbGet, idbSet, idbDel } from './idb'
 import { getDeploymentConfig, isDemoMode, loadDeploymentConfig } from './deploymentConfig'
 import { notifyAccountKnown } from './accountKnown'
@@ -67,8 +68,9 @@ interface AuthContextValue {
   /** the session died mid-use and the transparent refresh could not repair it (api ·
    *  SESSION_EXPIRED_EVENT). `user` stays set while that is all we know — the workspace keeps
    *  working on its local cache — so a surface has to SAY it; this is the one flag that surface
-   *  reads. It is withdrawn once the server has ANSWERED: a live /me clears it, and a refusal
-   *  ends the session outright (see the listener below). Cleared by a fresh login or a logout. */
+   *  reads. It is withdrawn once the server has ANSWERED: a live /me or a successful refresh
+   *  clears it, and a refusal ends the session outright (see the listener below). Cleared by a
+   *  fresh login or a logout. */
   sessionExpired: boolean
   login: (userId: string, pin: string) => Promise<void>
   logout: () => Promise<void>
@@ -271,24 +273,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [adoptUser, denySession]) // stable: the boot probe runs once per mount
 
   // The one listener for a session that died mid-use — and the one place that decides what that
-  // MEANS. `kp:session-expired` fires when a 401 could not be repaired, but the refresh POST
-  // deciding it counts a dropped connection as a refusal too (api · tryRefresh), so the event on
-  // its own cannot tell «the server said no» from «the server could not be asked». So ask once:
+  // MEANS. `kp:session-expired` fires when the refresh was REFUSED (api · tryRefresh tells a
+  // refusal from a server it could not reach). Still ask once before locking anything:
   //
   //   · a reachable 401/403 → the session is genuinely gone. Lock this device out of its caches
   //     immediately (denySession); unsynced work is kept, not deleted.
-  //   · silence (offline, gateway, timeout) → NOTHING has been refused. The flag alone stands, the
+  //   · silence (offline, gateway, timeout) → NOTHING has been confirmed. The flag alone stands, the
   //     Meldung says «Änderungen bleiben auf diesem Gerät», and the cached user, the cached media
   //     and the cached workspace are as good as they were a minute ago. A cellar with no signal
-  //     must never be answered by signing the tablet out.
-  //   · a live /me → another tab repaired the session meanwhile: withdraw the warning.
+  //     must never be answered by signing the tablet out. The question is asked AGAIN once the
+  //     server answers anything (connectivity · onReachable), so the row never outlives the doubt.
+  //   · a live /me, or a refresh that succeeded meanwhile (SESSION_RESTORED_EVENT) → the session
+  //     works: withdraw the warning (sweep 09.11.2026, UX.1 — it used to stand until a sign-in).
   //
   // Single-flight: every failing request re-fires the event, and one answer settles all of them.
   useEffect(() => {
     let alive = true
     let asking = false
-    const onExpired = () => {
-      setSessionExpired(true)
+    let standing = false
+    const withdraw = () => { standing = false; setSessionExpired(false) }
+    const ask = () => {
       if (asking) return
       asking = true
       void (async () => {
@@ -297,16 +301,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (!alive) return
           adoptUser(u)
           writeCachedUser(u)
-          setSessionExpired(false)
+          withdraw()
         } catch (e) {
-          if (alive && isDenial(e)) denySession()
+          if (alive && isDenial(e)) { standing = false; denySession() }
         } finally {
           asking = false
         }
       })()
     }
+    const onExpired = () => {
+      standing = true
+      setSessionExpired(true)
+      ask()
+    }
+    const offReachable = onReachable(() => { if (standing) ask() })
     window.addEventListener(SESSION_EXPIRED_EVENT, onExpired)
-    return () => { alive = false; window.removeEventListener(SESSION_EXPIRED_EVENT, onExpired) }
+    window.addEventListener(SESSION_RESTORED_EVENT, withdraw)
+    return () => {
+      alive = false
+      offReachable()
+      window.removeEventListener(SESSION_EXPIRED_EVENT, onExpired)
+      window.removeEventListener(SESSION_RESTORED_EVENT, withdraw)
+    }
   }, [adoptUser, denySession]) // stable: one listener for the page's life
 
   // Whoever needs the session to load something says so through lib/accountKnown.

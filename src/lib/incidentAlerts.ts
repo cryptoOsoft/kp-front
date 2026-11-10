@@ -215,3 +215,11 @@ export function needsIntakeReview(
   if (opts.reviewedAt || opts.reviewed.has(inc.id)) return false
   return opts.now - ts(inc.started_at) < INCIDENT_ALERT_MAX_AGE_MS
 }
+
+/** Where «Rückgängig» on a one-tap take returns to: the Einsatz that was open BEFORE the take, if
+ *  it is still in the open list — otherwise null, which is home. Never «the first one in the
+ *  list»: with an Übung and a real Einsatz open that was the other one, silently (sweep
+ *  09.11.2026, UX.7 — the rule the close flow has had since 25.09.2026). */
+export function undoTakeReturn(open: IncidentMeta[], previousId: string | null): IncidentMeta | null {
+  return (previousId && open.find((i) => i.id === previousId)) || null
+}

@@ -6,7 +6,7 @@
     "react-hooks/exhaustive-deps": 20,
     "react-hooks/immutability": 20,
     "react-hooks/preserve-manual-memoization": 7,
-    "react-hooks/purity": 13,
+    "react-hooks/purity": 12,
     "react-hooks/refs": 114,
     "react-hooks/set-state-in-effect": 69,
     "react-refresh/only-export-components": 104

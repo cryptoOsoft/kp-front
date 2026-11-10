@@ -243,6 +243,7 @@ export const incidentCopy: Localizable<Pick<Copy, Keys>> = {
     region: 'Log replay',
     banner: 'LOG · REPLAY',
     subtitle: 'Read-only view of the past',
+    vehicle: 'Vehicle {id}',
     backToLive: 'Back to live',
     loadFailed: 'Log could not be loaded.',
     loading: 'Loading log …',

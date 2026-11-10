@@ -46,6 +46,15 @@ describe('UpdateBanner', () => {
     expect(screen.queryByRole('button', { name: C.dismiss })).toBeNull()
   })
 
+  // UX.11 (sweep 09.11.2026): the apply gave up and swUpdate announced the build again
+  it('offers the apply again when the update is announced again after an apply that gave up', () => {
+    mount('android')
+    fireEvent.click(screen.getByRole('button', { name: C.apply }))
+    act(() => announce?.(true))
+    expect(screen.getByRole('button', { name: C.apply }).hasAttribute('disabled')).toBe(false)
+    expect(screen.getByRole('button', { name: C.dismiss })).toBeTruthy()
+  })
+
   it('keeps iOS on the restart wording, with nothing to tap', () => {
     mount('ios')
     expect(screen.getByText(C.hint)).toBeTruthy()

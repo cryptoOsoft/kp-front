@@ -245,6 +245,7 @@ export const incidentCopy: Localizable<Pick<Copy, Keys>> = {
     region: 'Riproduzione diario',
     banner: 'DIARIO · RIPRODUZIONE',
     subtitle: 'Vista in sola lettura del passato',
+    vehicle: 'Veicolo {id}',
     backToLive: 'Torna in diretta',
     loadFailed: 'Impossibile caricare il diario.',
     loading: 'Caricamento diario …',

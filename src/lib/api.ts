@@ -194,6 +194,13 @@ export function isDenial(e: unknown): boolean {
 export const SESSION_EXPIRED_EVENT = 'kp:session-expired'
 
 /**
+ * …and its withdrawal: fired on `window` when a refresh SUCCEEDED, so the session works again
+ * (another tab signed in, the server took the cookie after all). AuthProvider lifts
+ * `sessionExpired` on it – the row «Anmeldung abgelaufen» must not outlive the problem.
+ */
+export const SESSION_RESTORED_EVENT = 'kp:session-restored'
+
+/**
  * A LINK page's own Einsatz answered 403 on the routes the page lives on — the workspace, the
  * Verlauf, the events (D1, 25.09.2026) — on a READ (a write's 403 may refuse only that write, see
  * requestResponse). The link is revoked, or dead for a reason the server does
@@ -290,12 +297,18 @@ async function rawFetch(path: string, init?: RequestInit, timeoutMs = DEFAULT_TI
 // request 401s, we transparently try ONE `/api/auth/refresh` and retry — so a multi-day
 // incident never strands at the login screen. Concurrent 401s share the same in-flight
 // refresh promise instead of stampeding the endpoint.
-let refreshInFlight: Promise<boolean> | null = null
-function tryRefresh(): Promise<boolean> {
+//
+// ⚠️ Three outcomes, not two (sweep 09.11.2026, UX.1): only an ANSWERED 401/403 is «refused». A
+// refresh that never reached the server (lie-fi, a cellar, a 5xx from the proxy) says nothing
+// about the session, and counting it as a refusal announced «Anmeldung abgelaufen» to a device
+// whose login was fine.
+type RefreshOutcome = 'ok' | 'refused' | 'unreachable'
+let refreshInFlight: Promise<RefreshOutcome> | null = null
+function tryRefresh(): Promise<RefreshOutcome> {
   if (!refreshInFlight) {
     refreshInFlight = rawFetch('/api/auth/refresh', { method: 'POST' })
-      .then((r) => r.ok)
-      .catch(() => false)
+      .then((r): RefreshOutcome => r.ok ? 'ok' : r.status === 401 || r.status === 403 ? 'refused' : 'unreachable')
+      .catch((): RefreshOutcome => 'unreachable')
       .finally(() => { refreshInFlight = null })
   }
   return refreshInFlight
@@ -331,13 +344,18 @@ async function requestResponse(path: string, init?: RequestInit, timeoutMs = DEF
   }
 
   if (res.status === 401 && !isAuthPath && !linkPageOwnsSession()) {
-    const ok = await tryRefresh()
-    if (ok) {
+    const outcome = await tryRefresh()
+    if (outcome === 'ok') {
+      if (typeof window !== 'undefined') window.dispatchEvent(new Event(SESSION_RESTORED_EVENT))
       try {
         res = await rawFetch(path, init, timeoutMs)
       } catch (e) {
         throw networkError(e)
       }
+    } else if (outcome === 'unreachable') {
+      // Nobody refused anything: the caller gets «not reached» (status 0), never the 401 – a
+      // caller that reads a 401 as a denial would lock the offline cache (auth · denySession).
+      throw networkError(null)
     } else if (typeof window !== 'undefined') {
       // the refresh itself was refused: this session cannot be repaired from here (see
       // SESSION_EXPIRED_EVENT). The 401 still propagates to the caller below.
@@ -363,7 +381,7 @@ async function request<T>(path: string, init?: RequestInit, timeoutMs = DEFAULT_
     // `status === 0` offline branches never ran: `listIncidentsResilient` gave up its cached
     // list and AuthProvider dropped the user at the login screen, with a perfectly good
     // offline cache sitting untouched behind it. Reported as unreachable, which is the truth.
-    throw new ApiError(0, 'Server nicht erreichbar (unerwartete Antwort)')
+    throw new ApiError(0, appConfig.copy.errors.serverUnexpected)
   }
 }
 

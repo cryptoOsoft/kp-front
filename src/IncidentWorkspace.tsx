@@ -6,7 +6,7 @@
 // Rules: every mutation joins the one timeline (docs/undo.md); synced state and the record:
 // docs/sync-and-offline.md.
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type MutableRefObject, type ReactNode } from 'react'
 import type { MapRef } from 'react-map-gl/maplibre'
 import './app.css'
 import { IconSprite } from './lib/icons'
@@ -260,6 +260,9 @@ interface WorkspaceProps {
    *  ⚠️ There is deliberately no second «archive the active one» prop. Both doors — the Rapport
    *  and the Einsatz-Menü row — go through the one confirm and end in this one callback. */
   onCompleteRapport: () => Promise<boolean>
+  /** App's handle on that same confirm, for «Abschliessen» in «Alle Einsätze» (lib/
+   *  useIncidentLifecycle · archiveById): set while this Einsatz can be closed here, else null. */
+  abschlussRef?: MutableRefObject<(() => Promise<boolean>) | null>
   /** re-open the CLOSED active incident (confirm dialog included) — the banner action */
   onReactivateActive?: () => Promise<ReactivateResult>
   /** leave the archived read-only view — back to the previously active incident, else the
@@ -278,7 +281,7 @@ interface WorkspaceProps {
 
 
 export function IncidentWorkspace({
-  incidentMeta, incidents, workspace, sync, forceReadOnly, tabLockLost, onTakeOverTab, onCompleteRapport,
+  incidentMeta, incidents, workspace, sync, forceReadOnly, tabLockLost, onTakeOverTab, onCompleteRapport, abschlussRef,
   onSwitchIncident, onOpenHistory, onOpenObjectVisits, onOpenKarte, onOpenDivera, onOpenDatenquellen, onReactivateActive, onBackFromArchive,
   covered = false, onUncover, needsReview, onReviewDone, reviewedLocallyAt, onEditMeta, lifecycleElsewhere, openCover, onOpenCoverDone,
 }: WorkspaceProps) {
@@ -1579,6 +1582,14 @@ export function IncidentWorkspace({
     // the rows' buttons and the pre-filled Einsatzende write the Rapport — only where it may be edited
     patchReportMeta: canEditRapport ? patchReportMeta : undefined,
   })
+  // «Alle Einsätze» closes THIS Einsatz through the same confirm (prop `abschlussRef`) — offered
+  // exactly where the Einsatz-Menü row is (WorkspaceTopBar · onArchive)
+  const canCloseHere = canEditIncident && !readOnly && !incidentMeta.is_archived
+  useEffect(() => {
+    if (!abschlussRef) return
+    abschlussRef.current = canCloseHere ? confirmAndComplete : null
+    return () => { abschlussRef.current = null }
+  }, [abschlussRef, canCloseHere, confirmAndComplete])
   // --- the Atemschutz clocks across «Wieder öffnen» (staging r3, F4; lib/reopenClocks) ----------
   // The newest close/reopen boundary in the Verlauf, the server's own rows. Right after a reopen
   // the meta can say «running» a moment before the Verlauf has the reopen row: the alarm HOLDS

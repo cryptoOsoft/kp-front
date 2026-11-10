@@ -962,6 +962,8 @@ export const adminCopy: Localizable<Pick<Copy, 'admin'>> = {
       guardLastCmdRole: 'The last active editor account cannot be demoted.',
       guardLastCmdDeactivate: 'The last active editor account cannot be deactivated.',
       guardLabel: 'Protected actions for {name}',
+      deactivateConfirm: 'Deactivate {name}? The person is signed out on their devices.',
+      roleConfirm: 'Make {name} «{role}»? The person is signed out on their devices.',
       roleQuestion: 'What may {name} do during an incident?',
       roleQuestionAnon: 'this person',
       roleRequired: 'required',
