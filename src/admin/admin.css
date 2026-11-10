@@ -1371,6 +1371,12 @@ a.adm-side-item { box-sizing: border-box; text-decoration: none; }
 .adm-members-inactive td:not(.adm-members-actions-col) { opacity: .55; }
 
 .adm-members-name { display: inline-flex; align-items: center; gap: 8px; font-weight: var(--fw-bold); color: var(--ink); }
+/* As a card (the phone), a one-word name longer than its share of the head line breaks inside
+   the word instead of running under the «Aktiv» pill («Führungsunterstützung» at 390px, owner
+   review 10.11.2026). Only there: in the real table `anywhere` would let the column collapse. */
+@container adm-table (max-width: 860px) {
+  .adm-members-name { overflow-wrap: anywhere; hyphens: auto; }
+}
 .adm-members-rank { font-weight: var(--fw-bold); color: var(--ink-dim); }
 .adm-members-swatch {
   flex: 0 0 auto; width: 11px; height: 11px; border-radius: 50%;
