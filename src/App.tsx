@@ -570,12 +570,14 @@ export default function App() {
   // One-tap Divera take: create the incident from the alarm AS-IS (everything Divera
   // carries + backend type/priority/geocode), drop straight onto the live map, and arm the
   // in-map review banner. No wizard — corrections happen on the map, never blocking it.
-  // Undo a one-tap take: archive the just-created incident and return to the prior view (the
-  // previous open incident if there was one, else the landing). Always targets the passed id
-  // (the take made it active) — no activeId dep, so the toast's captured closure can't go stale.
-  // Taken from «Karte & Objekte» (`back: 'karte'`): the undo returns THERE, as the mockup's j8 does
-  // — not into another open Einsatz the operator was not looking at.
-  const undoTake = useCallback(async (id: string, back?: 'karte') => {
+  // Undo a one-tap take: archive the just-created incident and return to the prior view — the
+  // Einsatz that was open when the alarm was taken (`back`, its id), else home. Always targets
+  // the passed id (the take made it active) — no activeId dep, so the toast's captured closure
+  // can't go stale. Taken from «Karte & Objekte» (`back: 'karte'`): the undo returns THERE, as the
+  // mockup's j8 does — not into another open Einsatz the operator was not looking at.
+  // ⚠️ Never into `list[0]` (sweep 09.11.2026, UX.7): with an Übung and a real Einsatz open that
+  // was the other one. An Einsatz that is gone meanwhile, or does not open, is home too.
+  const undoTake = useCallback(async (id: string, back: 'karte' | { incidentId: string | null }) => {
     if (syncRef.current) { syncRef.current.dispose(); syncRef.current = null }
     // this device's own archive — not «auf einem anderen Gerät abgeschlossen» (lib/incidentClosed)
     closingLocallyRef.current = id
@@ -597,16 +599,17 @@ export default function App() {
     setReviewPendingId(null)
     const list = await refreshList() // returns non-archived only → the taken incident is gone
     setActiveId(null); setActiveMeta(null)
-    if (back === 'karte') {
-      // home again, where the take started; the undone Einsatz is not remembered either
-      savePrefs({ ...loadPrefs(), incidentId: undefined })
-      setWorkspace(null); setForceReadOnly(false)
-    } else if (list[0]) await selectIncident(list[0].id, { meta: list[0] })
+    // home: where the take started, or all that is left; the undone Einsatz is not remembered either
+    savePrefs({ ...loadPrefs(), incidentId: undefined })
+    setWorkspace(null); setForceReadOnly(false)
+    const previous = back === 'karte' ? null : undoTakeReturn(list, back.incidentId)
+    if (previous) await openIncident(previous.id, { meta: previous }) // says so when it fails
     void refreshPool()
-  }, [closingLocallyRef, refreshList, selectIncident, refreshPool])
+  }, [closingLocallyRef, refreshList, openIncident, refreshPool])
 
-  const takeAndOpen = useCallback(async (a: DiveraAlarm, back?: 'karte') => {
+  const takeAndOpen = useCallback(async (a: DiveraAlarm, from?: 'karte') => {
     if (taking != null) return
+    const back = from ?? { incidentId: activeId } // read before the take makes its own Einsatz active
     setTaking(a.divera_id)
     try {
       const inc = await takeDiveraAlarm(a.divera_id)
@@ -626,7 +629,7 @@ export default function App() {
       setTaking(null)
       void refreshPool()
     }
-  }, [taking, openCreated, refreshPool, undoTake])
+  }, [taking, activeId, openCreated, refreshPool, undoTake])
 
   // Split dispatch: the banner alarm may be the SAME Einsatz already open (reworded group
   // dispatch, Nachalarm) — attach it to the ACTIVE incident instead of opening a duplicate.
@@ -748,11 +751,11 @@ export default function App() {
   // (with its own margin) and skipped the sentence explaining what to do. A hole where the
   // explanation should be, on the one screen whose whole job is «what now».
   const landingAlarms = isEditor ? poolAlarms.filter((a) => !dismissedAlarms.has(a.divera_id)) : []
+  const hideAlarm = (a: DiveraAlarm) => setDismissedAlarms(dismissAlarm(a.divera_id))
   // an alarm taken from the viewer undoes back to it (undoTake)
   const takeBack = screen === 'karte' ? 'karte' as const : undefined
 
   // the open Einsatz itself, while a surface covers it: step aside instead of reopening it
-  const hideAlarm = (a: DiveraAlarm) => setDismissedAlarms(dismissAlarm(a.divera_id))
   const openOrUncover = (i: IncidentMeta) => {
     if (i.id === activeId && activeMeta && einsatzBehind) uncoverEinsatz()
     else void openIncident(i.id, { meta: i })
@@ -939,24 +942,24 @@ export default function App() {
       {isEditor && (screen === 'karte' || screen === 'visits') && (
         <IncomingAlarmBanner
           alarms={poolAlarms}
+          dismissed={dismissedAlarms}
+          onDismiss={hideAlarm}
           taking={taking}
           attachFirst={false}
           onTake={(a) => {
             if (screen === 'visits') { leaveObjectVisits('/'); void takeAndOpen(a) } else void takeAndOpen(a, 'karte')
-          dismissed={dismissedAlarms}
-          onDismiss={hideAlarm}
           }}
         />
       )}
       {isEditor && screen === 'einsatz' && activeMeta != null && (
         <IncomingAlarmBanner
           alarms={poolAlarms}
+          dismissed={dismissedAlarms}
+          onDismiss={hideAlarm}
           taking={taking}
           // ⚠️ «Anhängen» only onto an Einsatz that is RUNNING (review of #235): attached to a closed
           // one, the dispatch's Zeiten and Meldung would land in a closed record
           attachFirst={activeMeta.source === 'manual' && isIncidentRunning(activeMeta)}
-          dismissed={dismissedAlarms}
-          onDismiss={hideAlarm}
           onTake={(a) => void takeAndOpen(a)}
           onAttach={isIncidentRunning(activeMeta) ? (a) => void attachToActive(a) : undefined}
         />
