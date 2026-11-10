@@ -198,6 +198,8 @@ export const karteCopy = {
         testFailed: 'Testalarm liess sich nicht senden',
         optOut: 'Keine Alarme auf diesem Gerät',
         optOutSub: 'Push aus – jederzeit wieder einschaltbar',
+        // the undo toast after the opt-out, card and rows alike (sweep 09.11.2026, UX.8)
+        optOutDone: 'Alarme auf diesem Gerät aus',
         optedOut: 'Alarme aus',
         optedOutSub: 'Dieses Gerät bekommt keinen «Neuer Einsatz»',
         optIn: 'Einschalten',

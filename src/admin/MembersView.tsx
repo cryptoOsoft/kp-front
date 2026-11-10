@@ -5,7 +5,7 @@ import { apiGet, apiPost, apiPatch, ApiError } from '../lib/api'
 import { appConfig } from '../config/appConfig'
 import { fillTemplate } from '../lib/format'
 import { Icon } from '../lib/icons'
-import { ActionMenu, Card, EmptyState, Field, StatusBadge, fmtDate } from './ui'
+import { ActionMenu, Card, ConfirmPrompt, EmptyState, Field, StatusBadge, fmtDate } from './ui'
 import { useCellLabels } from './useCellLabels'
 import { RoleChoice, type MemberRole } from './RoleChoice'
 import { PinSheet } from './PinSheet'
@@ -321,6 +321,10 @@ export function MembersView() {
   const [editing, setEditing] = useState<string | null>(null)
   const [rowErr, setRowErr] = useState<{ id: string; detail: string } | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
+  /** «Deaktivieren» / a role change waiting for its second step (ui · ConfirmPrompt): either one
+   *  signs that person out on their devices mid-Einsatz, and both fired on one tap from the ⋮
+   *  menu, between «Bearbeiten» and «PIN zurücksetzen» (sweep 09.11.2026, UX.14) */
+  const [asking, setAsking] = useState<{ id: string; act: 'role' | 'deactivate' } | null>(null)
   /** the member whose PIN is being set — the pinpad Sheet is open while this is non-null */
   const [pinFor, setPinFor] = useState<AdminUser | null>(null)
   const [addOpen, setAddOpen] = useState(false)
@@ -469,6 +473,16 @@ export function MembersView() {
                       </td>
                       <td className="adm-mono">{fmtDate(u.last_login)}</td>
                       <td className="adm-members-actions-col adm-c-act">
+                        {asking?.id === u.id ? (
+                          <ConfirmPrompt
+                            danger={asking.act === 'deactivate'}
+                            question={asking.act === 'deactivate'
+                              ? fillTemplate(C.deactivateConfirm, { name: u.display_name })
+                              : fillTemplate(C.roleConfirm, { name: u.display_name, role: u.role === 'editor' ? C.roleViewer : C.roleEditor })}
+                            onConfirm={() => { setAsking(null); void (asking.act === 'deactivate' ? toggleActive(u) : toggleRole(u)) }}
+                            onCancel={() => setAsking(null)}
+                          />
+                        ) : (
                         <ActionMenu
                           ariaLabel={fillTemplate(C.guardLabel, { name: u.display_name })}
                           disabled={busy}
@@ -476,13 +490,14 @@ export function MembersView() {
                             { label: appConfig.copy.admin.common2.edit, onClick: () => setEditing(u.id) },
                             {
                               label: u.role === 'editor' ? C.toViewer : C.toEditor,
-                              onClick: () => void toggleRole(u),
+                              onClick: () => setAsking({ id: u.id, act: 'role' }),
                               disabled: blockDemote,
                               title: blockDemote ? C.guardLastCmdRole : undefined,
                             },
                             {
                               label: u.is_active ? C.deactivate : C.reactivate,
-                              onClick: () => void toggleActive(u),
+                              // «Reaktivieren» takes nothing away from anybody: it acts at once
+                              onClick: () => (u.is_active ? setAsking({ id: u.id, act: 'deactivate' }) : void toggleActive(u)),
                               disabled: blockDeactivate,
                               title: blockDeactivate ? C.guardLastCmdDeactivate : undefined,
                               danger: u.is_active,
@@ -490,6 +505,7 @@ export function MembersView() {
                             { label: C.resetPin, onClick: () => setPinFor(u) },
                           ]}
                         />
+                        )}
                         {rowErr?.id === u.id && (
                           <div className="adm-state adm-state-err adm-members-rowerr">
                             {rowErr.detail}

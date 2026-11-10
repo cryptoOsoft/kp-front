@@ -784,3 +784,26 @@ describe('the mobile composer caret', () => {
     await waitFor(() => expect(document.activeElement).toBe(field))
   })
 })
+
+// Sweep 09.11.2026, UX.12: offline, a picked Beilage held the typed Eintrag back with it, and the
+// toast only said the upload needs a connection.
+describe('JournalComposer · offline with a Beilage', () => {
+  it('offers «Ohne Beilage erfassen», which files what was written', async () => {
+    vi.stubGlobal('navigator', { ...navigator, onLine: false })
+    const { Overlays } = await import('../lib/ui')
+    const uploadFile = vi.fn()
+    const { onSubmit } = setup({ uploadFile })
+    render(<Overlays />)
+    const input = document.querySelectorAll('input[type=file]')[1] as HTMLInputElement
+    fireEvent.change(input, { target: { files: [new File(['x'], 'Plan.pdf', { type: 'application/pdf' })] } })
+    await screen.findByText(/Plan\.pdf/)
+    type('Lüfter gestellt')
+    fireEvent.click(screen.getByRole('button', { name: /Erfassen|Eintragen/ }))
+    expect(onSubmit).not.toHaveBeenCalled()
+
+    fireEvent.click(await screen.findByRole('button', { name: appConfig.copy.journal.attachOfflineSkip }))
+    expect(onSubmit).toHaveBeenCalledOnce()
+    expect(onSubmit.mock.calls[0][0]).toMatchObject({ text: 'Lüfter gestellt', files: undefined })
+    expect(uploadFile).not.toHaveBeenCalled()
+  })
+})

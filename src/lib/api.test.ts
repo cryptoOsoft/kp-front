@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getEventListeners } from 'node:events'
 import { execFileSync } from 'node:child_process'
-import { ApiError, LINK_REFUSED_EVENT, SESSION_EXPIRED_EVENT, apiBeacon, apiDelete, apiGet, apiGetRaw, apiPost, apiPut, eitherSignal, isUnverifiable } from './api'
+import { ApiError, LINK_REFUSED_EVENT, SESSION_EXPIRED_EVENT, SESSION_RESTORED_EVENT, apiBeacon, apiDelete, apiGet, apiGetRaw, apiPost, apiPut, eitherSignal, isUnverifiable } from './api'
 import { resetServerClock, serverClockOffsetMs } from './serverClock'
 
 // api.ts is the fetch wrapper under EVERY backend call: typed errors, the transparent
@@ -453,10 +453,30 @@ describe('request — a session that cannot be repaired', () => {
     expect(onExpired).toHaveBeenCalledOnce()
   })
 
-  it('stays quiet when the refresh succeeds', async () => {
+  // UX.1 (sweep 09.11.2026): a refresh that did not REACH the server is not a refusal. It used to
+  // announce «Anmeldung abgelaufen», and the 401 it let through read as a denial to its caller.
+  it.each([
+    ['the connection dropped', () => Promise.reject(new TypeError('Failed to fetch'))],
+    ['the proxy answered 503', () => Promise.resolve(new Response('', { status: 503 }))],
+  ])('reports «not reached», not «expired», when the refresh fails because %s', async (_why, refresh) => {
     const win = new EventTarget()
     const onExpired = vi.fn()
     win.addEventListener(SESSION_EXPIRED_EVENT, onExpired)
+    vi.stubGlobal('window', win)
+    fetchMock
+      .mockResolvedValueOnce(new Response('', { status: 401 }))
+      .mockImplementationOnce(refresh)
+    const err = await apiGet('/api/x').catch((e: unknown) => e)
+    expect(isUnverifiable(err)).toBe(true)
+    expect(onExpired).not.toHaveBeenCalled()
+  })
+
+  it('stays quiet when the refresh succeeds, and says the session works', async () => {
+    const win = new EventTarget()
+    const onExpired = vi.fn()
+    const onRestored = vi.fn()
+    win.addEventListener(SESSION_EXPIRED_EVENT, onExpired)
+    win.addEventListener(SESSION_RESTORED_EVENT, onRestored)
     vi.stubGlobal('window', win)
     fetchMock
       .mockResolvedValueOnce(new Response('', { status: 401 }))
@@ -464,6 +484,7 @@ describe('request — a session that cannot be repaired', () => {
       .mockResolvedValueOnce(json({ ok: 1 }))
     await expect(apiGet('/api/x')).resolves.toEqual({ ok: 1 })
     expect(onExpired).not.toHaveBeenCalled()
+    expect(onRestored).toHaveBeenCalledOnce()
   })
 })
 

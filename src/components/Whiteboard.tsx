@@ -2832,7 +2832,7 @@ export function Whiteboard({ plans, activeId, annos: annosAll, symMul = 1, capti
             <div className="wb-zoom wb-zoom-float" onPointerDown={(e) => e.stopPropagation()}>
               <button onClick={() => zoom(1 / 1.3)} disabled={scale <= MIN_SCALE} title={appConfig.copy.nav.zoomOut} aria-label={appConfig.copy.nav.zoomOut}><Icon id="minus" /></button>
               <button onClick={() => zoom(1.3)} disabled={scale >= maxScale} title={appConfig.copy.nav.zoomIn} aria-label={appConfig.copy.nav.zoomIn}><Icon id="plus" /></button>
-              <button className="wb-fit" onClick={() => applyView(1, { x: 0, y: 0 })} disabled={scale === 1 && pos.x === 0 && pos.y === 0} title={appConfig.copy.nav.fit}>{appConfig.copy.whiteboard.fit}</button>
+              <button className="wb-fit" onClick={() => applyView(1, { x: 0, y: 0 })} disabled={scale === 1 && pos.x === 0 && pos.y === 0} title={appConfig.copy.nav.fit}>{appConfig.copy.nav.fit}</button>
             </div>
           )}
 

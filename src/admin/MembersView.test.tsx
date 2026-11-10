@@ -168,3 +168,35 @@ describe('Mitglied bearbeiten — dort EXISTIERT der Wert', () => {
     expect((apiPatch.mock.calls[0][1] as { role: string }).role).toBe('editor')
   })
 })
+
+// Sweep 09.11.2026, UX.14: both sign the person out on their devices, and both fired on one tap
+// from the ⋮ menu. They ask first now, with the Verwaltung's two-step confirm.
+describe('«Deaktivieren» und der Rollenwechsel im ⋮-Menü', () => {
+  const twoMembers = [EXISTING, { ...EXISTING, id: 'u2', username: 'kunz', display_name: 'Kunz Bea' }]
+  const pick = async (label: string) => {
+    apiGet.mockResolvedValue(twoMembers)
+    apiPatch.mockResolvedValue({})
+    await renderMembers()
+    fireEvent.click(screen.getByRole('button', { name: 'Geschützte Aktionen für Kunz Bea' }))
+    fireEvent.click(await screen.findByText(label))
+  }
+
+  it.each([
+    ['Deaktivieren', C.deactivate, { is_active: false }],
+    ['Rollenwechsel', C.toViewer, { role: 'viewer' }],
+  ])('%s fragt zuerst und schreibt erst nach «Ja»', async (_name, label, patch) => {
+    await pick(label)
+    expect(apiPatch).not.toHaveBeenCalled()
+    const ask = screen.getByRole('alertdialog')
+    expect(ask.textContent).toContain('Kunz Bea')
+    fireEvent.click(screen.getByRole('button', { name: appConfig.copy.admin.common.confirmYes }))
+    await waitFor(() => expect(apiPatch).toHaveBeenCalledWith('/api/auth/users/u2', patch))
+  })
+
+  it('«Abbrechen» schreibt nichts und bringt das Menü zurück', async () => {
+    await pick(C.deactivate)
+    fireEvent.click(screen.getByRole('button', { name: appConfig.copy.admin.common.confirmNo }))
+    expect(apiPatch).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Geschützte Aktionen für Kunz Bea' })).toBeTruthy()
+  })
+})

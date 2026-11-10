@@ -1653,7 +1653,7 @@ button.rp-sign-row:disabled { cursor: default; }
   padding: 8px 0 2px;
   font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-faint);
 }
-.cv-mittel li.used .cv-mittel-label { color: var(--accent); font-weight: var(--fw-bold); }
+.cv-mittel li.used .cv-mittel-label { font-weight: var(--fw-bold); }   /* used = the row's ink, bold; red is not «used» (sweep 09.11.2026, UI.5) */
 .cv-rueck { flex-wrap: wrap; }
 .cv-textarea { min-height: 64px; resize: vertical; width: 100%; box-sizing: border-box; }
 .cv-row.top { align-items: start; }

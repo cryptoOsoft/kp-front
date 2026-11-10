@@ -961,6 +961,8 @@ export const adminCopy: Localizable<Pick<Copy, 'admin'>> = {
       guardLastCmdRole: 'Le dernier compte éditeur actif ne peut pas être rétrogradé.',
       guardLastCmdDeactivate: 'Le dernier compte éditeur actif ne peut pas être désactivé.',
       guardLabel: 'Actions protégées pour {name}',
+      deactivateConfirm: 'Désactiver {name} ? La personne est déconnectée de ses appareils.',
+      roleConfirm: 'Passer {name} en «{role}» ? La personne est déconnectée de ses appareils.',
       roleQuestion: 'Que peut faire {name} pendant l’intervention ?',
       roleQuestionAnon: 'cette personne',
       roleRequired: 'obligatoire',

@@ -266,8 +266,6 @@ export const editorsCopy: Localizable<Pick<Copy, Keys>> = {
   },
   topBar: {
     offline: 'Offline',
-    tiles: 'Tasselli',
-    recording: 'REC',
     gpsFrozen: 'GPS congelato',
     gpsFrozenHint: 'Il feed GPS in tempo reale non risponde. I veicoli restano sull’ultima posizione nota.',
   },

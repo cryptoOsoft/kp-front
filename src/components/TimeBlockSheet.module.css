@@ -76,7 +76,7 @@ button.headMain:active { background-image: linear-gradient(var(--press), var(--p
 .open {
   display: inline-flex; align-items: center; min-height: var(--tap); padding: 0 var(--sp-3);
   border-radius: var(--r-ctl); background: var(--green-16);
-  font: var(--fw-bold) var(--fs-1) var(--body); font-style: normal; color: var(--green);
+  font: var(--fw-bold) var(--fs-1) var(--body); font-style: normal; color: var(--green-strong);
 }
 /* an editable end that has not happened yet: same green as an open stretch on the grid, but it is
    a field and behaves like one */

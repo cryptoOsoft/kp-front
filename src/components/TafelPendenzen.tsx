@@ -4,6 +4,8 @@ import { Icon } from '../lib/icons'
 import { cx } from '../lib/cx'
 import { fillTemplate, hhmm } from '../lib/format'
 import { newId } from '../lib/ids'
+import { serverNow } from '../lib/serverClock'
+import { clearDraft, keepDraft, readDraft } from '../lib/draftKeep'
 import { colMinScale, labelText, type LiveSection } from '../lib/boardTemplate'
 import type { NavKey } from '../lib/boardFormNav'
 import { pendenzLedger, type PendenzItem } from '../lib/reminders'
@@ -26,9 +28,12 @@ import p from './TafelPendenzen.module.css'
  *   itself (owner, 05.11.: no new state) and a read-out; «Erledigt» is the Verlauf's own tick —
  *   confirm-with-undo, ↶ and «Rückgängig» like the ring there — and un-ticking takes it back.
  * - **Zeit** carries an Erinnerung's time with a bell, red «überfällig» once it is past and open.
- * - **The empty row** at the foot becomes a Pendenz when the row is LEFT (Enter, Tab off its last
- *   cell, a tap elsewhere): one `created` row with Was, Wer and Prio. together, never a created
- *   row followed by corrections. It then says once «Als Pendenz im Verlauf eingetragen».
+ * - **The empty row** at the foot becomes a Pendenz on Enter or Tab off its last cell: one
+ *   `created` row with Was, Wer and Prio. together, never a created row followed by corrections.
+ *   It then says once «Als Pendenz im Verlauf eingetragen».
+ *   ⚠️ Never when the focus merely LEAVES it (sweep 09.11.2026, UX.13): a stray letter and a tap
+ *   elsewhere made a Verlauf record that prints in the Rapport and cannot be taken back. The words
+ *   stay in the row as a draft (lib/draftKeep, so a page switch keeps them too) until Enter.
  * - **A change** of Was / Wer / Prio. on an item is a correction row in the Verlauf; an emptied
  *   Was keeps its words (an Auftrag without words is none).
  * - **◷** at the end of Was opens the Verlauf on the item's row.
@@ -39,16 +44,20 @@ import p from './TafelPendenzen.module.css'
  */
 
 const NEW = '+new'
+/** where the empty row's words wait (lib/draftKeep: this session, this Einsatz) */
+const DRAFT_KEY = 'tafel-pendenz-new'
 const C = () => appConfig.copy.tafelPendenzen
 /** the Was / Wer text cells — Tab walks them, Enter goes down in the same column */
 const TYPED: readonly PendenzColumn[] = ['was', 'wer']
 const keyOf = (row: string, col: PendenzColumn) => `pz|${row}|${col}`
 
-/** A clock for «überfällig»: re-reads the time every 30 s while the page is shown. */
+/** A clock for «überfällig»: re-reads the time every 30 s while the page is shown. The SERVER's
+ *  clock (lib/serverClock), like the reminders themselves – a tablet whose own clock is off must
+ *  not disagree with the Verlauf about what is late. */
 function useNow(ms = 30_000): number {
-  const [now, setNow] = useState(() => Date.now())
+  const [now, setNow] = useState(() => serverNow())
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), ms)
+    const id = setInterval(() => setNow(serverNow()), ms)
     return () => clearInterval(id)
   }, [ms])
   return now
@@ -73,11 +82,15 @@ export function TafelPendenzen({ Cell, sec, port, isPhone, pageTitle }: Props) {
   const canWrite = !!port?.canWrite
   const rootRef = useRef<HTMLDivElement>(null)
 
-  // ── the empty row: a draft until the row is left (see the header) ─────────────────────────
+  // ── the empty row: a draft until Enter / Tab off its last cell (see the header) ───────────
   const blank: PendenzDraft = { text: '', assignee: '', urgent: false }
-  const [draft, setDraft] = useState<PendenzDraft>(blank)
+  const [draft, setDraft] = useState<PendenzDraft>(() => readDraft(DRAFT_KEY, blank))
   const draftRef = useRef(draft)
-  const put = (patch: Partial<PendenzDraft>) => { draftRef.current = { ...draftRef.current, ...patch }; setDraft(draftRef.current) }
+  const put = (patch: Partial<PendenzDraft>) => {
+    draftRef.current = { ...draftRef.current, ...patch }
+    setDraft(draftRef.current)
+    keepDraft(DRAFT_KEY, draftRef.current)
+  }
   /** re-keyed after each submit, so the empty row's cells start empty again */
   const [newKey, setNewKey] = useState(() => newId('fr'))
   /** the row just typed here — its «eingetragen» line shows once, until the next */
@@ -88,14 +101,11 @@ export function TafelPendenzen({ Cell, sec, port, isPhone, pageTitle }: Props) {
     const made = port.create(d, pageTitle)
     draftRef.current = blank
     setDraft(blank)
+    clearDraft(DRAFT_KEY)
     setNewKey(newId('fr'))
     if (made) setSaved(made)
     return true
   }
-  // a draft is written when the page goes away, like every cell on the Tafel
-  const submitRef = useRef(submit)
-  useEffect(() => { submitRef.current = submit })
-  useEffect(() => () => { submitRef.current() }, [])
 
   // ── an emptied Was is put back: the cell is re-keyed so it shows the item's words again ────
   const [resets, setResets] = useState(0)
@@ -176,8 +186,8 @@ export function TafelPendenzen({ Cell, sec, port, isPhone, pageTitle }: Props) {
           <span key={col} className={cx(s.td, p.center)}>
             {canWrite
               // the Tendenz button's recipe (TafelFormPage · TrendButton): the name says what stands
-              // and what a tap does. The press keeps the focus where it is: on the empty row, taking
-              // it away would submit the row before its Prio. (iOS never focuses a button)
+              // and what a tap does. The press keeps the focus where it is, so Enter still files
+              // the empty row after its Prio. was set (iOS never focuses a button)
               ? <IconButton label={on ? w.prioOn : w.prioOff} className={cx(p.prio, on && p.prioOn)} tabIndex={-1}
                   onPointerDown={(e) => e.preventDefault()} onClick={toggle}>{on ? '1' : <span className={p.prioDot} aria-hidden="true">·</span>}</IconButton>
               : on ? <span className={cx(p.prio, p.prioOn)} role="img" aria-label={w.prio}>1</span> : null}
@@ -213,9 +223,7 @@ export function TafelPendenzen({ Cell, sec, port, isPhone, pageTitle }: Props) {
   const heads = cols.map((c) => labelText(c.label))
   const row = (item: PendenzItem | null) => (
     <div key={item?.id ?? newKey} className={cx(s.tr, !item && s.trNew)} role="row" style={grid}
-      data-pendenz={item?.id}
-      // the empty row becomes a Pendenz when the focus leaves it (a tap elsewhere, a page switch)
-      onBlur={item ? undefined : (e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) submit() }}>
+      data-pendenz={item?.id}>
       {cols.map((c, i) => cellFor(item, c.id, heads[i]))}
     </div>
   )

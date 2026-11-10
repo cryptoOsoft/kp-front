@@ -19,6 +19,10 @@ import { closedMetaFor, closedNoticeAt, onIncidentClosed, onIncidentReopened, re
 import { serverNow, serverNowIso } from './serverClock'
 import { ApiError, isUnverifiable } from './api'
 import { archiveIncident, getIncident, isIncidentRunning, patchIncident, reactivateIncident, type IncidentMeta, type Workspace, type WorkspaceSync } from './incidents'
+import { getWorkspace } from './api/workspace'
+import { sanitizeWorkspace } from './workspace'
+import { truppStillDeployed } from './atemschutz'
+import { insideAbschlussSpec } from './abschlussOpen'
 
 /** the Einsatz closed — or reopened — on ANOTHER device while it was open here, and when */
 export type LifecycleElsewhere = { id: string; event: 'closed' | 'reopened'; at: number }
@@ -131,7 +135,13 @@ export function useIncidentLifecycle({ activeMeta, incidents, setActiveMeta, set
 export function useCloseReopen({
   closingLocallyRef, reopeningLocallyRef, activeId, activeMeta, incidents, syncRef, archiveReturnRef, refreshList,
   selectIncident, markOpened, setIncidents, setClosedMedia, setActiveId, setActiveMeta, setWorkspace, setForceReadOnly,
+  abschlussHereRef, showEinsatz,
 }: {
+  /** The counting confirm of the Einsatz open on THIS device (IncidentWorkspace sets it while
+   *  that Einsatz can be closed here, null otherwise) — «Alle Einsätze» closes it through this. */
+  abschlussHereRef: MutableRefObject<(() => Promise<boolean>) | null>
+  /** bring that Einsatz to the front before its confirm asks («Zur Tafel» has to land on it) */
+  showEinsatz: () => void
   closingLocallyRef: MutableRefObject<string | null>
   reopeningLocallyRef: MutableRefObject<string | null>
   activeId: string | null
@@ -282,15 +292,31 @@ export function useCloseReopen({
   // Historie as «offen» for ever while the Rapport path stamped and counted. Two doors with the
   // same label into two different rooms.
   //
-  // The CONFIRM is the plain one here, and deliberately: this incident's workspace is not loaded,
-  // so there are no open points to name. The Einsatz being worked on goes through the counting
-  // confirm in IncidentWorkspace instead — both of ITS doors do.
+  // ⚠️ Crews still inside are asked about HERE too (sweep 09.11.2026, UX.10). The plain confirm
+  // closed an Einsatz with three Trupps under PA without a word, and every other device had
+  // gone read-only by the time the 10 s «Wieder öffnen» was read.
+  //   · The Einsatz open on this device goes through ITS counting confirm (`abschlussHereRef`,
+  //     IncidentWorkspace · confirmAndComplete): Notfall, Trupps, Mindestangaben, «Zur Tafel».
+  //   · Any other one: its Trupps are read once from the server. Crews inside → the same question
+  //     that names them, «Trotzdem abschliessen» the quiet answer. No answer from the server (or
+  //     nobody inside) → the plain confirm, as before; nothing is ever written for them.
   const archiveById = useCallback(async (id: string) => {
     if (!id) return
     // Demo: don't let a visitor close the one shared running incident (it would archive for
     // everyone until the nightly reset). Editing it stays open; only closing/creating is blocked.
     if (isDemoMode()) { toast(appConfig.copy.demo.actionBlocked, { icon: 'info' }); return }
-    const ok = await confirmDialog({
+    const here = id === activeId ? abschlussHereRef.current : null
+    if (here) { showEinsatz(); await here(); return }
+    const inside = await getWorkspace(id)
+      .then((r) => (sanitizeWorkspace(r.workspace).ws?.trupps ?? []).filter(truppStillDeployed))
+      .catch(() => [])
+    const ok = await confirmDialog(inside.length > 0 ? {
+      title: appConfig.copy.abschluss.insideTitle,
+      ...insideAbschlussSpec(inside),
+      confirmLabel: appConfig.copy.abschluss.insideClose,
+      cancelLabel: appConfig.copy.cancel,
+      danger: true,
+    } : {
       title: appConfig.copy.history.archiveConfirmTitle,
       message: appConfig.copy.history.archiveConfirmMsg,
       confirmLabel: appConfig.copy.history.archiveConfirmBtn,
@@ -299,7 +325,7 @@ export function useCloseReopen({
     })
     if (!ok) return
     await completeRapport(id)
-  }, [completeRapport])
+  }, [completeRapport, activeId, abschlussHereRef, showEinsatz])
 
   // «Wieder öffnen» — the mirror of abschliessen (the ArchivedBanner action), and as deliberate:
   // the confirm also teaches the consequences (Nachträge, «geändert nach Abschluss»). On confirm

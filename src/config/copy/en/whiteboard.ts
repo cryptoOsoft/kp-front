@@ -30,7 +30,6 @@ export const whiteboardCopy: Localizable<Pick<Copy, 'incidents' | 'entities' | '
     done: 'Done',
   },
   whiteboard: {
-    fit: 'Fit',
     pan: 'Select',
     team: 'Team',
     draw: 'Draw',
