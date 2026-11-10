@@ -1,12 +1,12 @@
 {
   "$comment": "Written by `node scripts/perf-report.mjs --update` from a CI run (`just perf-accept <run-id>`). Hand-edit only `tolerance`. docs/testing/perf-journeys.md",
-  "recorded": "2026-10-05",
-  "source": "CI run 37340054315; cold-start.js_kb + cold-start.precache_kb from CI run 38012467930 (main 6470c2ff, the E1 split, 10.10.); verlauf.api_requests from CI run 38405365334 (#297, 13.10.); cold-start.js_kb + cold-start.precache_kb + cold-start.static_requests from CI run 38424130702 (#193, MapLibre 6, 13.10.); trupps.kb_per_save from CI run 39134779672 (main 7d40c5c7, #394 Trupp-only saves, 18.10.); cold-start.static_requests from CI run 39568177229 (#448 UX sweep, 21.10.: main already measured 43–44, the sweep splits adminAuth + draw.css into their own files); static *_kb + precache_kb dropped (sweep D.11, 23.10.2026: the bundle budget owns bytes)",
-  "calibration": 38.4,
+  "recorded": "2026-11-09",
+  "source": "CI run 42717650281",
+  "calibration": 46.45,
   "tolerance": {},
   "metrics": {
     "cold-start.api_kb": {
-      "value": 52.4,
+      "value": 53.3,
       "unit": "kb"
     },
     "cold-start.api_requests": {
@@ -14,47 +14,47 @@
       "unit": "count"
     },
     "cold-start.blocking_ms": {
-      "value": 942,
+      "value": 794,
       "unit": "ms"
     },
     "cold-start.dom_nodes": {
-      "value": 1070,
+      "value": 1230,
       "unit": "count"
     },
     "cold-start.external_hosts": {
-      "value": 1,
+      "value": 3,
       "unit": "count"
     },
     "cold-start.heap_mb": {
-      "value": 15.1,
+      "value": 18,
       "unit": "mb"
     },
     "cold-start.listeners": {
-      "value": 6316,
+      "value": 6711,
       "unit": "count"
     },
     "cold-start.login_screen_ms": {
-      "value": 1303.5,
+      "value": 699.1,
       "unit": "ms"
     },
     "cold-start.long_tasks": {
-      "value": 30,
+      "value": 15,
       "unit": "count"
     },
     "cold-start.pin_to_ready_ms": {
-      "value": 3926,
+      "value": 3039,
       "unit": "ms"
     },
     "cold-start.pin_to_workspace_ms": {
-      "value": 846.2,
+      "value": 972.2,
       "unit": "ms"
     },
     "cold-start.static_requests": {
-      "value": 45,
+      "value": 48,
       "unit": "count"
     },
     "cold-start.total_ms": {
-      "value": 5314,
+      "value": 4085.1,
       "unit": "ms"
     },
     "cold-start.writes": {
@@ -62,11 +62,11 @@
       "unit": "count"
     },
     "edit.api_kb": {
-      "value": 294.7,
+      "value": 19.7,
       "unit": "kb"
     },
     "edit.api_requests": {
-      "value": 88,
+      "value": 77,
       "unit": "count"
     },
     "edit.external_hosts": {
@@ -74,15 +74,15 @@
       "unit": "count"
     },
     "edit.karte_long_tasks": {
-      "value": 299,
+      "value": 162,
       "unit": "count"
     },
     "edit.karte_script_ms": {
-      "value": 1143.4,
+      "value": 1966.6,
       "unit": "ms"
     },
     "edit.kb_per_save": {
-      "value": 35.1,
+      "value": 35.2,
       "unit": "kb"
     },
     "edit.saves": {
@@ -98,15 +98,23 @@
       "unit": "ms"
     },
     "edit.tafel_interaction_max_ms": {
-      "value": 104,
+      "value": 96,
       "unit": "ms"
     },
     "edit.tafel_tap_ms": {
-      "value": 84.6,
+      "value": 78.1,
       "unit": "ms"
     },
+    "edit.workspace_pull_kb": {
+      "value": 0,
+      "unit": "kb"
+    },
+    "edit.workspace_pulls": {
+      "value": 0,
+      "unit": "count"
+    },
     "idle.api_requests_per_min": {
-      "value": 11,
+      "value": 9,
       "unit": "count"
     },
     "idle.dom_node_growth": {
@@ -114,11 +122,11 @@
       "unit": "count"
     },
     "idle.heap_growth_mb": {
-      "value": 0.1,
+      "value": 0.3,
       "unit": "mb"
     },
     "idle.layouts_per_min": {
-      "value": 5,
+      "value": 1,
       "unit": "count"
     },
     "idle.long_tasks": {
@@ -130,19 +138,19 @@
       "unit": "count"
     },
     "idle.script_ms_per_min": {
-      "value": 92.4,
+      "value": 141.6,
       "unit": "ms"
     },
     "idle.style_recalcs_per_min": {
-      "value": 4,
+      "value": 0,
       "unit": "count"
     },
     "idle.task_ms_per_min": {
-      "value": 165.2,
+      "value": 201.6,
       "unit": "ms"
     },
     "surface-tour.blocking_ms": {
-      "value": 98,
+      "value": 177,
       "unit": "ms"
     },
     "surface-tour.dom_node_growth": {
@@ -150,11 +158,11 @@
       "unit": "count"
     },
     "surface-tour.heap_growth_mb": {
-      "value": 2.2,
+      "value": 1.5,
       "unit": "mb"
     },
     "surface-tour.interaction_max_ms": {
-      "value": 80,
+      "value": 88,
       "unit": "ms"
     },
     "surface-tour.listener_growth": {
@@ -162,47 +170,47 @@
       "unit": "count"
     },
     "surface-tour.switch_anwesenheit_ms": {
-      "value": 42.1,
+      "value": 69.9,
       "unit": "ms"
     },
     "surface-tour.switch_checkliste_ms": {
-      "value": 55.2,
+      "value": 67.6,
       "unit": "ms"
     },
     "surface-tour.switch_gebaeude_ms": {
-      "value": 70.1,
+      "value": 86.2,
       "unit": "ms"
     },
     "surface-tour.switch_karte_ms": {
-      "value": 55.7,
+      "value": 79.3,
       "unit": "ms"
     },
     "surface-tour.switch_material_ms": {
-      "value": 39.4,
+      "value": 50.1,
       "unit": "ms"
     },
     "surface-tour.switch_p50_ms": {
-      "value": 55.2,
+      "value": 70.3,
       "unit": "ms"
     },
     "surface-tour.switch_rapport_ms": {
-      "value": 161.3,
+      "value": 174.8,
       "unit": "ms"
     },
     "surface-tour.switch_tafel_ms": {
-      "value": 35.7,
+      "value": 57.9,
       "unit": "ms"
     },
     "surface-tour.switch_trupps_ms": {
-      "value": 63.7,
+      "value": 68.5,
       "unit": "ms"
     },
     "trupps.api_kb": {
-      "value": 344.8,
+      "value": 8.8,
       "unit": "kb"
     },
     "trupps.api_requests": {
-      "value": 50,
+      "value": 39,
       "unit": "count"
     },
     "trupps.blocking_ms": {
@@ -210,7 +218,7 @@
       "unit": "ms"
     },
     "trupps.contact_ms": {
-      "value": 81.6,
+      "value": 77.7,
       "unit": "ms"
     },
     "trupps.external_hosts": {
@@ -233,16 +241,24 @@
       "value": 0,
       "unit": "count"
     },
+    "trupps.workspace_pull_kb": {
+      "value": 0,
+      "unit": "kb"
+    },
+    "trupps.workspace_pulls": {
+      "value": 0,
+      "unit": "count"
+    },
     "verlauf.api_kb": {
-      "value": 6.6,
+      "value": 8.7,
       "unit": "kb"
     },
     "verlauf.api_requests": {
-      "value": 32,
+      "value": 34,
       "unit": "count"
     },
     "verlauf.compose_interaction_max_ms": {
-      "value": 128,
+      "value": 248,
       "unit": "ms"
     },
     "verlauf.external_hosts": {
@@ -254,15 +270,15 @@
       "unit": "count"
     },
     "verlauf.open_verlauf_blocking_ms": {
-      "value": 28,
+      "value": 89,
       "unit": "ms"
     },
     "verlauf.open_verlauf_ms": {
-      "value": 190.3,
+      "value": 311.7,
       "unit": "ms"
     },
     "verlauf.remote_entry_visible_ms": {
-      "value": 413.5,
+      "value": 116.6,
       "unit": "ms"
     },
     "verlauf.static_requests": {
@@ -270,19 +286,19 @@
       "unit": "count"
     },
     "verlauf.submit_ms": {
-      "value": 106.3,
+      "value": 130.9,
       "unit": "ms"
     },
     "warm-reload.api_kb": {
-      "value": 42,
+      "value": 42.5,
       "unit": "kb"
     },
     "warm-reload.api_requests": {
-      "value": 17,
+      "value": 16,
       "unit": "count"
     },
     "warm-reload.blocking_ms": {
-      "value": 826,
+      "value": 870,
       "unit": "ms"
     },
     "warm-reload.external_hosts": {
@@ -290,11 +306,11 @@
       "unit": "count"
     },
     "warm-reload.reload_to_ready_ms": {
-      "value": 4192.1,
+      "value": 2715.2,
       "unit": "ms"
     },
     "warm-reload.reload_to_workspace_ms": {
-      "value": 1565.3,
+      "value": 376.7,
       "unit": "ms"
     },
     "warm-reload.static_requests": {
@@ -309,18 +325,21 @@
         "GET /api/auth/roster": 1,
         "GET /api/config": 2,
         "GET /api/divera/pool": 1,
-        "GET /api/incidents": 3,
+        "GET /api/incidents": 1,
         "GET /api/incidents/:id/atemschutz-link": 1,
+        "GET /api/incidents/:id/building": 1,
         "GET /api/incidents/:id/journal": 2,
         "GET /api/incidents/:id/objects": 1,
         "GET /api/incidents/:id/positions": 1,
         "GET /api/incidents/:id/workspace": 1,
         "GET /api/personnel": 1,
         "GET /api/plan-scales": 1,
-        "GET /api/print/status": 1,
         "GET /api/reference": 1,
+        "GET /api/reference/underground": 1,
         "GET /api/weather": 1,
+        "GET /api/weather/layer": 1,
         "POST /api/auth/login": 1,
+        "POST /api/diag/boot": 1,
         "POST /api/incidents/:id/journal": 1,
         "POST /api/overpass/buildings": 1,
         "PUT /api/incidents/:id/workspace": 1
@@ -331,9 +350,8 @@
         "GET /api/divera/pool": 1,
         "GET /api/incidents": 1,
         "GET /api/incidents/:id/journal": 40,
-        "GET /api/incidents/:id/positions": 2,
-        "GET /api/incidents/:id/workspace": 10,
         "GET /api/plan-scales": 1,
+        "GET /api/reference": 1,
         "POST /api/incidents/:id/events": 1,
         "POST /api/incidents/:id/journal": 20,
         "PUT /api/incidents/:id/workspace": 12
@@ -344,7 +362,8 @@
         "GET /api/divera/pool": 2,
         "GET /api/incidents": 2,
         "GET /api/incidents/:id/journal": 3,
-        "GET /api/incidents/:id/positions": 4
+        "GET /api/incidents/:id/positions": 1,
+        "GET /api/weather/layer": 1
       }
     },
     "trupps": {
@@ -352,16 +371,16 @@
         "GET /api/divera/pool": 1,
         "GET /api/incidents": 1,
         "GET /api/incidents/:id/journal": 18,
-        "GET /api/incidents/:id/positions": 2,
-        "GET /api/incidents/:id/workspace": 9,
         "POST /api/incidents/:id/events": 1,
         "POST /api/incidents/:id/journal": 9,
-        "PUT /api/incidents/:id/workspace": 9
+        "PUT /api/incidents/:id/workspace/trupps": 9
       }
     },
     "verlauf": {
       "routes": {
-        "GET /api/incidents/:id/journal": 15,
+        "GET /api/divera/pool": 1,
+        "GET /api/incidents": 1,
+        "GET /api/incidents/:id/journal": 21,
         "POST /api/incidents/:id/events": 1,
         "POST /api/incidents/:id/journal": 10
       }
@@ -371,17 +390,20 @@
         "GET /api/auth/me": 1,
         "GET /api/config": 2,
         "GET /api/divera/pool": 1,
-        "GET /api/incidents": 3,
+        "GET /api/incidents": 1,
         "GET /api/incidents/:id/atemschutz-link": 1,
+        "GET /api/incidents/:id/building": 1,
         "GET /api/incidents/:id/journal": 1,
         "GET /api/incidents/:id/objects": 1,
         "GET /api/incidents/:id/positions": 1,
         "GET /api/incidents/:id/workspace": 1,
         "GET /api/personnel": 1,
         "GET /api/plan-scales": 1,
-        "GET /api/print/status": 1,
         "GET /api/reference": 1,
-        "GET /api/weather": 1
+        "GET /api/reference/underground": 1,
+        "GET /api/weather": 1,
+        "GET /api/weather/layer": 1,
+        "POST /api/diag/boot": 1
       }
     }
   }
