@@ -69,7 +69,11 @@
 /* no hairline under the head (r35, 06.11.2026): no other sheet draws one – its title and the 12px
    below it already end the head */
 .ctx-head { padding: 16px 16px 12px; display: flex; align-items: center; gap: 12px; }
-.ph { width: 46px; height: 46px; border-radius: var(--r-ctl); border: 2px solid var(--blue); color: var(--blue);
+/* The header's icon tile is a picture, not a control: no outline (owner review 10.11.2026 – the
+   2px --blue frame was decoration that read as «selected» or «tap me»). The frame's WIDTH stays,
+   transparent, because the Linien-/Flächen-/Form-Editor paint it in the drawing's own colour
+   (DrawEditor, ShapeEditor · inline `borderColor`) – there it is the object's colour, a fact. */
+.ph { width: 46px; height: 46px; border-radius: var(--r-ctl); border: 2px solid transparent; color: var(--ink-dim);
   display: grid; place-items: center; font-family: var(--mono); font-size: var(--fs-1); background: var(--surface-2); flex: none; }
 .ph svg { width: 30px; height: 30px; }
 /* the glyph's wrapper span is a grid too: as an inline box it carried the line's descender gap

@@ -136,7 +136,9 @@ where a row of them does not fit the desktop panel. One recipe: `06-contextpanel
 column, ONE control edge». A Messung read-out starts at the edge too, as a chip.
 
 **A symbol's context sheet is headed by its TYPE**, for every symbol, the generic Fahrzeug too
-(«Fahrzeug» / the pack's name; 29.09.2026). A user-given name lives in its field
+(«Fahrzeug» / the pack's name; 29.09.2026). The icon tile beside it is a picture, not a control,
+and wears no outline (10.11.2026: its blue frame read as «selected» or «tap me»); only a
+Linie / Fläche / Form frames it, in the drawing's own colour. A user-given name lives in its field
 («Bezeichnung») only — never twice, never an underlined head that jumps to a field. The foot's
 «Erledigt» wears the same ink as «Zentrieren» (a dimmed action reads «not available»); it is ONE
 toggle in one spot (31.10.2026): set, the same tile stands pressed (check, green tint) and a tap
