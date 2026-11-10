@@ -116,6 +116,9 @@ services:
       # «Karte & Objekte» building footprints (app/object_footprints) — empty = off, unset = default
       FOOTPRINT_AREA_TILES: ${FOOTPRINT_AREA_TILES-https://vectortiles.geo.admin.ch/tiles/ch.swisstopo.base.vt/v1.0.0}
       FOOTPRINT_BUILDINGS_WFS: ${FOOTPRINT_BUILDINGS_WFS-https://geodienste.ch/db/av_0/deu}
+      # «Unterirdische Bauten» (app/underground) and the Einsatzgebiet's houses (app/houses) — same rule
+      UNDERGROUND_WFS: ${UNDERGROUND_WFS-https://geodienste.ch/db/av_0/deu}
+      HOUSES_WFS: ${HOUSES_WFS-https://geodienste.ch/db/av_0/deu}
       # Weather normally downloads national MeteoSwiss observations, then asks Open-Meteo
       # for the point-based weather code (or uses it as fallback). An explicitly empty URL
       # disables the whole weather client; absent keeps the application default.
