@@ -17,7 +17,7 @@ export const shellCopy = {
   // the left navigation rail (Karte · Pläne group · Checkliste · Trupps)
   // (no «Objekt wählen» any more: the rail is pure navigation, the object sits on the
   //  plan surface – see whiteboard.objectLabel)
-  navRail: { map: 'Karte', plansGroup: 'Pläne', plansChoose: 'Plan wählen', rapportGroup: 'Einsatz', pageGroup: 'Seite wählen', assign: 'Plan zuweisen', expand: 'Ausklappen', collapse: 'Einklappen', resize: 'Leiste anpassen', scrollMore: 'Weitere anzeigen',
+  navRail: { map: 'Karte', plansGroup: 'Pläne', plansChoose: 'Plan wählen', pageGroup: 'Seite wählen', assign: 'Plan zuweisen', expand: 'Ausklappen', collapse: 'Einklappen', resize: 'Leiste anpassen', scrollMore: 'Weitere anzeigen',
     // the accessible name of the tool rail's view bar (ToolRail · Ebenen · Ansichten · zoom, tablet/laptop)
     viewBar: 'Ansicht' },
   // «Trupp finden» – the one place that answers «wo steht Trupp 2», across Karte UND Pläne.

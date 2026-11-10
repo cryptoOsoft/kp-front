@@ -880,6 +880,9 @@ export function AnwesenheitView({
               the ones that count right now». It used to be the people glyph, which the Grad
               filter beside it has a better claim to. */}
           <Icon id="check" />
+          {/* a WORD under the glyph on a phone, like the nav bar's tiles (EL phone sweep D2,
+              10.11.2026): three bare icons in a row had to be learned */}
+          <span className={s.iconWord} aria-hidden="true">{A.onlyPresentWord}</span>
         </button>
         {/* ⚠️ TWO buttons, one per QUESTION — «welcher Grad» and «wer ist wo». They were one
             merged funnel for an afternoon and it was wrong: a menu you open to reach either
@@ -905,6 +908,7 @@ export function AnwesenheitView({
                     matching Mittel's «In Verwendung»), because two identical glyphs side
                     by side on the planning tabs is worse than either choice of icon. */}
                 <Icon id="people" />
+                <span className={s.iconWord} aria-hidden="true">{A.rankFilterWord}</span>
               </button>
             }
             popupClassName={c.menuPop}
@@ -940,6 +944,7 @@ export function AnwesenheitView({
                 aria-label={stateOn ? `${A.statusFilterLabel} – ${stateOn}` : A.statusFilterLabel}
                 title={stateOn ? `${A.statusFilterLabel} – ${stateOn}` : A.statusFilterLabel}>
                 <Icon id="filter" />
+                <span className={s.iconWord} aria-hidden="true">{A.statusFilterWord}</span>
               </button>
             }
             popupClassName={c.menuPop}

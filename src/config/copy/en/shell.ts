@@ -12,7 +12,7 @@ export const shellCopy: Localizable<Pick<Copy, Keys>> = {
   // «Teams», matching `atemschutz.boardTitle` — the surface carries work squads too, so naming it
   // «SCBA» told a traffic-control team it was in the wrong place (see de/shell.ts for the full note).
   modes: { map: 'Map', plans: 'Plan', checklists: 'Checklist', atemschutz: 'Teams', anwesenheit: 'Attendance', mittel: 'Material', rapport: 'Report' },
-  navRail: { map: 'Map', plansGroup: 'Plans', plansChoose: 'Choose plan', rapportGroup: 'Incident', pageGroup: 'Choose page', assign: 'Assign plan', expand: 'Expand', collapse: 'Collapse', resize: 'Resize bar',
+  navRail: { map: 'Map', plansGroup: 'Plans', plansChoose: 'Choose plan', pageGroup: 'Choose page', assign: 'Assign plan', expand: 'Expand', collapse: 'Collapse', resize: 'Resize bar',
     scrollMore: 'Show more', viewBar: 'View',
   },
   panels: { layers: 'Layers', history: 'Log' },

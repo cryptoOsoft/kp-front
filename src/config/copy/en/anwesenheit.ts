@@ -104,6 +104,10 @@ export const anwesenheitCopy: Localizable<Pick<Copy, Keys>> = {
     guestBadge: 'Guest',
     removeGuest: 'Delete person',
     onlyPresent: 'Present only',
+    // the phone's one word under each of the three head glyphs (AnwesenheitView)
+    onlyPresentWord: 'On scene',
+    rankFilterWord: 'Rank',
+    statusFilterWord: 'Status',
   },
   anrueckend: {
     title: 'On the way',

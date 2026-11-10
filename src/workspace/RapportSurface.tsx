@@ -63,7 +63,8 @@ export interface RapportSurfaceProps {
   setRapportReturn: Dispatch<SetStateAction<boolean>>
   canWriteRecord: boolean
   resolveAttendanceConflict: (open: OpenConflict, choice: 0 | 1 | 'both') => void
-  canEditIncident: boolean
+  /** may close the Einsatz: the Rapport's green bands and its close (access · canCloseIncident) */
+  canCloseIncident: boolean
   readOnly: boolean
   confirmAndComplete: () => Promise<boolean>
   setJournalOpen: Dispatch<SetStateAction<boolean>>
@@ -79,7 +80,7 @@ export function RapportSurface({
   planDocs, mapLayers, sym, incidentView, view, symbolCaptions, board, effBuilding, captureUsage,
   attachments, canEditRapport, addAttachments, captionAttachment, removeAttachment, canShareLink,
   running, assignRole, assignTypedName, saveReportMeta, canEditMeta, onEditMeta, setMode,
-  setRapportReturn, canWriteRecord, resolveAttendanceConflict, canEditIncident, readOnly,
+  setRapportReturn, canWriteRecord, resolveAttendanceConflict, canCloseIncident, readOnly,
   confirmAndComplete, setJournalOpen, setJournalFromRapport, reportSignatures, signRapport, voidSignatures,
 }: RapportSurfaceProps) {
   return (
@@ -154,7 +155,7 @@ export function RapportSurface({
           // happened. The «Abschliessen» confirm closes itself; that is the only thing that should.
           // ⚠️ The confirm (and the media flush that follows it) lives in `confirmAndComplete`
           // above, shared with the Einsatz-Menü row — one action, one dialog, one wording.
-          onComplete={canEditIncident && !readOnly ? confirmAndComplete : undefined}
+          onComplete={canCloseIncident && !readOnly ? confirmAndComplete : undefined}
           // «Im Verlauf ergänzen» is a write – only for a session that writes the record
           onFixTranscripts={canWriteRecord ? () => { setJournalOpen(true); setJournalFromRapport(true) } : undefined}
         /></Suspense>

@@ -80,6 +80,13 @@ describe('initialRapportPage — where the bar\'s «Rapport» tile goes', () => 
     expect(initialRapportPage({ ...opts, store: s })).toBe('rapport')
   })
 
+  // the `el` role and a closed Einsatz (EL phone sweep B3): the tile opens what its badge counts
+  it('opens the Rapport whatever was remembered, where the Rapport comes first', () => {
+    const s = store()
+    writeRapportPage('i1', 'anwesenheit', s)
+    expect(initialRapportPage({ ...opts, rapportFirst: true, store: s })).toBe('rapport')
+  })
+
   it('does not take another Einsatz\'s page', () => {
     const s = store()
     writeRapportPage('i-other', 'mittel', s)

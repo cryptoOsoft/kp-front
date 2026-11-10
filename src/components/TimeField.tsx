@@ -141,7 +141,7 @@ export function TimeField({ value, valueDay, onCommit, disabled, ariaLabel, nowL
  * still opens on itself instead of silently moving. With a single day no column shows — the
  * trigger still reads the full date.
  */
-export function DateTimeField({ value, onCommit, disabled, ariaLabel, className, days, required }: {
+export function DateTimeField({ value, onCommit, disabled, ariaLabel, className, days, dayAlways, required }: {
   /** ISO datetime ('' /undefined = unset) */
   value?: string
   onCommit: (iso: string | null) => void
@@ -150,6 +150,8 @@ export function DateTimeField({ value, onCommit, disabled, ariaLabel, className,
   className?: string
   /** the selectable days (see above); default: the last RECENT_DAYS days through today */
   days?: Date[]
+  /** the day column shows for a single day too (WheelPicker · dayAlways) */
+  dayAlways?: boolean
   /** a value that must always be there (a visit's «Besucht am»): the picker offers no «Leeren» */
   required?: boolean
 }) {
@@ -180,7 +182,7 @@ export function DateTimeField({ value, onCommit, disabled, ariaLabel, className,
         <WheelPopover
           anchor={btnRef.current.getBoundingClientRect()}
           initial={valid ? d : new Date()}
-          days={offered()}
+          days={offered()} dayAlways={dayAlways}
           onClose={() => setOpen(false)}
           onCommit={(v: WheelValue) => {
             setOpen(false)

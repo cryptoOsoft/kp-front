@@ -174,6 +174,10 @@ export const anwesenheitCopy = {
     // search row narrows the list to whoever is «Vor Ort» right now. The button is a state, not
     // an instruction, so it names the filter and lets `aria-pressed` say whether it is on.
     onlyPresent: 'Nur Anwesende',
+    // the phone's one word under each of the three head glyphs (AnwesenheitView)
+    onlyPresentWord: 'Vor Ort',
+    rankFilterWord: 'Grad',
+    statusFilterWord: 'Status',
     rankFilterLabel: 'Nach Grad filtern',
     rankAll: 'Alle',
     // Return: the third tap deletes (clears), so returning gets a button of its own. It opens a

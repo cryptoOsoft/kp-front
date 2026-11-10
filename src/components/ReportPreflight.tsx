@@ -14,7 +14,7 @@ import { cx } from '../lib/cx'
 import { parseAlarmText } from '../lib/alarmText'
 import { confirmDialog, openPhoto, toast, type ToastAction } from '../lib/ui'
 import { buildDirectReportPayload, downloadDirectReportPdf, readyDirectReportPayload, signedPartOf, usedStackFloors } from '../lib/reportPdfDirect'
-import { sha256Hex, type ReportSignature } from '../lib/reportSignature'
+import { SIGNATURE_ROLES, sha256Hex, type ReportSignature, type SignatureRole } from '../lib/reportSignature'
 import { newId } from '../lib/ids'
 import { serverNowIso } from '../lib/serverClock'
 import type { SignSubmit } from './SignatureSheet'
@@ -50,7 +50,7 @@ import { TAFEL_ID } from '../lib/boardForm'
 import { EF_PAGE_ID, RAPPORT_PAGE_ID, tafelKindPrints, tafelMenuKinds, tafelPrintKinds } from '../lib/tafelPicks'
 import { isDrawnBoardKind } from '../lib/workspace'
 import { abschlussFacts, missingSteps, nextOpenStep, stepDone, type AbschlussFacts, type AbschlussStep } from '../lib/abschluss'
-import { abschlussSheet, controlChipLabel } from '../lib/abschlussOpen'
+import { abschlussOpenItems, abschlussSheet, controlChipLabel } from '../lib/abschlussOpen'
 import { hoursRows, unresolvedHoursRows } from '../lib/attendanceHours'
 import { openConflicts, sideLabel, sideValue, type OpenConflict } from '../lib/attendanceConflict'
 import { incidentDays } from '../lib/zeitplanFormat'
@@ -121,6 +121,39 @@ function MissingFact() {
 // «Später» that outlived a reload would turn the only surface that says «dieser Einsatz ist noch
 // offen» permanently silent — which is the failure this whole band exists to fix.
 const bandDismissed: { current: Set<string> } = { current: new Set() }
+/** …and the same for the «Rapport unterschreiben» strip of a closed Einsatz, per close (`signKey`) */
+const signBandDismissed = new Set<string>()
+
+/**
+ * The open points inside the Kontrolle chip's popover – ONE list (EL phone sweep C6, 10.11.2026):
+ * the rows and the answers of the «Angaben fehlen noch» confirm (lib/abschlussOpen). A row JUMPS to
+ * the thing it names, a full 44px row; its button answers it here – the write moves `missing`, so
+ * an answered row is simply gone. This list only jumped, and it is the one people open first.
+ * Without `onFix` (a session that may not edit) the rows are doors only.
+ */
+function ControlOpenList({ missing, onGo, onFix, onLeave }: {
+  missing: AbschlussStep[]
+  onGo: (step: AbschlussStep) => void
+  onFix?: (over: Partial<ReportMeta>) => void
+  /** a button that goes to its field («Wählen», «Schreiben») puts the popover away first */
+  onLeave: () => void
+}) {
+  const rows = abschlussOpenItems(missing.map((step) => ({ kind: 'step' as const, step })), { step: onGo },
+    onFix ? { fix: (_step, over) => { onFix(over) }, now: serverNowIso } : undefined)
+  return rows.map((it, i) => (
+    <div key={missing[i]} className="rp-control-row">
+      <button type="button" className="rp-control-step" onClick={it.onClick}>
+        <span>{it.label}</span><Icon id="chevron" />
+      </button>
+      {it.action && (
+        <Button className="rp-control-answer" onClick={() => {
+          if (it.action?.leaves) onLeave()
+          it.action?.onClick()
+        }}>{it.action.label}</Button>
+      )}
+    </div>
+  ))
+}
 
 /**
  * One strip under the Rapport's head (28.10.2026): the guide to the next open point (#14) and the
@@ -1077,7 +1110,7 @@ export function ReportPreflight({
      an item nobody can close would leave the step open for ever on every past Einsatz. */
   const conflicts = useMemo(() => openConflicts(events), [events])
   // ONE builder with the workspace's doors (the badge, the chooser, the Abschluss) — lib/abschluss
-  const facts: AbschlussFacts = abschlussFacts(meta, attendanceCount, mittelCount, conflicts.length)
+  const facts: AbschlussFacts = abschlussFacts(meta, attendanceCount, mittelCount, conflicts.length, closed)
   const rows = hoursRows(attendance, { alarmedAt: alarmiert ?? null, endedAt: meta.endedAt ?? null })
   // People whose presence blocks cannot be turned into a duration — almost always a still-open
   // block borrowing an Einsatzende that lies BEFORE it. They fall out of BOTH Einsatzstunden
@@ -1176,6 +1209,15 @@ export function ReportPreflight({
     setBandHidden(false)
   }
   const showCloseBand = !!onComplete && !!meta.reportMadeAt && missing.length === 0 && !bandHidden
+  // …and ONE step later (owner pick A3, EL phone sweep 10.11.2026): the Einsatz is closed and
+  // nobody has signed. The card sits at the end of «Personal & Mittel», reads «optional» and only
+  // works after the close – nothing led there. The strip opens the Einsatzleiter's line of the
+  // same sheet; gone once one signature holds, or with ✕ – per CLOSE of this Einsatz (`signKey`):
+  // after «Wieder öffnen» and a new close the Rapport is unsigned again, and the strip is back.
+  const [signFor, setSignFor] = useState<SignatureRole | null>(null)
+  const signKey = `${incident.id}:${closedAt ?? ''}`
+  const [signDismissed, setSignDismissed] = useState(() => (signBandDismissed.has(signKey) ? signKey : null))
+  const showSignBand = canSign && !SIGNATURE_ROLES.some(sigValid) && signDismissed !== signKey
   // …and ONE step earlier (owner pick 15B, 28.10.2026): everything recorded, no PDF yet – the band
   // names the next step, «Einsatzrapport (PDF) erstellen». No «Später» on it (15x): it goes away by
   // itself once the PDF exists, and turns into the Abschluss band above.
@@ -1317,13 +1359,8 @@ export function ReportPreflight({
                 {openInControl && (
                   <div className="rp-control-open">
                     <div className="rp-control-open-head">{P.controlOpenHead}</div>
-                    {missing.map((st) => (
-                      // each row JUMPS to the thing it names (jumpToStep), a full 44px row
-                      <button key={st} type="button" className="rp-control-step"
-                        onClick={() => { setControlOpen(false); guideTo(st) }}>
-                        <span>{A.steps[st]}</span><Icon id="chevron" />
-                      </button>
-                    ))}
+                    <ControlOpenList missing={missing} onGo={(st) => { setControlOpen(false); guideTo(st) }}
+                      onFix={canEdit ? persist : undefined} onLeave={() => setControlOpen(false)} />
                   </div>
                 )}
                 {missTx > 0 && (
@@ -1351,11 +1388,14 @@ export function ReportPreflight({
                     {onOpenAnwesenheit && <button type="button" className="form-warn-act" onClick={onOpenAnwesenheit}>{A.steps.anwesenheit}</button>}
                   </p>
                 )}
-                <div className="report-fold-body">
-                  <p><Icon id={proof.intact ? 'check' : 'warn'} /> {proofLabel(proof)}</p>
-                  <p><Icon id="doc" /> {options.allPlans ? P.plansPrintAll : options.annotatedPlans ? fillTemplate(P.plansPrintAnnotated, { n: annotatedPlanCount }) : P.plansPrintNone}</p>
-                  <p><Icon id="snapshot" /> {fillTemplate(P.stateNote, { at: formatDateTime(new Date().toISOString()) })}</p>
-                </div>
+                {/* only a BROKEN chain is said here (EL phone sweep C7, 10.11.2026): «Hash-Kette
+                    intakt», the print's Stand and the plans hint were system talk in a to-do
+                    list. The plans are chosen in the PDF ▾ menu, which says what prints. */}
+                {proof.intact === false && (
+                  <p className="form-warn form-warn-amber">
+                    <Icon id="warn" /> <span className="form-warn-text">{proofLabel(proof)}</span>
+                  </p>
+                )}
               </Popover>
             )}
             {/* ⚠️ Every label in this row is wrapped in `.fold-long`, not left as a bare text node:
@@ -1514,6 +1554,11 @@ export function ReportPreflight({
               </p>
             )}
           </RpStrip>
+        )}
+        {showSignBand && (
+          <RpStrip done lead={P.bandClosed} title={appConfig.copy.signature.sheetTitle} icon={<Icon id="signature" />}
+            onGo={() => setSignFor('el')} hideLabel={P.bandLater}
+            onHide={() => { signBandDismissed.add(signKey); setSignDismissed(signKey) }} />
         )}
         {/* …and its counterpart: a print that has been handed over and has not come back. It is
             NOT dismissible — «Später» on the green band hides an offer, this one is an open
@@ -2009,7 +2054,7 @@ export function ReportPreflight({
                 {canEdit ? (
                   <div className="report-meta-end dtrow">
                     <DateTimeField ariaLabel={P.incidentEndLabel} value={dtLocalToIso(endedAt)}
-                      days={incidentDays(meta.startedAt ?? incident.started_at, renderNow)}
+                      days={incidentDays(meta.startedAt ?? incident.started_at, renderNow)} dayAlways
                       onCommit={(iso) => { setEndedAt(dtLocalValue(iso ?? undefined)); persist({ endedAt: iso ?? undefined }) }} />
                     <button type="button" className="ip-btn" onClick={() => { const v = dtLocalValue(serverNowIso()); setEndedAt(v); persist({ endedAt: dtLocalToIso(v) }) }}>{P.now}</button>
                   </div>
@@ -2410,7 +2455,7 @@ export function ReportPreflight({
               liveSigs={liveSigs} sigValid={sigValid}
               elName={meta.einsatzleiter || einsatzleiter} kdtName={kdtDefault}
               onVoidSignatures={canEditIn ? onVoidSignatures : undefined}
-              sheet={signSheet}
+              sheet={signSheet} signFor={signFor} setSignFor={setSignFor}
             />
             {/* Beilagen sit right under Partnerorganisationen: same family, same question —
                 what else belongs to this rapport. Tapping a thumbnail opens the picture full-size

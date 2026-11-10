@@ -2037,6 +2037,11 @@ select.cv-input { appearance: none; -webkit-appearance: none;
 .rp-control-step { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: var(--tap);
   padding: 0 12px; border: none; background: none; border-radius: var(--r-ctl); cursor: pointer; text-align: left;
   font: var(--fw-medium) var(--fs-2) var(--body); color: var(--ink); }
+/* …and the row's own answer beside it («Entfällt», «Jetzt setzen» – EL phone sweep C6): the door
+   takes the room, the button keeps its words on one line */
+.rp-control-row { display: flex; align-items: center; gap: 8px; padding-right: 12px; }
+.rp-control-row .rp-control-step { flex: 1 1 auto; min-width: 0; width: auto; }
+.rp-control-answer { flex: none; white-space: nowrap; }
 .rp-control-step .i { width: 15px; height: 15px; flex: none; color: var(--ink-faint); }
 @media (hover: hover) { .rp-control-step:hover { background: var(--blue-8); } }
 .rp-control-step:active:not(:disabled) { background-image: linear-gradient(var(--press), var(--press)); }

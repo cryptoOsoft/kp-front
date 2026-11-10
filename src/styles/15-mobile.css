@@ -173,9 +173,6 @@
      form factor this footer is a vertical column where the existing order is right. */
   :is(.tool-rail, .wb-tools) :is(.vrail-views, .vrail-fit) { order: 1; }
   :is(.tool-rail, .wb-tools) .vrail-layers { order: 2; }
-  /* the weather goes back into the top bar on a read-only surface: that bar carries no
-     undo/redo and no Eintrag, which measures 96px free against the readout's 83px. */
-  .slim-tools .topbar .tb-weather-wrap { display: inline-flex; }
   :is(.tool-rail, .wb-tools) .vrail-sep-foot { width: 1px; height: 26px; margin: 0 4px; flex: none; align-self: center; }
   :is(.tool-rail, .wb-tools) .vrail-scroll-wrap { flex: 1 1 auto; min-width: 0; }
   :is(.tool-rail, .wb-tools) .vrail-scroll {

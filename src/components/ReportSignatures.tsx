@@ -5,7 +5,7 @@
 // says «ungültig» and a tap signs anew (owner: no explanation box). The lock itself is decided
 // above the form (useReportSignatures · useSignatureLock).
 
-import { useState, type ComponentProps } from 'react'
+import type { ComponentProps } from 'react'
 import { appConfig } from '../config/appConfig'
 import { fillTemplate, hhmm } from '../lib/format'
 import { Icon } from '../lib/icons'
@@ -20,7 +20,7 @@ import type { LiveSignatures } from './useReportSignatures'
 /** what the signing sheet needs beyond the card's own state */
 type SheetProps = Omit<ComponentProps<typeof SignatureSheet>, 'open' | 'onClose' | 'initialRole' | 'signedRoles' | 'elName' | 'kdtName'>
 
-export function ReportSignatures({ closed, maySign, canSign, signedLock, liveSigs, sigValid, elName, kdtName, onVoidSignatures, sheet }: {
+export function ReportSignatures({ closed, maySign, canSign, signedLock, liveSigs, sigValid, elName, kdtName, onVoidSignatures, sheet, signFor, setSignFor }: {
   /** the Einsatz is closed — the only time a Rapport is signed */
   closed: boolean
   /** this session signs Rapporte at all (not a viewer, a link, an archived view) */
@@ -36,10 +36,12 @@ export function ReportSignatures({ closed, maySign, canSign, signedLock, liveSig
   /** «Ändern» on a signed Rapport — absent where this session may not */
   onVoidSignatures?: () => void
   sheet: SheetProps
+  /** «Rapport unterschreiben»: which line the sheet is open for (null = closed). The Rapport
+   *  owns it, so its strip under the head opens the same sheet (ReportPreflight · showSignBand). */
+  signFor: SignatureRole | null
+  setSignFor: (r: SignatureRole | null) => void
 }) {
   const S = appConfig.copy.signature
-  // «Rapport unterschreiben»: which line the sheet is open for (null = closed)
-  const [signFor, setSignFor] = useState<SignatureRole | null>(null)
   const changeSigned = async () => {
     if (await confirmDialog({ title: S.changeTitle, message: S.changeMsg, confirmLabel: S.changeConfirm })) onVoidSignatures?.()
   }

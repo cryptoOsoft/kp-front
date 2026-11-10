@@ -41,7 +41,6 @@ export interface MapControlsProps {
   layersPreset: LayerPreset
   togglePanel: (name: 'layers') => void
   isPhone: ReturnType<typeof useIsPhone>
-  slimRail: boolean
   displayWeather: WeatherData | null
   openWeatherDetails: () => void
   replayActive: boolean
@@ -70,7 +69,7 @@ export interface MapControlsProps {
 
 export function MapControls({
   mapUI, mapUtility, mapRef, view, viewsApi, readOnly, isEl, viewsOpen, toggleViews, coord, panel,
-  layersPreset, togglePanel, isPhone, slimRail, displayWeather, openWeatherDetails, replayActive,
+  layersPreset, togglePanel, isPhone, displayWeather, openWeatherDetails, replayActive,
   georefMode, buildingInfo, buildingFirst, setPanel, composerOpen, journalOpen, offlineReadyOpen, layers,
   toggleLayer, setOpacity, linkedPlans, twinLayers, twinLayerOpacity, setAllLayers, resetLayers,
   weather, readings,
@@ -114,12 +113,13 @@ export function MapControls({
 
           {/* phone: the wind read-out floats top-right under the bar — the top bar clipped it at
               the screen edge (that bar already carries switcher · Einsatzuhr · undo/redo ·
-              Verlauf). NOT on a read-only surface: there the top bar has room for the weather
-              (measured: 96px free with no undo/redo/Eintrag). The compass is NOT up here: it sits
+              Verlauf). On a read-only surface too (owner, EL phone sweep D3, 10.11.2026: «only
+              show the weather in the map views»): in the bar it cut the Einsatz's title to
+              «Schloss…» as soon as the Trupp clock stood beside it. The compass is NOT up here: it sits
               in the tool bar, beside Ebenen, where the map's other controls are (05.08.2026). It
               floated here again for one day (18.09.) and came back down — above the bar its menu
               opened half a screen away from the thumb that asked for it. */}
-          {isPhone && !slimRail && displayWeather?.wind_dir_deg != null && (
+          {isPhone && displayWeather?.wind_dir_deg != null && (
             <div className="phone-wx">
               <WeatherBadge weather={displayWeather} onOpenMeteo={openWeatherDetails} bearing={view.bearing} popAlignOffset={-5} popInset={5} />
             </div>
