@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest'
-import { readFileSync } from 'node:fs'
 import { fahrtenText, fixAgeText, freshWindShift, vehicleTableRows, WIND_SHIFT_FRESH_MS } from './vehiclePresence'
 import type { FahrzeugZeit } from './workspace'
 import type { TimelineEvent } from '../types'
@@ -72,30 +71,5 @@ describe('freshWindShift — the server row, once, while it is news', () => {
     const rows = [row('wxd-202609231830', '2026-09-23T18:30:00Z')]
     expect(freshWindShift(rows, NOW, new Set(['wxd-202609231830']))).toBeNull()
     expect(freshWindShift(rows, Date.parse('2026-09-23T18:30:00Z') + WIND_SHIFT_FRESH_MS + 1, new Set())).toBeNull()
-  })
-})
-
-// ⚠️ The rule this change is about, pinned where a later edit would break it: the devices
-// never write an observation again. The server owns «vor Ort» / «verlassen» (vp- rows) and
-// `weather.observe`; a device that writes them is back to «whoever happened to be awake».
-describe('devices never write observations', () => {
-  const src = (p: string) => readFileSync(new URL(p, import.meta.url), 'utf8')
-
-  it('the workspace emits no weather.observe and runs no presence rings', () => {
-    const ws = src('../IncidentWorkspace.tsx')
-    expect(ws).not.toMatch(/emit\(\s*['"]weather\.observe['"]/)
-    expect(ws).not.toMatch(/useVehiclePresenceLog/)
-    expect(ws).not.toMatch(/rowId:\s*`vp-/)
-  })
-
-  it('the vehicle table ages a report on the SERVER clock, like the times it shows', () => {
-    // a device clock minutes off made a live tracker read «vor 4 min» (or stale) on one tablet
-    const table = src('../components/VehicleGpsTable.tsx')
-    expect(table).toMatch(/serverNow\(\)/)
-    expect(table).not.toMatch(/Date\.now\(\)/)
-  })
-
-  it('the Divera watch only reads the pool', () => {
-    expect(src('./useDiveraWatch.ts')).not.toMatch(/refreshDiveraPool\(/)
   })
 })

@@ -10,7 +10,7 @@ import { readFile } from 'node:fs/promises'
 // Runs against a live, seeded stack (see playwright.config.ts). The German strings
 // below mirror src/config/copy/de.ts (the default de-CH deployment locale).
 
-import { test, expect, expectNoCrash, login, ensureIncidentOpen, OFFLINE_FETCH_FAILURE } from './helpers'
+import { test, expect, expectNoCrash, login, ensureIncidentOpen, openApp, adminContext, ADMIN_SECRET, OFFLINE_FETCH_FAILURE } from './helpers'
 
 test('core surfaces render and survive reload', async ({ page }) => {
   await login(page)
@@ -50,6 +50,50 @@ test('core surfaces render and survive reload', async ({ page }) => {
   await page.reload()
   await expect(page.locator('nav.navrail'), 'still authenticated and in an incident after reload').toBeVisible()
   await expectNoCrash(page, 'after reload')
+})
+
+// «Karte & Objekte» – the home every launch without an Einsatz lands on (docs/karte-objekte.md).
+// Until 09.11.2026 the specs only clicked its menu on the way to an Einsatz, so a white Karte home
+// passed the gate. One object of this test's own goes in through the admin API (a fresh stack has
+// no catalogue); it stays on the disposable stack, as the Objektbesuche spec's does.
+test.describe('Karte & Objekte', () => {
+  test.skip(!ADMIN_SECRET, 'set E2E_ADMIN_SECRET to the deployment ADMIN_SECRET to run this')
+
+  test('the map mounts, the search finds a station object, its panel opens and closes', async ({ page, baseURL }) => {
+    // the Karte draws through software WebGL in CI: every step on it takes a second or more
+    test.setTimeout(120_000)
+    const name = `E2E Karte ${Date.now()}`
+    const admin = await adminContext(baseURL)
+    const created = await admin.post('/api/objects', { data: { name, address: 'Teststrasse 7', lat: 47.5142, lng: 7.5561 } })
+    expect(created.ok(), `object: ${created.status()}`).toBe(true)
+    const { id } = await created.json() as { id: string }
+    await admin.dispose()
+
+    await login(page)
+    // by its route: an Einsatz another case left open would take the launch
+    await openApp(page, '/karte')
+    const karte = page.locator('[data-karte]')
+    const canvas = karte.locator('canvas.maplibregl-canvas').first()
+    await expect(canvas).toBeVisible()
+    await expectNoCrash(page, 'Karte & Objekte')
+
+    // the search answers from the catalogue on the device, by name
+    await karte.locator('.topbar input').first().fill(name)
+    await page.getByRole('option', { name }).click()
+
+    // the pick opens the object: its panel, its address in the URL, its name tag on the map
+    const panel = page.locator('[data-karte-panel]')
+    await expect(panel).toContainText(name)
+    await expect(page).toHaveURL(new RegExp(`/karte\\?objekt=${id}$`))
+    await expect(karte.locator('.maplibregl-marker').getByRole('button', { name })).toBeVisible()
+    await expectNoCrash(page, 'Karte & Objekte · object panel')
+
+    // back: the panel's ✕ leaves the map standing
+    await panel.locator('button.ip-x').click()
+    await expect(panel).toHaveCount(0)
+    await expect(canvas).toBeVisible()
+    await expectNoCrash(page, 'Karte & Objekte · after closing the object')
+  })
 })
 
 async function enterJournalRow(page: Page, text: string) {
@@ -117,7 +161,11 @@ test.describe('loading snail', () => {
     handover?: { clock: number; duration: number; playState: string; idleClock?: number; onto: { app: boolean; reactSplash: boolean; reactLag?: number } }
   }
 
-  async function prepareLaunch(page: Page, { configDelay = 0, meDelay = 500 } = {}) {
+  /** `meDelay`: how long `/api/auth/me` stays pending, so React's first Splash stays mounted beneath
+   *  the cover – a number of ms, or a promise the test resolves itself (`held`). A case that
+   *  asserts the cover lifts ONTO that Splash holds it: against a fixed delay a slow runner lifted
+   *  the cover after the answer, and the case failed and passed on retry (CI run 42492513971). */
+  async function prepareLaunch(page: Page, { configDelay = 0, meDelay = 500 }: { configDelay?: number; meDelay?: number | Promise<void> } = {}) {
     await page.emulateMedia({ reducedMotion: 'no-preference' })
     await page.route('**/api/config', async route => {
       if (configDelay) await new Promise(resolve => setTimeout(resolve, configDelay))
@@ -125,8 +173,7 @@ test.describe('loading snail', () => {
     })
     await page.route('**/api/plan-scales', route => route.fulfill({ json: {} }))
     await page.route('**/api/auth/me', async route => {
-      // Keeps React's first Splash mounted beneath the cover for a while.
-      await new Promise(resolve => setTimeout(resolve, meDelay))
+      await (typeof meDelay === 'number' ? new Promise(resolve => setTimeout(resolve, meDelay)) : meDelay)
       await route.fulfill({ status: 401, json: { detail: 'Not authenticated' } })
     })
     await page.route('**/api/auth/refresh', route => route.fulfill({ status: 401, json: { detail: 'Not authenticated' } }))
@@ -177,6 +224,13 @@ test.describe('loading snail', () => {
     })
   }
 
+  /** a promise that stays pending until `release()` */
+  function held() {
+    let release = () => {}
+    const pending = new Promise<void>(resolve => { release = resolve })
+    return { pending, release }
+  }
+
   const observation = (page: Page) => page.evaluate(() => Reflect.get(window, '__snailLaunch') as Launch)
   /** how far a revealed React loader's loop starts after the cover's (see `readLag`) */
   async function reactLag(page: Page): Promise<number> {
@@ -210,11 +264,13 @@ test.describe('loading snail', () => {
   test('a slow boot reveals React\'s first stage at once, on the cover\'s clock', async ({ page }) => {
     // the entrance ended ~2.4 s before React mounts: its 2 s hold is long over, so the cover lifts
     // with React's first render (the auth stage, /me still pending) instead of hiding it longer
-    await prepareLaunch(page, { configDelay: 3_000 })
+    const me = held()
+    await prepareLaunch(page, { configDelay: 3_000, meDelay: me.pending })
     await page.goto('/')
     const handover = await lifted(page)
     expect(handover.onto.reactSplash).toBe(true)
     expect(Math.abs(await reactLag(page))).toBeLessThanOrEqual(250)
+    me.release()
     await expect(page.locator('.login-state')).toBeVisible()
     await expect(page.locator('.boot-splash')).toHaveCount(0)
   })
@@ -223,13 +279,15 @@ test.describe('loading snail', () => {
     // React mounts ≥ 800 ms into the launch: a replayed loader would trail the cover by that much,
     // a continued one only by the frame a fresh animation takes to start (up to ~100 ms on a
     // loaded runner)
-    await prepareLaunch(page, { configDelay: 800, meDelay: 4_000 })
+    const me = held()
+    await prepareLaunch(page, { configDelay: 800, meDelay: me.pending })
     await page.goto('/')
     const handover = await lifted(page, 10_000)
     // still on the auth stage two seconds after the entrance: the cover reveals it (its status
     // and its «Neu laden» hint must be readable), and its snail is on the cover's clock
     expect(handover.onto.reactSplash).toBe(true)
     expect(Math.abs(await reactLag(page))).toBeLessThanOrEqual(250)
+    me.release()
     await expect(page.locator('.login-state')).toBeVisible()
   })
 

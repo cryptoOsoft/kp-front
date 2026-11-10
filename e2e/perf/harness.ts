@@ -51,7 +51,7 @@ export class Results {
 
 // ── The world outside the stack ──────────────────────────────────────────────────────────────
 // A journey must measure THIS build, not the basemap CDN, MeteoSwiss or Overpass on the day.
-// External tiles get one fixed 256×256 PNG; the two backend routes that only proxy a third party
+// External tiles get one fixed 256×256 PNG (a dark one for a night basemap); the two backend routes that only proxy a third party
 // (the weather, the building outlines) get a canned answer. Every external request is still
 // counted: for an offline-first app a new external dependency is a regression of its own.
 
@@ -70,6 +70,12 @@ function solidPng(size = 256, rgb: [number, number, number] = [232, 228, 220]): 
   return Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), chunk('IHDR', ihdr), chunk('IDAT', deflateSync(raw)), chunk('IEND', Buffer.alloc(0))])
 }
 const TILE = solidPng()
+/** The night stand-in: Carto Dark Matter's ground (8 of 255, MapLayers · DARK_BASE_PAINT). With
+ *  the light tile the night paint lifted the map to pure white under dark chrome – a picture no
+ *  crew sees, and one that cannot show whether labels and plates read on a dark map. */
+const NIGHT_TILE = solidPng(256, [8, 8, 8])
+/** a tile of a basemap's dark twin (workspace layers · `nightTiles`: CARTO `dark_all` / `dark_nolabels`) */
+const isNightTile = (url: string) => /\/dark_(all|nolabels)\//.test(url)
 
 export async function isolateFromOutside(context: BrowserContext, baseURL: string, external: string[], now = () => Date.now()) {
   const own = new URL(baseURL).origin
@@ -82,7 +88,7 @@ export async function isolateFromOutside(context: BrowserContext, baseURL: strin
       return route.fulfill({ status: 200, contentType: 'application/x-protobuf', body: Buffer.alloc(0), headers: { 'access-control-allow-origin': '*' } })
     }
     if (req.resourceType() === 'image' || /\.(png|jpe?g|webp)(\?|$)/.test(req.url()) || /\/\d+\/\d+\/\d+(@2x)?(\.\w+)?(\?|$)/.test(req.url())) {
-      return route.fulfill({ status: 200, contentType: 'image/png', body: TILE, headers: { 'access-control-allow-origin': '*' } })
+      return route.fulfill({ status: 200, contentType: 'image/png', body: isNightTile(req.url()) ? NIGHT_TILE : TILE, headers: { 'access-control-allow-origin': '*' } })
     }
     return route.continue()
   })

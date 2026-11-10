@@ -1,4 +1,4 @@
-import { test, expect } from './helpers'
+import { test, expect, openApp } from './helpers'
 
 // Regression guard for a stacking-order bug that made EVERY row action in the admin
 // unreachable (shipped in v0.6.0): the kebab (⋮) menu opened, Base UI portalled its popup to
@@ -18,10 +18,7 @@ test.describe('admin row action menu', () => {
   test.skip(!ADMIN_SECRET, 'set E2E_ADMIN_SECRET to the deployment ADMIN_SECRET to run this')
 
   test('the row menu is on top and its actions fire', async ({ page }) => {
-    await page.goto('/admin')
-    // the admin is inert under the boot cover until it lifts (lib/snailLaunch · liftBootCover), and
-    // a `fill` – unlike a click – does not wait for it: the secret just vanished (CI 08.11.2026)
-    await expect(page.locator('.boot-splash')).toHaveCount(0)
+    await openApp(page, '/admin')
 
     // Admin gate: the deployment ADMIN_SECRET (no kiosk login needed).
     await page.locator('#adm-secret').fill(ADMIN_SECRET!)
