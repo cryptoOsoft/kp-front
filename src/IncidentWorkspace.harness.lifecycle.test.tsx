@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from 'vitest'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { useState } from 'react'
 import type { MittelEntry } from './types'
 import { AUTH, SYM, rec, registerHarnessHooks, lastMap, meta, truck, workspaceTree, settle, mount, key, mode, type WsProps } from './IncidentWorkspace.harness.setup'
@@ -100,6 +100,22 @@ describe('(c) the Abschluss', () => {
     await pressAbschluss()
     expect(rec.confirms).toBe(1)
     expect(onCompleteRapport).not.toHaveBeenCalled()
+  })
+
+  /* «Alle Einsätze» is opened FROM the Einsatz menu, which stays logically open under it. Its
+     «Abschliessen» asks through `abschlussRef`, and the menu stood open behind that question
+     (sweep 09.11.2026). */
+  it('asked from «Alle Einsätze», the confirm puts the Einsatz menu away first', async () => {
+    const abschlussRef: WsProps['abschlussRef'] = { current: null }
+    await mount({ abschlussRef })
+    rec.answer = false
+    fireEvent.click(screen.getByRole('button', { name: 'Harness' }))
+    await settle()
+    const menuRow = () => screen.queryByRole('button', { name: appConfig.copy.incidentSwitcher.archive })
+    expect(menuRow()).toBeTruthy()
+    await act(async () => { await abschlussRef?.current?.() })
+    expect(rec.confirms).toBe(1)
+    expect(menuRow()).toBeNull()
   })
 
   /* A Sicherungstrupp still angemeldet (24.09.2026, D1 ⑦): the workspace wires the Abschluss's

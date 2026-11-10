@@ -24,6 +24,12 @@ describe('SessionExpiredMeldung', () => {
     expect(onRelogin).toHaveBeenCalledOnce()
   })
 
+  it('names the account whose sign-in sends the changes, where one is known', () => {
+    render(<><SessionExpiredMeldung onRelogin={() => {}} name="Keller Mara" /><Meldeleiste /></>)
+    expect(document.querySelector('.ml-sub')?.textContent)
+      .toBe('Änderungen bleiben auf diesem Gerät und werden nach der Anmeldung von Keller Mara synchronisiert')
+  })
+
   it('withdraws the row when its publisher unmounts (the sign-in clears the flag)', () => {
     const { rerender } = render(<><SessionExpiredMeldung onRelogin={() => {}} /><Meldeleiste /></>)
     expect(document.querySelector('.ml-row')).toBeTruthy()
