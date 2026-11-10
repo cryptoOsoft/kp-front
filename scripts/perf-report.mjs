@@ -3,11 +3,14 @@
 //
 //   node scripts/perf-report.mjs perf-results                      # one run
 //   node scripts/perf-report.mjs perf-results/run1 perf-results/run2  # best of two runs
-//   node scripts/perf-report.mjs --update perf-results/run1 …       # accept: rewrite the baseline
+//   node scripts/perf-report.mjs --update <run-dir> [run-dir …]     # accept: rewrite the baseline
 //
-// Each run directory holds the <journey>.json files e2e/journeys.journey.ts wrote. With several
-// runs, every metric takes its BEST value: all of them are lower-is-better, and noise only ever
-// makes a number worse. That is how CI confirms a regression before it fails (ci.yml · perf).
+// Each run directory holds the <journey>.json files e2e/journeys.journey.ts wrote: one walk.
+// Comparing, every metric takes its BEST value of the walks: all of them are lower-is-better, and
+// noise only ever makes a number worse. That is how CI confirms a regression before it fails
+// (ci.yml · perf). Accepting (`--update`), a time takes the MEDIAN of the walks and the rest their
+// best, over walks of one kind of runner (perf-gate.mjs · baselineOf): a build is judged by one
+// walk, so its baseline is the typical walk, not the luckiest.
 //
 // Every time budget is scaled by how fast the machine was today (`env.calibration`, a fixed
 // workload) against the machine the baseline was taken on, clamped to ×1–1.5: a slow GitHub
@@ -20,7 +23,7 @@
 // docs/testing/perf-journeys.md has the whole picture.
 import { appendFileSync, existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { judge, speedFactor } from './perf-gate.mjs'
+import { baselineOf, bestOf, CALIBRATION, judge, speedFactor } from './perf-gate.mjs'
 
 const args = process.argv.slice(2)
 const flag = (name) => { const i = args.indexOf(name); if (i < 0) return undefined; const v = args[i + 1]; args.splice(i, 2); return v }
@@ -29,8 +32,6 @@ const baselinePath = flag('--baseline') ?? 'e2e/perf/baseline.json'
 const summaryPath = flag('--summary') ?? process.env.GITHUB_STEP_SUMMARY
 const runs = args
 if (!runs.length) { console.error('usage: perf-report.mjs [--update] [--baseline file] [--summary file] <run-dir> [run-dir …]'); process.exit(2) }
-
-const CALIBRATION = 'env.calibration'
 
 function readRun(dir) {
   if (!existsSync(dir)) throw new Error(`${dir}: no such directory — did the journeys run?`)
@@ -46,39 +47,35 @@ function readRun(dir) {
 }
 
 const loaded = runs.map(readRun)
-const median = (xs) => { const s = [...xs].sort((a, b) => a - b); return s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2 }
-
-/** best value per metric across the runs (the calibration: the median — it describes the machine) */
-const current = {}
-for (const { metrics } of loaded) {
-  for (const [k, m] of Object.entries(metrics)) {
-    if (k === CALIBRATION) continue
-    if (!current[k] || m.value < current[k].value) current[k] = { ...m }
-  }
-}
-const calibs = loaded.map((r) => r.metrics[CALIBRATION]?.value).filter((x) => typeof x === 'number')
-const calibration = calibs.length ? median(calibs) : undefined
-const details = Object.assign({}, ...loaded.map((r) => r.details)) // the last run's routes win
-
+const walks = loaded.map((r) => r.metrics)
 const baseline = existsSync(baselinePath) ? JSON.parse(readFileSync(baselinePath, 'utf8')) : { metrics: {}, tolerance: {} }
+/** the API routes per journey; of several walks, the last one's win */
+const routesOf = (some) => Object.assign({}, ...some.map((r) => r.details))
 
 if (update) {
+  // the typical walk of one kind of runner: perf-gate.mjs · baselineOf has the rules and the why
+  const { metrics, calibration, kept, dropped } = baselineOf(walks)
+  for (const i of dropped) console.log(`left out: ${runs[i]} (calibration ${walks[i][CALIBRATION].value} ms, another kind of runner than the median's)`)
+  const details = routesOf(kept.map((i) => loaded[i]))
   const out = {
-    $comment: 'Written by `node scripts/perf-report.mjs --update` from a CI run (`just perf-accept <run-id>`). Hand-edit only `tolerance`. docs/testing/perf-journeys.md',
+    $comment: 'Written by `node scripts/perf-report.mjs --update` from CI runs (`just perf-accept <run-id> …`): times are the median of `walks` walks, the rest their best. Hand-edit only `tolerance`. docs/testing/perf-journeys.md',
     recorded: new Date().toISOString().slice(0, 10),
     source: process.env.PERF_SOURCE ?? runs.join(' '),
+    walks: kept.length,
     calibration,
     tolerance: baseline.tolerance ?? {},
-    metrics: Object.fromEntries(Object.entries(current).sort(([a], [b]) => a.localeCompare(b))),
+    metrics: Object.fromEntries(Object.entries(metrics).sort(([a], [b]) => a.localeCompare(b))),
     details: Object.fromEntries(Object.entries(details).map(([j, d]) => [j, d.routes ? { routes: d.routes } : {}]).filter(([, d]) => Object.keys(d).length)),
   }
   writeFileSync(baselinePath, JSON.stringify(out, null, 2) + '\n')
-  console.log(`baseline written: ${baselinePath} (${Object.keys(out.metrics).length} metrics, calibration ${calibration ?? '—'} ms)`)
+  console.log(`baseline written: ${baselinePath} (${Object.keys(out.metrics).length} metrics from ${kept.length} walk${kept.length > 1 ? 's' : ''}, calibration ${calibration ?? '—'} ms)`)
   process.exit(0)
 }
 
 // ── compare ──────────────────────────────────────────────────────────────────────────────────
 
+const { metrics: current, calibration } = bestOf(walks)
+const details = routesOf(loaded)
 const speed = speedFactor(calibration, baseline.calibration)
 const rows = []
 let failed = 0

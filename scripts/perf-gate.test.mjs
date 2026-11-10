@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { judge, speedFactor } from './perf-gate.mjs'
+import { baselineOf, bestOf, judge, speedFactor } from './perf-gate.mjs'
 
 // The numbers are CI's own: e2e/perf/baseline.json's `edit.karte_script_ms` and calibration, and
 // the first attempts of the Performance job that failed on builds that never touched the Karte.
@@ -57,6 +57,56 @@ describe('perf gate, the rest unchanged', () => {
   it('without a calibration on either side, a budget is not scaled', () => {
     expect(speedFactor(undefined, 38.4)).toBe(1)
     expect(speedFactor(46, undefined)).toBe(1)
+  })
+})
+
+// Walks as CI recorded them on main, 09.–10.11.2026 (runs 42717650281 … 42805629593): slow-kind
+// runners at ~46 ms, and one walk that landed on the fast kind.
+const walk = (calibration, submitMs, saves) => ({
+  'env.calibration': { value: calibration, unit: 'ms' },
+  'verlauf.submit_ms': { value: submitMs, unit: 'ms' },
+  'edit.saves': { value: saves, unit: 'count' },
+})
+const SLOW = [walk(46.7, 130.9, 12), walk(46.2, 150.9, 12), walk(46.4, 176.8, 12), walk(46.1, 179.6, 12), walk(46.8, 142.9, 11)]
+const FAST = walk(27.1, 87.9, 10)
+
+describe('a baseline from several walks (baselineOf)', () => {
+  it('takes the median of a time and the best of a count', () => {
+    const { metrics } = baselineOf(SLOW)
+    expect(metrics['verlauf.submit_ms']).toEqual({ value: 150.9, unit: 'ms' })
+    expect(metrics['edit.saves']).toEqual({ value: 11, unit: 'count' })
+  })
+
+  it('stores the median calibration of the walks it used', () => {
+    expect(baselineOf(SLOW).calibration).toBe(46.4)
+    expect(baselineOf(SLOW.slice(0, 4)).calibration).toBe(46.3) // an even number: between the middle two
+  })
+
+  it('leaves a walk from another kind of runner out whole, wherever it stands in the list', () => {
+    const mixed = baselineOf([SLOW[0], FAST, ...SLOW.slice(1)])
+    expect(mixed.dropped).toEqual([1])
+    expect(mixed.kept).toEqual([0, 2, 3, 4, 5])
+    expect({ metrics: mixed.metrics, calibration: mixed.calibration }).toEqual({ metrics: baselineOf(SLOW).metrics, calibration: 46.4 })
+  })
+
+  it('one walk is its own baseline', () => {
+    expect(baselineOf([SLOW[0]])).toEqual({ metrics: { 'verlauf.submit_ms': { value: 130.9, unit: 'ms' }, 'edit.saves': { value: 12, unit: 'count' } }, calibration: 46.7, kept: [0], dropped: [] })
+  })
+
+  it('an ordinary walk no longer drifts against it, and a real regression still fails', () => {
+    const { metrics, calibration } = baselineOf(SLOW)
+    const submit = (now) => judge({ key: 'verlauf.submit_ms', unit: 'ms', base: metrics['verlauf.submit_ms'].value, now, speed: speedFactor(46.2, calibration) }).status
+    expect(SLOW.map((w) => submit(w['verlauf.submit_ms'].value))).toEqual(['ok', 'ok', 'ok', 'ok', 'ok'])
+    expect(submit(2 * 150.9)).toBe('regressed')
+  })
+})
+
+describe('judging a build by several walks (bestOf)', () => {
+  it('still takes the best of every number, times included', () => {
+    const { metrics, calibration } = bestOf(SLOW)
+    expect(metrics['verlauf.submit_ms'].value).toBe(130.9)
+    expect(metrics['edit.saves'].value).toBe(11)
+    expect(calibration).toBe(46.4)
   })
 })
 
