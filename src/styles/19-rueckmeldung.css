@@ -62,13 +62,14 @@ p.fb-prompt-q { margin: 0; font: var(--fw-bold) var(--fs-2) var(--body); color: 
 }
 .fb-route:active { background-image: linear-gradient(var(--press), var(--press)); }
 .fb-route:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
-/* The chosen one carries a 2px ink border and compensates in padding, so picking a route does
-   not shift the two cells by a pixel — a layout that twitches under the finger reads as a
-   misfire and invites a second tap. */
-.fb-route.pick { border: 2px solid var(--ink-fill); padding: calc(var(--sp-3) - 1px) calc(var(--sp-4) - 1px); }
+/* The chosen one is an option card, so it is picked by the selected wash and nothing else
+   (ui-conventions · «Selected», role 2) — it wore a 2px ink outline and an ink icon tile, the one
+   «outline-only selected» left (sweep 09.11.2026, UI.4). The 1px edge stays, so picking a route
+   does not shift the two cells by a pixel. After the hover rule on purpose: a picked card keeps
+   its wash under a mouse. */
+.fb-route.pick { background: var(--sel-wash); }
 .fb-route-ico { flex: none; display: grid; place-items: center; width: 32px; height: 32px;
   border-radius: var(--r-xs); background: var(--fill-soft); color: var(--ink); }
-.fb-route.pick .fb-route-ico { background: var(--ink-fill); color: var(--on-accent-ink); }
 .fb-route-ico svg { width: 15px; height: 15px; }
 .fb-route-body { display: flex; flex-direction: column; gap: var(--sp-1); }
 .fb-route-t { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
