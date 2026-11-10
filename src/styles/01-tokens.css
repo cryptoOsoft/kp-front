@@ -17,7 +17,7 @@
      standard opt-out from that UA adjustment and leaves the native-surface behaviour above
      unchanged — which `light dark` would NOT: that hands scrollbars and the iOS accessory bar
      back to the OS setting, re-opening the white-bar bug this comment exists for. Measured
-     with `e2e/blink-force-dark.mjs`: day chrome 26 → 242 mean luminance under auto-dark. */
+     with `e2e/blink-force-dark.spec.ts`: day chrome 26 → 242 mean luminance under auto-dark. */
   color-scheme: only light;
   /* Field-readable glass: opaque enough to hold contrast over aerial imagery
      and in daylight, with a faint dark hairline so edges read on any base map. */

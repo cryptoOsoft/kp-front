@@ -279,7 +279,7 @@ The rules that are easy to break:
   Kaibmattweg 1-5, Stallenrain 1 (EH)» ran off both screen edges); the placement pass measures the
   folded size on its off-screen twin. A folded tag's box is as wide as its longest line, not the
   280 px (Karte Haus round 3: «boxes fitted to the width»): CSS cannot shrink a wrapped box, so
-  the twin's lines are measured and the tag gets that width inline (`e2e/karte-tag-fit.mjs`). Round 1 hung the tag under its building's south edge,
+  the twin's lines are measured and the tag gets that width inline (`e2e/karte-tag-fit.spec.ts`). Round 1 hung the tag under its building's south edge,
   round 2 moved it inside its own building when that spot was another object's — both put the
   name somewhere the point is not, and that read as a moved marker.
 - **A tag is the name, never a plan count** (owner, round 3: «we just care that there are

@@ -18,7 +18,7 @@ sheets, overlays, the button spec and the touch vocabulary. Phone-only layout is
   darkened all of our day chrome while the WebGL map canvas, which no filter touches, stayed
   light (round 7, point 2). Do **not** "fix" that with `light dark`: that hands the native
   surfaces back to the OS setting and re-opens the white-accessory-bar bug. Guarded by
-  `e2e/blink-force-dark.mjs`.
+  `e2e/blink-force-dark.spec.ts`.
 - **CSS:** design tokens, the day/night flip (`[data-theme="night"]`), and shared chrome live
   in **`src/styles/NN-*.css`** – one numbered file per block (tokens, base, map, chrome, one per
   surface), listed in order by `src/app.css`, which is now a manifest of `@import`s and holds no
