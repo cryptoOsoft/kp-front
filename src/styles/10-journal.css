@@ -715,7 +715,7 @@
    ink; the ↻ and the minutes say what it does. */
 .jr-again { display: inline-flex; gap: var(--sp-1); flex: none; }
 .jr-again-btn { border: 1px solid var(--glass-edge);
-  background: var(--surface); border-radius: var(--r-pill, 999px); padding: var(--sp-1) var(--sp-2); cursor: pointer;
+  background: var(--surface); border-radius: var(--r-xs); padding: var(--sp-1) var(--sp-2); cursor: pointer;
   font: var(--fw-medium) var(--fs-1) var(--body); color: var(--ink-dim); white-space: nowrap; }   /* 12.5px: the interactive-text floor (was 11.5, UI sweep 07.10.2026); --tap under a finger: 20-touch-floors */
 @media (hover: hover) {
   .jr-again-btn:hover { background: var(--hover-strong); color: var(--ink); }
