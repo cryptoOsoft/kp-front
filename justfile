@@ -350,11 +350,14 @@ fat-perf *presets:
 perf *args:
     bash scripts/perf-journeys.sh {{args}}
 
-# Accept a CI run's numbers as the new baseline (an intended change, or a gain to defend).
+# (Several runs make the steadier baseline: times take the median of their walks, the rest their
+# best, over walks of one kind of runner — docs/testing/perf-journeys.md.)
+# Accept the numbers of one or several CI runs as the new baseline (an intended change, or a gain to defend).
 [group('Quality')]
-perf-accept run-id:
-    rm -rf tmp/perf-accept && gh run download {{run-id}} -n perf-results -D tmp/perf-accept
-    PERF_SOURCE="CI run {{run-id}}" node scripts/perf-report.mjs --update $(ls -d tmp/perf-accept/run*)
+perf-accept +run-ids:
+    rm -rf tmp/perf-accept
+    for id in {{run-ids}}; do gh run download "$id" -n perf-results -D "tmp/perf-accept/$id"; done
+    PERF_SOURCE="CI run {{run-ids}}" node scripts/perf-report.mjs --update $(ls -d tmp/perf-accept/*/run*)
     rm -rf tmp/perf-accept
 
 # (Throwaway Postgres + built app; never touches the dev database. CI's «Visual» job shoots the
