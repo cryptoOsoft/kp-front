@@ -401,7 +401,8 @@ export default function App() {
       // Concurrent edits are auto-merged three-way (see mergeWorkspace), so no blocking
       // dialog — just a quiet notice. The merged result is applied in place via onApplyMerged
       // (registered by the live view); onServerWorkspace is the remount fallback.
-      onMerged: () => toast(appConfig.copy.toast.merged),
+      // one pill, however many merges: three devices saving at once stacked it (UX.9, 09.11.2026)
+      onMerged: () => toast(appConfig.copy.toast.merged, { kind: 'ws-merged' }),
       onServerWorkspace: (ws) => { setWorkspace(ws); setRemount((n) => n + 1) },
     })
     const meta = opts.meta ?? (await getIncident(id))
