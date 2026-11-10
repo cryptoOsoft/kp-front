@@ -282,9 +282,9 @@ const base = readJson('content', `${baseLocale.code}.json`)
 
 const dirOf = (locale) => locale.dir ?? (locale.code === baseLocale.code ? '' : `${locale.code}/`)
 const urlOf = (locale) => `${config.origin}/${dirOf(locale)}`
-// The sister product's page in the same language: both sites publish the same languages under
-// the same folders, so /fr/ links to the sister's /fr/ and the base language to its root.
-const sisterOf = (locale) => `${config.sister}/${dirOf(locale)}`
+// The sister site's page in the same language. Both sites publish the same languages under the
+// same folders, so the language folder carries over unchanged (`config.sister` ends in a slash).
+const sisterOf = (locale) => `${config.sister}${dirOf(locale)}`
 
 const written = []
 const stale = []
