@@ -29,19 +29,217 @@ so this file – not the log – is the record of what shipped up to that point.
 
 ## [Unreleased]
 
+Four weeks of work (2026-10-13 to 2026-11-10), most of it from the station's own use. KP Front now
+has a home outside an Einsatz – «Karte & Objekte» – and the Einsatz gains gas readings
+(Messpunkte), a Wassertransport calculation, a Präsentationsmodus, wall sketches on the Gebäude and
+a signature on the screen. Roles and the PIN login were audited and tightened, and the installed
+app starts faster on a phone. A station updates with `docker compose pull && docker compose up -d`
+and has nothing else to do – with one exception: «Mit Microsoft anmelden» with sign-in names in the
+allow-list (first Upgrade note).
+
+### Upgrade notes
+
+**A MINOR by the table above:** no new mandatory setting, no Postgres change, every migration
+automatic and with a downgrade. Read on for what behaves differently afterwards.
+
+- **«Mit Microsoft anmelden»: the allow-list takes object ids only.** `ENTRA_LOGIN_ACCOUNTS` no
+  longer accepts a sign-in name (`anna.muster@…=amuster`): a name can be renamed and handed to
+  somebody else in the tenant. A list that still holds one is invalid as a whole and the button
+  stays hidden; the PIN login is unaffected. *If you listed sign-in names, rewrite each line to
+  the person's Entra Objekt-ID before updating (docs/microsoft-login.md).*
+- **Migrations run on boot** (six): an object's station-set position (`objects.locality`,
+  `position_source`, `position_set_at`, `outline`, table `object_position_events`), where an
+  Objektbesuch took place (`object_visits.target_kind` / `lat` / `lng`),
+  `incidents.exercise_since_creation`, `print_jobs` recreated, and three drops: the never-used
+  `incident_notes` table and `reference_datasets.fetch_interval`, and the telemetry forwarder's
+  `telemetry_outbox` table with `deployment_config.telemetry_consent` / `.telemetry_install_id`.
+  The downgrades recreate what was dropped, empty.
+- **Defaults that changed** – nothing to do unless you disagree:
+  - A device stays signed in for **90 days** instead of 7 (`refresh_token_expire_days`), so an
+    alarm weeks after the last one opens into a live session. A PIN reset or a role change still
+    ends the account's sessions at once.
+  - The push **«Neuer Einsatz» goes to editor accounts only**, «Wiedervorlage fällig» to editor
+    and `el`; Atemschutz alarms still reach every registered device. *Whoever must be woken by a
+    new Einsatz needs an editor account.*
+  - A **viewer** account reads the running Einsätze and those closed in the last 7 days, no
+    longer the whole archive (`access.viewerHistoryDays`; `0` = running only).
+  - An **Übung closes itself** 12 hours after the last change made by a person
+    (`alarms.exerciseAutoCloseHours`; `0` = off). It can be reopened as usual; an Ernstfall is
+    never closed this way.
+  - A completed **Objektbesuch is read-only after 24 hours** (`objectVisits.lockAfterHours`;
+    `null` = never).
+  - The **radar layer is switched on per Einsatz**: a new Einsatz starts without it.
+- **HSTS.** With `ENVIRONMENT=production` (what `docker-compose.yml` sets) every answer carries
+  `Strict-Transport-Security: max-age=31536000`, without `includeSubDomains`. Behind HTTPS a
+  browser then refuses `http://` for that host name for a year. A station on plain HTTP in a LAN
+  (`COOKIE_SECURE=false`) notices nothing – browsers ignore the header over HTTP – as long as the
+  same host name is never also served over HTTPS.
+- **Removed settings.** `KP_TELEMETRY_ENABLED`, `KP_TELEMETRY_DSN` and
+  `KP_TELEMETRY_FLUSH_MINUTES` are gone with the forwarder (see Removed). Lines left in `.env`
+  are ignored.
+- **New optional settings**, all with defaults: `PRINT_AGENT_SECRET` (the print relay is back,
+  see Added; empty = no relay, no button), `FOOTPRINT_AREA_TILES` / `FOOTPRINT_BUILDINGS_WFS`,
+  `UNDERGROUND_WFS` and `HOUSES_WFS` (official building data, next note). New config keys with
+  defaults: `access.viewerHistoryDays`, `alarms.exerciseAutoCloseHours`,
+  `objectVisits.lockAfterHours`, `fleet.origins`, `doctrine.defaultLineHose` /
+  `.defaultRelayHose`, `doctrine.nearbyObjectWarnM`, `map.serviceArea` and
+  `identity.shortName` (docs/CONFIGURATION.md).
+- **New outbound requests.** The backend asks the open Swiss cadastral survey
+  (`geodienste.ch`) and swisstopo (`vectortiles.geo.admin.ch`) for building footprints: once per
+  station object, and weekly for the houses and underground buildings of the Einsatzgebiet. It
+  sends an object's coordinate or the area, never an Einsatz. An empty value switches a source
+  off. The devices load street names as vector tiles from CARTO (`tiles-a…d.basemaps.cartocdn.com`),
+  the provider the base map already comes from. A host with an outbound allowlist adds these.
+- **`docker-compose.yml` changed.** It passes `PRINT_AGENT_SECRET` and the two `FOOTPRINT_*`
+  settings into the app and no longer names the telemetry pair. An older file keeps working; take
+  the new one to use the print relay. `UNDERGROUND_WFS` and `HOUSES_WFS` are not passed through
+  yet: to switch those two off, add them under the app's `environment:`.
+- **A device on an older build updates first.** The server refuses a save from a build older
+  than the one that last wrote the Einsatz (409 `workspace_older_build`), because an old build
+  could drop entries it does not know. Such a device reloads into the new build by itself and is
+  read-only until then.
+- **Browsers.** Safari/iPadOS 15.4, Chrome/Edge 98, Firefox 94 or later, with WebGL2 (see
+  Changed). *Update an older iPad to iPadOS 15.8 or later.*
+- **Print relay users:** set `PRINT_AGENT_SECRET` again (0.12.0 deleted the stored copy). The
+  agent now lives in the kp-rueck repository (`ghcr.io/feuerwehr-oberwil/kp-print-agent`).
+- **Präsentationsmodus** lives in the memory of one server process – the shape Compose runs. A
+  deployment with several app replicas would need more (docs/presentation.md).
+- **API.** `GET /api/plan-scales` needs a session. `GET /api/config` shows `alarms.webhooks` and
+  `sharepoint.sources` to the admin only. Gone: `/api/diag/telemetry*` and
+  `POST /api/georef/suggest`. A sixth waiting print job for one Einsatz is refused (429). New and
+  public: `POST /api/diag/boot` (one launch-timing log line per app start, nothing stored).
+
 ### Added
 
-- **The station printer is back.** 0.12.0 removed the print relay because prod looked unused –
-  but that check counted a queue the scheduler empties after 7 days. The station agent had
-  printed 18 KP Front jobs in August and September. «Ausdrucken» returns to the Rapport, the
-  capture poster and the Zeitplan sheets, with the open-print-job band, the System connector
-  row and `report.reversePrintOrder`. A migration recreates `print_jobs`. *A station that used
-  the relay sets `PRINT_AGENT_SECRET` again, in `.env` or at `/admin` → Anbindungen – the 0.12.0
-  migration deleted the stored copy.* A viewer's print reaches the same media as their PDF, no
-  more.
+- **Karte & Objekte: the station map is home when no Einsatz is open.** The station's objects
+  stand on the map as building outlines, coloured by category, with a search over objects and
+  addresses, «In der Nähe», and a panel per object: Sofortmassnahmen, the plans («Modul 1» …),
+  Gebäude, the building register and «Melden». «Punkt setzen», «Messen», «Gefahrgut» and
+  «Ebenen» work as in an Einsatz, on a phone as slide-up sheets. A running Einsatz is one chip
+  away, «Einsatz verlassen» in the app menu leads back, and the Atemschutz alarm keeps ringing
+  behind it. «Auf diesem Gerät» shows what the device holds for offline use.
+- **Karte & Objekte: official buildings.** Every building of an object and every house of the
+  Einsatzgebiet comes from the cadastral survey instead of OpenStreetMap's blocks; a tap selects
+  the house under the finger («Objekt» or «Dieses Haus»). A new layer «Unterirdische Bauten»
+  (underground garages, tunnels) is on by default, on the Einsatz map too.
+- **Karte & Objekte: «Lage korrigieren» and duplicates.** An admin moves an object's pin and
+  picks how its outline is drawn; no import overwrites that position, and each correction can be
+  undone. `admin_objects_repair twins` reports likely duplicates, `admin_objects_repair merge
+  <loser> --into <survivor>` joins two.
+- **«Checkliste» outside an Einsatz.** Checklists and device Anleitungen can be read in peace
+  time – devices with their chapters first, one search over everything – with numbers instead of
+  boxes: «Zum Lesen. Abgehakt wird im Einsatz.»
+- **Keyboard shortcuts on Karte & Objekte** (P «Punkt setzen», U «Gefahrgut», / the search; the
+  rest as in the Einsatz), and a device setting «Tastenkürzel anzeigen» that puts the letters on
+  the rails and on Verlauf (J) and Eintrag (E) for mouse users. «Beschriftung» now rules every
+  bar, including the view bar that takes the map controls out of the tool rail.
+- **Street names you can read.** The CARTO base map draws its street, place and house-number
+  names as sharp text over the picture, larger than before, day and night; the base map itself
+  is sharp on retina screens. Printed maps are unchanged.
+- **Objektbesuche: a visit at a place, and a second checklist.** A visit can be made at a point
+  that is no catalogue object. A completed visit offers «Weitere Checkliste» for the same stop;
+  a finished visit reads as one card per checklist (who, when, the Mängel), with the answers on
+  their own screen.
+- **Messpunkt: gas readings on the Lage, the Plan and the Gebäude.** A Messpunkt's mark is its
+  worst reading – calm, amber from alarm stage A1, red from A2, outlined once it is older than
+  15 minutes (`staleMin`). Each point keeps its history («Bisher gemessen»); «Gleich gemessen»
+  records a Nachmessung with the same values and a tick marks «über Messbereich». «Messungen»
+  lists every point, worst first, and each reading is a row in the Verlauf and in a «Messungen»
+  section of the Rapport. *The stages ship with typical detector settings (CO 30/60 ppm, Ex 10/20 % UEG,
+  H₂S 5/10 ppm, O₂ below 19 / from 23 or below 17 Vol%); set your own detector's in the config.*
+- **Wassertransport.** «Messen» and a Leitung's editor calculate a relay line over the terrain:
+  hose (55, 75, 2× 75, 110), flow, source and inlet pressure in; a pressure curve and the pumps
+  out, placed where the inlet pressure reaches 2 bar. Pumps can be dragged, the direction
+  reversed, and the Leitung draws its pumps on the map and on paper. A pump below 2 bar inlet
+  pressure writes a Verlauf row. Height profiles answer offline once seen. A Linie can be a
+  40 mm Schlauch; the station sets the default hose for a Linie and for a Wassertransport in
+  /admin › Doktrin.
+- **Präsentationsmodus.** «Präsentieren» in «Einsatz teilen» makes every joined device – also
+  one on a read-only Einsatz link – show what the presenter shows, until its user pans away
+  («Wieder folgen»). With «Zeigen», anyone joined marks a spot or draws a line under their name;
+  marks stand until removed. Nothing of it is stored except «Präsentation gestartet / beendet»
+  in the Verlauf; it needs a connection to the server.
+- **Walls on the Gebäude.** «Wand» draws a building's layout on the storey stack: straight and
+  right-angled where the points allow, a Durchgang seats itself on the nearest Wand and moves
+  with it, and «Kopieren nach …» copies one storey's layout to others. Any Linie can be turned
+  into a Wand and back, on plans and on the Lage. Leaving a tool with an open drawing now asks
+  «Speichern · Verwerfen · Weiterzeichnen» instead of saving silently.
+- **Tafel: the Problemerfassung checklist fills the Tafel.** A tick in a checklist marked as
+  Problemerfassung is a problem on the Tafel page and in the matching «Erste Führung» box, with
+  its Tendenz; every table row and box line can be deleted (one ↶ step). Stations mark their own
+  checklists and pages for it (docs/board-templates.md).
+- **Tafel: page «Aufträge / Pendenzen».** A live view of the Verlauf's Pendenzen – Was, Wer,
+  Prio., Status, Zeit. A row typed there is a Verlauf entry, a tick completes it.
+- **Tafel: dates.** Every page says «Erstellt … · zuletzt bearbeitet …», on screen and on paper,
+  and a «Wann» column that passes midnight gets a date row.
+- **«Herkunft» on vehicles.** Every vehicle symbol and live GPS vehicle can name where it comes
+  from (a station list in /admin › Fahrzeuge & Symbole, or typed); it shows under the name on
+  the map and in the Rapport legend.
+- **Rapport: sign on the screen.** Once the Einsatz is closed, «Unterschriften» lets
+  Einsatzleiter and Kommandant sign with a finger. A signed Rapport is locked; «Ändern» voids
+  the signatures, and a change from another device marks them «ungültig». The PDF prints the
+  signature with «Am Bildschirm unterschrieben … · Prüfsumme …». It is a simple electronic
+  signature with the standing of a pen stroke, not a qualified one (docs/rapport.md).
+- **Rapport: a guide to the end.** A tap on «n offen» walks through the open points one by one;
+  when all is recorded a band offers the PDF, then «Einsatz abschliessen» and «Beilagen
+  herunterladen (ZIP)». The print menu has one tick per kind of Tafel page, and the file is named
+  after date, time, title and address.
+- **«Alarm auf diesem Gerät».** One place says whether this device will actually ring, with a
+  one-tap fix per row and «Testalarm senden». In the installed app, a card on the home screen
+  appears when something is missing.
+- **Atemschutz.** A person who ends up in two active Trupps after a merge is named in a band
+  above the board, with «Bleibt in Trupp …» to settle it. Any crew inside can become the
+  Sicherungstrupp, a waiting crew shows its next step, and the Atemschutz link's board is laid
+  out for a phone.
+- **«Alle Einsätze» has filters** – «Ernstfall», «Übung», Einsatzart, «Rapport offen» – and a
+  closed Einsatz wears a quiet «Abgeschlossen» pill that opens «Wieder öffnen».
+- **Checkliste: a group «Passend»** offers the checklists whose keywords match the Einsatz's
+  title.
+- **Verlauf across days.** Once an Einsatz spans more than one calendar day, every day gets its
+  separator and entries from another day carry their date.
+- **Shared tablets.** The login screen says whose unsent changes still wait on this device. The
+  PIN pad has ⌫ on the left and ✓ on the right.
+- **«Farbschema» gets «Gerät»**: the app follows the device's light or dark setting.
+- **The station printer is back.** 0.12.0 removed the print relay on a usage check that could
+  not see use – it counted a queue the scheduler empties after 7 days. «Ausdrucken» returns to
+  the Rapport, the capture poster and the Zeitplan sheets, with the open-print-job band, the
+  System connector row and `report.reversePrintOrder`. A migration recreates `print_jobs`. *A
+  station that used the relay sets `PRINT_AGENT_SECRET` again, in `.env` or at `/admin` →
+  Anbindungen – the 0.12.0 migration deleted the stored copy.* A viewer's print reaches the same
+  media as their PDF, no more, and an Einsatz holds at most five waiting jobs.
 
 ### Changed
 
+- **Start-up on a phone.** The installed app opens on the config, session and Einsatz list it
+  already holds and checks them behind the picture; iPhones show the splash instead of a black
+  screen while iOS starts the app; map and plan tiles moved from the browser's Cache Storage to
+  IndexedDB, which had delayed every launch by up to several seconds (existing tiles move over
+  in the background). An update that changes nothing in a file no longer makes devices download
+  it again.
+- **Less data per change.** A Funkkontakt or other Trupp-only change sends the Trupps, not the
+  whole Einsatz (about a seventh on a large one), and a device no longer downloads its own save
+  again.
+- **The Einsatz view's look.** Sheets, menus and popovers share one look, rails and cards were
+  tidied, and the editor sheets have one label column with 44 px controls. Behaviour is
+  unchanged.
+- **Roles read out instead of offering dead buttons.** A viewer, an `el`, the Führungsansicht
+  and link sessions see values where they cannot write: no handles on the Lage, no «Jetzt» on
+  the Rapport, no composer in the Verlauf. Only editor and `el` devices sound a due
+  Wiedervorlage.
+- **Touch.** A one-finger zoom (double tap, tap-and-drag) works unless the armed tool needs the
+  gesture; ✓ finishes a line or area, never a double tap. A long press on the free map sets a
+  point. Sheets close on a pull-down from the top, and the armed tool shows as a pill with ⓘ and
+  ✕.
+- **One-time buttons show «done» instead of doing it twice** – «Schicht erstellen», the
+  Absperrkreis from Gefahrgut, «Erfassen» with a photo, «↻ wieder in 30 / 60 min».
+- **Symbols.** The palette starts Schadenlage · Fahrzeuge / Mittel · Führung; «Explosion» moved
+  to Gefahren; every station list in a symbol's fields is a dropdown that also takes typed text.
+  A placed symbol's card has one «Erledigt» toggle.
+- **Plans are named the same everywhere** («Modul 1», «Modul 2/3», «Wasser 1» …), one chip on
+  the Plan opens object, Karte fit and Massstab, and the PDF reader gets a page strip and a share
+  button.
+- **Einsatz eröffnen / Einsatzdaten bearbeiten** is one flat list of fields; text typed there
+  survives a stray tap outside.
 - **Browser floor raised to Safari/iPadOS 15.4, Chrome/Edge 98, Firefox 94** (`build.target`).
   That is what the app already needed (`structuredClone`, unpolyfilled) and covers MapLibre 6.
   iPadOS 15.4+ covers every iPad that ever ran iPadOS 15, including the iPad Air 2 / mini 4 on
@@ -61,13 +259,85 @@ so this file – not the log – is the record of what shipped up to that point.
   unaffected. *No action needed* unless a script pushes a deliberately new set onto a populated
   deployment: add `--allow-create` there.
 
+### Removed
+
+- **The crash-report forwarder.** The opt-in pipeline to an outside ingest had no destination
+  since September 2026 and no switch in the app. Its settings (`KP_TELEMETRY_*`), its three
+  `/api/diag/telemetry*` routes, its queue table and the consent and install-id columns are
+  gone. Crash reports still stop in the deployment's own log and in the «Diagnose-Datei», which
+  no longer carries an install id.
+- **Automatic plan alignment suggestions** (`POST /api/georef/suggest`) – unused; plans are
+  fitted by point pairs or `§GEO` markers as before.
+- **Small things:** «+ Feld» and «Auf … zeigen» on a symbol's card (existing free fields still
+  show and edit), «Stärke» on a line, and the symbol dock beside the palette.
+
 ### Fixed
 
+- **The radar layer works again.** MeteoSwiss renamed its radar files on 2026-10-13 and 0.12.0
+  found none afterwards. The file names are now read from the provider's own index, and a daily
+  check watches the outside services KP Front depends on.
+- **Atemschutz: no Trupp is silently exempt from monitoring.** A mistyped or missing Trupp kind
+  counted as «not Atemschutz» on the board or in the push; only an explicit «einfach» is exempt
+  now. The contact clock accepts 1–30 minutes everywhere, and Trupp times are stamped in server
+  time, so a tablet with a wrong clock no longer shifts them.
+- **Checklist ticks made on two devices at once both survive** – they merge per tick, not per
+  list.
+- **Rapport photos added offline survive a reload**, and two admins saving the configuration at
+  once no longer overwrite each other.
+- **PDFs.** A title with a letter outside Latin-1 («Čapek AG») no longer fails the Rapport,
+  Tafel and Zeitplan download; the Rapport prints the Tafel's Skizze with lines and areas again;
+  an answer given in the print dialog reaches that PDF.
+- **iPhone, installed app.** Sheets with a text field stay on the keyboard in an Einsatz;
+  «Gebäudeumrisse werden geladen» can no longer hang; the snail no longer plays twice after an
+  update.
+- **Day mode on Samsung and other Chromium tablets** is no longer darkened by the browser.
+- **«Eintrag erfasst» no longer stacks** over «Erfassen» when Meldungen follow quickly.
+- **A value typed in a symbol's field is kept** when a tap on the map closes its card.
+- **The PIN pad signs in by itself again after a typo** instead of needing ✓ on every retry.
+- **«Anmeldung abgelaufen» shows only when the server refused the session**, and goes away when
+  it works again.
+- **Replay** shows deleted lines, detached ends and «Umkehren» as they were set.
+- **A read-only session no longer fills the device** with entries it cannot send («Speicher
+  voll»).
 - **A double tap on a plan's ‹ no longer leaves the Objektbesuch.** The reader closed only when
   the browser's back arrived, so a quick second tap went back once more – or landed on the
   visit's own ‹ in the same spot – and the user found themselves in the overview, the visit
   only under «Meine Entwürfe». The reader now closes at once, and the visit's ‹ ignores taps for
   half a second after it. *No action needed.*
+
+### Security
+
+- **PIN guessing from many addresses is capped per account.** A device that has signed in
+  carries a signed `known_device` cookie (httpOnly, 400 days; it opens nothing by itself). Wrong
+  PINs from devices an account does not know share one budget: after ten, new devices are
+  refused for that account for 15, then 30, then 60 minutes while the guessing goes on. Devices
+  already signed in are never locked out, the editors get a push «Anmeldung gesperrt», and
+  /admin › System lists a standing lock. *Nothing to do – a station notices this only under
+  attack, as a new or wiped tablet that cannot sign in to that account for up to an hour.* IPv6
+  sources are limited per /64.
+- **A lost device: reset the PIN.** A reset now also deletes the account's push registrations,
+  so the device stops receiving «Neuer Einsatz»; a role change ends the account's sessions like
+  a reset does. With sessions lasting 90 days this is the step to take.
+- **`GET /api/plan-scales` needs a session.** It had answered anyone with the object ids and
+  coordinates of every fitted Objektplan.
+- **HSTS in production** (see Upgrade notes).
+- **Roles audit.** An editor can no longer turn a real Einsatz into an «Übung» to delete it:
+  only an Übung created as one is deleted without the admin. Einsatz links are narrowed per
+  request for every link kind and no longer list the station's objects. A viewer's Rapport PDF
+  reaches only that Einsatz's media. A capture-poster entry cannot patch a row from another
+  channel. Another device's shared position cannot be taken over while it is held. `/api/config`
+  shows webhook targets and SharePoint sources to the admin only.
+- **«Mit Microsoft anmelden» matches the Entra object id only** (see Upgrade notes).
+- **Request hardening.** A compressed request body must be exactly one gzip member (else 400 /
+  415), secrets with non-ASCII characters are refused cleanly (401, not 500), and Einsatz
+  status, priority and coordinates are validated on write.
+- **maplibre-gl 6** fixes GHSA-jrc7-96c5-q579; the waiver from 0.11.0 is dropped.
+- **aiohttp 3.14.5** – CVE-2026-111063, CVE-2026-111064, GHSA-2g87-pp6c-29x5. **pillow 13.0.0**
+  and **certifi 2026.10.19**.
+- **DOMPurify 3.4.17 or later** (GHSA-cg2g-xh64-v4q7, GHSA-mrv2-3pqr-j5jr), and jsPDF's optional
+  HTML libraries (html2canvas, canvg, DOMPurify) no longer ship in the app at all.
+- **Build tooling:** vitest 4.1.12, glob 14.0.3, undici, zod, fast-uri and serialize-javascript
+  at patched versions; one dated exception for minimatch (dev only, until 2026-12-31).
 
 ## [0.12.0] – 2026-10-13
 
