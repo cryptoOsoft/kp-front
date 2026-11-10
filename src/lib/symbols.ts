@@ -195,7 +195,7 @@ function captionPrimaryKey(name?: string): string | undefined {
 }
 
 /** The fields of a symbol that are MEASURED VALUES (the preset's `readout`, appConfig). */
-const readoutKeys = (props: SymbolProps): readonly string[] =>
+const readoutKeys = (props: Pick<SymbolProps, 'symbol'>): readonly string[] =>
   (props.symbol ? presets.byName[props.symbol]?.readout : undefined) ?? []
 
 /** A field value as any reader prints it: a measured value keeps its key («CO 180») — a bare
@@ -206,34 +206,96 @@ const keyedValue = (props: SymbolProps, key: string, value: string) =>
 /** A symbol whose mark is its reading (TacticalSymbol · measured): its preset names measured fields. */
 export const isMeasuredSymbol = (props: SymbolProps) => readoutKeys(props).length > 0
 
-/** A measured value as a number – the decimal comma a radio report gets typed with included –
- *  or null when the field holds no number. */
-const measuredNumber = (value?: string): number | null => {
-  const t = value?.trim().replace(',', '.')
-  const n = t ? Number(t) : NaN
+/**
+ * What a measured field holds (owner pick 3B, 10.11.2026). The panel's field takes a number only
+ * (`cleanMeasured`), and «über Messbereich» is a tick beside it, stored IN the value as a leading
+ * «>» («>100», a bare «>» when no number was typed) – no second synced field, so every reader, the
+ * history rows and an older build carry it without knowing. What was typed as free text before
+ * that still reads: «>…», «≥…» and the detector's «OL» are over range, anything else that is no
+ * number («ca. 60», «180 ppm») is `unreadable` – its text kept, never calm.
+ */
+export type Measured =
+  | { kind: 'empty' }
+  | { kind: 'number'; n: number }
+  /** past the detector's range – `n` the number typed with it (the range end), null without one */
+  | { kind: 'over'; n: number | null }
+  | { kind: 'unreadable' }
+
+const plainNumber = (t: string): number | null => {
+  const n = t ? Number(t.replace(',', '.')) : NaN
   return Number.isFinite(n) ? n : null
 }
+
+export function measuredOf(value?: string): Measured {
+  const t = value?.trim() ?? ''
+  if (!t) return { kind: 'empty' }
+  const n = plainNumber(t)
+  if (n != null) return { kind: 'number', n }
+  const over = /^(?:[>≥]\s*|OL\b\s*)(.*)$/i.exec(t)
+  if (over) return { kind: 'over', n: plainNumber(over[1].trim()) }
+  return { kind: 'unreadable' }
+}
+
+/** A measured value as a number – the decimal comma a radio report gets typed with included –
+ *  or null when the field holds no plain number (empty, over range, unreadable). */
+const measuredNumber = (value?: string): number | null => {
+  const m = measuredOf(value)
+  return m.kind === 'number' ? m.n : null
+}
+
+/** What the panel's number box shows of a stored value, and whether «über Messbereich» is ticked.
+ *  An unreadable older value shows as it was written, until somebody types over it. */
+export function measuredInput(value: string): { text: string; over: boolean } {
+  const m = measuredOf(value)
+  if (m.kind !== 'over') return { text: value, over: false }
+  return { text: m.n == null ? '' : value.trim().replace(/^(?:[>≥]|OL)\s*/i, ''), over: true }
+}
+
+/** Typing into a measured field: digits and ONE decimal mark (the «20,9» of a radio report), nothing
+ *  else – «OL», «>100», «ca.» cannot be typed (pick 3B). */
+export function cleanMeasured(raw: string): string {
+  const t = raw.replace(/[^\d.,]/g, '')
+  const i = t.search(/[.,]/)
+  return i < 0 ? t : t.slice(0, i + 1) + t.slice(i + 1).replace(/[.,]/g, '')
+}
+
+/** The stored value for the box's text and the tick: «>100», «>» for the tick alone, else the text. */
+export const measuredValue = (text: string, over: boolean): string => (over ? `>${text.trim()}` : text)
 
 /** A measured value's alarm stage: calm, Voralarm (A1, amber) or Hauptalarm (A2, red). */
 export type ReadingLevel = 'ok' | 'a1' | 'a2'
 const LEVEL_RANK: Record<ReadingLevel, number> = { ok: 0, a1: 1, a2: 2 }
 
+/** …and what a record SAYS about it (the Verlauf row, the Rapport's Stufe): the stage, or that
+ *  the value was past the range (drawn and sorted as A2) or could not be read (as A1). */
+export type ReadingState = ReadingLevel | 'over' | 'unreadable'
+
 const reached = (lim: { atLeast?: number; below?: number } | undefined, n: number) =>
   !!lim && ((lim.atLeast != null && n >= lim.atLeast) || (lim.below != null && n < lim.below))
 
-/** The stage `value` of the measured field `key` has reached – the preset's `alarm` (appConfig),
- *  the higher stage winning. A field without limits, or no number, is calm. */
-export function readingLevel(symbol: string | undefined, key: string, value?: string): ReadingLevel {
+/** What `value` of the measured field `key` amounts to – the preset's `alarm` (appConfig), the
+ *  higher stage winning. A number in a field without limits is calm; over range and unreadable
+ *  are never calm, limits or not. */
+export function readingState(symbol: string | undefined, key: string, value?: string): ReadingState {
+  const m = measuredOf(value)
+  if (m.kind === 'over' || m.kind === 'unreadable') return m.kind
   const lim = symbol ? presets.byName[symbol]?.alarm?.[key] : undefined
-  const n = measuredNumber(value)
-  if (!lim || n == null) return 'ok'
-  return reached(lim.a2, n) ? 'a2' : reached(lim.a1, n) ? 'a1' : 'ok'
+  if (!lim || m.kind === 'empty') return 'ok'
+  return reached(lim.a2, m.n) ? 'a2' : reached(lim.a1, m.n) ? 'a1' : 'ok'
 }
+
+/** The stage a state is drawn and sorted as: over range is the Hauptalarm, unreadable the Voralarm. */
+export const stateLevel = (state: ReadingState): ReadingLevel => (state === 'over' ? 'a2' : state === 'unreadable' ? 'a1' : state)
+
+/** The stage `value` of the measured field `key` is drawn as (readingState · stateLevel). */
+export const readingLevel = (symbol: string | undefined, key: string, value?: string): ReadingLevel =>
+  stateLevel(readingState(symbol, key, value))
 
 /** The panel's colour bar under a measured field (ReadingBar): one band per stretch between two
  *  limits, with the stage a value inside it reaches, and where `value` sits (null when it is no
  *  number). Not to scale on purpose – a calm band gets three times the room of an alarm band: the
- *  bar answers «how close to amber/red», not «how much». Null for a field without limits. */
+ *  bar answers «how close to amber/red», not «how much». Over range is the bar's end. Null for a
+ *  field without limits. */
 export function alarmBar(symbol: string | undefined, key: string, value?: string): { zones: { from: number; to: number; level: ReadingLevel }[]; at: number | null } | null {
   const lim = symbol ? presets.byName[symbol]?.alarm?.[key] : undefined
   const cuts = [...new Set([lim?.a1, lim?.a2].flatMap((l) => [l?.below, l?.atLeast]).filter((x): x is number => x != null))].sort((a, b) => a - b)
@@ -248,6 +310,8 @@ export function alarmBar(symbol: string | undefined, key: string, value?: string
     from = z.to
     return z
   })
+  // over range sits at the bar's end, whatever number was typed with it
+  if (measuredOf(value).kind === 'over') return { zones, at: 1 }
   const n = measuredNumber(value)
   if (n == null) return { zones, at: null }
   // inside its band, between the band's two limits; the first band starts at 0 (no gas is
@@ -261,8 +325,10 @@ export function alarmBar(symbol: string | undefined, key: string, value?: string
 
 /** How far past the limit of the stage it reached a value is – value ÷ limit, ≥ 1; a «below»
  *  limit inverted (limit ÷ value), so further is always bigger: O₂ 15 under a 17 is 1.13. 0 for a
- *  calm value – nothing is past anything there. */
+ *  calm value – nothing is past anything there – and for an unreadable one; over range is past
+ *  every number. */
 function overLimit(symbol: string | undefined, key: string, value?: string): number {
+  if (measuredOf(value).kind === 'over') return Infinity
   const level = readingLevel(symbol, key, value)
   const lim = level === 'ok' || !symbol ? undefined : presets.byName[symbol]?.alarm?.[key]?.[level]
   const n = measuredNumber(value)
@@ -313,12 +379,7 @@ export function symbolReading(props: SymbolProps, now = Date.now()): SymbolReadi
   const keys = readoutKeys(props)
   if (!keys.length) return null
   const fields = props.fields ?? {}
-  const rated = keys.filter((k) => fields[k]?.trim()).map((k) => ({
-    k, level: readingLevel(props.symbol, k, fields[k]), over: overLimit(props.symbol, k, fields[k]),
-  }))
-  const worst = rated.reduce<(typeof rated)[number] | undefined>((best, g) => (
-    !best || LEVEL_RANK[g.level] > LEVEL_RANK[best.level] || (g.level === best.level && g.over > best.over) ? g : best
-  ), undefined)
+  const worst = worstRated(props)
   const rs = props.readings; const at = rs?.length ? rs[rs.length - 1].t : null
   const ageMin = at != null ? Math.max(0, Math.floor((now - at) / 60_000)) : null
   const staleMin = props.symbol ? presets.byName[props.symbol]?.staleMin : undefined
@@ -331,6 +392,22 @@ export function symbolReading(props: SymbolProps, now = Date.now()): SymbolReadi
     stale: !!worst && ageMin != null && staleMin != null && ageMin >= staleMin,
   }
 }
+
+/** The filled measured field at the highest stage, then furthest past its limit, then first in
+ *  preset order – with what it was rated. Undefined while nothing is measured. */
+function worstRated(props: Pick<SymbolProps, 'symbol' | 'fields'>) {
+  const fields = props.fields ?? {}
+  const rated = readoutKeys(props).filter((k) => fields[k]?.trim()).map((k) => ({
+    k, level: readingLevel(props.symbol, k, fields[k]), over: overLimit(props.symbol, k, fields[k]),
+  }))
+  return rated.reduce<(typeof rated)[number] | undefined>((best, g) => (
+    !best || LEVEL_RANK[g.level] > LEVEL_RANK[best.level] || (g.level === best.level && g.over > best.over) ? g : best
+  ), undefined)
+}
+
+/** The gas a measured symbol's mark wears for these `fields` (symbolReading's rule) – the Rapport
+ *  leads each printed reading with it (lib/readingLog). */
+export const worstGas = (props: Pick<SymbolProps, 'symbol' | 'fields'>): string | undefined => worstRated(props)?.k
 
 /** an old reading's age on its pill – «18′», the minute sign standing in for «vor … min» */
 export const readingAge = (r: SymbolReading) => (r.ageMin != null ? `${r.ageMin}′` : '')
@@ -368,17 +445,19 @@ const measuredValues = (props: SymbolProps, fields: Record<string, string>) =>
 
 /**
  * The history after the panel changed a measured symbol's fields to `fields`: one more row when
- * the measured values differ from the last row, else the history as it was. ALWAYS appends –
- * never rewrites a row – so a merge of two tablets is a plain union (lib/mergeWorkspace); that one
- * radio report typed gas by gas is ONE reading is a display rule (readingRows).
+ * the measured values differ from the last row, else the history as it was – unless `again`
+ * («Gleich gemessen», pick 4A): a Nachmessung that confirms the values is a reading of its own,
+ * with its own time, so the point stops ageing. ALWAYS appends – never rewrites a row – so a merge
+ * of two tablets is a plain union (lib/mergeWorkspace); that one radio report typed gas by gas is
+ * ONE reading is a display rule (readingRows).
  */
-export function recordReading(props: SymbolProps, fields: Record<string, string>, now = Date.now()): Reading[] | undefined {
+export function recordReading(props: SymbolProps, fields: Record<string, string>, now = Date.now(), again = false): Reading[] | undefined {
   if (!readoutKeys(props).length) return props.readings
   const v = measuredValues(props, fields)
   const last = props.readings?.[props.readings.length - 1]
   const same = (a: Record<string, string>, b: Record<string, string>) =>
     Object.keys(a).length === Object.keys(b).length && Object.entries(a).every(([k, x]) => b[k] === x)
-  if (!Object.keys(v).length || (last && same(last.v, v))) return props.readings
+  if (!Object.keys(v).length || (!again && last && same(last.v, v))) return props.readings
   return [...(props.readings ?? []), { t: now, v }]
 }
 

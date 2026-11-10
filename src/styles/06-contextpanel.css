@@ -325,6 +325,23 @@
    a tick where the typed value sits – no numbers, only the stages */
 .reading-field { display: flex; flex-direction: column; gap: var(--sp-2); }
 .reading-bar { position: relative; display: block; height: 4px; }
+/* the number box with its «über Messbereich» tick INLINE beside it (10.11.2026, ReadingParts ·
+   MeasuredField; owner: «a small tick button but inline»). The tick is the shared TickRow, only
+   placed: no padding of its own, the label small and on two lines («über / Messbereich»), so the
+   box beside it still holds «20,9» in the tablet panel's narrow control column. Its tap height
+   stays TickRow's --tap. */
+.reading-entry { display: flex; align-items: center; gap: var(--sp-2); }
+.reading-entry .kv-val { flex: 1 1 0; width: 0; min-width: 0; }
+/* (.reading-entry in front: TickRow's own module class sets font and padding at equal weight) */
+.reading-entry .reading-over { flex: none; gap: var(--sp-2); padding: 0; font-size: var(--fs-1); line-height: 1.2; color: var(--ink-dim); }
+.reading-entry .reading-over > span:last-child { width: min-content; }
+/* a value from before the box took numbers only: its text gets the whole row (the tick drops
+   under it), so «ca. 60 ppm» is read whole – and it is said in amber under the bar, never calm */
+.reading-entry.unreadable { flex-wrap: wrap; }
+.reading-entry.unreadable .kv-val { flex-basis: 100%; }
+.reading-unreadable { display: flex; align-items: center; gap: var(--sp-2);
+  font: var(--fw-medium) var(--fs-1)/1.35 var(--body); color: var(--amber-strong); }
+.reading-unreadable .i { width: 14px; height: 14px; flex: none; }
 /* nothing typed yet: the zones stay as a faint guide, so the first digit does not move the row */
 .reading-bar.empty { opacity: .35; }
 .reading-bar i { position: absolute; top: 0; height: 4px; border-radius: 2px; background: var(--hover-strong); }

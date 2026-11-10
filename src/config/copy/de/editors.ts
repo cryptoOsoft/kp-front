@@ -95,6 +95,11 @@ export const editorsCopy = {
     readingOr: 'oder',
     readingInfoLevels: 'Gelb = A1 (Voralarm) erreicht, rot = A2 (Hauptalarm) erreicht.',
     readingInfoStale: 'Mit Alter (z. B. 18′) und nur der Rahmen farbig = älter als {min} min.',
+    /** das Feld eines Messwerts (Entscheid 3B, 10.11.2026): nur Ziffern, daneben das Häkchen
+     *  «über Messbereich» (zählt als A2); `readingUnreadable` unter einem alten Wert, der keine
+     *  Zahl ist. */
+    readingOver: 'über Messbereich',
+    readingUnreadable: 'Unlesbar – Zahl eingeben',
     removeField: 'Feld löschen',
     // the ⇄ square at the end of the Einsatzleiter glyph's EL row (title/aria). Says what HAPPENS,
     // not what the button is: an Ablösung is «übergeben», and both Anwesenheits-Bemerkungen follow

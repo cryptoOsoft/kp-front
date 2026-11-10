@@ -50,6 +50,8 @@ export const editorsCopy: Localizable<Pick<Copy, Keys>> = {
     readingOr: 'or',
     readingInfoLevels: 'Yellow = A1 (pre-alarm) reached, red = A2 (main alarm) reached.',
     readingInfoStale: 'With its age (e.g. 18′) and only the outline coloured = older than {min} min.',
+    readingOver: 'over range',
+    readingUnreadable: 'Unreadable – enter a number',
     removeField: 'Delete field',
     fieldKeyPlaceholder: 'Label',
     fieldNamePlaceholder: 'Name …',

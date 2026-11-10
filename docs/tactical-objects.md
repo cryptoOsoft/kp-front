@@ -86,7 +86,23 @@ One object, two surfaces: how a tactical object is stored, anchored, projected a
 - **A Messpunkt keeps its readings** (`SymbolProps.readings`). Every field commit that changes a
   measured value appends a row (`recordReading`); rows are never rewritten, so two tablets merge
   as a union (`lib/mergeWorkspace · withMergedSymbolReadings`), and «one radio report typed gas by
-  gas is one reading» is a display rule (`readingRows`). The panel shows a calm/amber/red bar under each
+  gas is one reading» is a display rule (`readingRows`). «Gleich gemessen» under the fields
+  (owner pick 4A, 10.11.2026) appends the values as they stand with the time now – a Nachmessung
+  that confirms «CO 0» is a reading, and the point stops ageing. Every appended row is ONE act on
+  both surfaces (`lib/readingLog · readingAct`, called by `useMapActions · commitEntityFields` and
+  `Whiteboard · commitAnnoFields`): the props in one undoable step named by the reading's
+  sentence, and that sentence as a Verlauf row ([`verlauf-coverage.md`](verlauf-coverage.md) ›
+  Messungen); the Rapport prints the readings as their own section ([`rapport.md`](rapport.md)).
+- **A measured field holds a number, or says why not** (owner pick 3B, 10.11.2026, `lib/symbols ·
+  measuredOf`). The panel's box takes digits and one decimal mark (`cleanMeasured`,
+  `ReadingParts · MeasuredField`); «über Messbereich» is the shared `TickRow` beside it and is
+  stored IN the value as a leading «>» («>100», a bare «>» without a number) – ⚠️ no second synced
+  field, so the history rows, the merge and an older build carry it unchanged. Over range draws,
+  sorts and records as the Hauptalarm (`readingState` → `stateLevel`: A2, past every measured
+  value, the bar's end). Free text from before the box took numbers only still reads: «>…», «≥…»
+  and «OL» are over range, anything else («ca. 60», «180 ppm») is `unreadable` – amber, sorted as
+  A1, «Unlesbar – Zahl eingeben» under the box, the text kept until somebody types over it.
+  Never calm, never a crash. The panel shows a calm/amber/red bar under each
   gas, the decimal keypad on each gas field, an ⓘ «Grenzwerte» built from the preset's `alarm`
   (`ReadingInfo` – limits and colours only, never what to do) and the list under the fields; the
   Gebäude lists every Messpunkt beside its storey (`StackReadings`), and the «Messungen» chip – on

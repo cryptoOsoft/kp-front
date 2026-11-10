@@ -19,8 +19,8 @@ import { Segmented } from './Segmented'
 import { IconButton } from './Button'
 import { compositeSpec } from '../lib/symbolRender'
 import { bareBlack } from '../lib/glyphTile'
-import { UN_CAPABLE, alarmBar, countFieldValue, isMeasuredSymbol, symbolFieldKind } from '../lib/symbols'
-import { ReadingBar, ReadingHistory, ReadingInfo } from './ReadingParts'
+import { UN_CAPABLE, countFieldValue, isMeasuredSymbol, symbolFieldKind } from '../lib/symbols'
+import { MeasuredField, ReadingHistory, ReadingInfo } from './ReadingParts'
 import { sanitizeSvg } from '../lib/sanitizeSvg'
 import { bearing360 } from '../lib/planProjection'
 import { doneStatusText } from '../lib/objectDone'
@@ -69,12 +69,10 @@ function FieldControl({ fieldKey, value, kind, options, placeholder, officerFilt
     )
   }
   // no options → a plain free-text field (commits on blur). A measured gas (the Messpunkt's CO, Ex,
-  // O₂, H₂S – sweep 28.10.2026 #2a) asks the phone for its decimal keypad and a «Fertig» key, but
-  // stays type="text": a number input would refuse the «20,9» a radio report is typed as.
+  // O₂, H₂S) never comes here: its row is ReadingParts · MeasuredField.
   if (!options?.length) {
     return (
       <input className="kv-val" value={value} placeholder={placeholder}
-        inputMode={kind === 'measured' ? 'decimal' : undefined} enterKeyHint={kind === 'measured' ? 'done' : undefined}
         onChange={(e) => onInput(e.target.value)}
         onBlur={() => onCommit(value)}
         onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()} />
@@ -1041,13 +1039,11 @@ const GRENZE_GLYPH = { left: 'grenze-v', right: 'grenze-v', up: 'grenze-up', dow
                         placeholder={valuePlaceholder(r.k)}
                         searchPlaceholder={C.stoffSearch}
                         onChange={(v) => setRowValue(i, v)} />
-                    ) : alarmBar(entity.symbol, r.k.trim(), r.v) ? (
-                      // a measured gas (the Messpunkt): the input box is the visualisation – its
-                      // calm/amber/red bar right under it, following the value as it is typed
-                      <span className="reading-field">
-                        {control}
-                        <ReadingBar symbol={entity.symbol} fieldKey={r.k.trim()} value={r.v} />
-                      </span>
+                    ) : symbolFieldKind(entity.symbol, r.k) === 'measured' ? (
+                      // a measured gas (the Messpunkt): the number box, its «über Messbereich» tick
+                      // and the calm/amber/red bar under them, following the value as it is typed
+                      <MeasuredField symbol={entity.symbol} fieldKey={r.k.trim()} value={r.v} placeholder={valuePlaceholder(r.k)}
+                        onInput={(v) => setRow(i, { v })} onCommit={(v) => setRowValue(i, v)} />
                     ) : control}
                     {/* the contradiction stays put, under the field it is about */}
                     {fieldHints?.[r.k.trim()] && (
