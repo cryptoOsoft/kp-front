@@ -1,3 +1,4 @@
-/* the Dienstgrad chip (RankBadge) — what makes the officers-first order legible at a glance */
+/* the Dienstgrad chip (RankBadge) — what makes the officers-first order legible at a glance.
+   A neutral ink tint: it was a 12 % tint of the station's --accent, pink by default (UI.5). */
 .rank { flex: none; font: var(--fw-heavy) var(--fs-micro) var(--body); letter-spacing: .02em; color: var(--ink-dim);
-  background: color-mix(in srgb, var(--accent) 12%, var(--surface)); border-radius: 5px; padding: 2px var(--sp-1); }
+  background: var(--ink-8); border-radius: 5px; padding: 2px var(--sp-1); }

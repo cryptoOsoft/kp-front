@@ -49,7 +49,9 @@
   hyphens: auto; -webkit-hyphens: auto; overflow-wrap: break-word;
 }
 .cell::placeholder { color: var(--ink-faint); }
-.cell:focus { outline: none; background: var(--blue-8); box-shadow: inset 0 0 0 2px var(--accent); }
+/* the one field focus, drawn as an inset ring on a borderless cell (ui-conventions · «Fields») —
+   it was a 2px ring in the station's --accent, red by default (sweep 09.11.2026, UI.5) */
+.cell:focus { outline: none; background: var(--blue-8); box-shadow: inset 0 0 0 1px var(--focus-edge), var(--focus-halo); }
 .cell[readonly] { cursor: default; }
 .time { font-variant-numeric: tabular-nums; }
 /* the soft keyboard's missing Shift+Enter: a line-break key on the focused cell, on touch only */
@@ -213,7 +215,7 @@
 .area :global(.i) { flex: none; width: 14px; height: 14px; color: var(--ink-dim); }
 .areaWord { min-width: 0; overflow-wrap: anywhere; }
 .areaEmpty .areaWord { color: var(--ink-faint); }
-.area:focus-visible { outline: none; background: var(--blue-8); box-shadow: inset 0 0 0 2px var(--accent); }
+.area:focus-visible { outline: none; background: var(--blue-8); box-shadow: inset 0 0 0 1px var(--focus-edge), var(--focus-halo); }
 .tdGrip .area { padding-left: calc(var(--tap) - var(--sp-4)); }
 .tdGrip.fixed { padding-left: calc(var(--tap) - var(--sp-4) + var(--sp-2)); position: relative; }
 /* the bin at the end of the row one stands in (all tables, the problem boxes): there while the row

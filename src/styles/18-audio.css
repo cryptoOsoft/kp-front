@@ -35,7 +35,7 @@
   padding: var(--sp-2) var(--sp-3); display: flex; flex-direction: column; gap: 8px; }
 .ap-add-label { display: flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-1); font-weight: var(--fw-heavy); color: var(--ink); }
 .ap-add-label .i { width: 13px; height: 13px; }
-.ap-add-label em { font-style: normal; font-family: var(--mono); color: var(--accent); font-variant-numeric: tabular-nums; }
+.ap-add-label em { font-style: normal; font-family: var(--mono); color: var(--blue-strong); font-variant-numeric: tabular-nums; }
 .ap-add-row { display: flex; gap: 8px; }
 /* the field + the layer that marks known names in it (mirrors .jc-text-wrap in the composer):
    the fill lives on the WRAPPER so the marks sit between it and the see-through input. Font,
@@ -60,8 +60,11 @@
 @media (hover: hover) {
   .ap-row:hover { background: var(--fill-soft); }
 }
-.ap-row.current { background: color-mix(in srgb, var(--accent) 7%, transparent); }
-.ap-row.current .ap-row-t { color: var(--accent); font-weight: var(--fw-bold); }
+/* the row being played is a picked ROW: the selected wash, its time in the blue text tier. It
+   wore the station's --accent, which is alarm red by default – «playing» read as «wrong» (sweep
+   09.11.2026, UI.5; the marker time above with it). */
+.ap-row.current { background: var(--sel-wash); }
+.ap-row.current .ap-row-t { color: var(--blue-strong); font-weight: var(--fw-bold); }
 .ap-row-t { font-family: var(--mono); font-size: var(--fs-micro); color: var(--ink-faint); width: 38px; flex: none; font-variant-numeric: tabular-nums; }
 .ap-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
 .ap-dot-entry { background: var(--blue); }

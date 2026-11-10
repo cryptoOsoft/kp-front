@@ -97,6 +97,17 @@
   .useg-btn::after { content: ''; position: absolute; inset: -3px 0; }
 }
 
+/* ---- No resize grip under a finger (sweep 09.11.2026, UI.3) -----------------------------------
+   A textarea that is `resize: vertical` for a mouse draws the browser's diagonal grip in the
+   corner of its text; a finger cannot drag it, so on touch it is only a mark over the last line
+   (the Rückmeldung field, the composer, the symbol notes, the Alarmmeldung, the cover sheet, the
+   transcript editor). ONE rule for all of them. `:root` is there for its weight, not its meaning:
+   it lifts the rule over each surface's own one-class `resize: vertical`, whatever a module's
+   bundle order is, without `!important`. */
+@media (pointer: coarse) {
+  :root textarea { resize: none; }
+}
+
 /* ---- The drawing controls stay as they are — decided, not overlooked ------------------------
    A sweep on 28.08. listed the plan dock's own controls as under the floor: the colour swatches
    at 30px (.wb-sw, .dh-color), the width and line-style buttons at 38×34 (.wb-ww, .wb-ls,
