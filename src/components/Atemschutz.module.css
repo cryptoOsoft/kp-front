@@ -1664,7 +1664,7 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
 .focusCard .trowHead .trowSub { display: block; }
 /* a crew at the door: «Bereit» where the clock would stand (TruppCard · `page`) */
 .pageReady { display: inline-flex; align-items: center; min-height: 32px; padding: 0 12px; border-radius: 99px;
-  background: color-mix(in srgb, var(--green) 16%, transparent); color: var(--green); font: var(--fw-heavy) var(--fs-1) var(--body); }
+  background: color-mix(in srgb, var(--green) 16%, transparent); color: var(--green-strong); font: var(--fw-heavy) var(--fs-1) var(--body); }
 /* «Ein Trupp, ein Bildschirm»: the one card on the screen keeps the clock as large as it allows
    (02.09.) — the same line as every other card (RowLine), one type step up. 34px was the band's
    size here; `:not(.trowOut, .trowIdle)` so a Trupp out or still waiting keeps its quiet 16px.
@@ -2200,7 +2200,7 @@ button.fact:active { background-image: linear-gradient(var(--press), var(--press
 .trowWarn .pinState { color: var(--amber-strong); }
 .trowCrit .pinState { color: var(--red-strong); }
 .pinClock { font: var(--fw-heavy) var(--fs-5) var(--mono); line-height: 1; font-variant-numeric: tabular-nums; color: var(--green); }
-.trowWarn .pinClock { color: var(--amber); }
+.trowWarn .pinClock { color: var(--amber-strong); }   /* a hue as TEXT is its -strong tier: plain amber was 2.5:1 by day (sweep 09.11.2026, UI.2) */
 .trowCrit .pinClock { color: var(--red-strong); }
 .pinKontakt { min-height: 48px; padding: 0 var(--sp-4); border-radius: var(--r-ctl); font-size: var(--fs-2); }
 .pinKontakt :global(.i) { width: 16px; height: 16px; }

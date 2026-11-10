@@ -342,7 +342,7 @@
   font-family: var(--mono); font-size: var(--fs-1); color: var(--ink-dim); }
 .reading-history time { color: var(--ink-faint); }
 .reading-history .a1 { color: var(--amber-strong); font-weight: var(--fw-bold); }
-.reading-history .a2 { color: var(--red); font-weight: var(--fw-bold); }
+.reading-history .a2 { color: var(--red-strong); font-weight: var(--fw-bold); }
 /* …and the ⓘ between them (ReadingInfo): the section label with the shared InfoToggle at its end,
    folding out one mono row per gas under an A1/A2 head – unit, A1 amber, A2 red, the history's
    colours – and two lines */
@@ -355,7 +355,7 @@
 .reading-info li b { color: var(--ink); }
 .reading-info .unit { color: var(--ink-faint); }
 .reading-info .a1 { color: var(--amber-strong); font-weight: var(--fw-bold); }
-.reading-info .a2 { color: var(--red); font-weight: var(--fw-bold); }
+.reading-info .a2 { color: var(--red-strong); font-weight: var(--fw-bold); }
 .reading-info p { margin: var(--sp-2) 0 0; font-size: var(--fs-1); line-height: 1.4; color: var(--ink-dim); }
 .combo-type { color: var(--blue-strong); font-weight: var(--fw-bold); border-top: 1px solid var(--border-soft); margin-top: 2px; }
 .combo-type .i { width: 14px; height: 14px; }

@@ -15,6 +15,9 @@
 //   · a «strong» hue on its own 16 % tint over --surface (the ÜBUNG badge, the overdue «Kontakt»,
 //     the selected chip), and the green one over the Einsatz card's grey tile (13-incident ·
 //     .ip-card: its «Gespeichert» pill, 4.05:1 by day until hill climb r35)                   4.5
+//   · a «strong» hue as plain text on --surface, --canvas-bg and --glass, and on its own 12 % tint
+//     (the «Kontakt fällig» clock, the GPS table's «veraltet», the Checkliste's timing tag – they
+//     wore the plain hue at 2.3–4.0:1 by day until the sweep of 09.11.2026, UI.2)             4.5
 //   · --on-fill on --green-fill and --red-fill – the green «go» button, the red rec buttons, the
 //     running chip (24.10.2026, sweep Q1: white on the day --green / --red was 4.4 and 4.2)  4.5
 // It also holds the ONE primary (sweep G.2): a control is never filled with --ink – the near-white
@@ -143,6 +146,21 @@ describe('token contrast (WCAG AA)', () => {
           const tint = over(colour(theme, `--${hue}`), colour(theme, '--surface'), 0.16)
           const c = contrast(colour(theme, `--${hue}-strong`), tint)
           if (c < 4.5) low.push(`--${hue}-strong on --${hue}-16: ${round(c)}`)
+        }
+        expect(low).toEqual([])
+      })
+
+      // a hue as TEXT is its -strong tier wherever a word stands: bare on a sheet, the stage or a
+      // bar, and on the hue's 12 % tag tint (Checklists.module · .cl-when)
+      it('a strong hue reads as plain text', () => {
+        const low: string[] = []
+        for (const hue of ['red', 'amber', 'green']) {
+          const text = colour(theme, `--${hue}-strong`)
+          const tag = over(colour(theme, `--${hue}`), colour(theme, '--surface'), 0.12)
+          for (const [name, bg] of Object.entries({ ...grounds(theme), [`--${hue}-12`]: tag })) {
+            const c = contrast(text, bg)
+            if (c < 4.5) low.push(`--${hue}-strong on ${name}: ${round(c)}`)
+          }
         }
         expect(low).toEqual([])
       })

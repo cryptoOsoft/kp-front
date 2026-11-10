@@ -24,7 +24,7 @@
 .scene { color: var(--ink); }
 .away { color: var(--ink-faint); }
 /* a fix older than FIX_STALE_MS: the position on the map is last known, not current */
-.stale { color: var(--amber); font-weight: var(--fw-bold); }
+.stale { color: var(--amber-strong); font-weight: var(--fw-bold); }
 /* the status folded under the name — shown only where the status column is not */
 .sub { display: none; font: var(--fw-medium) var(--fs-micro) var(--body); }
 /* A phone: six columns do not fit 360px, so «Status» becomes the name's second line (the
