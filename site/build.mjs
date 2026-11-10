@@ -282,6 +282,9 @@ const base = readJson('content', `${baseLocale.code}.json`)
 
 const dirOf = (locale) => locale.dir ?? (locale.code === baseLocale.code ? '' : `${locale.code}/`)
 const urlOf = (locale) => `${config.origin}/${dirOf(locale)}`
+// The sister product's page in the same language: both sites publish the same languages under
+// the same folders, so /fr/ links to the sister's /fr/ and the base language to its root.
+const sisterOf = (locale) => `${config.sister}/${dirOf(locale)}`
 
 const written = []
 const stale = []
@@ -488,6 +491,7 @@ for (const locale of config.locales) {
     ogAlternates: config.locales.filter((l) => l.code !== locale.code).map((l) => l.ogLocale),
     base: up,
     canonical: urlOf(locale),
+    sister: sisterOf(locale),
     latestRelease: release && {
       version: release.tag,
       iso: release.date,
@@ -560,6 +564,7 @@ for (const locale of config.locales) {
       lang: locale.code,
       // absolute, because this page is displayed at an address that is not its own
       home: `/${dirOf(locale)}`,
+      sister: sisterOf(locale),
       hidden: !isBase,
     }
   })
