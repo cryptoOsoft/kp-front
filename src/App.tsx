@@ -666,9 +666,14 @@ export default function App() {
   }, [])
 
   // ── close / reopen: lib/useIncidentLifecycle ──
+  /** the open Einsatz's counting confirm, set by IncidentWorkspace (prop `abschlussRef`) */
+  const abschlussHereRef = useRef<(() => Promise<boolean>) | null>(null)
   const { completeRapport, archiveById, reactivateById } = useCloseReopen({
     closingLocallyRef, reopeningLocallyRef, activeId, activeMeta, incidents, syncRef, archiveReturnRef, refreshList,
     selectIncident, markOpened, setIncidents, setClosedMedia, setActiveId, setActiveMeta, setWorkspace, setForceReadOnly,
+    abschlussHereRef,
+    // the list steps aside and the Einsatz comes to the front: its confirm can answer «Zur Tafel»
+    showEinsatz: useCallback(() => { setOverlay(null); uncoverEinsatz() }, [uncoverEinsatz]),
   })
 
   // «Zurück» from an archived read-only view: return to the incident that was active before,
@@ -854,6 +859,7 @@ export default function App() {
           // checked — while the Rapport path stamped and counted. Both doors run the SAME confirm
           // in IncidentWorkspace now and end here (mockup 06 · Fall 4).
           onCompleteRapport={() => completeRapport(activeMeta.id)}
+          abschlussRef={abschlussHereRef}
           onReactivateActive={canLifecycle && activeMeta.is_archived ? () => reactivateById(activeMeta.id) : undefined}
           onBackFromArchive={activeMeta.is_archived ? () => void backFromArchive() : undefined}
           lifecycleElsewhere={lifecycleElsewhere?.id === activeMeta.id ? lifecycleElsewhere : null}
