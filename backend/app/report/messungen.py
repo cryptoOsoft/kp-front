@@ -16,7 +16,7 @@ from reportlab.lib.units import mm
 from reportlab.platypus import Paragraph, Table, TableStyle
 
 from .labels import L
-from .styles import _URGENT, _esc, _table_style
+from .styles import _URGENT, _esc, _esc_sub, _table_style
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -26,14 +26,6 @@ if TYPE_CHECKING:
 #: A1 on paper: dark enough to read as text, and never the only thing that says «Voralarm»
 _AMBER = "#8a5a00"
 _HEAD_BG = colors.HexColor("#f6f8fb")
-
-_SUBSCRIPTS = str.maketrans({chr(0x2080 + d): f"<sub>{d}</sub>" for d in range(10)})
-
-
-def _gas(text: str | None) -> str:
-    """Escaped text with «O₂» / «H₂S» as real subscripts: Helvetica has no glyph for the
-    subscript digits, and ReportLab would print a black box in the one column that names the gas."""
-    return _esc(text).translate(_SUBSCRIPTS)
 
 
 def stage_word(stage: str) -> str:
@@ -62,7 +54,9 @@ def _stage_markup(stage: str) -> str:
 
 def _reading_text(r: MessungRowIn) -> str:
     """«19:04 · CO 0 ppm · A2 Hauptalarm» — one reading as a phrase, for the head row."""
-    return " · ".join(p for p in (_esc(r.time), f"{_gas(r.gas)} {_gas(r.value)}", _esc(stage_word(r.stage))) if p)
+    return " · ".join(
+        p for p in (_esc(r.time), f"{_esc_sub(r.gas)} {_esc_sub(r.value)}", _esc(stage_word(r.stage))) if p
+    )
 
 
 def _messungen_story(
@@ -123,13 +117,13 @@ def _messungen_story(
             b = (lambda s: f"<b>{s}</b>") if newest else (lambda s: s)
             mark = _stage_markup(r.stage)
             # the other gases of the same radio report: beside the Stufe, muted
-            others = f'<font color="#5b6573">{_gas(r.others)}</font>' if r.others else ""
+            others = f'<font color="#5b6573">{_esc_sub(r.others)}</font>' if r.others else ""
             tail = " · ".join(x for x in (mark, others) if x) or "–"
             data.append(
                 [
                     Paragraph(b(_esc(r.time)), st["cell"]),
-                    Paragraph(b(_gas(r.gas)), st["cell"]),
-                    Paragraph(b(_gas(r.value)), right),
+                    Paragraph(b(_esc_sub(r.gas)), st["cell"]),
+                    Paragraph(b(_esc_sub(r.value)), right),
                     Paragraph(tail, st["cell"]),
                 ]
             )
@@ -137,6 +131,6 @@ def _messungen_story(
     tbl.setStyle(style)
     story: list = [*head(L["messungen"])]
     if limits:
-        story.append(Paragraph(_gas(L["messungenLimits"].format(limits=limits)), st["muted"]))
+        story.append(Paragraph(_esc_sub(L["messungenLimits"].format(limits=limits)), st["muted"]))
     story.append(tbl)
     return story
