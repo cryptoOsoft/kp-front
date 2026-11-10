@@ -6,8 +6,11 @@
 /* A read-only title must not LOOK editable. It shares .ctx-title-input for metrics, which also
    handed it the resting underline and the hover highlight — so «Notiz» (whose text is the
    content, edited in the textarea below, never in the header) invited a click that does
-   nothing, and a viewer's title did the same. Same size, no affordance. */
-.ctx-title-ro { display: block; cursor: default; border-bottom-color: transparent; }
+   nothing, and a viewer's title did the same. Same size, no affordance.
+   ⚠️ Both classes in the selector, on purpose: `.ctx-title-input` is declared LATER (07-toolrail),
+   so at one class each its underline won on source order and every symbol's type head («Feuer»)
+   kept the «tap to edit» line (sweep 09.11.2026, UI.1). */
+.ctx-title-input.ctx-title-ro { display: block; cursor: default; border-bottom-color: transparent; }
 .ctx-notes-ro { margin: 0; font-size: var(--fs-2); line-height: 1.45; color: var(--ink); white-space: pre-wrap; }
 .kv-val-ro { font-weight: var(--fw-medium); }
 /* (the live vehicle's Fahrer row shares .field with the preset rows — no style of its own) */
