@@ -109,9 +109,11 @@ One object, two surfaces: how a tactical object is stored, anchored, projected a
   the line and every changed assumption, and there is nothing to duplicate – a second «on» is
   still the one set. On the map `RelayPumpMarkers · LinePumpMarkers` runs the editor's own
   controller per line; while that Leitung's Messung shows its relay the panel's live pumps stand
-  in for them (as Motorspritzen too, so the switch shows what it does). A drawn pump is DRAGGED
-  along its line and pinned there (`relay.pumps[i].atM`, the chart's own pin, one undo step on
-  release, no Verlauf row); a tap selects the Leitung. Paper prints the same pumps
+  in for them (as Motorspritzen too, so the switch shows what it does). Each wears the chart's
+  name for it (P1, P2 …, `useRelay · pumpLabel`) – the glyph alone read «MS 2» on every pump
+  (Manuel 09.11.2026). A drawn pump is DRAGGED along its line and pinned there
+  (`relay.pumps[i].atM`, the chart's own pin, one undo step on release, no Verlauf row); a tap
+  selects the Leitung with its «Messung» open (`useRelay · askLineMeasure`). Paper prints the same pumps
   (`krokiPayload` adds `drawnPumpEntities`; `readyDirectReportPayload` awaits the profiles first)
   and the Rapport's Kroki preview shows them. A profile once fetched answers offline too, after a reload
   (the service worker's `height-profiles` cache, docs/sync-and-offline.md); none at all (a path

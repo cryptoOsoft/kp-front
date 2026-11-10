@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { bboxSizeM, distanceAlongPath, fmtArea, fmtDistance, fmtLV95, haversineM, hoseCount, hoseLengthHint, lv95ToWgs84, pathLengthM, pointAlongPath, polygonAreaM2, wgs84ToLV95 } from './geo'
+import { bboxSizeM, distanceAlongPath, fmtArea, fmtDistance, fmtLV95, haversineM, hoseCount, hoseLengthHint, hoseSplit, lv95ToWgs84, pathLengthM, pointAlongPath, polygonAreaM2, wgs84ToLV95 } from './geo'
 import type { LngLat } from '../types'
 import { applyLocale } from '../config/copy'
 
@@ -90,6 +90,14 @@ describe('hoseCount', () => {
 
   it('counts both hoses of a double line («2× 75»)', () => {
     expect(hoseCount(100, 2)).toBe(12)
+  })
+})
+
+describe('hoseSplit', () => {
+  it('splits the count into the run and the reserve on top', () => {
+    expect(hoseSplit(665)).toEqual({ need: 34, reserve: 3 }) // 33.25 → 34; 731.5 m → 37
+    expect(hoseSplit(100, 2)).toEqual({ need: 10, reserve: 2 })
+    expect(hoseSplit(0)).toEqual({ need: 0, reserve: 0 })
   })
 })
 

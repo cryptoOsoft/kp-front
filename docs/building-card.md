@@ -45,8 +45,8 @@ too, on every new Einsatz. A building with nothing at all has no chip and no car
   **Gebäude** – the hazard lines first, then the register facts, bullets of the Sofortmassnahmen's
   size and weight (the Karte panel's `RegisterLines`) – then the last Objektbesuch. There is no head
   row: the FIRST section's heading carries the ✕ at its right end, and «Register-Hinweis» (the
-  source line right under it, OPEN each time the card opens – by itself or by hand, sweep
-  30.10.2026 #6; a tap folds it) always sits on the «Gebäude» heading's row – [GEBÄUDE ·
+  source line right under it, FOLDED each time the card opens, as on the Karte panel – Manuel
+  09.11.2026; open since sweep 30.10.2026 #6 until then; a tap opens it) always sits on the «Gebäude» heading's row – [GEBÄUDE ·
   Register-Hinweis · ✕] when there are no Sofortmassnahmen (owner, 27.10.2026: the empty head
   row was wasted). «Gebäude» is the card's accessible name. Every bullet is one size, `--fs-2`.
 

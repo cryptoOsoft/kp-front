@@ -6,6 +6,7 @@
 // store; nothing is captured or uploaded from the browser anymore.
 
 import { downloadBlob, downloadPdf } from './download'
+import { pad2 } from './format'
 import { linkSessionHeaders } from './linkMode'
 
 /** Another way to reach the composer than the signed-in app's: the capture view's poster-token
@@ -43,7 +44,24 @@ export async function downloadReportPdf(
   downloadBlob(await res.blob(), filename)
 }
 
-/** Sanitise an incident title into a safe filename fragment (mirrors the server side). */
-export function reportFilenameHint(title: string): string {
-  return Array.from(title).filter((c) => /[\p{L}\p{N} \-_]/u.test(c)).join('').trim().replace(/\s+/g, '_').slice(0, 60)
+/** One part of a filename: letters (umlauts included), digits, space, - and _ survive, every run
+ *  of spaces becomes one `_`. */
+const filenamePart = (s: string): string =>
+  Array.from(s).filter((c) => /[\p{L}\p{N} \-_]/u.test(c)).join('').trim().replace(/\s+/g, '_').slice(0, 60)
+
+/**
+ * The name the downloaded Rapport goes by, after «Einsatzrapport_»: when the Einsatz began (local
+ * time, HHMM – no `:` in a filename), its Stichwort and its address –
+ * `20261109_1126_Zimmerbrand_Schlossgasse_9_9999_Musterdorf`. A folder of rapports sorts by date,
+ * and the 47th «Zimmerbrand» no longer lands as «Zimmerbrand (47)» (Manuel 09.11.2026).
+ * `startedAt`: the Rapport's own start where it was corrected, else the Alarmierungszeit. The
+ * server's Content-Disposition (backend · report_filename) still names the title alone; the
+ * browser saves under this name.
+ */
+export function reportFilenameHint({ title, address, startedAt }: { title: string; address?: string | null; startedAt?: string | null }): string {
+  const d = startedAt ? new Date(startedAt) : null
+  const stamp = d && !Number.isNaN(d.getTime())
+    ? `${d.getFullYear()}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}_${pad2(d.getHours())}${pad2(d.getMinutes())}`
+    : ''
+  return [stamp, filenamePart(title), filenamePart(address ?? '')].filter(Boolean).join('_')
 }

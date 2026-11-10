@@ -1,6 +1,8 @@
 import { appConfig } from '../config/appConfig'
 import { fillTemplate, formatSymbolName } from './format'
+import { linePumpWarnings } from './linePumps'
 import { linePresetLabel } from './lineStyle'
+import { profileKey } from './profile'
 import { floorLabel } from './whiteboard'
 import type { BoardAnno, Drawing, Entity, LineContent } from '../types'
 
@@ -15,7 +17,7 @@ import type { BoardAnno, Drawing, Entity, LineContent } from '../types'
  *
  * ⚠️ Styling and geometry are deliberately absent — colour, width, dash, coordinates, the label
  * offsets, the Wassertransport's `relay` (but for its «Pumpen auf Karte», which puts symbols on the
- * Karte) — for the same reason entityEdit skips geometry: they change continuously while
+ * Karte, and the pump warnings it comes to stand on) — for the same reason entityEdit skips geometry: they change continuously while
  * somebody arranges the picture, and a row per nudge buries the edits that carry meaning. The
  * LABEL is also absent here: it already writes its own row (useMapDrawing · noteDrawingLabel),
  * and a second one would read as a phantom edit.
@@ -77,6 +79,11 @@ export function drawingEditChanges(prev: Drawing, next: Drawing): string[] {
   if (!!prev.relay?.showPumps !== !!next.relay?.showPumps) {
     out.push(next.relay?.showPumps ? L.pumpsShown : L.pumpsHidden)
   }
+  // …and its pump warnings, as they APPEAR – the red lines under the chart («Pumpe 1 erhält unter
+  // 2 bar Eingangsdruck»), which a moved pump or a changed output brings (Manuel 09.11.2026: the
+  // Rapport named the switch, never the warning). One row when a warning comes, none while it
+  // stands through later edits – the settled burst is compared, not each recompute.
+  out.push(...pumpWarningRows(prev, next))
 
   // ── Leitung Nr.: the identity the Atemschutzüberwachung knows its hose by ──
   if (prev.lineNo !== next.lineNo) {
@@ -117,6 +124,17 @@ export function drawingEditChanges(prev: Drawing, next: Drawing): string[] {
   }
 
   return out
+}
+
+/** The pump warnings `next` stands on that `prev` did not (lib/linePumps · linePumpWarnings);
+ *  `prev` null for a Leitung just drawn (Messen's «Als Leitung auf die Karte»). Both on the same
+ *  path only: on a moved one the fetched profile may be the old path's, and the two plans would
+ *  differ by the terrain rather than by anything set – a geometry edit writes no row anyway. */
+export function pumpWarningRows(prev: Drawing | null, next: Drawing): string[] {
+  if (next.kind !== 'line' || next.role) return []
+  if (prev && profileKey(prev.coords ?? []) !== profileKey(next.coords ?? [])) return []
+  const had = new Set(prev ? linePumpWarnings(prev) ?? [] : [])
+  return (linePumpWarnings(next) ?? []).filter((w) => !had.has(w))
 }
 
 /** The name a Verlauf row calls this drawing — its own label, else what it IS: a line reports the

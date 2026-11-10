@@ -2475,54 +2475,6 @@ export function ReportPreflight({
                 )}
               </div>
             </CheckRow>
-            {/* …and under the Beilagen, the station's own paperwork: the Getränkeabrechnung, a
-                Schadenmeldung, whatever this Wehr still has to fill in elsewhere. It belongs in
-                THIS column because the column's question is «was ist noch offen» — and a form
-                that has not been sent is exactly that. It never reaches the paper (the printed
-                rapport is the record, not the to-do list), and where a station has configured
-                none the whole card is absent rather than empty.
-                ⚠️ …and absent for a session that cannot edit the Rapport (`canEditIn`, RBAC audit
-                22.10.2026): the station's pre-filled forms are the editor's paperwork, and a
-                viewer opening a Schadenmeldung with this Einsatz's data in it is not a read. */}
-            {canEditIn && stationLinks.length > 0 && (
-              <CheckRow
-                tab="beilagen"
-                done={linksDoneCount === stationLinks.length}
-                label={P.linksHead}
-                sub={fillTemplate(P.linksCount, { done: linksDoneCount, n: stationLinks.length })}
-              >
-                <div className="rp-check-extra">
-                  <div className="rp-links">
-                    {stationLinks.map((link) => {
-                      const at = linksDone[link.id]
-                      return (
-                        <div key={link.id} className={cx('rp-link', at && 'on')}>
-                          {/* tick + title are ONE target, as on the Partnerorganisationen rows —
-                              a 40px checkbox beside a label is a miss waiting to happen */}
-                          <TickRow
-                            className="rp-link-tick" disabled={!canEdit} checked={!!at}
-                            aria-label={fillTemplate(at ? P.linksMarkOpen : P.linksMarkDone, { title: link.title })}
-                            onToggle={() => setLinkDone(link.id, !at)}
-                          >
-                            <span className="rp-link-txt">
-                              <span className="rp-link-title">{link.title}</span>
-                              {/* the note says WHEN this has to be filled in; once it is done the
-                                  row answers the more useful question instead — when it was */}
-                              {at
-                                ? <span className="rp-link-note">{fillTemplate(P.linksDoneAt, { at: formatDateTime(at) })}</span>
-                                : link.note?.trim() && <span className="rp-link-note">{link.note.trim()}</span>}
-                            </span>
-                          </TickRow>
-                          <Button className="rp-link-open" icon={<Icon id="external" />} onClick={() => openLink(link)}>
-                            {P.linksOpen}
-                          </Button>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              </CheckRow>
-            )}
           </div>
 
           {/* The Kroki, on the page. It was a modal that opened on the press of PDF / Ausdrucken,
@@ -2568,6 +2520,57 @@ export function ReportPreflight({
                   onViewChange={(v) => patchOpt({ krokiView: v })}
                 />
             </section>
+          )}
+
+          {/* …and at the end of the column, under the Kroki, the station's own paperwork: the
+              Getränkeabrechnung, a Schadenmeldung, whatever this Wehr still has to fill in
+              elsewhere (Manuel 09.11.2026: to the end – it stood between the Fotos and the
+              Kroki, the rows that make the rapport). It belongs in THIS
+              column because the column's question is «was ist noch offen» — and a form
+              that has not been sent is exactly that. It never reaches the paper (the printed
+              rapport is the record, not the to-do list), and where a station has configured
+              none the whole card is absent rather than empty.
+              ⚠️ …and absent for a session that cannot edit the Rapport (`canEditIn`, RBAC audit
+              22.10.2026): the station's pre-filled forms are the editor's paperwork, and a
+              viewer opening a Schadenmeldung with this Einsatz's data in it is not a read. */}
+          {canEditIn && stationLinks.length > 0 && (
+            <CheckRow
+              tab="beilagen"
+              done={linksDoneCount === stationLinks.length}
+              label={P.linksHead}
+              sub={fillTemplate(P.linksCount, { done: linksDoneCount, n: stationLinks.length })}
+            >
+              <div className="rp-check-extra">
+                <div className="rp-links">
+                  {stationLinks.map((link) => {
+                    const at = linksDone[link.id]
+                    return (
+                      <div key={link.id} className={cx('rp-link', at && 'on')}>
+                        {/* tick + title are ONE target, as on the Partnerorganisationen rows —
+                            a 40px checkbox beside a label is a miss waiting to happen */}
+                        <TickRow
+                          className="rp-link-tick" disabled={!canEdit} checked={!!at}
+                          aria-label={fillTemplate(at ? P.linksMarkOpen : P.linksMarkDone, { title: link.title })}
+                          onToggle={() => setLinkDone(link.id, !at)}
+                        >
+                          <span className="rp-link-txt">
+                            <span className="rp-link-title">{link.title}</span>
+                            {/* the note says WHEN this has to be filled in; once it is done the
+                                row answers the more useful question instead — when it was */}
+                            {at
+                              ? <span className="rp-link-note">{fillTemplate(P.linksDoneAt, { at: formatDateTime(at) })}</span>
+                              : link.note?.trim() && <span className="rp-link-note">{link.note.trim()}</span>}
+                          </span>
+                        </TickRow>
+                        <Button className="rp-link-open" icon={<Icon id="external" />} onClick={() => openLink(link)}>
+                          {P.linksOpen}
+                        </Button>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </CheckRow>
           )}
 
           {/* ── Weitergeben ─────────────────────────────────────────────────────────────

@@ -185,6 +185,44 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
         ],
       },
       {
+        id: 'wassertransport', title: 'Water relay', icon: 'drop',
+        blocks: [
+          { kind: 'lead', text: 'Calculates a relay line: how much pressure arrives where, and where the pumps have to stand. A **planning aid** – the sources of the numbers are behind the **ⓘ** in the header (AGV, FKS).' },
+          { kind: 'sub', text: 'Drawing the line' },
+          { kind: 'list', items: [
+            'Draw a **Line** along the road, **from the source to the incident** – the water runs from the first point to the last. Tap the line, open **Measurement** and tap **Calculate water relay**.',
+            'Or try it first: **Measure › Distance**, then **Calculate water relay** below the elevation profile. **Put on the map as a line** keeps the distance with the whole calculation.',
+            'Wrong direction? **⇄** in the header reverses it; the drawing stays. The letter at the start of the line (**H**, **W**, **P**) shows where the source is.',
+          ] },
+          { kind: 'sub', text: 'Source, water, inlet pressure' },
+          { kind: 'list', items: [
+            '**Hose Ø** (in a line, its **Hose** row) – 55, 75, 2× 75 or 110 mm; the friction comes from the AGV table.',
+            '**Water** – the flow that should arrive at the end (l/min). Pick a preset or type another amount.',
+            '**Source** – hydrant, pond or pump. **Inlet pressure** is the pressure the line starts with there: the static pressure at a hydrant, the outlet pressure of a pump. A pond has none – the first pump stands at the source.',
+          ] },
+          { kind: 'sub', text: 'Reading the chart' },
+          { kind: 'list', items: [
+            'The black line is the **pressure** along the line, the **terrain** below it. The bands: green **good** above 3 bar, yellow **tight** 2–3 bar, red **too low** below 2 bar.',
+            'The dots **P1**, **P2** … are the pumps – placed automatically where the pressure falls to 2 bar (FKS: a pump needs at least 2 bar inlet pressure). On the map they carry the same names.',
+            'Hovering over the chart or touching it shows the pressure at that spot – the map marks the point.',
+            'Below it **ascent/descent** and **pressure at the end**. **Hoses** names the reserve separately, e.g. «34 + 3 spare × 20 m».',
+          ] },
+          { kind: 'sub', text: 'Moving pumps' },
+          { kind: 'list', items: [
+            'Tapping a pump shows where it stands, its **inlet pressure** and its **outlet pressure** (set with **−**/**+**).',
+            '**Dragging** a pump – sideways in the chart, or along the line on the map – fixes it there («by hand»); the pumps after it are recalculated. **All pumps automatic** resets everything.',
+            '**On map** draws the pumps as motor pumps on the map and on the printed sketch. Tapping a pump on the map opens the line with **Measurement** open.',
+          ] },
+          { kind: 'sub', text: 'Warnings' },
+          { kind: 'list', items: [
+            '**Pump 1: inlet pressure below 2 bar** – a pump set by hand stands too far down the line; drag it closer to the source or tap **All pumps automatic**. **No pressure**: no water arrives there at all.',
+            '**More than usual** – a lot of pumps; next to it, how many another hose Ø would need.',
+            '**Calculated without elevation profile** (offline, outside Switzerland) and **outside the AGV table** – the numbers are estimates.',
+            'A pump warning is noted once in the **log** when it appears, and so reaches the report.',
+          ] },
+        ],
+      },
+      {
         id: 'plan', title: 'Plan – modules & buildings', icon: 'doc',
         blocks: [
           { kind: 'lead', text: 'One whiteboard per object over the module/building plans. Storey by storey, with its own tools.' },
@@ -335,7 +373,7 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
             'The **sketch excerpt** sits as a field next to the form: pan, zoom, **portrait/landscape**, and the **sketch time** – which moment the picture shows, with marks where something happened. What prints is exactly what is on screen; there is no confirmation step.',
             '**Incident report (PDF)** produces the finished report – rendered server-side, one button. The **▾** beside it opens **«Sections»**: what goes on paper (sketch, plans, SCBA, attendance, materiel, log, photos, detailed audit record). The menu stays open while you tick.',
             'Where a brigade runs a **station printer**: **Print** puts the report in its queue. Queued is not printed – while a job is outstanding it stands as an **open print job** under the report head, with **Check** and **Cancel**. Only when the printer reports «printed» does the report count as produced.',
-            'If the brigade has stored its own forms (Administration › Report), **Forms & links** appears below the photos – a list to tick off. **Open** calls the form up with keyword, location, date and incident commander already filled in, as far as the link allows. The tick is set by hand: the app cannot see whether a form was submitted.',
+            'If the brigade has stored its own forms (Administration › Report), **Forms & links** appears at the end, below the sketch crop – a list to tick off. **Open** calls the form up with keyword, location, date and incident commander already filled in, as far as the link allows. The tick is set by hand: the app cannot see whether a form was submitted.',
             'If something about the record is off – a broken audit chain, a voice memo without a transcript, a photo still queued – an **orange notice chip** appears next to the buttons. It counts the points and opens them; when everything is in order it does not appear at all.',
             'Contact person and dispatch feedback carry a **Not applicable** at the end of the line – for the false alarm or the oil spill where neither exists. That is an answer, not a skip: it is recorded and reads that way on the report.',
             '**Close incident** closes the incident and records the time it ended. Photos and voice memos that have not been uploaded are sent first; if that is impossible (offline) they are **kept** and go out the next time the incident is opened — the confirmation says how many.',

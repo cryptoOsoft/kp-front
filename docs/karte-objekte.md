@@ -502,8 +502,8 @@ The rules that are easy to break:
   Gebäude card (`BuildingCard`) wears the SAME disclosure since review round 7 — it was a `title=`
   tooltip, which a finger never sees (owner, 20.10.2026): the button, what it opens and the aria
   contract are `components/BuildingFacts` · `RegisterHintButton` / `RegisterHintBody`, each
-  surface in its own rhythm – but there it stands OPEN each time the card opens (sweep 30.10.2026
-  #6, building-card.md); this peacetime panel keeps it folded. Its tags and the station's notes are
+  surface in its own rhythm – folded on both since 09.11.2026 (the card stood OPEN from sweep
+  30.10.2026 #6 until Manuel's demo, building-card.md). Its tags and the station's notes are
   the panel's own pieces there too (`RegisterTags`, `StationNotes` – Karte Haus round 3), so the
   two cannot drift apart.
 - **Missing is said – what was ASKED for and not answered.** A register that could not be asked,

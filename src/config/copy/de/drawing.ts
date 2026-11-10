@@ -108,7 +108,7 @@ export const drawingCopy = {
     noTerrain: 'Ohne Höhenprofil gerechnet – Steigung fehlt',
     manyPumps: '{n} Pumpen – mehr als üblich',
     outsideTable: '{flow} l/min ausserhalb der AGV-Tabelle – geschätzt',
-    lowInlet: 'Pumpe {n} unter {min} bar',
+    lowInlet: 'Pumpe {n}: Eingangsdruck unter {min} bar',
     noInlet: 'Pumpe {n}: kein Druck',
     stuck: 'Rechnung abgebrochen – eine Pumpe gibt zu wenig Druck',
   },
@@ -159,6 +159,9 @@ export const drawingCopy = {
     // «Pumpen auf Karte» einer Leitung an / aus (lib/drawingEdit, hinter «{name}: »)
     pumpsShown: 'Pumpen auf der Karte',
     pumpsHidden: 'Pumpen von der Karte genommen',
+    // eine Warnung des Wassertransports, sobald sie auftaucht (lib/drawingEdit · pumpWarningRows)
+    pumpLowInlet: 'Pumpe {n} erhält unter {min} bar Eingangsdruck',
+    pumpNoInlet: 'Pumpe {n} erhält keinen Druck',
     shapePlaced: '{name} platziert',
     notePlaced: 'Notiz gesetzt',
     teamPlaced: '{name} auf der Karte gesetzt',

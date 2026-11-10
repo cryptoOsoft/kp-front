@@ -783,7 +783,7 @@ export function signedPartOf(args: DirectReportArgs): string {
 }
 
 /**
- * «→» and «←» become «->» and «<-» — for the PAPER only.
+ * «→» and «←» become «->» and «<-», «☑» becomes «✔» — for the PAPER only.
  *
  * The journal writes real arrows on purpose («EL → Sanität» is the shape of a Funkprotokoll line)
  * and they are what the app shows, searches and stores. The rapport, though, is composed in
@@ -794,9 +794,14 @@ export function signedPartOf(args: DirectReportArgs): string {
  * the operator typed: what the app holds stays the record, and only the rendering compromises.
  * ⚠️ Applied to the whole payload rather than to the journal rows alone — an arrow is just as
  * likely in a Kurzbericht, a Bemerkung or a Mittel remark.
+ *
+ * The checklist's «☑» (lib/useChecklistActions · milestoneRow) has no glyph in Helvetica either,
+ * and printed as «■» (Manuel 09.11.2026). It becomes «✔», which ReportLab sets from ZapfDingbats,
+ * one of the PDF base fonts every viewer carries (checked on the composer's ReportLab 5.0:
+ * «☑» and «☐» fall to the black box, «✔» and «❑» draw).
  */
 export function forPaper(v: unknown): unknown {
-  if (typeof v === 'string') return v.replace(/→/g, '->').replace(/←/g, '<-')
+  if (typeof v === 'string') return v.replace(/→/g, '->').replace(/←/g, '<-').replace(/☑/g, '✔')
   if (Array.isArray(v)) return v.map(forPaper)
   if (v && typeof v === 'object') {
     return Object.fromEntries(Object.entries(v as Record<string, unknown>).map(([k, x]) => [k, forPaper(x)]))
@@ -816,5 +821,7 @@ export async function readyDirectReportPayload(args: DirectReportArgs): Promise<
 
 export async function downloadDirectReportPdf(args: DirectReportArgs): Promise<void> {
   const payload = await readyDirectReportPayload(args)
-  await downloadReportPdf(args.incident.id, payload, reportFilenameHint(args.incident.title), args.transport)
+  const { incident, draft } = args
+  const name = reportFilenameHint({ title: incident.title, address: incident.address, startedAt: draft.meta.startedAt ?? incident.started_at })
+  await downloadReportPdf(incident.id, payload, name, args.transport)
 }
