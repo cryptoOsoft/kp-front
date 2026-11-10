@@ -163,7 +163,7 @@ export const helpCopy = {
             '**Ansichten** – der Kompass unten rechts – hat **Nach Norden**, **Einpassen**, **Mein Standort**, **Koordinaten abgreifen** und die gespeicherten Ansichten; mit der Maus stehen **−** und **+** daneben. Beim Abgreifen auf die Karte tippen, um einen Punkt (LV95 + WGS84) festzuhalten.',
             '**Wind** wird laufend angezeigt (Richtung + Temperatur), damit die Ausbreitungsrichtung sofort ersichtlich ist.',
             '**Fahrzeuge** erscheinen live per GPS (Name + Ausrichtung), die eigene Position als ruhiger blauer Punkt.',
-            '**Gebäude-Info** unten links nennt, was das Gebäude am Einsatzort an Gefahren hat (⚠ Gas · PV), und öffnet den Steckbrief: Gefahren, **Sofortmassnahmen** und Bemerkungen zuoberst, darunter die Register-Angaben. Beim ersten Öffnen des Einsatzes auf diesem Gerät geht er von selbst auf, damit er gelesen wird – die Karte bleibt bedienbar. ✕ schliesst ihn; danach öffnet ihn der Chip. Bei einem anderen Einsatzort oder Objekt mit Inhalt erscheint er nochmals.',
+            '**Gebäude-Info** unten links nennt, was das Gebäude am Einsatzort an Gefahren hat (⚠ Gas · PV) – die Zahl daneben zählt die Sofortmassnahmen – und öffnet den Steckbrief: Gefahren, **Sofortmassnahmen** und Bemerkungen zuoberst, darunter die Register-Angaben. Beim ersten Öffnen des Einsatzes auf diesem Gerät geht er von selbst auf, damit er gelesen wird – die Karte bleibt bedienbar. ✕ schliesst ihn; danach öffnet ihn der Chip. Bei einem anderen Einsatzort oder Objekt mit Inhalt erscheint er nochmals.',
           ] },
         ],
       },
@@ -439,7 +439,7 @@ export const helpCopy = {
           ] },
           { kind: 'sub', text: 'Tag / Nacht' },
           { kind: 'list', items: [
-            'In den **Einstellungen** ([[⌘]] [[,]]) unter «Farbschema»: Automatisch (folgt dem Tageslicht), Tag oder Nacht. Der Nachtmodus dämpft Karte und Oberfläche fürs Dunkle.',
+            'In den **Einstellungen** ([[⌘]] [[,]]) unter «Farbschema»: Automatisch (folgt dem Tageslicht), Gerät (folgt dem Hell/Dunkel des Tablets oder Telefons), Tag oder Nacht. Der Nachtmodus dämpft Karte und Oberfläche fürs Dunkle.',
           ] },
         ],
       },

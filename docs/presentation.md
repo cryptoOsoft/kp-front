@@ -50,17 +50,28 @@ Rules that span modules live here; each module's header says what it owns.
   on a scrolled surface or in the Verlauf, a surface, Checkliste, symbol or the Verlauf opened or
   closed by hand – each turns the pill into the chip «Wieder folgen»; one tap jumps back to the
   presenter's current view.
+- **The tab-lock row** («In einem anderen Tab geöffnet · Hier bearbeiten», TabLockBanner) steps
+  aside while a tab follows (`following` or `detached` – `lib/presentation · isFollower`): the
+  second tab of a browser is typically open just to follow, and the pill says so. It comes back
+  unchanged the moment the following ends («✕», «Beenden», a takeover). The read-only chip in the
+  top bar stays.
 - **Zeigen**: a switch in the pill for everyone joined. On, a one-finger tap (or a click) leaves a
-  named ring that fades after four seconds (`RING_MS`); a press-and-drag draws a line that
-  follows the finger and fades the same way once the finger is up (owner pick 06.11.: nothing
-  kept). Nothing under either is selected, placed or drawn into the Einsatz; two fingers still pan
+  named ring; a press-and-drag draws a line that follows the finger and wears its name at the tip
+  once the finger is up. ⚠️ A mark STANDS (owner pick 09.11.2026, mock `nov09-zeigen-banner` A –
+  they faded after four seconds before): until anybody joined taps the × on its name (`unmark`,
+  off every screen), or the presenter switches «Zeigen» off, which takes every mark away
+  (`clear`). `lib/presentation · applyMarks` is the one place a room message changes them; at most
+  twelve rings and twelve lines per person stand at once (a flood guard – the oldest goes), and a
+  line whose finger never came up goes after 15 s. Nothing under either is selected, placed or
+  drawn into the Einsatz; two fingers still pan
   and zoom, on the Karte and the Plan alike (the Plan counts pointers, so the first finger is
   handed over at the second – `useZeigen · handOver`), and a second finger mid-line ends the line.
   Rings and lines stand on the Karte (lng/lat), on a plan or the Tafel's Skizze (plan space, a
   line on the storey it started on) and on a Tafel form page (anchored – a ring to the row or box
   under the finger, a line to its first point, the rest as offsets in that element's widths, so
   it scales with the reflowed row). Everyone joined sees everyone's; a view-link holder's name
-  carries «· Link». Tags of rings close together are kept off each other and off the other rings
+  carries «· Link». The presenter's colour is FW red (`--present`, owner 09.11.2026 – pink before):
+  the avatar, «Zeigen» on, the rings and lines, the glass «Wieder folgen» chip's edge. Tags of rings close together are kept off each other and off the other rings
   (`lib/presentation · placeTags`: the newer ring's tag moves left, then a row down or up; the
   older keeps its place).
 - **Edge arrows**: a ring or a line's tip outside what a screen shows (beyond the free area – a
@@ -147,8 +158,11 @@ needs no new infrastructure on the proxy, the service worker or the tests.
   out. Link sessions together get 8 line updates a second (`LINK_STROKES_PER_S`), beside their
   pointer budget.
 - The poll is the presence: a parked poll counts as «still here».
-- A pointer is handed out for `POINTER_TTL_S` (4 s) and only to a poll that already knew the
-  presentation: a device that just looked, or a tab back from the background, draws no stale rings.
+- Marks (and their `unmark`/`clear`) are handed out only to a poll that already knew the
+  presentation, in `seq` order and with no time limit: a tab back from the background draws the
+  marks made meanwhile and drops the ones taken away since; a device that just looked starts
+  with none of the older marks. What has rotated out of the buffers (64 messages, 12 lines) is
+  gone for a device that was that far behind.
 - ⚠️ **Link sessions together get a capped share** (review 06.11.2026): a link is forwarded and
   its holder chooses client ids, so a per-client limit bounds nothing. All link sessions together:
   at most 8 in the room (`LINK_PARTICIPANTS`), 5 pointers a second (`LINK_POINTERS_PER_S`), 4

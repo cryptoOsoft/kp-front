@@ -27,13 +27,17 @@ import s from './BuildingFloat.module.css'
  * the rail's Gebäude tile, a surface of its own. Nothing to say → no chip (lib/buildingCard ·
  * hasBuildingContent).
  *
+ * ⚠️ ONE action, so one glyph and one label (owner, 09.11.2026 – mock nov09-gebaeude-sofort, «do not
+ * split»): the Objekt's Sofortmassnahmen are a count badge on the chip («Gebäude-Info ②»), the way
+ * every count in the app is shown – no second glyph and word behind a divider, which read as a
+ * second button. The same on a tablet, a phone and the plan's row; the label spells it out.
+ *
  * The FIRST time this device shows the Karte of an Einsatz whose building has anything to show,
  * the card opens by itself (`autoOpen`, lib/buildingFirstOpen —
  * the workspace decides when); closing it marks it read (`onRead`). The plan's row never passes it.
  */
-export function BuildingFloat({ info, compact = false, autoOpen = false, onRead }: {
+export function BuildingFloat({ info, autoOpen = false, onRead }: {
   info: BuildingInfo | null
-  compact?: boolean
   /** the card's FIRST open on this device (lib/buildingFirstOpen): it opens by itself while this
    *  is true — still non-modal, the map stays live — and stays as the operator leaves it */
   autoOpen?: boolean
@@ -59,9 +63,6 @@ export function BuildingFloat({ info, compact = false, autoOpen = false, onRead 
   }, [open, close])
   if (!summary) return null
   const C = appConfig.copy.building
-  // compact (a phone, where the floating row is one line beside the FAB, and the plan's row, where
-  // it shares a glass with the Objekt / building chip) sheds only the «Sofortmassn.» word below –
-  // the chip's own word and the hazards stay
   return (
     <span className={s.anchor}>
       <button
@@ -79,8 +80,8 @@ export function BuildingFloat({ info, compact = false, autoOpen = false, onRead 
             in ink the chip read as one more neutral control. The plate stays neutral – no fill,
             this is a fact to read, not an alarm. */}
         <span>{C.chipTitle}{summary.hazard && <> · <b className={s.words}>{summary.words.join(' · ')}</b></>}</span>
-        {/* the Objekt's Sofortmassnahmen are inside — a word on a tablet, the glyph alone on a phone */}
-        {summary.measures && <span className={s.measures}><Icon id="checklist" />{!compact && C.measuresShort}</span>}
+        {/* the Objekt's Sofortmassnahmen are inside: their count, in the one count-badge idiom */}
+        {summary.measures > 0 && <span className={s.count} aria-hidden>{summary.measures}</span>}
       </button>
       {open && (
         <div className={s.pop} role="dialog" aria-label={C.title}>

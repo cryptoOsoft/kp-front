@@ -79,6 +79,12 @@ export const panelsCopy: Localizable<Pick<Copy, Keys>> = {
     title: 'Impostazioni',
     deviceGroup: 'Dispositivo',
     colorScheme: 'Schema colori',
+    colorSchemeHint: {
+      auto: 'Cambia con l’ora del giorno – chiaro dall’alba, scuro dal tramonto',
+      device: 'Segue l’impostazione chiaro/scuro di questo dispositivo',
+      day: 'Sempre chiaro',
+      night: 'Sempre scuro – mappa e interfaccia attenuate',
+    },
     symbolSizeMap: 'Dimensione simboli – mappa',
     symbolSizeMapSub: 'Simboli tattici sulla mappa della situazione e sui piani modulo collegati',
     symbolSizeBoard: 'Dimensione simboli – moduli',

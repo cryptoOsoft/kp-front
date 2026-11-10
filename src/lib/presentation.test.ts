@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
-  addRing, addStroke, capPoints, edgeArrow, fitScale, fitZoom, initials, liveRings, liveStrokes, nextFollow, NOT_PRESENTING, personTone, placeTags,
-  RING_MS, ringsOn, strokesOn, tagBox, throttle, type Follow, type PointerAt, type Ring, type Stroke,
+  addRing, addStroke, applyMarks, capPoints, edgeArrow, fitScale, fitZoom, initials, isFollower, liveStrokes, nextFollow, NO_MARKS, NOT_PRESENTING, personTone, placeTags,
+  ringsOn, strokesOn, tagBox, throttle, type Follow, type PointerAt, type PresentationState, type Ring, type Stroke,
 } from './presentation'
 
 const run = (events: Parameters<typeof nextFollow>[1][], from: Follow = NOT_PRESENTING) => events.reduce(nextFollow, from)
@@ -47,21 +47,15 @@ describe('the follow state machine', () => {
   })
 })
 
-const at: PointerAt = { surface: 'map', lng: 7.5, lat: 47.5, plan_id: null, page: null, x: null, y: null, floor: null, anchor: null }
+const at: PointerAt = { surface: 'map', lng: 7.5, lat: 47.5, plan_id: null, page: null, x: null, y: null, floor: null, anchor: null, id: null }
 const ring = (key: string, client: string, born: number, where: PointerAt = at): Ring => ({ key, client, name: client, link: false, at: where, born })
 
 describe('pointer rings', () => {
-  it('fade out after RING_MS', () => {
-    const rings = [ring('a', 'c1', 0), ring('b', 'c2', 1000)]
-    expect(liveRings(rings, RING_MS - 1).map((r) => r.key)).toEqual(['a', 'b'])
-    expect(liveRings(rings, RING_MS + 1).map((r) => r.key)).toEqual(['b'])
-  })
-
-  it('keep at most three per person, dropping their oldest', () => {
+  it('keep at most twelve per person against a flood, dropping their oldest', () => {
     let rings: Ring[] = []
-    for (let i = 0; i < 5; i++) rings = addRing(rings, ring(`k${i}`, 'c1', i), i)
-    rings = addRing(rings, ring('other', 'c2', 5), 5)
-    expect(rings.map((r) => r.key)).toEqual(['k2', 'k3', 'k4', 'other'])
+    for (let i = 0; i < 14; i++) rings = addRing(rings, ring(`k${i}`, 'c1', i))
+    rings = addRing(rings, ring('other', 'c2', 14))
+    expect(rings.map((r) => r.key)).toEqual([...Array.from({ length: 12 }, (_, i) => `k${i + 2}`), 'other'])
   })
 
   it('stand only on the surface (and Tafel page) they were tapped on', () => {
@@ -154,13 +148,13 @@ describe('lines', () => {
     line: { id: key, surface: 'map', plan_id: null, page: null, floor: null, anchor: null, points: [[0, 0]], done, ...on },
   })
 
-  it('a newer update of a line replaces it; a done line fades like a ring, one being drawn stays', () => {
+  it('a newer update of a line replaces it; a done line stands, one whose finger never came up goes stale', () => {
     const drawn = addStroke(addStroke([], line('a', 'c1', 0, false), 0), line('a', 'c1', 100, true), 100)
     expect(drawn).toHaveLength(1)
     expect(drawn[0].line.done).toBe(true)
-    expect(liveStrokes(drawn, 100 + RING_MS - 1)).toHaveLength(1)
-    expect(liveStrokes(drawn, 100 + RING_MS + 1)).toHaveLength(0)
-    expect(liveStrokes([line('b', 'c1', 0, false)], RING_MS * 2)).toHaveLength(1)
+    expect(liveStrokes(drawn, 3_600_000)).toHaveLength(1)
+    expect(liveStrokes([line('b', 'c1', 0, false)], 14_000)).toHaveLength(1)
+    expect(liveStrokes([line('b', 'c1', 0, false)], 16_000)).toHaveLength(0)
   })
 
   it('a form page\'s lines stay on that page, the Skizze\'s on the Skizze', () => {
@@ -214,5 +208,43 @@ describe('a tag at the surface\'s edge', () => {
     const tags = placeTags([{ key: 'a', x: 370, y: 100, label: 'Führungsunterstützung' }], 390)
     expect(tags.a.side).toBe('left')
     expect(placeTags([{ key: 'b', x: 50, y: 100, label: 'Sandra' }], 390).b.side).toBe('right')
+  })
+})
+
+// «Zeigen» A (owner, 09.11.2026): a mark stands until the × on its name, «Zeigen» off on the
+// presenter's pill takes all of them
+describe('the marks on a device', () => {
+  type Msg = PresentationState['messages'][number]
+  const pointer = (seq: number, client: string, id: string): Msg => ({ seq, kind: 'pointer', client, name: client, link: false, at: { ...at, id } })
+  const stroke = (seq: number, client: string, id: string): Msg => ({
+    seq, kind: 'stroke', client, name: client, link: false,
+    stroke: { id, surface: 'map', plan_id: null, page: null, floor: null, anchor: null, points: [[7.5, 47.5]], done: true },
+  })
+  const keys = (m: typeof NO_MARKS) => [...m.rings, ...m.strokes].map((x) => x.key)
+
+  it('take everybody else\'s rings and lines under the same key on every screen, never its own twice', () => {
+    const m = applyMarks(NO_MARKS, [pointer(1, 'c1', 'r1'), stroke(2, 'c2', 'st1'), pointer(3, 'me', 'r2')], 'me', 0)
+    expect(keys(m)).toEqual(['c1:r1', 'c2:st1'])
+  })
+
+  it('stand until unmarked – one mark, by whoever tapped the ×', () => {
+    const m = applyMarks(NO_MARKS, [pointer(1, 'c1', 'r1'), stroke(2, 'c2', 'st1'), { seq: 3, kind: 'unmark', client: 'c2', id: 'st1' }], 'me', 0)
+    expect(keys(m)).toEqual(['c1:r1'])
+    // an unmark of a mark this device never had changes nothing
+    expect(applyMarks(m, [{ seq: 4, kind: 'unmark', client: 'c9', id: 'r9' }], 'me', 0)).toBe(m)
+  })
+
+  it('all go with a clear, and a mark made after it stands again', () => {
+    const m = applyMarks(NO_MARKS, [pointer(1, 'c1', 'r1'), stroke(2, 'me', 'st1'), { seq: 3, kind: 'clear' }, pointer(4, 'c1', 'r2')], 'other', 0)
+    expect(keys(m)).toEqual(['c1:r2'])
+  })
+})
+
+describe('the tab-lock banner while following (owner, 09.11.2026)', () => {
+  it('steps aside while this tab follows or has panned away, and is back when the following ends', () => {
+    const following = run([server('p1'), { type: 'follow' }])
+    expect([following, nextFollow(following, { type: 'moved' })].map(isFollower)).toEqual([true, true])
+    expect([NOT_PRESENTING, run([server('p1')]), nextFollow(following, { type: 'leave' }), nextFollow(following, server(null)), run([server('p1', true)])]
+      .map(isFollower)).toEqual([false, false, false, false, false])
   })
 })

@@ -21,12 +21,12 @@ const base: BuildingInfo = {
 }
 
 describe('BuildingFloat', () => {
-  it('closed: the hazards as warn glyph + words, and that there are Sofortmassnahmen', () => {
-    render(<BuildingFloat info={base} />)
-    const chip = screen.getByRole('button', { name: 'Gebäude: Gas, PV – Steckbrief öffnen' })
-    expect(chip.textContent).toContain('Gebäude-Info · Gas · PV')
-    expect(chip.textContent).toContain('Sofortmassn.')
-    expect(chip.querySelector('use')?.getAttribute('href')).toBe('#warn')
+  // one action (owner, 09.11.2026): one glyph, one label, the Sofortmassnahmen as a count badge
+  it('closed: the hazards as warn glyph + words, and how many Sofortmassnahmen – one glyph only', () => {
+    render(<BuildingFloat info={{ ...base, object: { ...base.object!, measures: 'Gashaupthahn schliessen\nEW-Pikett aufbieten' } }} />)
+    const chip = screen.getByRole('button', { name: 'Gebäude: Gas, PV – Steckbrief öffnen · 2 Sofortmassnahmen' })
+    expect(chip.textContent).toBe('Gebäude-Info · Gas · PV2')
+    expect([...chip.querySelectorAll('use')].map((u) => u.getAttribute('href'))).toEqual(['#warn'])
     expect(chip.getAttribute('aria-expanded')).toBe('false')
     expect(screen.queryByRole('dialog')).toBeNull()
   })
@@ -47,22 +47,13 @@ describe('BuildingFloat', () => {
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
-  // owner pick C8 (05.11.2026): «Gebäude-Info» on every surface, compact (phone, plan row) included
-  it('no hazard: «Gebäude-Info» with the info glyph (never the rail tile\'s word + storey glyph); compact says it too', () => {
+  // owner pick C8 (05.11.2026): «Gebäude-Info» on every surface
+  it('no hazard: «Gebäude-Info» with the info glyph (never the rail tile\'s word + storey glyph)', () => {
     const calm = { ...base, gwr: { ...base.gwr!, heating: ['district'], hot_water: [] }, plants: [], object: null }
     render(<BuildingFloat info={calm} />)
     const chip = screen.getByRole('button', { name: 'Gebäude-Steckbrief öffnen' })
     expect(chip.textContent).toBe('Gebäude-Info')
     expect(chip.querySelector('use')?.getAttribute('href')).toBe('#info')
-    cleanup()
-    render(<BuildingFloat info={calm} compact />)
-    expect(screen.getByRole('button', { name: 'Gebäude-Steckbrief öffnen' }).textContent).toBe('Gebäude-Info')
-    cleanup()
-    render(<BuildingFloat info={base} compact />)
-    const compact = screen.getByRole('button', { name: /Steckbrief öffnen/ })
-    expect(compact.textContent).toBe('Gebäude-Info · Gas · PV')
-    // the Sofortmassnahmen still say they are there — as the glyph
-    expect([...compact.querySelectorAll('use')].map((u) => u.getAttribute('href'))).toEqual(['#warn', '#checklist'])
   })
 
   it('autoOpen (the first open, lib/buildingFirstOpen) opens the card by itself; any close marks it read', () => {

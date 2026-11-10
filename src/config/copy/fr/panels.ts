@@ -79,6 +79,12 @@ export const panelsCopy: Localizable<Pick<Copy, Keys>> = {
     title: 'Réglages',
     deviceGroup: 'Appareil',
     colorScheme: 'Schéma de couleurs',
+    colorSchemeHint: {
+      auto: 'Change selon l’heure – clair dès le lever du soleil, sombre dès le coucher',
+      device: 'Suit le réglage clair/sombre de cet appareil',
+      day: 'Toujours clair',
+      night: 'Toujours sombre – carte et interface atténuées',
+    },
     symbolSizeMap: 'Taille des symboles – carte',
     symbolSizeMapSub: 'Symboles tactiques sur la carte de situation et les plans de module liés',
     symbolSizeBoard: 'Taille des symboles – modules',

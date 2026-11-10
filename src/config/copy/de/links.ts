@@ -153,6 +153,8 @@ export const linksCopy = {
     end: 'Beenden',
     leave: 'Nicht mehr folgen',
     followAgain: 'Wieder folgen',
+    // the × on a ring's or a line's name: takes that mark off every screen (owner, 09.11.2026)
+    unmark: 'Ausblenden',
     hint: 'Zeigen ist an – tippen setzt einen Punkt, ziehen zeichnet eine Linie, verschieben mit zwei Fingern',
     link: 'Link',
     me: 'Ich',

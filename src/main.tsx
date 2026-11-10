@@ -40,7 +40,8 @@ installGlobalErrorReporting()
 
 // Night ergonomics: resolve the colour scheme before first paint so the app never
 // flashes the wrong chrome. Default 'auto' tracks daylight (brigade region at boot,
-// the incident coordinate once known via useAutoTheme); 'day'/'night' are overrides.
+// the incident coordinate once known via useAutoTheme); 'device' follows the OS setting;
+// 'day'/'night' are overrides.
 applyTheme(resolveTheme(loadPrefs().theme, null, new Date()))
 
 // Ask for PERSISTENT storage: without it this origin's bucket is "best-effort" and the browser

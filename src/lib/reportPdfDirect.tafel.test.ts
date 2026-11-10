@@ -43,10 +43,20 @@ describe('the Tafel in the Rapport', () => {
     const out = build({ tafel: [ef] }) as unknown as { boardPages: { sections: { cells?: { lines: { text: string }[] }[] }[] }[] }
     expect(out.boardPages[0].sections[0].cells![0].lines[0].text).toBe('Rettungen Haus 19 -> 21')
   })
-  it('the operator can leave the Tafel out — and an empty Tafel carries nothing', () => {
-    expect(build({ tafel: [ink, ef] }, { tafel: false }).boardPages).toEqual([])
+  it('the operator can leave each part of the Tafel out — and an empty Tafel carries nothing', () => {
+    const noEf = build({ tafel: [ink, ef] }, { tafelPages: { ef: false } })
+    expect([noEf.boardPages, noEf.boardMap]).toEqual([[], undefined])
     expect(build({ tafel: [ink, ef] }, { tafel: false }).planPages).toEqual([])
     const empty = build({})
     expect([empty.boardPages, empty.boardMap]).toEqual([[], undefined])
+  })
+  // picker B (owner, 09.11.2026): the Rapport sheet is its own tick, OFF until asked for, and a
+  // page with nothing on it does not print
+  it('prints the Rapport sheet only when ticked, and never an empty Erste Führung', () => {
+    const rapport = formAnno(newFormPage(FKS, FKS.pages.find((p) => p.id === 'rapport')!, {}))
+    const blankEf = formAnno(newFormPage(FKS, FKS.pages[0], {}))
+    expect(build({ tafel: [ef, rapport] }).boardPages.map((p) => p.title)).toEqual(['Erste Führung'])
+    expect(build({ tafel: [ef, rapport] }, { tafelPages: { rapport: true } }).boardPages.map((p) => p.title).sort()).toEqual(['Erste Führung', 'Rapport'])
+    expect(build({ tafel: [blankEf] }, { tafelPages: { ef: true } }).boardPages).toEqual([])
   })
 })

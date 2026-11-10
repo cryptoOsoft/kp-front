@@ -104,6 +104,7 @@ export function SettingsSheet({
 
   const themeOpts: { m: ThemeMode; label: string }[] = [
     { m: 'auto', label: appConfig.copy.nav.autoMode },
+    { m: 'device', label: appConfig.copy.nav.deviceMode },
     { m: 'day', label: appConfig.copy.nav.dayMode },
     { m: 'night', label: appConfig.copy.nav.nightMode },
   ]
@@ -158,7 +159,9 @@ export function SettingsSheet({
           <AlarmReadinessRows className="set-alarm" />
           <div className="set-card">
             <div className="set-row">
-              <span className="set-row-l">{cp.colorScheme}</span>
+              {/* the line under the name says what the selected option does – it is what tells
+                  «Automatisch» (time of day) and «Gerät» (the OS setting) apart */}
+              <span className="set-row-l">{cp.colorScheme}<small>{cp.colorSchemeHint[themeMode]}</small></span>
               <Segmented<ThemeMode> ariaLabel={cp.colorScheme} value={themeMode} onChange={setTheme}
                 options={themeOpts.map(({ m, label }) => ({ value: m, label }))} />
             </div>

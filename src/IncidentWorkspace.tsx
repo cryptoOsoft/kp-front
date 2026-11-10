@@ -182,6 +182,7 @@ import { useRosterRoles } from './workspace/useRosterRoles'
 import { useMediaOutbox } from './workspace/useMediaOutbox'
 import { useLifecycleElsewhere } from './workspace/useLifecycleElsewhere'
 import { PresentationContext, usePresentation } from './workspace/usePresentation'
+import { isFollower } from './lib/presentation'
 import { MapRings, PresentationPill } from './components/Presentation'
 
 /** How long an edit has to sit still before it earns a Verlauf row. Long enough that a sentence
@@ -3134,7 +3135,7 @@ export function IncidentWorkspace({
         setNoBasemap, setOfflineReadyOpen, trupps, azAlarm, canEditTrupps, azIntervalMin, azGraceSec, mode,
         setAzRowsShown, muteAtemschutz, setMode, setPanel, setTruppFocus, mapUI, tacticalLocked, gpsMeld,
         releaseOnSite, revertAll, followAll, replayActive, incidentMeta, journal, rapportReturn,
-        setRapportReturn, openRapport, setInstallGuideOpen, tabLockLost, user, onTakeOverTab, needsReview,
+        setRapportReturn, openRapport, setInstallGuideOpen, tabLockLost, followingPresentation: isFollower(presentation.follow), user, onTakeOverTab, needsReview,
         readOnly, intakeReviewedAt, onEditMeta, onReviewDone, azAlarmActive, truppPlace, setTruppStatus,
         syncStatus, exportEntries, syncNow,
       }} />
@@ -3335,7 +3336,7 @@ export function IncidentWorkspace({
       }} />
       </PresentationContext.Provider>
       <PresentationPill p={presentation} />
-      <MapRings mapRef={mapRef} rings={presentation.mapRings} strokes={presentation.mapStrokes} presenter={presentation.state?.presenter?.client ?? null} />
+      <MapRings mapRef={mapRef} rings={presentation.mapRings} strokes={presentation.mapStrokes} presenter={presentation.state?.presenter?.client ?? null} onUnmark={presentation.unmark} />
 
       {/* phone field-capture: a editor can't draw tactical symbols on a phone, but can
           always add a journal entry / photo / voice memo from the field — tap to compose,

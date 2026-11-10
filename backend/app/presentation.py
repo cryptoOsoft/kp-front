@@ -6,13 +6,15 @@ An editor taps «Präsentieren · Starten» in the «Einsatz teilen» sheet. Eve
 the Einsatz – logged-in users and holders of the «Einsatz · lesen» view link – sees a pill
 «<Name> präsentiert · Folgen». A follower mirrors the presenter's surface and section (the
 presenter's `view` messages), and everyone joined may point: a tap with «Zeigen» on leaves a
-named ring on every joined screen that fades after a few seconds (`pointer` messages), a
-press-and-drag a line that fades the same way (`stroke` messages, sent as it grows).
+named ring on every joined screen (`pointer` messages), a press-and-drag a line (`stroke`
+messages, sent as it grows). A mark stands until somebody joined takes it away with the × on its
+name (`unmark`), or the presenter switches «Zeigen» off, which takes every mark away (`clear`) –
+owner pick 09.11.2026 (mock nov09-zeigen-banner A); they faded after four seconds before.
 
 NOTHING HERE IS RECORD
 ----------------------
 Pointers and views are never stored: not in the workspace, not in the Verlauf, not in the
-database. They live in this module's ring buffer for a few seconds and are gone with the
+database. They live in this module's ring buffer and are gone with the presentation or the
 process. The ONLY trace in the record is two Verlauf rows, «Präsentation gestartet» and
 «Präsentation beendet» (who, when), written by the server under derived ids (`row_id`), so a
 second observer of the same end cannot write it twice. That is why the view link may send
@@ -68,7 +70,7 @@ MESSAGES_KEPT = 64
 MAX_PARTICIPANTS = 200
 #: Per-client floors between two messages of a kind. The client throttles too (lib/presentation);
 #: this is the server's own bound on what one device can make every other device download.
-MIN_INTERVAL_S = {"view": 0.1, "pointer": 0.12, "stroke": 0.15, "join": 1.0}
+MIN_INTERVAL_S = {"view": 0.1, "pointer": 0.12, "stroke": 0.15, "unmark": 0.05, "join": 1.0}
 #: ⚠️ LINK SESSIONS TOGETHER get a capped share of the room (adversarial review 06.11.2026). A
 #: link is forwarded, and its holder chooses its client ids, so a per-client limit bounds
 #: nothing: 64 made-up ids filled the room for the FU's own followers, three ate the room's
@@ -79,10 +81,10 @@ MIN_INTERVAL_S = {"view": 0.1, "pointer": 0.12, "stroke": 0.15, "join": 1.0}
 LINK_PARTICIPANTS = 8
 LINK_POINTERS_PER_S = 5
 LINK_CHANGES_PER_S = 4
-#: A pointer older than this is not handed out any more: it has faded on every screen (the
-#: client's RING_MS is 4 s), and a tab coming back from the background must not draw the
-#: minute it missed as fresh rings. A stroke counts from its last update.
-POINTER_TTL_S = 4.0
+#: ⚠️ No time-to-live: since 09.11.2026 a mark stands until it is taken away (`unmark`, `clear`),
+#: so a tab coming back from the background is handed every mark made meanwhile – and every
+#: removal after it, in `seq` order, so it ends with exactly what the others see. What has
+#: rotated out of the buffers is gone for it; a device joining later sees no older marks at all.
 #: ⚠️ STROKES (lines drawn with «Zeigen», 06.11.2026) do not go into `messages`: a line is sent
 #: as it grows – the WHOLE line so far, every ≤ 250 ms (lib/presentation · STROKE_MS), so a
 #: follower that missed an update still gets all of it – and its updates would flush the 64-slot
@@ -161,7 +163,7 @@ class Presentation:
         live_wait.notify(live_wait.presentation_topic(self.incident_id))
 
     def push(self, message: dict) -> None:
-        self.messages.append({**message, "seq": self.seq + 1, "_t": _now()})
+        self.messages.append({**message, "seq": self.seq + 1})
         self.bump()
 
 
@@ -375,11 +377,33 @@ def send_stroke(p: Presentation, client: str, owner: str, stroke: dict) -> bool:
         "link": who.link,
         "stroke": stroke,
         "seq": p.seq + 1,
-        "_t": _now(),
     }
     while len(p.strokes) > STROKES_KEPT:
         del p.strokes[next(iter(p.strokes))]
     p.bump()
+    return True
+
+
+def send_unmark(p: Presentation, client: str, owner: str, mark_client: str, mark_id: str) -> bool:
+    """The × on a mark's name: takes one ring or line off every screen. Anybody joined may take any
+    mark away (owner pick 09.11.2026) – nothing of it is record. Beyond the floor or the link
+    share's pointer budget it is dropped like a pointer (the × is there to tap again)."""
+    who = p.member(client, owner)
+    if who is None:
+        return False
+    if _throttled(p, client, "unmark") or (who.link and not _within(p.link_pointers, LINK_POINTERS_PER_S)):
+        return True
+    p.strokes.pop((mark_client, mark_id), None)
+    p.push({"kind": "unmark", "client": mark_client, "id": mark_id})
+    return True
+
+
+def send_clear(p: Presentation, client: str, owner: str) -> bool:
+    """The presenter switched «Zeigen» off: every mark goes, on every screen. Only the presenter."""
+    if p.member(client, owner) is not p.presenter:
+        return False
+    p.strokes.clear()
+    p.push({"kind": "clear"})
     return True
 
 
@@ -394,17 +418,11 @@ def news_for(p: Presentation | None, known_id: str, since: int) -> bool:
 def snapshot(p: Presentation | None, known_id: str, since: int) -> dict:
     """What one poll answers: the presentation (or none), who is in it, the current view, and
     the messages after `since` – none for a poll that did not know this presentation yet (it
-    gets the current view, and a pointer from before it looked is not news), and no pointer
-    older than POINTER_TTL_S."""
+    gets the current view; the marks made before it looked are not handed out)."""
     if p is None:
         return {"active": False, "seq": 0}
-    now = _now()
     fresh = sorted(
-        (
-            {k: v for k, v in m.items() if k != "_t"}
-            for m in [*p.messages, *p.strokes.values()]
-            if p.id == known_id and m["seq"] > since and (m["kind"] == "view" or now - m["_t"] < POINTER_TTL_S)
-        ),
+        (dict(m) for m in [*p.messages, *p.strokes.values()] if p.id == known_id and m["seq"] > since),
         key=lambda m: m["seq"],
     )
     return {
