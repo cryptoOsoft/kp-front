@@ -214,11 +214,15 @@ function EditRow({ user, canDemote, onSaved, onCancel }: {
   const [elViewDefault, setElViewDefault] = useState(user.el_view_default ?? false)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<string | null>(null)
+  /** «Speichern» with another role waits for its second step, like the ⋮ menu's switch (UX.14):
+   *  the new role signs that person out on their devices, whichever door it came through */
+  const [askingRole, setAskingRole] = useState(false)
   const C = appConfig.copy.admin.members
   const Cc = appConfig.copy.admin.common2
 
   const save = async () => {
     if (busy || displayName.trim().length === 0) return
+    setAskingRole(false)
     setBusy(true)
     setErr(null)
     try {
@@ -286,12 +290,23 @@ function EditRow({ user, canDemote, onSaved, onCancel }: {
           )}
           {err && <div className="adm-state adm-state-err">{err}</div>}
           <div className="adm-members-formbtns">
-            <button type="button" className="btn adm-int-btn" onClick={onCancel} disabled={busy}>
-              {Cc.cancel}
-            </button>
-            <button type="button" className="btn adm-save-btn" onClick={() => void save()} disabled={busy}>
-              {busy && <ShellLoader />}{busy ? Cc.saving : Cc.save}
-            </button>
+            {askingRole ? (
+              <ConfirmPrompt
+                question={fillTemplate(C.roleConfirm, { name: displayName.trim() || user.display_name, role: roleLabel(role) })}
+                onConfirm={() => void save()}
+                onCancel={() => setAskingRole(false)}
+              />
+            ) : (
+              <>
+                <button type="button" className="btn adm-int-btn" onClick={onCancel} disabled={busy}>
+                  {Cc.cancel}
+                </button>
+                <button type="button" className="btn adm-save-btn" disabled={busy}
+                  onClick={() => (role !== user.role && displayName.trim().length > 0 ? setAskingRole(true) : void save())}>
+                  {busy && <ShellLoader />}{busy ? Cc.saving : Cc.save}
+                </button>
+              </>
+            )}
           </div>
         </div>
       </td>
