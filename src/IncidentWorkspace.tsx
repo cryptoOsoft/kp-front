@@ -1587,9 +1587,13 @@ export function IncidentWorkspace({
   // «Alle Einsätze» closes THIS Einsatz through the same confirm (prop `abschlussRef`) — offered
   // exactly where the Einsatz-Menü row is (WorkspaceTopBar · onArchive)
   const canCloseHere = canEditIncident && !readOnly && !incidentMeta.is_archived
+  // …and the Einsatz-Menü the list was opened from is put away first (`menuCloseKey`): it stays
+  // logically open under «Alle Einsätze», and once the list stepped aside it stood open behind
+  // the question (sweep 09.11.2026). The menu's own «Abschliessen» keeps it, as before.
+  const [menuCloseKey, setMenuCloseKey] = useState(0)
   useEffect(() => {
     if (!abschlussRef) return
-    abschlussRef.current = canCloseHere ? confirmAndComplete : null
+    abschlussRef.current = canCloseHere ? () => { setMenuCloseKey((n) => n + 1); return confirmAndComplete() } : null
     return () => { abschlussRef.current = null }
   }, [abschlussRef, canCloseHere, confirmAndComplete])
   // --- the Atemschutz clocks across «Wieder öffnen» (staging r3, F4; lib/reopenClocks) ----------
@@ -3139,7 +3143,7 @@ export function IncidentWorkspace({
         onOpenDivera, onOpenDatenquellen, confirmAndComplete, abschlussMissing, canShareLink, setShareLink,
         setHelpOpen, setInstallGuideOpen, setOfflineReadyOpen, syncNow, media, logout, settingsOpen,
         helpOpen, installGuideOpen, offlineReadyOpen, shareLink,
-        canEditRapport,
+        canEditRapport, menuCloseKey,
       }} />
 
       {/* unsent edits of ANOTHER account for this Einsatz are parked on this device (sweep
