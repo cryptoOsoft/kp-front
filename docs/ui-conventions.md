@@ -103,8 +103,9 @@ And **no native form
 control** on these surfaces: the app's own `Menu` instead of a `<select>`, the `Stepper`
 instead of a number field, `components/Slider` instead of `<input type="range">`.
 **One question, one name, one place, in every sheet that asks it** (29.09.2026): the Einsatz
-wizard and «Einsatzdaten bearbeiten» share the «Alarmierung» section – eyebrow, then
-«Alarmzeit», then «Alarmmeldung» (the Rapport's word). A one-step sheet's footer cancel is
+wizard and «Einsatzdaten bearbeiten» are ONE form – «Alarmzeit», then «Alarmmeldung» (the
+Rapport's word) – and a flat list of fields: its three section eyebrows (Standort, Stichwort &
+Kategorie, Alarmierung) went on 10.11.2026 (owner: «only like 5 things to put in»). A one-step sheet's footer cancel is
 «Abbrechen»; «Zurück» only where there is a real previous step. The composer's Art is ONE of
 three with «Info» preselected – «nothing» and «Info» were two ways to say one thing; «Info»
 still writes no `entryType` and no marker. An optional count with a «Keine» answer beside it
@@ -136,7 +137,9 @@ where a row of them does not fit the desktop panel. One recipe: `06-contextpanel
 column, ONE control edge». A Messung read-out starts at the edge too, as a chip.
 
 **A symbol's context sheet is headed by its TYPE**, for every symbol, the generic Fahrzeug too
-(«Fahrzeug» / the pack's name; 29.09.2026). A user-given name lives in its field
+(«Fahrzeug» / the pack's name; 29.09.2026). The icon tile beside it is a picture, not a control,
+and wears no outline (10.11.2026: its blue frame read as «selected» or «tap me»); only a
+Linie / Fläche / Form frames it, in the drawing's own colour. A user-given name lives in its field
 («Bezeichnung») only — never twice, never an underlined head that jumps to a field. The foot's
 «Erledigt» wears the same ink as «Zentrieren» (a dimmed action reads «not available»); it is ONE
 toggle in one spot (31.10.2026): set, the same tile stands pressed (check, green tint) and a tap

@@ -15,13 +15,16 @@ import { TickRow } from './TickRow'
 // fields as one list. No numbers on the bar, only the stages: calm, Voralarm (amber), Hauptalarm
 // (red); the numbers behind the stages are one ⓘ away (ReadingInfo, 28.10.2026). Since 10.11.2026
 // (owner picks 3B / 4A) the box takes a number only, «über Messbereich» is a tick beside it, and
-// «Gleich gemessen» under the fields records a Nachmessung that confirmed the values.
+// «Gleich gemessen» under the fields records a Nachmessung that confirmed the values. The ticks
+// are bare boxes (owner review 10.11.2026: «just with a tick and not the entire text»): the words
+// stand ONCE, as the column's caption above the first gas (ReadingOverHead).
 
 /**
  * One measured gas of the panel (ContextPanel's row for a `readout` field): the number box – digits
  * and one decimal mark, on the decimal keypad with a «Fertig» key; type="text", because a number
  * input refuses the «20,9» a radio report is typed as – the tick «über Messbereich» beside it, and
- * the bar under both. The tick commits at once and is stored in the value («>100», lib/symbols ·
+ * the bar under both. The tick is the box alone, named per gas («CO: über Messbereich» – its
+ * aria-label, which the hold-tooltip reads); the column's words are ReadingOverHead. It commits at once and is stored in the value («>100», lib/symbols ·
  * measuredOf): over range draws, sorts and records as the Hauptalarm. A value from before the box
  * took numbers only («ca. 60») stays as written under an amber «Unlesbar – Zahl eingeben» until
  * somebody types over it.
@@ -47,9 +50,8 @@ export function MeasuredField({ symbol, fieldKey, value, placeholder, onInput, o
           onChange={(e) => onInput(measuredValue(cleanMeasured(e.target.value), over))}
           onBlur={() => onCommit(value)}
           onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()} />
-        <TickRow className="reading-over" checked={over} onToggle={() => onCommit(measuredValue(unreadable ? '' : text, !over))}>
-          <span>{C.readingOver}</span>
-        </TickRow>
+        <TickRow className="reading-over" checked={over} aria-label={`${fieldKey}: ${C.readingOver}`} title={C.readingOver}
+          onToggle={() => onCommit(measuredValue(unreadable ? '' : text, !over))} />
       </span>
       <ReadingBar symbol={symbol} fieldKey={fieldKey} value={value} />
       {unreadable && <span className="reading-unreadable" role="status"><Icon id="warn" />{C.readingUnreadable}</span>}
@@ -57,12 +59,21 @@ export function MeasuredField({ symbol, fieldKey, value, placeholder, onInput, o
   )
 }
 
+/** What the column of bare ticks means, said once: «über Messbereich» above the first measured
+ *  field, at the control edge the ticks end on – the way a table header sits above its column.
+ *  Read-only text; every tick carries the words in its own name, so this is hidden from a reader. */
+export function ReadingOverHead() {
+  return <div className="reading-over-head" aria-hidden>{appConfig.copy.contextPanel.readingOver}</div>
+}
+
 /** «Gleich gemessen» (pick 4A) under the measured fields: the values as they stand, measured once
- *  more – a history row with the time now, so the point stops ageing. Nothing before a first value. */
+ *  more – a history row with the time now, so the point stops ageing. Nothing before a first value.
+ *  The app's ordinary secondary button, right-aligned under the value column (owner review
+ *  10.11.2026 – it was a full-width block), on a phone too. */
 export function ReadingAgain({ entity, onAgain }: { entity: SymbolProps; onAgain: () => void }) {
   if (!symbolReading(entity)?.text) return null
   return (
-    <Button block className="reading-again" icon={<Icon id="rotate" />} onClick={onAgain}>
+    <Button className="reading-again" icon={<Icon id="rotate" />} onClick={onAgain}>
       {appConfig.copy.contextPanel.readingAgain}
     </Button>
   )

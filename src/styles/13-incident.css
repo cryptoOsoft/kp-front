@@ -2311,7 +2311,8 @@ summary.ip-group-head > .chev { flex: none; width: 16px; height: 16px; margin-le
 .ip-ds-compact .ip-ds-title { font-size: var(--fs-2); }
 .ip-ds-dist { color: var(--blue); font-weight: var(--fw-medium); }
 /* --- Einsatz eröffnen wizard --- */
-.ip-ix-head { margin: 4px 0 -2px; font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-faint); }
+/* ONE flat list of fields – the three section eyebrows (`.ip-ix-head`: Standort, Stichwort &
+   Kategorie, Alarmierung) went on 10.11.2026 (owner review: «only like 5 things to put in»). */
 /* «Objekt aus Feuerwehrplänen» / «Auf Karte setzen» — the two location fallbacks share a row;
    «Hier» (GPS) lives as an icon-only button on the address field itself (`.ip-ac-locate`
    below), because it is the PRIMARY method and has to be reachable without opening anything. */
@@ -2372,18 +2373,18 @@ summary.ip-group-head > .chev { flex: none; width: 16px; height: 16px; margin-le
 
 /* «Koordinaten» — the fold the resolved-location line lives behind (EinsatzWizard, 18.09.2026).
    The whole ROW is the button, at the touch floor, with the app's one disclosure chevron
-   (02-base · .chev, which flips off `aria-expanded`). It wears the section-head type of the
-   `.ip-ix-head` rows it sits among, so a fold reads as a heading that happens to open rather
-   than as a fourth location method. */
+   (02-base · .chev, which flips off `aria-expanded`). Its word wears the field
+   label's type (`--field-label`, like «Adresse» above it) since the form lost its section
+   eyebrows on 10.11.2026 – in eyebrow capitals it would be the form's one remaining heading. */
 .ip-fold-head { display: flex; align-items: center; gap: 8px; min-height: var(--tap);
   margin: 4px 0 -2px; padding: 0 2px; border: none; background: none; cursor: pointer; text-align: left; }
 .ip-fold-head .i { width: 14px; height: 14px; flex: none; color: var(--ink-faint); }
 /* open, the head IS the coordinate line (EinsatzWizard): same row, the ✕ beside it */
 .ip-fold-row { display: flex; align-items: center; gap: 4px; margin: 4px 0 -2px; }
 .ip-fold-row .ip-fold-head { flex: 1 1 auto; min-width: 0; margin: 0; }
-.ip-fold-title { font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-faint); }
+.ip-fold-title { font: var(--field-label); color: var(--ink-dim); }
 @media (hover: hover) {
-  .ip-fold-head:hover .ip-fold-title, .ip-fold-head:hover .i { color: var(--ink-dim); }
+  .ip-fold-head:hover .ip-fold-title, .ip-fold-head:hover .i { color: var(--ink); }
 }
 
 /* resolved-location line — a QUIET one-line hint, not a boxed warning (the dashed

@@ -7,7 +7,6 @@ export const intakeCopy: Localizable<Pick<Copy, 'intake'>> = {
   intake: {
     titleNew: 'Ouvrir une intervention',
     titleNewExercise: 'Ouvrir un exercice',
-    locationHead: 'Lieu',
     addressLabel: 'Adresse',
     addressPlaceholder: 'Rue n°, NPA localité',
     addressSearching: 'Recherche …',
@@ -24,7 +23,6 @@ export const intakeCopy: Localizable<Pick<Copy, 'intake'>> = {
     coordNoneEdit: 'Aucun lieu – intervention sans coordonnée',
     coordClear: 'Retirer le lieu',
     coordFold: 'Coordonnées',
-    keywordHead: 'Mot-clé et catégorie',
     titleLabel: 'Mot-clé / titre',
     titlePlaceholder: 'p. ex. Incendie de bâtiment, école',
     categoryLabel: 'Catégorie',
@@ -42,7 +40,6 @@ export const intakeCopy: Localizable<Pick<Copy, 'intake'>> = {
     created: 'Intervention créée',
     taken: 'Alarme reprise',
     updated: 'Intervention mise à jour',
-    alarmierungHead: 'Alarme',
     alarmTime: 'Heure d’alarme',
     alarmMessage: 'Message d’alarme',
     addressUnknown: 'Adresse inconnue',
