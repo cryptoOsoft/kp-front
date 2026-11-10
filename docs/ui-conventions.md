@@ -16,9 +16,14 @@ sheets, overlays, the button spec and the touch vocabulary. Phone-only layout is
   Without it, Blink's force-dark («Dark mode» in Samsung Internet, Auto Dark Theme in Chrome)
   repaints a page that declares a scheme it doesn't claim to support: the owner's Samsung tablet
   darkened all of our day chrome while the WebGL map canvas, which no filter touches, stayed
-  light (round 7, point 2). Do **not** "fix" that with `light dark`: that hands the native
-  surfaces back to the OS setting and re-opens the white-accessory-bar bug. Guarded by
-  `e2e/blink-force-dark.spec.ts`.
+  light (round 7, point 2). Do **not** "fix" that with a CSS `light dark` on the root: that hands
+  the native surfaces back to the OS setting and re-opens the white-accessory-bar bug. Guarded by
+  `e2e/blink-force-dark.spec.ts` (Chrome's force-dark only).
+- **Samsung Internet's dark mode is its own filter** and ignores the CSS `color-scheme` above.
+  The one opt-out it reads is `<meta name="color-scheme" content="light dark">` in `index.html`,
+  and only with Labs → «Use website dark theme» (or the adaptive-force-dark flag) on. The meta
+  is a document default; the root's CSS `only light|dark` overrides it, so native surfaces are
+  unchanged.
 - **CSS:** design tokens, the day/night flip (`[data-theme="night"]`), and shared chrome live
   in **`src/styles/NN-*.css`** – one numbered file per block (tokens, base, map, chrome, one per
   surface), listed in order by `src/app.css`, which is now a manifest of `@import`s and holds no

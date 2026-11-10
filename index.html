@@ -11,6 +11,12 @@
          and keyboard-aware caps/lifts on the sheets that hold text (useKeyboardInset · --jc-kb). -->
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, interactive-widget=overlays-content" />
     <meta name="theme-color" content="#1b2330" />
+    <!-- «This page ships its own dark theme» for Samsung Internet. Its dark mode is its own
+         recolouring filter and ignores the CSS `color-scheme`; the one opt-out it reads is
+         this meta tag (with Labs → «Use website dark theme» / adaptive force dark). Native
+         surfaces still follow the root's CSS `color-scheme: only light|dark` (01-tokens.css),
+         which overrides this document-level default, so the iOS accessory bar is unaffected. -->
+    <meta name="color-scheme" content="light dark" />
     <meta name="description" content="Operative Lagekarte der Feuerwehr – Einsätze, Pläne, Fahrzeuge." />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
