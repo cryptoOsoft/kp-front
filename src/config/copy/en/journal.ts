@@ -257,6 +257,7 @@ export const journalCopy: Localizable<Pick<Copy, 'journal' | 'tafelPendenzen' | 
 
     serverUnreachableHint: 'No network, or the server is not there at this address. Saved incidents stay available offline.',
     serverTimeoutHint: 'The connection is up, nothing is coming back — typical of a dying Wi-Fi. Saved incidents stay available offline.',
+    serverUnexpected: 'Server not reachable (unexpected answer)',
     httpUnauthorized: 'Sign-in expired',
     httpUnauthorizedHint: 'Please sign in again.',
     httpForbidden: 'Not permitted',

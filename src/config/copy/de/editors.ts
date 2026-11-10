@@ -82,8 +82,9 @@ export const editorsCopy = {
     captionAll: 'Alle',
     notes: 'Notizen',
     notesPlaceholder: 'Allgemeine Notizen …',
-    /** a Messpunkt's readings under its fields, newest first (ReadingHistory) */
-    readingHistory: 'Verlauf',
+    /** a Messpunkt's readings under its fields, newest first (ReadingHistory). Not «Verlauf»:
+     *  that word is the place (docs/copy-and-wording.md), and «Messungen» is the list of points. */
+    readingHistory: 'Bisher gemessen',
     /** the ⓘ beside a Messpunkt's values (ReadingParts · ReadingInfo, sweep 28.10.2026 #2b): the
      *  rows are built from the preset's alarm limits, so a station's own limits explain themselves.
      *  The unit per measured field key; {n} a limit; {min} the preset's staleMin. */
@@ -374,8 +375,6 @@ export const editorsCopy = {
   },
   topBar: {
     offline: 'Offline',
-    tiles: 'Tiles',
-    recording: 'REC',
     // Caveat on a stalled GPS picture: the Fahrzeuge deliberately do NOT disappear, so the
     // freeze has to be labelled – otherwise hours-old positions look as authoritative as
     // one-minute-old ones.

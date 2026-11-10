@@ -4,6 +4,7 @@ import { Icon } from '../lib/icons'
 import { cx } from '../lib/cx'
 import { fillTemplate, hhmm } from '../lib/format'
 import { newId } from '../lib/ids'
+import { serverNow } from '../lib/serverClock'
 import { clearDraft, keepDraft, readDraft } from '../lib/draftKeep'
 import { colMinScale, labelText, type LiveSection } from '../lib/boardTemplate'
 import type { NavKey } from '../lib/boardFormNav'
@@ -50,11 +51,13 @@ const C = () => appConfig.copy.tafelPendenzen
 const TYPED: readonly PendenzColumn[] = ['was', 'wer']
 const keyOf = (row: string, col: PendenzColumn) => `pz|${row}|${col}`
 
-/** A clock for «überfällig»: re-reads the time every 30 s while the page is shown. */
+/** A clock for «überfällig»: re-reads the time every 30 s while the page is shown. The SERVER's
+ *  clock (lib/serverClock), like the reminders themselves – a tablet whose own clock is off must
+ *  not disagree with the Verlauf about what is late. */
 function useNow(ms = 30_000): number {
-  const [now, setNow] = useState(() => Date.now())
+  const [now, setNow] = useState(() => serverNow())
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), ms)
+    const id = setInterval(() => setNow(serverNow()), ms)
     return () => clearInterval(id)
   }, [ms])
   return now

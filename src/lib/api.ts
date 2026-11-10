@@ -381,7 +381,7 @@ async function request<T>(path: string, init?: RequestInit, timeoutMs = DEFAULT_
     // `status === 0` offline branches never ran: `listIncidentsResilient` gave up its cached
     // list and AuthProvider dropped the user at the login screen, with a perfectly good
     // offline cache sitting untouched behind it. Reported as unreachable, which is the truth.
-    throw new ApiError(0, 'Server nicht erreichbar (unerwartete Antwort)')
+    throw new ApiError(0, appConfig.copy.errors.serverUnexpected)
   }
 }
 

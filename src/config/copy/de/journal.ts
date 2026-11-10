@@ -411,6 +411,8 @@ export const journalCopy = {
     serverUnreachableHint: 'Kein Netz, oder der Server ist unter dieser Adresse nicht da. Gespeicherte Einsätze bleiben offline verfügbar.',
     serverTimeout: 'Server antwortet nicht – Zeitüberschreitung',
     serverTimeoutHint: 'Die Verbindung steht, es kommt nur nichts zurück – typisch für ein sterbendes WLAN. Gespeicherte Einsätze bleiben offline verfügbar.',
+    // a 200 that is not ours: a captive portal or a proxy answered for the server (lib/api · request)
+    serverUnexpected: 'Server nicht erreichbar (unerwartete Antwort)',
     // What an HTTP status MEANS, for when the server sent no message of its own (a 502 from the
     // reverse proxy is an HTML page, not our JSON). «HTTP 502» names the plumbing; it doesn't say
     // whether the tablet, the link or the server is at fault, whether waiting helps, or whether

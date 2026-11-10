@@ -256,6 +256,7 @@ export const journalCopy: Localizable<Pick<Copy, 'journal' | 'tafelPendenzen' | 
     updateFailed: 'Aggiornamento non riuscito',
     serverUnreachableHint: 'Nessuna rete, o il server non è a questo indirizzo. Gli interventi salvati restano disponibili offline.',
     serverTimeoutHint: 'La connessione c\'è, ma non torna nulla – tipico di un Wi-Fi che muore. Gli interventi salvati restano disponibili offline.',
+    serverUnexpected: 'Server non raggiungibile (risposta inattesa)',
     httpUnauthorized: 'Sessione scaduta',
     httpUnauthorizedHint: 'Effettua di nuovo l\'accesso.',
     httpForbidden: 'Non autorizzato',
