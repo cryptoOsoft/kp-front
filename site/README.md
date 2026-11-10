@@ -148,7 +148,8 @@ along with them.
 The look («Schweizer Plakat × Tageslicht») lives entirely in `landing.css`, and **this file
 is identical in kp-front and kp-rueck**. Whoever changes the design copies it over to the
 other repo – otherwise the two sister pages drift apart. Only template and texts differ:
-content, images and the mutual cross-linking (`kp-front.ch` ⇄ `kp-rueck.ch`).
+content, images and the mutual cross-linking (`kp-front.ch` ⇄ `kp-rueck.ch`, each language page to
+the same language on the other site – `sister` in `content/config.json`).
 
 ## Hosting
 
