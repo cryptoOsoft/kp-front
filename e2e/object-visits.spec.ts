@@ -103,7 +103,7 @@ async function captureVisit(page: Page, objectName: string, jpeg: Buffer): Promi
   await page.getByRole('group', { name: 'Schlüsselhülse zugänglich' }).getByRole('button', { name: 'OK' }).click()
   await page.getByRole('group', { name: 'Grob gereinigt' }).getByRole('button', { name: 'Ja' }).click()
   await page.getByTestId('ov-photo-input').setInputFiles({ name: 'foto.jpg', mimeType: 'image/jpeg', buffer: jpeg })
-  await expect(page.getByText('Auf diesem Gerät gespeichert – wird gesendet, sobald Netz da ist')).toBeVisible()
+  await expect(page.getByText('Auf diesem Gerät gespeichert – wird automatisch gesendet, sobald wieder eine Internetverbindung besteht')).toBeVisible()
   await page.getByLabel('Beschriftung').fill('Zugang Nord')
   await page.getByRole('button', { name: 'Fertig' }).click()
   await expect(page.getByRole('button', { name: /^Foto öffnen: Zugang Nord/ })).toBeVisible()

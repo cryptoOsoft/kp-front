@@ -68,7 +68,7 @@ export const mapCopy = {
     fit: 'Einpassen',
     locate: 'Mein Standort',
     save: 'Ansicht speichern',
-    hint: 'Eine Ansicht speichert die Karte wie sie gerade ist – Position, Zoom und Drehung. Tippe eine gespeicherte Ansicht an, um dorthin zu springen (z.B. zwischen Nordübersicht und der Karte gedreht wie du stehst). Kompass lange drücken: direkt einpassen.',
+    hint: 'Eine Ansicht speichert Position, Zoom und Drehung der Karte. Tippe eine gespeicherte Ansicht an, um dorthin zu wechseln, z. B. zwischen der Nordübersicht und einer in deine Blickrichtung gedrehten Ansicht. Kompass lange drücken: Karte direkt einpassen.',
     rename: 'Umbenennen',
     delete: 'Löschen',
     saved: 'Ansicht gespeichert',
