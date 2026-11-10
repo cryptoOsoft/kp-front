@@ -108,6 +108,7 @@ export const linksCopy: Localizable<Pick<Copy, Keys>> = {
     end: 'Termina',
     leave: 'Non seguire più',
     followAgain: 'Segui di nuovo',
+    unmark: 'Nascondi',
     hint: 'Indicare è attivo – un tocco mette un punto, trascinare traccia una linea, sposta con due dita',
     link: 'Link',
     me: 'Io',

@@ -16,6 +16,7 @@ an empty box to sketch in by hand, as on the poster.
 from __future__ import annotations
 
 import io
+import logging
 from dataclasses import dataclass, field
 
 from pydantic import BaseModel
@@ -24,6 +25,8 @@ from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.platypus import Flowable
+
+logger = logging.getLogger(__name__)
 
 # ----------------------------------------------------------------------------- payload
 
@@ -63,6 +66,9 @@ class BoardRowIn(BaseModel):
     done: bool = False
     #: one string per column, in the columns' order (a symbol column carries the Signatur key)
     cells: list[str] = []
+    #: a date row, not an entry: where a «Wann» column runs past midnight the client puts the new
+    #: day («Di., 10.11.2026») before its first entry (lib/formDays). One ruling, across the table.
+    sep: str = ""
 
 
 class BoardFieldIn(BaseModel):
@@ -119,6 +125,8 @@ HAIR = colors.HexColor("#3c3c3c")
 SIG = colors.HexColor("#1b75bc")
 TONE = {"plus": colors.HexColor("#c6dfb0"), "minus": colors.HexColor("#f4a183"), "shade": colors.HexColor("#d0d2d3")}
 DIM = colors.HexColor("#5b6573")
+#: a date row's band (midnight on a «Wann» column) – lighter than the section bars
+SEP = colors.HexColor("#e4e4e4")
 
 FONT, BOLD = "Helvetica", "Helvetica-Bold"
 _BAR_H = 7.5 * mm
@@ -484,6 +492,7 @@ class BoardPageFlowable(Flowable):
             img = ImageReader(io.BytesIO(self.map_png))
             iw, ih = img.getSize()
         except Exception:  # noqa: BLE001 — a broken render leaves the box to sketch in
+            logger.warning("report: the Tafel's map render could not be decoded; its box stays empty", exc_info=True)
             return
         # cover the box (the render is framed on the Lage with room around it), clipped to it
         k = max(bw / iw, bh / ih)
@@ -568,10 +577,14 @@ class BoardPageFlowable(Flowable):
         # draw what fits; the rest goes to the Fortsetzung
         y = body_top
         drawn = 0
+        seps: list[tuple[float, float, str]] = []
         for r, h in zip(s.rows, need, strict=False):
             if y - h < by - 0.5:
                 break
-            self._row(xs, widths, cols, r, y, h, size, s.done)
+            if r.sep:
+                seps.append((y, h, r.sep))
+            else:
+                self._row(xs, widths, cols, r, y, h, size, s.done)
             y -= h
             c.setLineWidth(0.5)
             c.setStrokeColor(RULE)
@@ -589,12 +602,19 @@ class BoardPageFlowable(Flowable):
         foot = by if foot - by < 0.5 else foot
         for xv in xs[1:-1]:
             c.line(xv, foot, xv, top)
+        # a date row runs across the columns: its band goes over the column rules just drawn
+        for y_top, h, text in seps:
+            c.setFillColor(SEP)
+            c.rect(bx + 0.3, y_top - h + 0.3, bw - 0.6, h - 0.6, stroke=0, fill=1)
+            c.setFillColor(RULE)
+            c.setFont(BOLD, min(9.0, size))
+            c.drawString(bx + 1.6 * mm, y_top - h / 2 - min(9.0, size) * 0.35, printable(text))
         if drawn < n:
             self.overflow.append(
                 Overflow(
                     s.title or self.page.title,
                     [col.label for col in cols],
-                    [r.cells for r in s.rows[drawn:]],
+                    [[r.sep] if r.sep else r.cells for r in s.rows[drawn:]],
                 )
             )
 
@@ -611,12 +631,12 @@ class BoardPageFlowable(Flowable):
             if col.kind == "index":
                 if not v:
                     continue
-                rad = min(h, w) * 0.28
-                c.setFillColor(SIG)
-                c.circle(x + w / 2, y_top - h / 2, rad, stroke=0, fill=1)
-                c.setFillColor(colors.white)
-                c.setFont(BOLD, rad * 1.2)
-                c.drawCentredString(x + w / 2, y_top - h / 2 - rad * 0.42, printable(v))
+                # the bare number, large and bold in black (owner, 09.11.2026): the blue disc was the
+                # only colour on the page and ran to a blot on a poor copy
+                fs = min(h, w) * 0.45
+                c.setFillColor(RULE)
+                c.setFont(BOLD, fs)
+                c.drawCentredString(x + w / 2, y_top - h / 2 - fs * 0.35, printable(v))
                 continue
             font = FONT
             if r.fixed:

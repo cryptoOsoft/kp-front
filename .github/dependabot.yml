@@ -6,12 +6,14 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
-    # jsdom 30.1 breaks maplibre-gl 4.7 at import in vitest («reading '_buffer'» on the worker
-    # Blob): MapView, mapTwist and the IncidentWorkspace harness fail to load (05.10.2026). Held
-    # on 30.0.x until a jsdom past 30.1 or MapLibre 6 (#193) proves it fixed.
+    # jsdom from 30.1 on breaks maplibre-gl at import in vitest («reading '_buffer'» on the worker
+    # Blob): MapView, mapTwist and the IncidentWorkspace harness fail to load (05.10.2026).
+    # MapLibre 6 did not fix it: jsdom 31.0.0 on maplibre-gl 6.14 still fails that way, plus five
+    # JournalComposer cases (#557, 08.11.2026). Held on 30.0.x with no upper bound, so no later
+    # release is proposed again; lifting the hold is a deliberate PR that removes this rule.
     ignore:
       - dependency-name: jsdom
-        versions: [">= 30.1.0, < 30.2.0"]
+        versions: [">= 30.1.0"]
     groups:
       # Keep noise down: batch non-major bumps into one PR.
       minor-and-patch:

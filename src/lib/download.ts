@@ -1,3 +1,5 @@
+import { apiRequestRaw, CONNECTOR_TIMEOUT_MS, throwResponseError } from './api'
+
 // Trigger a browser "save file" for an in-memory Blob. The object URL is revoked on a short
 // delay (not immediately) so large blobs — e.g. a server-rendered PDF — stay alive long enough
 // for the download to start in every browser.
@@ -25,4 +27,17 @@ export function downloadUrl(url: string): void {
   document.body.appendChild(a)
   a.click()
   a.remove()
+}
+
+/**
+ * POST `form` to an API route that answers with a PDF (Rapport, Tafel, Zeitplan) and save the
+ * answer as `filename`. Through the API client, so the request is bounded, renews an expired
+ * session once and carries the link-mode header like every other call; a refusal throws
+ * `ApiError` with the server's own words, no answer at all throws `ApiError(0, …)`.
+ * A render takes far longer than a JSON call, hence the long bound.
+ */
+export async function downloadPdf(path: string, form: FormData, filename: string): Promise<void> {
+  const res = await apiRequestRaw(path, { method: 'POST', body: form }, CONNECTOR_TIMEOUT_MS)
+  if (!res.ok) return throwResponseError(res)
+  downloadBlob(await res.blob(), filename)
 }

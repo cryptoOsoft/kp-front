@@ -304,6 +304,8 @@ export const editorsCopy = {
     distance: 'Länge',
     // Messung group: the numbers of an already drawn line (length, Schläuche, elevation profile)
     measurement: 'Messung',
+    // die Schläuche einer Leitung: was die Strecke braucht, und die Reserve darauf (lib/geo · hoseSplit)
+    hoseSplit: '{n} + {r} Reserve × {m} m',
     showOnMap: 'Auf Karte',
     inputMode: 'Eingabe',
     modeFreehand: 'Freihand',

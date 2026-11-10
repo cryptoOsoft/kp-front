@@ -3,7 +3,8 @@
     "title": "KP Front – Digitale Einsatzführung für Feuerwehren",
     "description": "KP Front ist der digitale Kommandoposten am Einsatzort: Karte, Pläne, Trupps, Verlauf und Rapport – offline-fähig und quelloffen.",
     "ogTitle": "KP Front – Digitale Einsatzführung für Feuerwehren",
-    "ogDescription": "Der digitale Kommandoposten am Einsatzort: Karte, Pläne, Trupps, Verlauf und Rapport – offline-fähig und quelloffen."
+    "ogDescription": "Der digitale Kommandoposten am Einsatzort: Karte, Pläne, Trupps, Verlauf und Rapport – offline-fähig und quelloffen.",
+    "imageAlt": "KP Front mit digitaler Lagekarte und taktischen Zeichen für die Einsatzführung."
   },
   "schema": {
     "description": "Digitale Einsatzführung und Lagekarte für Feuerwehren – mit swisstopo-Karten, taktischen Zeichen nach FKS, Atemschutzüberwachung und laufendem Einsatzjournal.",
@@ -11,6 +12,7 @@
       "Lagekarte auf swisstopo-Karten mit taktischen Zeichen nach FKS",
       "Atemschutzüberwachung mit Druck, Rückzugszeit, Kontaktuhr und Alarmen",
       "Objekt- und Gebäudepläne als Whiteboard zum Draufzeichnen und Messen",
+      "Wassertransport: Druckverlauf entlang der Schlauchleitung mit automatischer Pumpenplatzierung",
       "Einsatzjournal (Verlauf), das nur ergänzt und nie umgeschrieben wird",
       "Schichtplanung für lange Einsätze mit Übersicht über die Deckung",
       "Einsatzrapport als PDF, aus den Einsatzdaten vorausgefüllt",
@@ -266,6 +268,7 @@
           "Sektoren, Absperrkreise, Flächen und Freihandzeichnung",
           "Schlauchleitungen mit FKS-Annotationen, jede einem Trupp zugeordnet",
           "Messen von Distanz und Fläche, massstabsgetreu auch auf dem Plan",
+          "<strong>Wassertransport</strong>: Druck entlang einer Schlauchleitung aus Höhenprofil, Schlauch-Ø und Wassermenge – die Pumpen setzt die Rechnung selbst, auf Wunsch direkt auf die Karte",
           "Ebenen: Hydranten, Leitungskataster, kantonale Kartendienste",
           "<strong>Gefahrgut-Nachschlagewerk</strong>: UN-Nummern, Stoffinformationen sowie Hinweise zu Absperr- und Schutzdistanzen, direkt im Einsatz verfügbar",
           "Wetter- und Windinformationen als Unterstützung für die Lagebeurteilung, dazu das Niederschlagsradar von MeteoSchweiz als Ebene",
@@ -394,7 +397,7 @@
       },
       {
         "q": "Wie fangen wir an?",
-        "a": "Mit der <a href=\"https://demo.kp-front.ch\" target=\"_blank\" rel=\"noopener\">Demo</a>,\n          ohne Anmeldung – in Musterdorf brennt es schon, und alle Besucher teilen denselben\n          Einsatz (Neustart um Mitternacht und um Mittag). Danach an einer Übung ausprobieren.\n          Wenn es passt, führt die <a href=\"https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md\" target=\"_blank\" rel=\"noopener\">Einrichtungsanleitung</a> zur eigenen Installation."
+        "a": "Mit der <a href=\"https://demo.kp-front.ch\" target=\"_blank\" rel=\"noopener\">Demo</a>,\n          ohne Anmeldung – in Musterdorf brennt es schon, und alle Besucher teilen denselben\n          Einsatz (Neustart täglich um 00:00 Uhr, Zeitzone Europe/Zurich). Danach an einer Übung ausprobieren.\n          Wenn es passt, führt die <a href=\"https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md\" target=\"_blank\" rel=\"noopener\">Einrichtungsanleitung</a> zur eigenen Installation."
       }
     ]
   },

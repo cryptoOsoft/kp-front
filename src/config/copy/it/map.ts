@@ -38,6 +38,7 @@ export const mapCopy: Localizable<Pick<Copy, Keys>> = {
     coordsLocked: 'Fissato – ✕ per terminare',
     coordsExit: 'Chiudi coordinate',
     autoMode: 'Automatico',
+    deviceMode: 'Dispositivo',
     dayMode: 'Giorno',
     nightMode: 'Notte',
   },

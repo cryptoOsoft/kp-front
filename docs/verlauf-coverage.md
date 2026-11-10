@@ -204,7 +204,10 @@ is split per surface into `src/config/copy/de/<surface>.ts` since 2026-10-09):
   line on the map included (a pin). Its switch «Pumpen auf Karte» (`relay.showPumps`, 05.11.2026)
   does: it puts the calculated Motorspritzen on the Karte and the printed Kroki or takes them off
   («Leitung 1: Pumpen auf der Karte» / «… Pumpen von der Karte genommen», `lib/drawingEdit`), one
-  undo step per flip. The pumps themselves are derived (`lib/linePumps`), never entities, so they
+  undo step per flip. A pump WARNING writes too, as it appears («Leitung 1: Pumpe 1 erhält unter
+  2 bar Eingangsdruck», `lib/drawingEdit · pumpWarningRows`, Manuel 09.11.2026): compared over the
+  settled burst, so one that stands through later edits is not written again, and a Leitung
+  adopted from Messen writes the ones it arrives with. The pumps themselves are derived (`lib/linePumps`), never entities, so they
   write nothing of their own. (It replaced «Pumpen als Symbole setzen», 04.–05.11.2026, whose
   «{n} Pumpen als Symbol gesetzt» rows and ordinary Motorspritzen stay in those Einsätze.)
 

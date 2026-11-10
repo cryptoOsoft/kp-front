@@ -5,13 +5,13 @@ import { cx } from '../lib/cx'
 import { fillTemplate } from '../lib/format'
 import { distanceAlongPath, pointAlongPath } from '../lib/geo'
 import { MARKER_Z } from '../lib/labelPass'
-import { hoseDefaults, RELAY, RELAY_PUMP_SYMBOL } from '../lib/hydraulics'
+import { hoseDefaults, RELAY_PUMP_SYMBOL } from '../lib/hydraulics'
 import { drawsPumps } from '../lib/linePumps'
 import { symPx } from '../lib/mapView'
 import { beginSheetPeek, endSheetPeek } from '../lib/sheetPeek'
 import { TacticalSymbol } from '../lib/symbolRender'
 import { useLineProfile } from '../lib/useLineProfile'
-import { PUMP_ATTR, relayOverlay, useRelay, useRelayOverlay, type RelayOverlay, type RelayValue } from '../lib/useRelay'
+import { askLineMeasure, PUMP_ATTR, pumpLabel, relayOverlay, useRelay, useRelayOverlay, type RelayOverlay, type RelayValue } from '../lib/useRelay'
 import type { Drawing, LngLat } from '../types'
 import { PumpBubble } from './PumpBubble'
 import s from './RelayPumpMarkers.module.css'
@@ -24,12 +24,12 @@ import s from './RelayPumpMarkers.module.css'
 // (lib/hydraulics · pumpRange) — which pins it (`pumps[i].atM`, written once, on release). In a
 // panel's relay a TAP opens its bubble right here at the marker (round 4, device test 04.11.2026:
 // the same PumpBubble the chart opens, not one in the panel); on a resting Leitung a tap selects
-// the Leitung. The bubble follows a dragged pump; the map moving under it closes it (Base UI
+// the Leitung, its «Messung» open. The bubble follows a dragged pump; the map moving under it closes it (Base UI
 // positions from the anchor's box and has no per-frame tracking for a CSS-transformed marker), and
 // a tap on the empty map only closes it (MapView · handleClick → lib/useRelay · dismissRelayBubble).
 // A pump of a Leitung whose switch is on wears the pack's Motorspritze (lib/hydraulics ·
 // RELAY_PUMP_SYMBOL) at a symbol's map size – in the open panel too, so the switch shows at once
-// what it does; every other relay pump is the chart's numbered disc.
+// what it does, tagged with the chart's P1, P2 …; every other relay pump is the chart's numbered disc.
 
 const PUMP_Z = { zIndex: MARKER_Z.selected + 1 }
 const SOURCE_Z = { zIndex: MARKER_Z.selected }
@@ -98,8 +98,10 @@ function LinePumps({ line, ctx, onPin, onSelectLine }: {
   })
   const base = relayOverlay(ctrl, line.id)
   if (!base) return null
-  // a tap selects the Leitung (its editor holds the numbers): a resting line opens no bubble
-  const relay: RelayOverlay = { ...base, selected: null, selectedFrom: null, onSelect: () => onSelectLine(line.id) }
+  // a tap selects the Leitung with its «Messung» open (its editor holds the numbers – lib/useRelay ·
+  // askLineMeasure): a resting line opens no bubble
+  const select = () => { askLineMeasure(line.id); onSelectLine(line.id) }
+  const relay: RelayOverlay = { ...base, selected: null, selectedFrom: null, onSelect: select }
   return <>{relay.pumps.map((p, i) => {
     const at = pointAlongPath(relay.coords, p.dist)
     return (
@@ -196,14 +198,16 @@ function PumpGrip({ relay, i, low, pinned, at, glyph }: { relay: RelayOverlay; i
     }
   }, [map, i, grip])
   const name = fillTemplate(R.pumpN, { n: i + 1 })
+  const short = pumpLabel(i, relay.pumps.length)
   const open = relay.selected === i && relay.selectedFrom === 'map'
   return (
     <>
       <button ref={setGrip} type="button" {...PUMP_ATTR}
         className={cx(s.pump, glyph && s.symbol, relay.selected === i && s.sel, pinned && s.pinned, low && s.low, relay.readOnly && s.static)}
         aria-label={name} aria-expanded={open} title={relay.readOnly ? name : `${name} · ${R.dragHint}`}>
-        {glyph ? <TacticalSymbol svg={glyph.svg} sizePx={glyph.px} />
-          : relay.pumps.length > RELAY.manyPumps ? i + 1 : fillTemplate(R.pumpShort, { n: i + 1 })}
+        {/* the glyph says «MS 2» on every pump alike, so it wears the chart's number too (P1, P2 …;
+            Manuel 09.11.2026: two pumps on the map both read «MS2») */}
+        {glyph ? <><TacticalSymbol svg={glyph.svg} sizePx={glyph.px} /><span className={s.tag} aria-hidden>{short}</span></> : short}
       </button>
       {open && grip && <MapPumpBubble relay={relay} i={i} grip={grip} at={at} />}
     </>

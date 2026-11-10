@@ -31,7 +31,7 @@ describe('routeHotkey', () => {
   })
 
   it('⌘Z / ⇧⌘Z reach the one timeline from every surface', () => {
-    for (const mode of ['map', 'plans', 'rapport']) {
+    for (const mode of ['map', 'plans', 'rapport'] as const) {
       expect(route({ type: 'undo' }, { mode })).toEqual({ action: { type: 'undo' }, prevent: true })
       expect(route({ type: 'redo' }, { mode })).toEqual({ action: { type: 'redo' }, prevent: true })
     }

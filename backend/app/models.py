@@ -932,19 +932,6 @@ class DeploymentConfig(Base):
     #   atemschutz_standing_key — the laminated Atemschutz QR (the ak write slice)
     terminal_link_key: Mapped[str | None] = mapped_column(Text, nullable=True)
     atemschutz_standing_key: Mapped[str | None] = mapped_column(Text, nullable=True)
-    # --- Telemetry (opt-in, see app/telemetry/) --------------------------------------
-    # Consent for the BACKGROUND channel only: 'off' (or NULL) | 'errors'. NULL is the
-    # column default and the value every existing and every fresh install starts at, which
-    # is what makes "off unless switched on" a property of the schema rather than of some
-    # code path remembering to check. Out of config_json deliberately: an admin config push
-    # from the CLI must not be able to turn telemetry on as a side effect of editing the
-    # roster, and a consent decision should not be something you can accidentally `load`.
-    telemetry_consent: Mapped[str | None] = mapped_column(Text, nullable=True)
-    # Random per-install id, minted on first use of either channel — NOT at boot, so an
-    # instance that never opts in never even generates one. Not derived from the hostname,
-    # the config or the DB: it identifies reports as same-origin and nothing else, and
-    # regenerating it (admin UI) is how a station makes its past reports unlinkable.
-    telemetry_install_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
@@ -1141,39 +1128,6 @@ class PersonPosition(Base):
     )
 
     __table_args__ = (UniqueConstraint("incident_id", "person_id", name="uq_person_positions_incident_person"),)
-
-
-# --- Telemetry outbox -----------------------------------------------------------------
-
-
-class TelemetryOutbox(Base):
-    """One already-sanitised payload waiting to go upstream.
-
-    A queue rather than a direct POST, for three reasons that all come from where this app
-    runs: the instance may be offline for a day, the ingest may be down, and — the one that
-    actually decides it — the operator has to be able to SEE what is queued before and after
-    it goes. A fire-and-forget POST is unauditable by construction; a table is `SELECT`able
-    by the deployer with psql, which is the strongest transparency claim available.
-
-    ``payload_json`` is the finished event, post-scrub. Nothing is sanitised on the way OUT
-    of this table, so what a deployer reads here is byte-for-byte what left the building.
-    """
-
-    __tablename__ = "telemetry_outbox"
-
-    id: Mapped[uuid.UUID] = _uuid_pk()
-    # 'error' (background, needs consent) | 'report' (manual, the send button is the consent)
-    channel: Mapped[str] = mapped_column(String(16), nullable=False)
-    payload_json: Mapped[dict] = mapped_column(JSONB, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    # NULL = still queued. Set once the ingest has 200'd; rows are swept after a few days.
-    sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    attempts: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("0"))
-    # Why the last attempt failed, for the admin screen. Never the response body — an error
-    # from someone else's server is not something we want to store verbatim.
-    last_error: Mapped[str | None] = mapped_column(String(200), nullable=True)
-
-    __table_args__ = (Index("ix_telemetry_outbox_pending", "sent_at", "created_at"),)
 
 
 # --- Integration credentials (browser-settable, encrypted at rest) ---------------------

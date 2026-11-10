@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { RailKey, ToolRail } from './ToolRail'
 import { PANEL_KEY } from '../lib/hotkeys'
+import { karteToolKey } from '../lib/karte/hotkeys'
 import { appConfig } from '../config/appConfig'
 import { slimTools, MAP_READONLY_TOOLS } from '../lib/readOnlyTools'
 import { loadPrefs, savePrefs } from '../lib/prefs'
@@ -175,17 +176,21 @@ describe('the Beschriftung device preference', () => {
       controls={<button>{appConfig.copy.nav.zoomIn}</button>}
     />)
 
-  it('carries the labelled class when the preference is on', () => {
+  // the view bar follows the same preference (owner, 07.11.2026: words on Ebenen · Ansichten and
+  // none on the tools beside them read as a fault)
+  it('carries the labelled class when the preference is on – the rail and its view bar', () => {
     const { container } = renderRail('short')
     expect(container.querySelector('.vrail.labelled')).toBeTruthy()
+    expect(container.querySelector('.view-bar.labelled')).toBeTruthy()
   })
 
   it('does not when it is off, or absent', () => {
     const { container } = renderRail('off')
     expect(container.querySelector('.vrail.labelled')).toBeNull()
+    expect(container.querySelector('.view-bar.labelled')).toBeNull()
     cleanup()
     const bare = renderRail()
-    expect(bare.container.querySelector('.vrail.labelled')).toBeNull()
+    expect(bare.container.querySelector('.vrail.labelled, .view-bar.labelled')).toBeNull()
   })
 
   it('renders the word for every tool either way — the stylesheet decides if it shows', () => {
@@ -343,9 +348,10 @@ describe('the shortcut letters', () => {
     expect(letters()).toEqual([])
   })
 
-  it('are not rendered on a rail whose surface binds no tool keys', () => {
-    rail({ hotkeys: false })
-    expect(letters()).toEqual([])
+  // the Karte & Objekte viewer binds its own keys (lib/karte/hotkeys): Pin P · Messen D · Gefahrgut U
+  it('wear the surface\'s own table when it hands one in', () => {
+    rail({ tools: [{ id: 'pin', icon: 'pin', label: 'Punkt' }, { id: 'measure', icon: 'measure', label: 'Messen' }, { id: 'erg', icon: 'warn', label: 'Gefahrgut' }], toolKey: karteToolKey })
+    expect(letters()).toEqual(['P', 'D', 'U'])
   })
 
   it('are not rendered on the phone\'s folded bar', () => {

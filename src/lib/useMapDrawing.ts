@@ -2,7 +2,7 @@ import { type SetStateAction, useRef, useState } from 'react'
 import { appConfig } from '../config/appConfig'
 import { detachDrawings, flipLine, wireFreed, withDetach } from './lineAttachments'
 import { flippedRelay } from './hydraulics'
-import { drawingEditChanges, drawingLogName } from './drawingEdit'
+import { drawingEditChanges, drawingLogName, pumpWarningRows } from './drawingEdit'
 import type { Doc } from './workspace'
 import type { Drawing, LineAttachment, LineEndpoint, LngLat, MapTool, TimelineEvent } from '../types'
 import { confirmDialog, toast } from './ui'
@@ -132,6 +132,12 @@ export function useMapDrawing(deps: MapDrawingDeps) {
     // named by drawingLogName, so «Rettungsachse gezeichnet» opens what «Rettungsachse gelöscht»
     // closes — before 31.08. every line, whatever it was drawn with, opened on «Zeichnung erstellt»
     log('pen', fillTemplate(appConfig.copy.log.shapeDrawn, { name: drawingLogName(drawing) }), 'symbol', undefined, undefined, { subjectId: id }); emit('draw.add', { id, kind: 'line', drawing })
+    // a Wassertransport adopted from Messen arrives with the pump warnings it already stands on –
+    // they appear NOW, so they are noted now (later edits note only the ones they bring)
+    const warnings = pumpWarningRows(null, drawing)
+    if (warnings.length) {
+      log('pen', fillTemplate(appConfig.copy.log.entityEdited, { name: drawingLogName(drawing), changes: warnings.join(', ') }), 'symbol', undefined, undefined, { subjectId: id })
+    }
     // a stroke that ENDED on a Trupp's marker is that Trupp's Leitung — reported for both ends,
     // because either of them may be the coupling (see MapDrawingDeps · onLineAttached)
     for (const a of [attachments?.startAttachment, attachments?.endAttachment]) if (a) onLineAttached?.(id, a)

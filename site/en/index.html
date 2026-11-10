@@ -78,12 +78,18 @@
 <meta property="og:image" content="https://kp-front.ch/shots/lage.jpg">
 <meta property="og:image:width" content="1500">
 <meta property="og:image:height" content="937">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:alt" content="KP Front with a digital situation map and tactical symbols for incident command.">
 <meta property="og:locale" content="en_GB">
 <meta property="og:locale:alternate" content="de_CH">
 <meta property="og:locale:alternate" content="fr_CH">
 <meta property="og:locale:alternate" content="it_CH">
 <meta property="og:locale:alternate" content="rm_CH">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="KP Front – Digital incident command for fire brigades">
+<meta name="twitter:description" content="The digital command post at the scene: map, plans, teams, log and report – offline-capable and open source.">
+<meta name="twitter:image" content="https://kp-front.ch/shots/lage.jpg">
+<meta name="twitter:image:alt" content="KP Front with a digital situation map and tactical symbols for incident command.">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -98,6 +104,7 @@
         "Situation map on swisstopo maps with tactical symbols to FKS conventions",
         "SCBA monitoring with pressure, turnaround time, contact clock and alarms",
         "Building and object plans as a whiteboard for drawing and measuring",
+        "Water relay: pressure along the hose line with automatic pump placement",
         "Incident log that is only added to and never rewritten",
         "Shift planning for long incidents, with a coverage view",
         "Incident report as a PDF, pre-filled from the incident data",
@@ -213,8 +220,14 @@
       "url": "https://kp-front.ch/en/",
       "name": "KP Front – Digital incident command for fire brigades",
       "description": "KP Front is the digital command post at the scene: map, plans, teams, log and report – offline-capable and open source.",
+      "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "url": "https://kp-front.ch/shots/lage.jpg",
+        "width": 1500,
+        "height": 937
+      },
       "inLanguage": "en",
-      "dateModified": "2026-11-04",
+      "dateModified": "2026-11-08",
       "isPartOf": {
         "@id": "https://kp-front.ch/#website"
       },
@@ -304,7 +317,7 @@
           "name": "How do we start?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "With the demo, no sign-up – Musterdorf is already on fire, and all visitors share the same incident (it restarts at midnight and at noon). Then try it at an exercise. If it fits, the setup guide leads to your own installation."
+            "text": "With the demo, no sign-up – Musterdorf is already on fire, and all visitors share the same incident (it resets every day at 00:00 in the Europe/Zurich time zone). Then try it at an exercise. If it fits, the setup guide leads to your own installation."
           }
         }
       ]
@@ -710,6 +723,7 @@
           <li>Sectors, cordons, areas and freehand drawing</li>
           <li>Hose lines with FKS annotations, each assigned to a team</li>
           <li>Measuring distance and area, to scale on the plan as well</li>
+          <li><strong>Water relay</strong>: pressure along a hose line from the height profile, hose diameter and flow – the calculation places the pumps itself, and can put them straight on the map</li>
           <li>Layers: hydrants, utility cadastre, cantonal map services</li>
           <li><strong>Hazardous materials reference</strong>: UN numbers, substance information and guidance on isolation and protective distances, available directly during the incident</li>
           <li>Weather and wind information to support the situation assessment, plus the MeteoSwiss precipitation radar as a layer</li>
@@ -878,7 +892,7 @@
         <h3>How do we start?</h3>
         <p>With the <a href="https://demo.kp-front.ch" target="_blank" rel="noopener">demo</a>,
           no sign-up – Musterdorf is already on fire, and all visitors share the same incident
-          (it restarts at midnight and at noon). Then try it at an exercise. If it fits, the
+          (it resets every day at 00:00 in the Europe/Zurich time zone). Then try it at an exercise. If it fits, the
           <a href="https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md" target="_blank" rel="noopener">setup guide</a> leads to your own installation.</p>
       </div>
     </div>

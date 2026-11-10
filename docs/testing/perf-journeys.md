@@ -37,6 +37,10 @@ journey called. When a request count moves, the report shows which routes change
   party, so they get a canned answer. External requests are still **counted**
   as distinct hosts (`*.external_hosts`): for an offline-first app a new external dependency is a
   regression. Tile counts are not gated, because how many land inside a window is timing.
+- **Diagnostics are not app traffic** (08.11.2026). `/api/diag/*` – the launch timing line and the
+  crash sink – leaves the API request counts and `cold-start.writes` (`harness · isAppApi`): a
+  device sends it once per launch or per error, and whether it lands inside a window is timing.
+  It still shows in the per-route table.
 - **No CPU throttle** by default. Headless Chromium has no GPU, so MapLibre renders through software
   WebGL on the main thread. At 4× throttle a busy Karte fell to 2–10 frames a second and journeys
   hung (2026-10-05). The gate compares a build with its baseline, so relative changes show

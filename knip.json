@@ -1,6 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": ["e2e/*.mjs", "scripts/*.mjs", "site/capture.mjs", "site/theme.js", "public/sw-notify.js", "vitest.mutation.config.ts"],
+  "entry": ["e2e/*.mjs", "scripts/*.mjs", "site/capture.mjs", "site/theme.js", "public/sw-notify.js", "public/sw-boot-timing.js", "public/sw-tile-store.js", "vitest.mutation.config.ts", "src/lib/unbundled.ts"],
   "ignoreDependencies": ["@fontsource-variable/sora", "@fontsource-variable/spline-sans-mono"],
   "ignoreIssues": { "src/lib/audioImport.ts": ["duplicates"] },
   "ignoreExportsUsedInFile": true

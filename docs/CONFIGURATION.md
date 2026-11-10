@@ -86,8 +86,9 @@ unchanged):
 
 - **A setting lives in one of three places – pick by who owns it, not by what is easiest to
   reach.** (1) *Device preference* – theme (day/night/auto), symbol scale, rail words, shortcut
-  letters («Tastenkürzel anzeigen», `keyHints`, default ON – the letter on both rails and on
-  the top bar's Verlauf / Eintrag, `.rail-key`, shown only with hover + a fine pointer; letters from `lib/hotkeys`), offline
+  letters («Tastenkürzel anzeigen», `keyHints`, default ON – the letter on both rails, the view
+  bar and the top bar's Verlauf / Eintrag, `.rail-key`, shown only with hover + a fine pointer;
+  letters from `lib/hotkeys`, on «Karte & Objekte» from `lib/karte/hotkeys`), offline
   radius, screen wake: cookie via `src/lib/prefs.ts`, not synced, surfaced in the **Einstellungen
   sheet** (`src/components/panels/SettingsSheet.tsx`), which since 28.08. carries device prefs
   plus per-device utilities and **nothing else**. (2) *Station doctrine* – Funkkontakt-Intervall,
@@ -1478,7 +1479,6 @@ Four rules, and none of them is optional reading:
 |---|---|
 | `SECRET_KEY` | it peppers the PINs in the database it would live in, and seals the credential table itself |
 | `ADMIN_SECRET` | it gates writing the very document it would live in |
-| `KP_TELEMETRY_ENABLED`, `KP_TELEMETRY_DSN` | the deployer's veto **over** the admin UI – an admin-settable veto is not a veto |
 | `REQUIRE_PLAN_DIGEST` | it guards the config a stale automated publish would overwrite |
 | `DATABASE_URL`, `POSTGRES_*`, `APP_PORT`, `APP_BIND`, `DOMAIN`, `COOKIE_SECURE`, `KP_FRONT_TAG` | host-level: read before a database connection exists, or by `docker-compose.yml` rather than by the app |
 | everything else in the table below | not an integration credential – seeding, caps, tuning, provider URLs, the S3 pull keys |
@@ -1504,7 +1504,7 @@ and locks the field – see the rule above).
 | 🔐 `DIVERA_PERSONNEL_ACCESS_KEY` | optional second Divera key used **only** for the «Personal» pull. It must belong to a user whose read scope includes members' Qualifikationen – the alarm key above usually does not – and it is what makes the roster sync derive a Dienstgrad. Empty = falls back to `DIVERA_ACCESS_KEY` (names only, no rank) |
 | 🔐 `ALARM_WEBHOOK_SECRET` | generic alarm intake `POST /api/alarms` for non-Divera alerting systems – auto-opens an incident per alarm, idempotent on `source`+`source_id` (nothing set anywhere = endpoint disabled, fail-closed). Create it during the integration handoff and paste the same value into `/admin` → Anbindungen and the sender; it is write-only and deliberately not pre-generated at install – [`ALARM-INTEGRATIONS.md`](ALARM-INTEGRATIONS.md) §1 |
 | 🔐 `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Web Push for killed-app alarms + new-alarm push. Generate the pair once – on a Docker-only host `docker compose exec app uv run python -m app.gen_vapid`, or `cd backend && uv run python -m app.gen_vapid` where the toolchain is installed – then paste both halves into `/admin` → Anbindungen, which takes effect without a restart. `./scripts/setup.sh` does exactly that on a fresh install, into the credential store rather than into `.env`. Nothing set anywhere = push disabled, fail-closed. ⚠️ Generate **once** and keep the pair stable: rotating it invalidates every stored subscription |
-| 🔐 `PRINT_AGENT_SECRET` | station print relay: «An Stationsdrucker» queues the Einsatzrapport-PDF for an on-site agent (any always-on box with a CUPS queue). The agent serves KP Front *and* KP Rück from one install – see [`tools/PRINT-AGENT.md`](../tools/PRINT-AGENT.md). Nothing set anywhere = agent endpoints 403 and the button never renders, fail-closed. It is deliberately not minted by the installer: this secret *is* the switch, so setting it renders «An Stationsdrucker» on the Rapport and on the capture poster for a station that owns no printer, and turns the System card's print-relay row from «nicht konfiguriert» into a permanently offline connector. Generate it on the agent's own machine with `openssl rand -hex 32` and paste the same value into `/admin` → Anbindungen |
+| 🔐 `PRINT_AGENT_SECRET` | station print relay: «Ausdrucken» queues the Einsatzrapport-PDF for an on-site agent (any always-on box with a CUPS queue). The agent serves KP Front *and* KP Rück from one install – see [`tools/PRINT-AGENT.md`](../tools/PRINT-AGENT.md). Nothing set anywhere = agent endpoints 403 and the button never renders, fail-closed. It is deliberately not minted by the installer: this secret *is* the switch, so setting it renders «An Stationsdrucker» on the Rapport and on the capture poster for a station that owns no printer, and turns the System card's print-relay row from «nicht konfiguriert» into a permanently offline connector. Generate it on the agent's own machine with `openssl rand -hex 32` and paste the same value into `/admin` → Anbindungen |
 | 🔐 `HEALTHCHECK_PING_URL` | dead-man's switch: **the job GETs this URL every 60 s** (healthchecks.io or any cron monitor), so the monitor alerts when the pings *stop*. Catches the class an HTTP probe of `/ready` cannot: a container stopped with nothing replacing it, or a wedged event loop. Point it at a check with a **1 min period and ~3 min grace** – matching the 60 s cadence, so two missed pings raise it. Nothing set anywhere = the heartbeat job still runs but returns on its first line, so nothing is pinged; a failed ping is logged and swallowed, so a monitoring outage never disturbs the deployment. The «Einrichtung» card on the admin landing page links straight to this field |
 | 🔐 `SHAREPOINT_TENANT_ID`, `SHAREPOINT_CLIENT_ID`, `SHAREPOINT_CLIENT_SECRET`, `SHAREPOINT_SECRET_EXPIRES` | the Azure app registration behind the SharePoint pull ([§6c](#6c-sharepoint-pull-the-stations-own-folders-imported-on-a-schedule)), read-only, client-credentials flow. ⚠️ These four – like every 🔐 credential from here down to `ENTRA_LOGIN_*`, sixteen in all – have **no `Settings` field**: they were introduced after the credential table existed, so the environment half is read straight off the process environment and the normal path is the browser. The two ids are readable (an operator compares them against the Azure portal); the secret is write-only. `SHAREPOINT_SECRET_EXPIRES` is not a credential but the ISO date (`JJJJ-MM-TT`) the secret lapses on – Azure caps it at 24 months and says nothing when it does, so this is what the System card counts down. Nothing set = no pull, fail-closed |
 | 🔐 `OBJECT_VISITS_INTEGRATION_KEY` | the Objektbesuche organizer's bearer key for `/api/integrations` ([`object-visits.md`](object-visits.md)); ≥ 24 characters, write-only, no `Settings` field (read off the environment, normally set in the browser). Unset = the organizer API answers 403 |
@@ -1548,7 +1548,7 @@ and locks the field – see the rule above).
 >
 > If you add one yourself, note the second half of the trap: compose materialises a named
 > variable as an **empty string** when `.env` does not set it, and only some of these fields
-> tolerate that. `EXPOSE_API_DOCS`, `VISIT_STATS`, `TRACCAR_FAKE` and `KP_TELEMETRY_ENABLED` have
+> tolerate that. `EXPOSE_API_DOCS`, `VISIT_STATS` and `TRACCAR_FAKE` have
 > an explicit blank-is-false coercion in `app/config.py`; `REQUIRE_PLAN_DIGEST`, `DEV_CREATE_ALL`
 > and every numeric setting do **not**, so a blank fallback for those crashes the boot with a
 > pydantic validation error. Give them a fallback that parses – which is what the file does.

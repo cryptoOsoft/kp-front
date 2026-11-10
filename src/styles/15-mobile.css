@@ -749,7 +749,7 @@
      «there is a gap at the bottom where things don't scroll down below»). As the drawer's own
      padding it was a dead band — 10px + the home indicator, ~44px on an iPhone — under the
      scroller, so every row was cut off at the band's top edge, the last one included. Paid by the
-     scroller's last row instead (AGENTS · «the bottom inset paid by its last row»), rows scroll
+     scroller's last row instead (docs/ui-conventions.md · «the bottom inset paid by its last row»), rows scroll
      on down to the sheet's edge and the last one still comes to rest above the home indicator. */
   /* 16px of end air + the indicator, the tablet's 16 (06-contextpanel · .history-list), and the
      scroll padding with it so a row scrolled into view also stops clear of the indicator */

@@ -363,7 +363,8 @@ def render_base(
                     continue
                 try:
                     tile = Image.open(io.BytesIO(data)).convert("RGB")
-                except Exception:  # noqa: BLE001, S112 — one corrupt tile must not sink the map
+                except Exception:  # noqa: BLE001 — one corrupt tile must not sink the map
+                    logger.warning("kroki: tile %s/%s could not be decoded and is left blank", tx, ty, exc_info=True)
                     continue
                 img.paste(tile, (int(tx * TILE - x0), int(ty * TILE - y0)))
     finally:
@@ -1691,12 +1692,13 @@ def render_kroki(
             if d.get("arrow"):
                 _arrow_head(draw, pts, color, w, stop=bool(d.get("arrowStop")))
             if d.get("marker"):
-                # A LETTER repeats at the client's 46 px rhythm and is drawn with the halo text
-                # pass below; a CHAIN GLYPH has its own denser rhythm and is painted here, because
-                # it is a shape and not a font.
+                # A LETTER repeats at the client's 46 px rhythm, once per character («WT» at 92 –
+                # lib/lineStyle · markerSpacing), and is drawn with the halo text pass below; a
+                # CHAIN GLYPH has its own denser rhythm and is painted here, because it is a shape
+                # and not a font.
                 mk = str(d["marker"])
                 chain = _CHAIN_GLYPHS.get(mk)
-                step = (chain["spacing"] if chain else 46) * u * ss
+                step = (chain["spacing"] if chain else 46 * max(1, len(mk))) * u * ss
                 for mx, my, mdeg in _marker_points(pts, step):
                     if chain:
                         _chain_marker(overlay, (mx, my), mk, mdeg, max(6, int(chain["size"] * u * ss)), color)

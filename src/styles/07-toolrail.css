@@ -151,8 +151,8 @@
    (lib/whiteboard · VIEW_BAR_INSET mirrors it). The map's ⓘ stands to its left (03-map,
    `--view-bar-w` measured by ToolRail). Gated on the bar being there (`:root:has(.view-bar)`),
    so a surface without it (replay) keeps the whole height.
-   The tile height is the rail's: 56px, and 50px in a window under 700px tall, so eight labelled
-   tools fit a 1366×768 laptop (a 660px viewport) without scrolling. */
+   The tile height is the rail's: 56px labelled, and 50px in a window under 700px tall, so eight
+   labelled tools fit a 1366×768 laptop (a 660px viewport) without scrolling; 46px unlabelled. */
 :root { --vrail-tile: 56px;
   --view-bar-h: calc(var(--vrail-tile) + 2 * var(--bar-pad) + 2px);
   --view-bar-reserve: calc(16px + var(--view-bar-h) + var(--float-gap)); }
@@ -161,20 +161,25 @@
   display: flex; align-items: center; gap: 4px; padding: var(--bar-pad);
   background: var(--glass); backdrop-filter: blur(14px) saturate(1.4); border: 1px solid var(--glass-line);
   box-shadow: var(--e4); border-radius: var(--r-bar); }
-/* each button: glyph over its word, as on the labelled rail — and the words stay on whatever the
-   rail's «Beschriftung» says: the bar has the width, and «Ebenen» / «Ansichten» are read at a
-   glance where a bare compass is recalled (owner: «Ebenen and Ansichten keep their words»).
-   `position: relative` is the box a shortcut letter would hang in (04b-rail · .rail-key). */
-.view-bar .vrail-nbtn { position: relative; flex-direction: column; justify-content: center; gap: 0;
-  height: var(--vrail-tile); min-width: 76px; padding: 0 8px; }
-.view-bar .vrail-glyph { width: auto; min-width: 0; height: 26px; }
-.view-bar .vrail-label { display: block; white-space: nowrap; text-align: center;
+/* each button: glyph over its word WHEN the rails wear theirs (`.labelled`, the device pref
+   «Beschriftung»), a 46px glyph tile like the rail's compact ones when they do not – one rule for
+   every bar (owner, 07.11.2026: words on Ebenen · Ansichten and none on the tools beside them read
+   as a fault). The 06.11. pick kept the words always; the title says the word on hover either way.
+   `position: relative` is the box a shortcut letter hangs in (04b-rail · .rail-key). */
+.view-bar .vrail-nbtn { position: relative; justify-content: center; width: 46px; min-width: 46px; padding: 0; }
+.view-bar .vrail-label { display: none; }
+.view-bar.labelled .vrail-nbtn { flex-direction: column; gap: 0; height: var(--vrail-tile); width: auto; min-width: 76px; padding: 0 8px; }
+.view-bar.labelled .vrail-glyph { width: auto; min-width: 0; height: 26px; }
+.view-bar.labelled .vrail-label { display: block; white-space: nowrap; text-align: center;
   font-size: var(--fs-micro); font-weight: var(--fw-bold); line-height: 1.1; }
-/* − + are glyph-only squares — «Verkleinern» / «Vergrössern» need no reading (the title says it),
-   and two words that long would double the bar. A hairline sets them off from the buttons that
-   open something; it goes with them on a touch screen (.vrail-zoom is display:none there). */
-.view-bar .vrail-zoom { min-width: 46px; width: 46px; padding: 0; }
-.view-bar .vrail-zoom .vrail-label { display: none; }
+/* …and the bar is that much lower, so everything that clears it (--view-bar-reserve) moves with it */
+:root:has(.view-bar:not(.labelled)) { --view-bar-h: calc(46px + 2 * var(--bar-pad) + 2px); }
+/* − + are glyph-only squares in both – «Verkleinern» / «Vergrössern» need no reading (the title
+   says it), and two words that long would double the bar. A hairline sets them off from the
+   buttons that open something; it goes with them on a touch screen (.vrail-zoom is display:none
+   there). */
+.view-bar.labelled .vrail-zoom { min-width: 46px; width: 46px; padding: 0; }
+.view-bar.labelled .vrail-zoom .vrail-label { display: none; }
 .view-bar :not(.vrail-zoom) + .vrail-zoom { margin-left: var(--sp-2); }
 .view-bar :not(.vrail-zoom) + .vrail-zoom::before { content: ''; position: absolute; left: -6px; top: 25%; bottom: 25%;
   width: 1px; background: var(--border); }

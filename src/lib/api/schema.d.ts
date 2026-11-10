@@ -80,7 +80,19 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Login */
+        /**
+         * Login
+         * @description PIN login behind two throttles, both taken BEFORE the first await (a concurrent burst is
+         *     counted, not waved past a check nobody has failed yet — SEC-08 round 1):
+         *
+         *     · the cooldown ladder per (account, device or source) — pin_limiter · PinLimiter;
+         *     · for a device the account does not know, the account's new-device budget — NewDeviceBudget.
+         *
+         *     A throttled attempt is REFUSED before the verify, a correct PIN included: verifying while
+         *     throttled is what made the PIN space brute-forceable once (SEC-08 round 3). Both blocks are
+         *     bounded and neither deepens while it stands, so the operator always gets a window — and a
+         *     device the account knows is never behind the budget at all.
+         */
         post: operations["login_api_auth_login_post"];
         delete?: never;
         options?: never;
@@ -495,8 +507,8 @@ export interface paths {
         };
         /**
          * Get Plan Scales
-         * @description PUBLIC — needed to measure on plans (viewers included) and cached offline at boot.
-         *     Never raises: whatever in the stored blob does not validate is dropped entry-wise, the rest
+         * @description Any session (viewers measure on plans too), never an anonymous caller — see the module
+         *     docstring. Never raises on the stored document: whatever in the stored blob does not validate is dropped entry-wise, the rest
          *     is served — with the `version` the caller sends back as `If-Match` when it writes.
          */
         get: operations["get_plan_scales_api_plan_scales_get"];
@@ -998,7 +1010,8 @@ export interface paths {
         put?: never;
         /**
          * Presentation Signal
-         * @description Join, leave, the presenter's view, a pointer or a line. Ephemeral by construction – see the
+         * @description Join, leave, the presenter's view, a pointer or a line, a mark taken away or all of them.
+         *     Ephemeral by construction – see the
          *     module docstring. 409 when the presentation it names is not the one running (ended,
          *     taken over): the client drops back to «no presentation» on its next poll.
          */
@@ -3722,6 +3735,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/diag/boot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Report Boot
+         * @description Log one launch's timings at INFO as ``boot-timing build=… nav=… app=1 ws=… fcp=… ua=…``.
+         */
+        post: operations["report_boot_api_diag_boot_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/diag/client-error": {
         parameters: {
             query?: never;
@@ -3772,70 +3805,6 @@ export interface paths {
         get: operations["export_diagnostics_api_diag_export_get"];
         put?: never;
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/diag/telemetry": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Telemetry Status
-         * @description Everything the admin screen needs to answer "what is this instance sending".
-         *
-         *     Includes the last few payloads verbatim. The queue is the honest answer to that
-         *     question and there is no reason to summarise it — a fire station should be able to read
-         *     the actual JSON without opening psql.
-         */
-        get: operations["telemetry_status_api_diag_telemetry_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/diag/telemetry/consent": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Update Consent
-         * @description Turn the background channel on or off. Off also discards whatever is still queued.
-         */
-        put: operations["update_consent_api_diag_telemetry_consent_put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/diag/telemetry/install-id": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Rotate Install Id
-         * @description Mint a fresh install id, cutting the link to everything sent so far.
-         */
-        post: operations["rotate_install_id_api_diag_telemetry_install_id_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4741,6 +4710,28 @@ export interface components {
             payload: string;
         };
         /**
+         * BootTiming
+         * @description One launch: milliseconds since navigation start per boot milestone (lib/bootTiming).
+         */
+        BootTiming: {
+            /** Marks */
+            marks?: {
+                [key: string]: number;
+            };
+            /**
+             * Nav
+             * @default ?
+             */
+            nav?: string;
+            /** Build */
+            build?: string | null;
+            /**
+             * Standalone
+             * @default false
+             */
+            standalone?: boolean;
+        };
+        /**
          * BuildingFloorFlatsOut
          * @description The existing flats whose entrance is on one storey.
          */
@@ -5040,11 +5031,6 @@ export interface components {
             changedSections?: string[];
             /** Version */
             version?: string | null;
-        };
-        /** ConsentUpdate */
-        ConsentUpdate: {
-            /** Consent */
-            consent: string;
         };
         /** CredentialAuditEntry */
         CredentialAuditEntry: {
@@ -6871,6 +6857,19 @@ export interface components {
             id: string;
         };
         /**
+         * PresentationClearMessage
+         * @description The presenter switched «Zeigen» off: every mark goes.
+         */
+        PresentationClearMessage: {
+            /** Seq */
+            seq: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "clear";
+        };
+        /**
          * PresentationMapView
          * @description The presenter's free map area (its own side panel left out): the centre, zoom, bearing and
          *     the area's size in px – a follower fits that whole area into its own (components/Presentation
@@ -6889,6 +6888,16 @@ export interface components {
             w?: number | null;
             /** H */
             h?: number | null;
+        };
+        /**
+         * PresentationMarkRef
+         * @description One ring or line, as the × on its name takes it away: whose it is, and its id.
+         */
+        PresentationMarkRef: {
+            /** Client */
+            client: string;
+            /** Id */
+            id: string;
         };
         /** PresentationPerson */
         PresentationPerson: {
@@ -6948,6 +6957,8 @@ export interface components {
             /** Floor */
             floor?: number | null;
             anchor?: components["schemas"]["PresentationAnchor"] | null;
+            /** Id */
+            id?: string | null;
         };
         /** PresentationPointerMessage */
         PresentationPointerMessage: {
@@ -6976,12 +6987,13 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "join" | "leave" | "view" | "pointer" | "stroke";
+            kind: "join" | "leave" | "view" | "pointer" | "stroke" | "unmark" | "clear";
             /** Name */
             name?: string | null;
             view?: components["schemas"]["PresentationView"] | null;
             at?: components["schemas"]["PresentationPointerAt"] | null;
             stroke?: components["schemas"]["PresentationStroke"] | null;
+            mark?: components["schemas"]["PresentationMarkRef"] | null;
         };
         /** PresentationStart */
         PresentationStart: {
@@ -7015,7 +7027,7 @@ export interface components {
              * Messages
              * @default []
              */
-            messages?: (components["schemas"]["PresentationViewMessage"] | components["schemas"]["PresentationPointerMessage"] | components["schemas"]["PresentationStrokeMessage"])[];
+            messages?: (components["schemas"]["PresentationViewMessage"] | components["schemas"]["PresentationPointerMessage"] | components["schemas"]["PresentationStrokeMessage"] | components["schemas"]["PresentationUnmarkMessage"] | components["schemas"]["PresentationClearMessage"])[];
         };
         /**
          * PresentationStroke
@@ -7065,6 +7077,23 @@ export interface components {
             /** Link */
             link: boolean;
             stroke: components["schemas"]["PresentationStroke"];
+        };
+        /**
+         * PresentationUnmarkMessage
+         * @description A ring or line taken away (the × on its name): `client`/`id` name the MARK, not who tapped.
+         */
+        PresentationUnmarkMessage: {
+            /** Seq */
+            seq: number;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "unmark";
+            /** Client */
+            client: string;
+            /** Id */
+            id: string;
         };
         /** PresentationView */
         PresentationView: {
@@ -8194,7 +8223,9 @@ export interface operations {
             query?: never;
             header?: never;
             path?: never;
-            cookie?: never;
+            cookie?: {
+                known_device?: string | null;
+            };
         };
         requestBody: {
             content: {
@@ -8229,6 +8260,7 @@ export interface operations {
             path?: never;
             cookie?: {
                 refresh_token?: string | null;
+                known_device?: string | null;
             };
         };
         requestBody?: never;
@@ -8826,7 +8858,10 @@ export interface operations {
             query?: never;
             header?: never;
             path?: never;
-            cookie?: never;
+            cookie?: {
+                access_token?: string | null;
+                admin_session?: string | null;
+            };
         };
         requestBody?: never;
         responses: {
@@ -8837,6 +8872,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlanScalesOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -14791,6 +14835,37 @@ export interface operations {
             };
         };
     };
+    report_boot_api_diag_boot_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BootTiming"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     report_client_error_api_diag_client_error_post: {
         parameters: {
             query?: never;
@@ -14829,109 +14904,6 @@ export interface operations {
             path?: never;
             cookie?: {
                 access_token?: string | null;
-            };
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    telemetry_status_api_diag_telemetry_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: {
-                admin_session?: string | null;
-            };
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    update_consent_api_diag_telemetry_consent_put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: {
-                admin_session?: string | null;
-            };
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ConsentUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    rotate_install_id_api_diag_telemetry_install_id_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: {
-                admin_session?: string | null;
             };
         };
         requestBody?: never;

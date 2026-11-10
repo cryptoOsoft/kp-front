@@ -54,6 +54,8 @@ class _Strict(BaseModel):
 #: (`data-sec=…`, `data-ev=…` – an attribute the surface already renders)
 _ANCHOR_STEP = r"^(\d{1,4}|[a-z-]{1,24}=[A-Za-z0-9_:.\-]{1,80})$"
 _ID = r"^[A-Za-z0-9_:.\-]{1,120}$"
+#: a ring's or a line's own id (lib/ids · newId)
+_MARK_ID = r"^[A-Za-z0-9_-]{4,40}$"
 
 
 class PresentationMapView(_Strict):
@@ -130,6 +132,16 @@ class PresentationPointerAt(_Strict):
     y: float | None = Field(default=None, ge=0, le=1)
     floor: int | None = Field(default=None, ge=-20, le=200)
     anchor: PresentationAnchor | None = None
+    #: the ring's own id (the sender's `newId`), so the × on its name can take it off every screen
+    #: (`unmark`); a ring without one cannot be taken away singly
+    id: str | None = Field(default=None, pattern=_MARK_ID)
+
+
+class PresentationMarkRef(_Strict):
+    """One ring or line, as the × on its name takes it away: whose it is, and its id."""
+
+    client: str = Field(min_length=4, max_length=64)
+    id: str = Field(pattern=_MARK_ID)
 
 
 class PresentationStroke(_Strict):
@@ -137,14 +149,14 @@ class PresentationStroke(_Strict):
     `points` are [lng, lat] on the Karte, [x, y] in plan space (0..1, on `floor`) on a plan, and
     offsets from `anchor` in units of the anchored element's width on a form page."""
 
-    id: str = Field(pattern=r"^[A-Za-z0-9_-]{4,40}$")
+    id: str = Field(pattern=_MARK_ID)
     surface: Literal["map", "plan", "page"]
     plan_id: str | None = Field(default=None, pattern=_PLAN_ID)
     page: str | None = Field(default=None, pattern=_PLAN_ID)
     floor: int | None = Field(default=None, ge=-20, le=200)
     anchor: PresentationAnchor | None = None
     points: list[tuple[float, float]] = Field(min_length=1, max_length=broker.MAX_STROKE_POINTS)
-    #: the finger is up: the line fades from now on
+    #: the finger is up: the line is finished (it stands until it is taken away)
     done: bool = False
 
 
@@ -179,6 +191,22 @@ class PresentationStrokeMessage(BaseModel):
     stroke: PresentationStroke
 
 
+class PresentationUnmarkMessage(BaseModel):
+    """A ring or line taken away (the × on its name): `client`/`id` name the MARK, not who tapped."""
+
+    seq: int
+    kind: Literal["unmark"]
+    client: str
+    id: str
+
+
+class PresentationClearMessage(BaseModel):
+    """The presenter switched «Zeigen» off: every mark goes."""
+
+    seq: int
+    kind: Literal["clear"]
+
+
 class PresentationState(BaseModel):
     """One poll's answer – app/presentation · snapshot."""
 
@@ -191,7 +219,11 @@ class PresentationState(BaseModel):
     view: PresentationView | None = None
     messages: list[
         Annotated[
-            PresentationViewMessage | PresentationPointerMessage | PresentationStrokeMessage,
+            PresentationViewMessage
+            | PresentationPointerMessage
+            | PresentationStrokeMessage
+            | PresentationUnmarkMessage
+            | PresentationClearMessage,
             Field(discriminator="kind"),
         ]
     ] = []
@@ -205,12 +237,14 @@ class PresentationSignal(_Strict):
     #: the presentation this signal is meant for – a signal for one that has ended is dropped
     presentation: str = Field(min_length=1, max_length=32)
     client: str = Field(min_length=4, max_length=64)
-    kind: Literal["join", "leave", "view", "pointer", "stroke"]
+    kind: Literal["join", "leave", "view", "pointer", "stroke", "unmark", "clear"]
     #: a link holder's own name; ignored for a logged-in user (the account's name is used)
     name: str | None = Field(default=None, max_length=60)
     view: PresentationView | None = None
     at: PresentationPointerAt | None = None
     stroke: PresentationStroke | None = None
+    #: `unmark`: the ring or line to take away
+    mark: PresentationMarkRef | None = None
 
 
 async def _is_open(db: AsyncSession, incident_id: uuid.UUID) -> bool:
@@ -336,7 +370,8 @@ async def presentation_signal(
     user: CurrentUser,
     db: AsyncSession = Depends(get_db),
 ) -> Response:
-    """Join, leave, the presenter's view, a pointer or a line. Ephemeral by construction – see the
+    """Join, leave, the presenter's view, a pointer or a line, a mark taken away or all of them.
+    Ephemeral by construction – see the
     module docstring. 409 when the presentation it names is not the one running (ended,
     taken over): the client drops back to «no presentation» on its next poll."""
     cid = _client(body.client)
@@ -363,6 +398,15 @@ async def presentation_signal(
         # Only the presenter's client – registered by an editor's start – moves the room. A link
         # session never presents, so its view is refused even if it guessed the id.
         if body.view is None or is_link_session(user) or not broker.send_view(p, cid, owner, body.view.model_dump()):
+            raise HTTPException(status_code=403, detail={"code": "not_presenter"})
+    elif body.kind == "unmark":
+        if body.mark is None:
+            raise HTTPException(status_code=422, detail="mark")
+        if not broker.send_unmark(p, cid, owner, body.mark.client, body.mark.id):
+            raise HTTPException(status_code=409, detail={"code": "not_joined"})
+    elif body.kind == "clear":
+        # «Zeigen» off on the presenter's pill: only the presenter's client clears the room
+        if not broker.send_clear(p, cid, owner):
             raise HTTPException(status_code=403, detail={"code": "not_presenter"})
     elif body.kind == "stroke":
         if body.stroke is None or not _stroke_complete(body.stroke):

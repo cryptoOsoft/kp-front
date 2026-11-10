@@ -5,7 +5,6 @@
 import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { act, renderHook, waitFor } from '@testing-library/react'
-import { readFileSync } from 'node:fs'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { BOOT_COVER_FADE_MS, useBootCover } from './bootCover'
 import { __resetIdbForTests, idbGet } from './idb'
@@ -157,11 +156,5 @@ describe('never under the opening cover (lib/bootCover)', () => {
       expect(h.result.current.phase).toBe('off')
       expect(h.result.current.autoOpen).toBe(true)
     } finally { vi.useRealTimers() }
-  })
-
-  it('the workspace gates it on the cover, the Karte, a running Einsatz, no replay and a session that sees the Karte', () => {
-    const src = readFileSync(`${process.cwd()}/src/IncidentWorkspace.tsx`, 'utf8')
-    const call = /useBuildingFirstOpen\(incidentMeta\.id, buildingInfo,\s*([^)]*)\)/.exec(src)?.[1] ?? ''
-    for (const term of ["coverPhase === 'off'", "mode === 'map'", 'running', '!replayActive', '!asLink']) expect(call).toContain(term)
   })
 })

@@ -2552,7 +2552,7 @@ summary.ip-group-head > .chev { flex: none; width: 16px; height: 16px; margin-le
 /* Red never FILLS an action — it means danger, and revoking is the danger here. */
 .esh-revoke { flex: none; color: var(--red-strong); box-shadow: inset 0 0 0 1px var(--del-edge); }
 /* Under the address, not behind a tooltip: it is the one thing somebody has to have read
-   BEFORE sending the link on. The ONE warning look (AGENTS · «Fields, titles, eyebrows, warnings»,
+   BEFORE sending the link on. The ONE warning look (docs/ui-conventions.md · «Fields, titles, eyebrows, warnings»,
    29.09.2026 — it was dim 12.5 text in a 13% tint): ink 13/700, the glyph in the tone
    (`--amber-strong`, it does not block) over a 10% tint of it, the one corner. */
 .esh-warn { display: flex; align-items: flex-start; gap: 8px; margin: 0; width: 100%;

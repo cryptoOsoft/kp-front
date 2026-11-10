@@ -20,13 +20,14 @@ test.beforeEach(async ({ page, browserName }) => {
   await signIn(page.request)
 })
 
-/** Every write this context sends to the Einsatz (the journey's `cold-start.writes` filter: sign-in
- *  and the building outlines — a read that happens to be a POST — are not writes). */
+/** Every write this context sends to the Einsatz (the journey's `cold-start.writes` filter: sign-in,
+ *  the launch timing line and the building outlines — a read that happens to be a POST — are not
+ *  writes). */
 function writesOf(context: BrowserContext): string[] {
   const seen: string[] = []
   context.on('request', (r) => {
     const { pathname } = new URL(r.url())
-    if (r.method() !== 'GET' && pathname.startsWith('/api/') && !/^\/api\/(auth|overpass)\//.test(pathname)) seen.push(`${r.method()} ${pathname}`)
+    if (r.method() !== 'GET' && pathname.startsWith('/api/') && !/^\/api\/(auth|overpass|diag)\//.test(pathname)) seen.push(`${r.method()} ${pathname}`)
   })
   return seen
 }

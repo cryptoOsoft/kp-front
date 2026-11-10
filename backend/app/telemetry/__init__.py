@@ -1,28 +1,14 @@
-"""Opt-in, sanitised telemetry for a self-hosted app.
+"""Sanitised crash traces that stay on the station's own server.
 
-Read in this order:
+* ``scrub.py``  — the allow-list; the only place a field can be added to a crash entry
+* ``recent.py`` — the local, in-memory crash buffer the operator's Diagnose-Datei hands over
 
-* ``dsn.py``       — why there is no upstream any more, and what a self-hoster can still set
-* ``scrub.py``     — the allow-list; the only place a field can be added to a payload
-* ``envelope.py``  — the wire format, hand-written instead of an SDK, and why
-* ``consent.py``   — who is allowed to decide, and what NULL means
-* ``recent.py``    — the local crash buffer the operator's export hands over
-* ``outbox.py``    — the queue, and the transparency log
-* ``forwarder.py`` — the one place that can open a connection outward, and by default doesn't
+Nothing here transmits. ``api/diag.py`` scrubs each client error and buffers it; a bug report
+reaches the maintainer when an operator exports that buffer (``GET /api/diag/export``) and
+attaches it to a mail or a GitHub issue. A human is the transport, on purpose.
 
-Two channels, and the difference between them is the difference the whole design rests on:
-
-  **error**  — background. Off unless an admin has switched it on. Sanitised crashes.
-  **report** — manual. The operator reads the payload and presses send; that is the consent.
-               Available regardless of the background switch, unless the deployer has
-               disabled outbound entirely, in which case mailto:/copy still works.
-
-Since the maintainer's ingest was retired, BOTH channels are aimed at nothing unless a
-deployer sets ``KP_TELEMETRY_DSN`` to a GlitchTip of their own. The route that actually
-carries a bug report to us now is the manual one: the operator exports ``recent.py``'s
-buffer and attaches it to a mail or a GitHub issue. A human is the transport, on purpose.
-
-This package deliberately re-exports NOTHING. ``config.py`` reads the default DSN from
-``dsn.py``, and a re-export here would pull ``consent.py`` — which imports ``config`` — into
-that import and make the cycle. Import the submodule you need.
+The package used to hold an opt-in forwarder to an outside ingest as well (consent, install
+id, outbox, Sentry envelope, DSN). It was deleted on 09.11.2026: the maintainer's ingest was
+retired in 09/2026, and the forwarder had no destination and no switch in the UI. The package
+keeps its name; both modules are byte-identical with kp-rueck (``shared/MANIFEST.json``).
 """

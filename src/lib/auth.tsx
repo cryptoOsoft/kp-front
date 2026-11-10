@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import { apiGet, apiPost, ApiError, isDenial, isUnverifiable, SESSION_EXPIRED_EVENT } from './api'
 import { idbGet, idbSet, idbDel } from './idb'
 import { getDeploymentConfig, isDemoMode, loadDeploymentConfig } from './deploymentConfig'
+import { notifyAccountKnown } from './accountKnown'
 import { syncMediaCacheAuth } from './authMediaCache'
 import { denyWorkspaceCache, setWorkspaceCacheOwner } from './api/workspaceSync'
 import { linkPageOwnsSession } from './linkMode'
@@ -307,6 +308,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     window.addEventListener(SESSION_EXPIRED_EVENT, onExpired)
     return () => { alive = false; window.removeEventListener(SESSION_EXPIRED_EVENT, onExpired) }
   }, [adoptUser, denySession]) // stable: one listener for the page's life
+
+  // Whoever needs the session to load something says so through lib/accountKnown.
+  const userId = user?.id
+  useEffect(() => {
+    if (userId) notifyAccountKnown()
+  }, [userId])
 
   // Protected media is cached only for a known real-user client. Do not signal during the
   // initial probe: `user === null` still means "unknown" then, not "logged out". Once the

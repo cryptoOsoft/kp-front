@@ -7,12 +7,15 @@ already looks. That path needs no consent and no network: it is the app telling 
 operator what happened.
 
 * ``POST /client-error`` — the sink. Always logged and always buffered locally
-  (``telemetry/recent.py``); additionally queued for an upstream ingest only when an admin
-  has switched telemetry on AND the deployer configured a DSN. Unauthenticated (a crash can
-  happen on the login screen), so it is throttled per source (a token bucket, 429 past it)
-  and the upstream queue is capped per hour, on top of the client's own budget. Reachable
+  (``telemetry/recent.py``); nothing is stored in the database or forwarded. Unauthenticated
+  (a crash can happen on the login screen), so it is throttled per source (a token bucket,
+  429 past it), on top of the client's own budget. Reachable
   from every kind of Einsatz-Link session too (auth/incident_link, 24.09.2026): the 403 a
   link page got here on 23.09. is why that phone's crash never reached the log.
+* ``POST /boot`` — one line per app launch with the phone's own boot timings (lib/bootTiming),
+  added 08.11.2026 for the «black screen for 5 s on the iPhone» launch: only the device can say
+  where its launch goes. Same contract as the sink: unauthenticated (the login screen is a
+  launch too), throttled per source, bounded fields, log only — nothing is stored or forwarded.
 * ``GET /export`` — the bundle an operator downloads and attaches to a mail or a GitHub
   issue. Any logged-in user, no consent involved: it hands them their own instance's
   sanitised error traces so a Rückmeldung can say more than "es ist abgestürzt". Nothing is
@@ -22,46 +25,35 @@ There used to be a third, ``POST /report``: the Rückmeldung sheet posted the op
 here and the forwarder carried it upstream. It went when the maintainer's ingest did. A
 queued report with no destination is worse than no route at all, because the sheet says
 «gesendet» and nothing ever arrives — so the sheet now opens a mail or an issue form
-directly, and the only thing this module owes it is the export above.
+directly, and the only thing this module owes it is the export above. The forwarder itself
+(consent, install id, outbox, ``/telemetry*`` routes) followed on 09.11.2026: it had no
+destination and no switch in the UI.
 
 The contract for all of it: never 500, never trust the payload. A diagnostics sink that
 becomes a source of errors is worse than no sink.
 """
 
 import logging
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
-from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..auth.capture_limiter import CaptureLimiter
 from ..auth.client_ip import client_ip
-from ..auth.dependencies import CurrentAdmin, CurrentUser
+from ..auth.dependencies import CurrentUser
 from ..config import settings
-from ..database import get_db
-from ..models import TelemetryOutbox
-from ..telemetry import consent as consent_mod
-from ..telemetry import outbox, recent, scrub
-from ..telemetry.envelope import build_event
+from ..telemetry import recent, scrub
 
 logger = logging.getLogger("kpfront.clienterror")
 
 router = APIRouter(prefix="/diag", tags=["diag"])
 
-# Ceiling on background payloads queued per hour, per instance. The client already budgets
-# itself (lib/reportError), but that budget lives in code an attacker controls — this one is
-# ours. A wedged app producing 60 distinct errors an hour is a story we can already tell
-# from the first 60; everything after that is noise we'd pay to store.
-MAX_QUEUED_PER_HOUR = 60
-
-# ⚠️ The sink ITSELF is throttled per source too (24.09.2026). The hourly cap above only ever
-# guarded the upstream queue: the log line and the in-memory buffer were free for anyone to
-# fill, and since this route is open to a link session — i.e. to a URL that leaves the
-# station — «the client caps itself» is not a control. Sized far above what a real client
-# sends: lib/reportError spends at most CLIENT_ERROR_BURST requests at once and one per 30 s
-# after that, so a whole Wache behind one NAT still fits.
+# ⚠️ The sink is throttled per source (24.09.2026): the log line and the in-memory buffer
+# were free for anyone to fill, and since this route is open to a link session — i.e. to a
+# URL that leaves the station — «the client caps itself» is not a control. Sized far above
+# what a real client sends: lib/reportError spends at most CLIENT_ERROR_BURST requests at
+# once and one per 30 s after that, so a whole Wache behind one NAT still fits.
 CLIENT_ERROR_BURST = 60
 CLIENT_ERROR_PER_MINUTE = 20
 client_error_limiter = CaptureLimiter(lambda: (float(CLIENT_ERROR_BURST), CLIENT_ERROR_PER_MINUTE / 60.0))
@@ -115,16 +107,41 @@ class ClientError(BaseModel):
     last: str | None = Field(default=None, max_length=40)
 
 
-async def _queued_last_hour(db: AsyncSession) -> int:
-    since = datetime.now(UTC) - timedelta(hours=1)
-    return int(
-        (
-            await db.execute(
-                select(func.count()).select_from(TelemetryOutbox).where(TelemetryOutbox.created_at >= since)
-            )
-        ).scalar()
-        or 0
-    )
+class BootTiming(BaseModel):
+    """One launch: milliseconds since navigation start per boot milestone (lib/bootTiming)."""
+
+    marks: dict[str, int] = Field(default_factory=dict, max_length=24)
+    # PerformanceNavigationTiming.type: navigate | reload | back_forward | prerender
+    nav: str = Field(default="?", max_length=16)
+    build: str | None = Field(default=None, max_length=120)
+    standalone: bool = False
+
+
+boot_limiter = CaptureLimiter(lambda: (float(CLIENT_ERROR_BURST), CLIENT_ERROR_PER_MINUTE / 60.0))
+logger_boot = logging.getLogger("kpfront.boot")
+
+
+@router.post("/boot", status_code=204)
+async def report_boot(payload: BootTiming, request: Request) -> None:
+    """Log one launch's timings at INFO as ``boot-timing build=… nav=… app=1 ws=… fcp=… ua=…``."""
+    wait = boot_limiter.check(client_ip(request))
+    if wait:
+        raise HTTPException(status_code=429, detail="Zu viele Startberichte", headers={"Retry-After": str(wait)})
+    # names are the client's, so they go through the same flattening as every other field; values
+    # are signed: the worker's own marks are negative when it was already running before the page
+    marks = " ".join(f"{_one_line(name, 16)}={max(-600_000, min(ms, 600_000))}" for name, ms in payload.marks.items())
+    try:  # noqa: SIM105 — same as the sink: a diagnostics route must never raise
+        logger_boot.info(
+            "boot-timing build=%s srv=%s nav=%s app=%d %s ua=%s",
+            _one_line(payload.build, 120) or "?",
+            settings.version,
+            _one_line(payload.nav, 16),
+            payload.standalone,
+            marks,
+            _one_line(request.headers.get("user-agent", "?"), 300),
+        )
+    except Exception:  # noqa: BLE001, S110
+        pass
 
 
 def _hhmm(iso: str | None) -> str:
@@ -164,7 +181,6 @@ def _log_line(payload: ClientError, ua: str) -> str:
 async def report_client_error(
     payload: ClientError,
     request: Request,
-    db: AsyncSession = Depends(get_db),
 ) -> None:
     """Log a client-reported error at WARNING (visible without DEBUG). Never raises a 500.
 
@@ -179,10 +195,8 @@ async def report_client_error(
     except Exception:  # noqa: BLE001, S110 — a diagnostics sink must never raise
         pass
 
-    # Sanitised once, read twice. The local buffer below and the upstream envelope further
-    # down share this object, so there is no path by which one of them carries a field the
-    # other scrubbed away. A repeat report says so in its message: the export is read by a
-    # person, and «×37 seit 20:28» is the whole content of that report.
+    # Sanitised before it is buffered. A repeat report says so in its message: the export is
+    # read by a person, and «×37 seit 20:28» is the whole content of that report.
     message = payload.message
     if payload.repeat:
         message = f"{message} (×{payload.repeat} seit {_hhmm(payload.since)})"
@@ -202,41 +216,15 @@ async def report_client_error(
         path=payload.path,
     )
 
-    # The local buffer, filled BEFORE and REGARDLESS of consent — it is what an operator's
-    # diagnostics export attaches to a mail, and it never leaves this machine on its own.
-    # Consent gates transmission; this is not transmission. See telemetry/recent.py.
+    # The local buffer: what an operator's diagnostics export attaches to a mail. It never
+    # leaves this machine on its own. See telemetry/recent.py.
     recent.record(error=error, release=payload.build or settings.version, device=scrub.device_class(ua))
-
-    # Second hop: only with consent, and only if we haven't already queued enough this hour.
-    try:
-        if await consent_mod.get_consent(db) != consent_mod.CONSENT_ERRORS:
-            return
-        if await _queued_last_hour(db) >= MAX_QUEUED_PER_HOUR:
-            logger.debug("telemetry: hourly queue cap reached, dropping")
-            return
-        install_id = await consent_mod.get_install_id(db, mint=True)
-        event = build_event(
-            channel="error",
-            context=scrub.build_context(
-                install_id=install_id or "unknown",
-                app=APP_NAME,
-                release=payload.build or settings.version,
-                user_agent=ua,
-            ),
-            error=error,
-        )
-        await outbox.enqueue(db, channel="error", payload=event)
-        await db.commit()
-    except Exception:  # noqa: BLE001 — telemetry must never break the sink it hangs off
-        await db.rollback()
-        logger.debug("telemetry: could not queue client error", exc_info=True)
 
 
 @router.get("/export")
 async def export_diagnostics(
     request: Request,
     _user: CurrentUser,
-    db: AsyncSession = Depends(get_db),
 ) -> dict:
     """The diagnostics bundle an operator attaches to a Rückmeldung.
 
@@ -257,9 +245,6 @@ async def export_diagnostics(
         "generatedAt": datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z"),
         "app": APP_NAME,
         "release": settings.version,
-        # Same random per-instance id the reports carry, so a mailed bundle and a report that
-        # arrived some other way can be recognised as the same station without naming it.
-        "install": await consent_mod.get_install_id(db),
         "device": scrub.device_class(request.headers.get("user-agent")),
         "errors": recent.snapshot(),
         # Stated so the absence of a trace is readable as "the process restarted" rather than
@@ -271,72 +256,3 @@ async def export_diagnostics(
             "siehe PRIVACY.md."
         ),
     }
-
-
-# --- Admin surface --------------------------------------------------------------------
-
-
-class ConsentUpdate(BaseModel):
-    consent: str = Field(max_length=16)
-
-
-@router.get("/telemetry")
-async def telemetry_status(_admin: CurrentAdmin, db: AsyncSession = Depends(get_db)) -> dict:
-    """Everything the admin screen needs to answer "what is this instance sending".
-
-    Includes the last few payloads verbatim. The queue is the honest answer to that
-    question and there is no reason to summarise it — a fire station should be able to read
-    the actual JSON without opening psql.
-    """
-    rows = list(
-        (await db.execute(select(TelemetryOutbox).order_by(TelemetryOutbox.created_at.desc()).limit(10)))
-        .scalars()
-        .all()
-    )
-    pending = sum(1 for r in rows if r.sent_at is None)
-    return {
-        "consent": await consent_mod.get_consent(db),
-        # NULL consent is off, but it is not an ANSWER — the UI asks once rather than
-        # letting "nobody looked at it yet" read as a decision.
-        "decided": await consent_mod.is_decided(db),
-        "installId": await consent_mod.get_install_id(db),
-        # False when the DEPLOYER disabled it in env — the UI must then explain that the
-        # switch it is showing cannot do anything, rather than pretend it can.
-        "outboundAllowed": consent_mod.env_allows_outbound(),
-        "ingestConfigured": bool(settings.telemetry_dsn),
-        "pending": pending,
-        "recent": [
-            {
-                "id": str(r.id),
-                "channel": r.channel,
-                "createdAt": r.created_at.isoformat() if r.created_at else None,
-                "sentAt": r.sent_at.isoformat() if r.sent_at else None,
-                "attempts": r.attempts,
-                "lastError": r.last_error,
-                "payload": r.payload_json,
-            }
-            for r in rows
-        ],
-    }
-
-
-@router.put("/telemetry/consent")
-async def update_consent(body: ConsentUpdate, _admin: CurrentAdmin, db: AsyncSession = Depends(get_db)) -> dict:
-    """Turn the background channel on or off. Off also discards whatever is still queued."""
-    try:
-        value = await consent_mod.set_consent(db, body.consent)
-    except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from None
-    discarded = 0
-    if value == consent_mod.CONSENT_OFF:
-        discarded = await outbox.drop_unsent(db, channel="error")
-    await db.commit()
-    return {"consent": value, "discarded": discarded}
-
-
-@router.post("/telemetry/install-id")
-async def rotate_install_id(_admin: CurrentAdmin, db: AsyncSession = Depends(get_db)) -> dict:
-    """Mint a fresh install id, cutting the link to everything sent so far."""
-    new_id = await consent_mod.regenerate_install_id(db)
-    await db.commit()
-    return {"installId": new_id}

@@ -1,7 +1,7 @@
 import { request as apiRequest, type Page } from '@playwright/test'
 import { expect, PIN, test, EINSATZ_RAIL } from './helpers'
 import {
-  Results, blocking, buildingAlreadyRead, calibrate, cdpFor, centre, counters, drain, instrument, isolateFromOutside, median,
+  Results, blocking, buildingAlreadyRead, calibrate, cdpFor, centre, counters, drain, instrument, isAppApi, isolateFromOutside, median,
   painted, recordNetwork, remember, retained, retire, routeTally, seedIncident, signIn, timeTo,
   waitForWorkspace, watchNetwork, CPU_THROTTLE, POLL_MS, type Seeded,
 } from './perf/harness'
@@ -142,8 +142,8 @@ test('cold start: kiosk login → the Einsatz on the Karte', async ({ page, base
   const reqs = j.net.since(from)
   recordNetwork(j.r, '', reqs)
   // opening an Einsatz should not have to write it: every save here is one per device per open
-  // (the building outlines are a read that happens to be a POST)
-  j.r.set('writes', reqs.filter((x) => x.kind === 'api' && x.method !== 'GET' && !/^\/api\/(auth|overpass)\//.test(x.path)).length, 'count')
+  // (the building outlines are a read that happens to be a POST; /api/diag is the launch timing line)
+  j.r.set('writes', reqs.filter((x) => x.kind === 'api' && x.method !== 'GET' && !/^\/api\/(auth|overpass|diag)\//.test(x.path)).length, 'count')
   const held = await retained(j.cdp)
   j.r.set('heap_mb', held.heapMb, 'mb')
   j.r.set('dom_nodes', held.nodes, 'count')
@@ -429,7 +429,7 @@ test('idle: a minute on the Karte with nobody touching it', async ({ page, baseU
   const end = await retained(j.cdp)
   const perMin = 60_000 / IDLE_MS
   // a tablet on the table for hours: every wake-up here is battery and radio
-  j.r.set('api_requests_per_min', reqs.filter((x) => x.kind === 'api').length * perMin, 'count')
+  j.r.set('api_requests_per_min', reqs.filter(isAppApi).length * perMin, 'count')
   j.r.set('saves', reqs.filter(isSave).length, 'count')
   j.r.set('script_ms_per_min', (c1.ScriptDuration - c0.ScriptDuration) * 1000 * perMin, 'ms')
   j.r.set('task_ms_per_min', (c1.TaskDuration - c0.TaskDuration) * 1000 * perMin, 'ms')

@@ -27,6 +27,38 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
         ],
       },
       {
+        id: 'karte-objekte', title: 'Carte & objets – sans intervention', icon: 'pin',
+        blocks: [
+          { kind: 'lead', text: 'Sans intervention ouverte, KP Front arrive ici : la carte du corps avec tous ses objets, pour consulter et préparer. Ce n’est pas une intervention – mesurer, marquer et consulter se fait sur cet appareil seulement, et rien n’en est enregistré.' },
+          { kind: 'sub', text: 'Recherche et objets' },
+          { kind: 'list', items: [
+            'Le champ en haut cherche des **adresses et des objets**. Un résultat ouvre ses informations : dangers, hydrants à proximité et les **plans d’objet**.',
+            'Chaque objet est entouré sur la carte avec ses bâtiments et porte son nom ; le toucher l’ouvre. Toucher un autre bâtiment montre ce que le registre en sait.',
+            'Les plans de l’objet choisi se trouvent dans la barre de gauche et s’ouvrent dans le même lecteur de plans qu’en intervention – en lecture seule. Le bouton en bas à gauche ramène à l’objet.',
+          ], only: 'wide' },
+          { kind: 'list', items: [
+            'La recherche en haut à droite trouve des **adresses et des objets**. Un résultat ouvre ses informations : dangers, hydrants à proximité et les **plans d’objet**.',
+            'Chaque objet est entouré sur la carte avec ses bâtiments et porte son nom ; le toucher l’ouvre. Toucher un autre bâtiment montre ce que le registre en sait.',
+            'Les plans sont des lignes dans les informations de l’objet et s’ouvrent dans le même lecteur de plans qu’en intervention – en lecture seule. «Retour» en bas ramène à la carte.',
+          ], only: 'phone' },
+          { kind: 'list', items: [
+            '**Visite d’objet** et **Signaler** dans les informations lancent la saisie, là où le corps l’a mise en place.',
+          ] },
+          { kind: 'sub', text: 'Outils' },
+          { kind: 'list', items: [
+            '**Poser un point** – un point avec son adresse et ses coordonnées (LV95 + WGS84) à copier. Un appui long sur la carte libre en pose un aussi.',
+            '**Mesurer** – distance ou surface.',
+            '**Matières dangereuses** – saisir le numéro UN : les indications ADR/ERG et les distances en cercles autour du point choisi.',
+            '**Couches** – conduites, hydrants, radar météo et les données de la station ; un réglage propre, indépendant de toute intervention.',
+            '**Checklist** – les checklists et guides d’appareils du corps à lire, avec leur propre recherche.',
+          ] },
+          { kind: 'list', only: 'keyboard', items: [
+            'Au clavier : tous les raccourcis de cette vue sous **Raccourcis clavier** › «Carte & objets».',
+          ] },
+          { kind: 'note', text: 'Quand une intervention est en cours, elle figure dans la barre en haut – en rouge, en orange pour un exercice – et un toucher l’ouvre. Une alarme est affichée, mais jamais ouverte d’elle-même.' },
+        ],
+      },
+      {
         id: 'navigation', title: 'Navigation et interface', icon: 'cursor',
         blocks: [
           { kind: 'lead', text: 'Trois zones fixes : la barre des espaces à gauche, la barre d’intervention en haut, la barre d’outils à droite.', only: 'wide' },
@@ -40,7 +72,6 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
           { kind: 'sub', text: 'Barre de gauche', only: 'wide' },
           { kind: 'list', items: [
             'Change d’espace de travail : **Carte** (Situation), les **Plans** (modules/bâtiments), **Checklist**, **ARI**.',
-            'En mode Situation, **Couches** et le sélecteur de **Carte** sont épinglés en bas – toujours visibles.',
             'Tirer le bord droit de la barre la déplie avec les libellés ou la replie.',
           ], only: 'wide' },
           { kind: 'sub', text: 'Barre d’intervention (haut)' },
@@ -60,33 +91,41 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
           ] },
           { kind: 'sub', text: 'Barre d’outils (droite)', only: 'wide' },
           { kind: 'list', items: [
-            'Les outils de dessin et de placement ; épinglée en bas, la navigation de carte (zoom, ajuster, coordonnées).',
+            'Les outils de dessin et de placement.',
+            'En dessous, dans le coin en bas à droite, la **barre d’affichage** – toujours visible, même quand les outils défilent : sur la carte **Couches** et **Vues** (la boussole), sur le plan **Ajuster** et la flèche du nord ; avec une souris aussi **−** et **+**.',
           ], only: 'wide' },
         ],
       },
       {
         id: 'tastatur', title: 'Raccourcis clavier', icon: 'type', only: 'keyboard',
         blocks: [
-          { kind: 'lead', text: 'Avec un clavier, tout est accessible sans souris. Les raccourcis restent sans effet pendant la saisie dans un champ de texte. Lorsqu’une zone de l’une des deux barres, ou «Journal» et «Entrée» en haut, possède une touche, celle-ci est inscrite dessus.' },
-          { kind: 'sub', text: 'Changer de zone' },
+          { kind: 'lead', text: 'Au clavier, tout est accessible sans souris. Les raccourcis ne font rien pendant la saisie dans un champ, ni derrière une fenêtre ouverte. Quand une case a une touche, sa lettre y est inscrite – dans les deux barres, dans la barre d’affichage en bas à droite et sur «Journal» et «Entrée» en haut (tant que «Afficher les raccourcis clavier» est activé dans les **Réglages**).' },
+          { kind: 'sub', text: 'Changer d’espace' },
           { kind: 'list', items: [
-            'Les chiffres ouvrent le module de plan portant ce numéro – ceux qui existent dépendent des modules du corps : [[1]] module 1, [[2]] ou [[3]] le module « 2/3 », [[4]] module 4 …',
-            '[[K]] Carte · [[C]] Checklist · [[A]] Binômes (A comme Atemschutz) · [[P]] Présence · [[M]] Matériel · [[R]] Rapport – chaque touche est la première lettre du mot ALLEMAND, car c’est à elle que le raccourci est lié.',
-            '[[⌘]] [[[]] / [[⌘]] [[]]] parcourt toutes les zones une à une (y compris Environs et Bâtiment, qui n’ont pas de numéro).',
+            'Les chiffres ouvrent le module de plan portant ce numéro – lesquels existent dépend des modules de ce corps : [[1]] module 1, [[2]] ou [[3]] le module «2/3», [[4]] module 4 …',
+            '[[K]] Carte · [[C]] Checklist · [[A]] Binômes (A comme Atemschutz) · [[P]] Présence · [[M]] Matériel · [[R]] Rapport – chaque fois la première lettre du mot ALLEMAND, car c’est à lui que la touche est liée.',
+            '[[⌘]] [[[]] / [[⌘]] [[]]] parcourt tous les espaces un à un (y compris Environs et Bâtiment, qui n’ont pas de numéro).',
           ] },
-          { kind: 'sub', text: 'Outils (identiques en Situation et en Plan)' },
+          { kind: 'sub', text: 'Outils (identiques en Situation et Plan)' },
           { kind: 'list', items: [
-            '[[V]] Sélection · [[W]] Sélection multiple · [[S]] Symbole · [[L]] Ligne · [[F]] Surface · [[U]] Périmètre · [[N]] Note · [[T]] Binôme · [[D]] Mesurer (carte seulement).',
+            '[[V]] Sélection · [[W]] Sélection multiple · [[S]] Symbole · [[L]] Ligne · [[F]] Surface · [[U]] Périmètre · [[N]] Note · [[T]] Binôme · [[D]] Mesurer.',
           ] },
           { kind: 'sub', text: 'Édition' },
           { kind: 'list', items: [
-            '[[⌘]] [[Z]] Annuler · [[⌘]] [[⇧]] [[Z]] Rétablir · [[⌘]] [[D]] Dupliquer.',
-            '[[Esc]] ferme dans l’ordre : outil → panneau ouvert → sélection. [[⌫]] supprime la sélection.',
+            '[[⌘]] [[Z]] Annuler · [[⌘]] [[⇧]] [[Z]] Rétablir · [[⌘]] [[D]] Dupliquer · [[⌫]] supprime la sélection.',
+            '[[Esc]] revient d’un niveau par pression jusqu’à ce que la carte soit libre : un symbole en cours de pose → relevé de coordonnées → Couches / Vues → l’outil → le panneau de note → la sélection. Dans un champ, [[Esc]] ne fait que quitter le champ ; il ferme l’**Entrée** et garde son texte pour la prochaine fois.',
           ] },
           { kind: 'sub', text: 'Affichage et panneaux' },
           { kind: 'list', items: [
-            '[[+]] / [[−]] Zoom · [[0]] Ajuster · [[G]] Ma position · [[X]] Format des coordonnées. « Vers le nord » n’a pas de touche – c’est le rôle de la boussole, toujours visible et qui tourne avec la carte.',
+            '[[+]] / [[−]] Zoom · [[0]] Ajuster · [[G]] Ma position · [[X]] Format des coordonnées. «Vers le nord» n’a pas de touche – c’est le rôle de la boussole, toujours visible et qui tourne avec la carte.',
             '[[J]] Journal · [[E]] Entrée · [[B]] Couches · [[⌘]] [[,]] Réglages · [[?]] cette aide.',
+            'Sur le **tableau**, [[Pg↑]] / [[Pg↓]] feuillettent ses pages.',
+          ] },
+          { kind: 'sub', text: 'Carte & objets (sans intervention)' },
+          { kind: 'list', items: [
+            'Les mêmes touches là où la même chose existe : [[K]] Carte · [[C]] Checklist · les chiffres les modules de l’objet choisi · [[D]] Mesurer · [[B]] Couches · [[G]] Ma position · [[0]] Ajuster · [[+]] / [[−]] Zoom · [[⌘]] [[,]] Réglages · [[?]] cette aide.',
+            'En plus, ce qui n’existe qu’ici : [[P]] Poser un point (P comme Punkt) · [[U]] Matières dangereuses (U comme numéro UN) · [[/]] ou [[⌘]] [[K]] la recherche.',
+            '[[Esc]] revient pas à pas vers la carte : recherche → Vues → outil → plan ouvert → sélection.',
           ] },
         ],
       },
@@ -96,7 +135,7 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
           { kind: 'lead', text: 'La carte tactique par-dessus le fond de carte réel (zone d’intervention et environs).' },
           { kind: 'list', items: [
             '**Fond de carte** (en haut du panneau des couches) change le fond : Carto, OpenStreetMap ou satellite.',
-            '**Agrandir/Réduire**, **Ajuster** et **Relever les coordonnées** en bas de la barre de droite. Lors du relevé, toucher la carte pour fixer un point (LV95 + WGS84) ; la boussole se réoriente au nord.',
+            '**Vues** – la boussole en bas à droite – propose **Vers le nord**, **Ajuster**, **Ma position**, **Relever les coordonnées** et les vues enregistrées ; avec une souris, **−** et **+** se trouvent à côté. Lors du relevé, toucher la carte pour fixer un point (LV95 + WGS84).',
             '**Vent** affiché en continu (direction + température) pour que la direction de propagation soit immédiatement visible.',
             '**Véhicules** apparaissent en direct par GPS (nom + orientation), votre propre position sous forme de point bleu discret.',
             '**Info bâtiment** en bas à gauche indique les dangers du bâtiment sur le lieu d’intervention (⚠ gaz · PV) et ouvre sa fiche : dangers, **Mesures immédiates** et Remarques en haut, les données des registres en dessous. À la première ouverture de l’intervention sur cet appareil, la fiche s’ouvre d’elle-même pour être lue – la carte reste utilisable. ✕ la ferme ; ensuite, la puce la rouvre. Un autre lieu ou objet avec du contenu l’affiche une nouvelle fois.',
@@ -137,9 +176,48 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
             '**Périmètre de sécurité** – glisser du centre vers le bord fixe le rayon en mètres (remplissage réglable).',
             '**Note** – texte libre directement sur la carte.',
             '**Mesurer** – distance (longueur + profil altimétrique) ou surface (aire + périmètre). Tirer les points pour déplacer, toucher la ligne pour insérer des points intermédiaires, clic droit pour supprimer un point.',
+            '**Transport d’eau** – sous le profil altimétrique d’une distance ou dans une conduite : choisir le Ø du tuyau, le débit, la source (hydrante, étang, pompe) et la pression d’entrée ; le graphique montre la pression le long de la conduite, **Toutes les pompes automatiques** place les pompes. **Mettre sur la carte comme conduite** garde le calcul, **Pompes sur la carte** les dessine comme symboles.',
           ] },
           { kind: 'sub', text: 'Préréglages des symboles' },
           { kind: 'lead', text: 'Chaque symbole n’apporte que les réglages utiles : **Rotation** pour les symboles orientés (flèches, échelles, parois), **Nombre** quand plusieurs comptent, **Étage** ou une **plage d’étages** (p. ex. escalier/ascenseur), **Propagation** pour les sinistres – plus les champs de saisie adaptés (p. ex. nom, substance, statut).' },
+        ],
+      },
+      {
+        id: 'wassertransport', title: 'Transport d’eau', icon: 'drop',
+        blocks: [
+          { kind: 'lead', text: 'Calcule une conduite de transport : quelle pression arrive où, et où les pompes doivent se trouver. Une **aide à la planification** – les sources des chiffres sont derrière le **ⓘ** de l’en-tête (AGV, FKS).' },
+          { kind: 'sub', text: 'Dessiner la conduite' },
+          { kind: 'list', items: [
+            'Dessiner une **Ligne** le long de la route, **de la source jusqu’à l’intervention** – l’eau va du premier au dernier point. Toucher la conduite, ouvrir **Mesure** et toucher **Calculer le transport d’eau**.',
+            'Ou d’abord essayer : **Mesurer › Distance**, puis **Calculer le transport d’eau** sous le profil altimétrique. **Mettre sur la carte comme conduite** reprend la distance avec tout le calcul.',
+            'Mauvais sens ? **⇄** dans l’en-tête l’inverse, le dessin reste. La lettre au début de la conduite (**H**, **W**, **P**) montre où est la source.',
+          ] },
+          { kind: 'sub', text: 'Source, eau, pression d’entrée' },
+          { kind: 'list', items: [
+            '**Ø du tuyau** (dans une conduite, sa ligne **Tuyau**) – 55, 75, 2× 75 ou 110 mm ; la perte de charge vient de la table AGV.',
+            '**Eau** – le débit qui doit arriver au bout (l/min). Choisir une proposition ou saisir une autre quantité.',
+            '**Source** – hydrante, étang ou pompe. La **pression d’entrée** est celle avec laquelle la conduite y commence : la pression statique à l’hydrante, la pression de sortie d’une pompe. Un étang n’en a pas – la première pompe se trouve à la source.',
+          ] },
+          { kind: 'sub', text: 'Lire le diagramme' },
+          { kind: 'list', items: [
+            'La ligne noire est la **pression** le long de la conduite, le **terrain** en dessous. Les bandes : vert **bon** au-dessus de 3 bar, jaune **juste** 2–3 bar, rouge **trop peu** sous 2 bar.',
+            'Les points **P1**, **P2** … sont les pompes – placées automatiquement là où la pression tombe à 2 bar (FKS : une pompe a besoin d’au moins 2 bar de pression d’entrée). Sur la carte, elles portent les mêmes noms.',
+            'Survoler le diagramme ou le toucher montre la pression à cet endroit – la carte marque le point.',
+            'En dessous, **montée/descente** et **pression à l’arrivée**. **Tuyaux** indique la réserve à part, p. ex. « 34 + 3 de réserve × 20 m ».',
+          ] },
+          { kind: 'sub', text: 'Déplacer les pompes' },
+          { kind: 'list', items: [
+            'Toucher une pompe montre où elle se trouve, sa **pression d’entrée** et sa **pression de sortie** (réglable avec **−**/**+**).',
+            '**Glisser** une pompe – latéralement dans le diagramme ou le long de la conduite sur la carte – la fixe à cet endroit (« à la main ») ; les pompes suivantes sont recalculées. **Toutes les pompes automatiques** remet tout à zéro.',
+            '**Sur la carte** dessine les pompes comme motopompes sur la carte et sur le croquis imprimé. Toucher une pompe sur la carte ouvre la conduite avec la **Mesure** ouverte.',
+          ] },
+          { kind: 'sub', text: 'Avertissements' },
+          { kind: 'list', items: [
+            '**Pompe 1 : pression d’entrée sous 2 bar** – une pompe placée à la main est trop loin ; la rapprocher de la source ou toucher **Toutes les pompes automatiques**. **Pas de pression** : plus aucune eau n’y arrive.',
+            '**Plus que d’habitude** – beaucoup de pompes ; à côté, combien il en faudrait avec un autre Ø de tuyau.',
+            '**Calculé sans profil altimétrique** (hors ligne, hors de Suisse) et **hors de la table AGV** – les chiffres sont estimés.',
+            'Un avertissement de pompe est noté une fois dans le **journal** quand il apparaît, et figure ainsi au rapport.',
+          ] },
         ],
       },
       {
@@ -293,7 +371,7 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
             'L’**extrait du croquis** se trouve à côté du formulaire : déplacer, zoomer, **portrait/paysage** et l’**état du croquis** – quel moment l’image montre, avec des repères là où quelque chose s’est produit. Ce qui s’imprime est exactement ce qui est à l’écran ; il n’y a pas d’étape de confirmation.',
             '**Rapport d’intervention (PDF)** produit le rapport fini – rendu côté serveur, un seul bouton. Le **▾** à côté ouvre **« Sections »** : ce qui part sur le papier (croquis, plans, protection respiratoire, présences, matériel, journal, photos, preuve de vérification détaillée). Le menu reste ouvert pendant que l’on coche.',
             'Là où un corps exploite une **imprimante de caserne** : **Imprimer** met le rapport dans sa file d’attente. Mis en file n’est pas imprimé – tant qu’un travail reste en suspens, il figure comme **impression en attente** sous l’en-tête du rapport, avec **Vérifier** et **Annuler**. Le rapport ne compte comme établi que lorsque l’imprimante annonce «imprimé».',
-            'Si le corps a déposé ses propres formulaires (Administration › Rapport), **Formulaires et liens** apparaît sous les photos – une liste à cocher. **Ouvrir** appelle le formulaire avec le mot-clé, le lieu, la date et le chef d’intervention déjà remplis, dans la mesure où le lien le prévoit. La coche se met à la main : l’application ne voit pas si un formulaire a été envoyé.',
+            'Si le corps a déposé ses propres formulaires (Administration › Rapport), **Formulaires et liens** apparaît à la fin, sous le cadrage du croquis – une liste à cocher. **Ouvrir** appelle le formulaire avec le mot-clé, le lieu, la date et le chef d’intervention déjà remplis, dans la mesure où le lien le prévoit. La coche se met à la main : l’application ne voit pas si un formulaire a été envoyé.',
             'Si quelque chose cloche dans l’enregistrement – une chaîne de vérification rompue, une note vocale sans transcription, une photo encore en file d’attente –, une **pastille d’avertissement orange** apparaît à côté des boutons. Elle compte les points et les ouvre ; si tout est en ordre, elle n’apparaît pas.',
             'La personne de contact et le retour à la centrale portent un **Sans objet** en fin de ligne – pour la fausse alarme ou la nappe d’huile où ni l’un ni l’autre n’existe. C’est une réponse, pas un contournement : elle est consignée et figure ainsi au rapport.',
             '**Clore l’intervention** clôt l’intervention et fixe l’heure de fin. Les photos et notes vocales non encore envoyées partent d’abord ; si c’est impossible (hors ligne), elles sont **conservées** et partiront à la prochaine ouverture — la confirmation dit combien.',

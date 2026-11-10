@@ -1,8 +1,8 @@
 # Karte & Objekte
 
-Status: 🟡 in progress (from 2026-10-16). The station reads and the `/karte` viewer are built; the
-home switch (Karte & Objekte as the start when no Einsatz is open), the menu sheet, the
-Einsatz-menu entry back to the viewer and deliberate offline downloads follow in their own changes.
+Status: 🟢 shipped (from 2026-10-16). Karte & Objekte is the start when no Einsatz is open, with
+its menu sheet and the Einsatz-menu entry back to the viewer. Not built: deliberate offline
+downloads of chosen objects or areas ([Offline](#offline)).
 
 «Karte & Objekte» is the station's reference viewer **outside an Einsatz**: a member looks at the
 station area, an object's plans and notes, the register facts of any building, and starts an
@@ -192,7 +192,8 @@ tap does to the others) and the markup; each concern is a hook beside it — `us
 object colours, the aligned plan, Ebenen's rows), `useKarteOffline`, `useKarteOutlines`,
 `useKarteTools`, `useKarteSession` (the address, the kept view), `useKarteMenu`, `useKarteSearch`,
 `useKarteCamera` (framing, the way back, the compass), `useKartePlace` (register, addresses,
-visits, hydrants), `useKartePointer` (hover and hold), `useKarteOverlays`, `useKarteTags`. The pure
+visits, hydrants), `useKartePointer` (hover and hold), `useKarteOverlays`, `useKarteTags`,
+`useKarteKeys` (the keyboard, below). The pure
 rules are `lib/karte/*` — `selection` (what a point hits), `overlays` (what the map draws),
 `camera`, `places`, `labels` and the rest.
 
@@ -213,6 +214,19 @@ What it reuses, so nothing forks:
 
 The rules that are easy to break:
 
+- **The keyboard is the Einsatz's where the two have the same thing** (owner, 07.11.2026:
+  «the keyboard shortcuts … also in the peacetime mode»). `lib/karte/hotkeys · resolveKarteHotkey`
+  decodes on top of `lib/hotkeys · resolveHotkey`, so K Karte · C Checkliste · 1–9 the selected
+  object's module · D Messen · B Ebenen · G Mein Standort · 0 Einpassen · + − zoom (the map, or the
+  open plan through the reader's `fitRef` / `keysRef`) · ⌘ , Einstellungen · ? Hilfe mean the same
+  in both. Only what the Einsatz has no surface for is the viewer's own: **P** Punkt setzen, **U**
+  Gefahrgut (UN number), **/** and **⌘ K** the search; every other Einsatz key decodes to nothing
+  here and is never claimed. Escape peels one layer back towards the plain map: search → compass
+  menu → armed tool → open plan → selection. The letters stand on the tiles from the same tables
+  (`KARTE_TOOL_KEY` through ToolRail's `toolKey`, `SURFACE_KEY` on Karte · Checkliste,
+  `PANEL_KEY` on Ebenen). ⚠️ Nothing reaches the viewer while one of App's sheets is over it
+  (`keysOff`: Einstellungen, Hilfe, Rückmeldung, the demo welcome …), nor with its own menu or
+  «Auf diesem Gerät» open, nor from inside a dialog or a field.
 - **Own state, never an Einsatz's.** No workspace, no saved drawing, no plan binding, no journal
   row. Measurements, the Gefahrgut rings and a dropped pin are component state; only the Ebenen and
   the view (`KarteView`: frame, selected object, open plan or the Checkliste, in sessionStorage) are kept —
@@ -265,7 +279,7 @@ The rules that are easy to break:
   Kaibmattweg 1-5, Stallenrain 1 (EH)» ran off both screen edges); the placement pass measures the
   folded size on its off-screen twin. A folded tag's box is as wide as its longest line, not the
   280 px (Karte Haus round 3: «boxes fitted to the width»): CSS cannot shrink a wrapped box, so
-  the twin's lines are measured and the tag gets that width inline (`e2e/karte-tag-fit.mjs`). Round 1 hung the tag under its building's south edge,
+  the twin's lines are measured and the tag gets that width inline (`e2e/karte-tag-fit.spec.ts`). Round 1 hung the tag under its building's south edge,
   round 2 moved it inside its own building when that spot was another object's — both put the
   name somewhere the point is not, and that read as a moved marker.
 - **A tag is the name, never a plan count** (owner, round 3: «we just care that there are
@@ -404,7 +418,7 @@ The rules that are easy to break:
   Ansicht nur mit Netz» when a tile could not be had offline, «Schärfere Ansicht konnte nicht
   geladen werden» online. Once the view is sharp and the device online, the reader fetches the
   tiles a 2× zoom of the SAME area would ask for (at most 48, low priority, each once — never a
-  whole plan), so a quick zoom is sharp sooner; the service worker keeps them (`plan-tiles`). The
+  whole plan), so a quick zoom is sharp sooner; the service worker keeps them (its tile store). The
   Einsatz's Plan surface provides no context: no chip, no fetching ahead there.
 - **The finger's hold answers what a mouse answers on hover** (owner, review round 7, 20.10.2026:
   «also on mobile highlight the building outlines on hold so we know what we're pressing before we
@@ -488,8 +502,8 @@ The rules that are easy to break:
   Gebäude card (`BuildingCard`) wears the SAME disclosure since review round 7 — it was a `title=`
   tooltip, which a finger never sees (owner, 20.10.2026): the button, what it opens and the aria
   contract are `components/BuildingFacts` · `RegisterHintButton` / `RegisterHintBody`, each
-  surface in its own rhythm – but there it stands OPEN each time the card opens (sweep 30.10.2026
-  #6, building-card.md); this peacetime panel keeps it folded. Its tags and the station's notes are
+  surface in its own rhythm – folded on both since 09.11.2026 (the card stood OPEN from sweep
+  30.10.2026 #6 until Manuel's demo, building-card.md). Its tags and the station's notes are
   the panel's own pieces there too (`RegisterTags`, `StationNotes` – Karte Haus round 3), so the
   two cannot drift apart.
 - **Missing is said – what was ASKED for and not answered.** A register that could not be asked,
@@ -812,9 +826,12 @@ device Anleitungen to read in peace time — the Einsatz tab's word and glyph
   hairline as before. It is the Einsatz's NavRail in behaviour (owner, review round 5: «we can't
   expand the left toolbar so people might not know what it actually is»): the «Ausklappen» chevron
   on top and the grip widen it to 216px with the words beside the glyphs, open per mount like the
-  Einsatz's. It always keeps the chevron and grip, including when «Beschriftung» is enabled in
-  Einstellungen (restored 2026-10-20): the toolbar preference must not replace this collapsible
-  navigation with words under the glyphs. It publishes `--rail-w` through
+  Einsatz's. «Beschriftung» (Einstellungen) puts the word under each glyph, as on every other bar
+  of the viewer and the Einsatz (owner, 07.11.2026 – the view bar's words beside unlabelled
+  rails read as a fault) – and ⚠️ unlike the Einsatz's NavRail the chevron and grip STAY with the
+  words on (`.rail-keeps-exp`; losing them was the regression fixed on 20.10.2026), so `labels` is
+  not handed to `useRail`, which collapses a labelled rail. The right `ToolRail`, its view bar,
+  the plan reader's rail and the phone bar read the same preference. It publishes `--rail-w` through
   `lib/useRail`, which the object panel, the plan reader, the floor list and this surface sit beside. On the Checkliste the right `ToolRail` is gone (as on a plan) and the bar's
   field searches the library; the map's own search words are kept for the way back.
 - **Remembered** like the plan: `KarteView.surface = 'checkliste'` (`lib/karte/session`), back
@@ -1004,9 +1021,9 @@ and `KarteDevice.tsx` probe). No «ganze Station herunterladen»: that would be 
 | object catalogue | IndexedDB `kp-front-station-objects` (one entry) | every online open of `/karte` |
 | register facts of a building | IndexedDB `kp-front-station-building:<where>`, the last 300 kept (index `kp-front-station-building-index`) | every building / object looked at online |
 | plan PDF | the service worker's `reference-plans` cache, per revision URL | opening an untiled plan once online |
-| plan tiles | `plan-tile-manifests` (the manifest) + `plan-tiles` (every tile), per revision | opening a tiled plan once online (the reader fetches the whole pyramid, `lib/planTilePrefetch`) |
+| plan tiles | the service worker's tile store, IndexedDB `kp-tiles` (kinds `manifest` + `plan`), per revision | opening a tiled plan once online (the reader fetches the whole pyramid, `lib/planTilePrefetch`) |
 | Gebäude storeys, aligned plan | the plan's pages (PDF or tiles) + the revision's alignment metadata (IndexedDB, `lib/api/reference`) | opening Gebäude / the aligned plan once online |
-| base map | the service worker's `map-tiles` cache | looking at the area, or an Einsatz's Offline-Vorbereitung |
+| base map | the service worker's tile store, IndexedDB `kp-tiles` (kind `map`) | looking at the area, or an Einsatz's Offline-Vorbereitung |
 | Unterirdische Bauten | IndexedDB `kp-front-station-underground` (one entry, ~250 KB for FWO) | opening the Karte or an Einsatz once online with the row on (the default) |
 | the houses a building tap selects | IndexedDB `kp-front-station-houses` (one entry, ~1.5 MB for FWO) | opening the Karte once online |
 | Gefahrgut (UN/ADR) | bundled with the app | — |
@@ -1035,8 +1052,8 @@ What the surface shows offline:
   page — the whole sheet opens, a deeper zoom says «Schärfere Ansicht nur mit Netz»; ○ neither.
   ⚠️ A TILED plan opened online fetches its tiles and never its PDF (review round 3: the Karte said
   «PDF nicht gespeichert» offline for a plan its tiles open perfectly), so the PDF alone is never
-  the rule, and no PDF is downloaded to make a lamp green. The probe reads the manifest from
-  `plan-tile-manifests` and the tile cache's keys ONCE (`openPlanTilesProbe`), never one lookup per
+  the rule, and no PDF is downloaded to make a lamp green. The probe reads the stored manifest and
+  the stored plan tiles' keys ONCE (`openPlanTilesProbe`, lib/tileStore), never one lookup per
   tile; `tilesHeld` decides.
 - **The plan tiles** carry ●/◐/○ after the words; a plan the device does not hold is dimmed
   (its label says «Nicht auf diesem Gerät gespeichert»), but stays tappable – the surface then says
@@ -1053,12 +1070,12 @@ What the surface shows offline:
   (`NoBasemapMeldung`, here with its action «Verfügbarkeit»), once per visit, withdrawn when the
   link is back.
 - **A base map in two looks is a stale cache, not two maps** (the «seam», review 17.10.2026). The
-  `map-tiles` cache is cache-first for 30 days under the tile's URL; when a provider re-renders
+  stored base map is cache-first for 30 days under the tile's URL; when a provider re-renders
   under the same URL (CARTO's GL-rendered Dark Matter, autumn 2026: buildings now LIGHTER than the
   ground, blue-grey roads), a device shows old tiles where it holds them and new ones elsewhere,
   with a sharp edge at the tile border. `lib/tilePurge` names each such change and deletes its
   tiles once per device, on the first boot ONLINE (offline the old look beats no map); a miss is
-  fetched past the HTTP cache (`fetchOptions: { cache: 'no-cache' }`, vite.config) so CARTO's
+  fetched past the HTTP cache (`cache: 'no-cache'`, public/sw-tile-store.js) so CARTO's
   `immutable` answer cannot bring the old tile straight back. A provider changes its look again →
   add a purge entry.
 - **A sharp base map on a retina screen** (owner, review round 4: «check why the map is so

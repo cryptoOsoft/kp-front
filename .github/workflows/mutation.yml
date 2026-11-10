@@ -1,0 +1,56 @@
+name: Mutation testing (weekly)
+
+# Runs Stryker over the eleven critical `src/lib` modules (stryker.config.json,
+# docs/testing/ci.md · «Mutation testing») and writes the per-module table to the job summary.
+# Until 09.11.2026 this ran only when someone remembered `pnpm test:mutation`, and the weakest
+# module is the one that breaks silently (mergeWorkspace).
+#
+# Never gates a merge: it is not a required check and runs on no pull request. A run below the
+# floor (`thresholds.break`) is red here, and that is the signal – read the table, add the missing
+# assertions; never lower the floor to turn it green.
+
+on:
+  schedule:
+    - cron: "23 3 * * 1" # Mondays, 03:23 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mutation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  stryker:
+    name: Mutation testing (Stryker)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6; pnpm from packageManager
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # A runner has no incremental file, so every run is cold; --force says so.
+      - name: Mutation testing (stryker run)
+        run: pnpm test:mutation --force
+
+      - name: Per-module table
+        if: always()
+        run: |
+          [ -f reports/mutation/mutation.json ] || { echo "no mutation report – the run broke before it wrote one" >> "$GITHUB_STEP_SUMMARY"; exit 0; }
+          node .github/scripts/mutation-summary.mjs >> "$GITHUB_STEP_SUMMARY"
+
+      # the HTML report names every survivor with its source line
+      - name: Upload the report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: mutation-report
+          path: reports/mutation/
+          retention-days: 30
+          if-no-files-found: ignore

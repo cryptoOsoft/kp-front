@@ -545,7 +545,7 @@ function PlanLoupe({ aim, boardRef, corner = false }: {
 /**
  * The Passung's dock — the frame around `GeorefQuality` (Whiteboard).
  * On a tablet a card one row above the chip that opened it; on a PHONE a slide-up bottom sheet
- * (29.09.2026, owner — AGENTS · «What a surface IS on a phone»): flush with the bottom edge and
+ * (29.09.2026, owner – docs/ui-conventions.md · «What a surface IS on a phone»): flush with the bottom edge and
  * both sides, over the two bars, the grab bar on top, pushed down to close (`useSwipeDismiss`,
  * the head is the handle). It stays NON-modal (no scrim, no trap), the dock's own rule: the plan
  * above is live, so a tap on a symbol is a tap on that symbol.

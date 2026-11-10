@@ -18,7 +18,7 @@ describe('prefetchPlanTiles', () => {
     vi.resetModules()
     fetched = []; store = new Set(); complete = true
     vi.stubGlobal('navigator', { onLine: true, serviceWorker: { controller: {} } })
-    vi.stubGlobal('caches', { match: async (u: string) => (store.has(u) ? {} : undefined) })
+    vi.doMock('./tileStore', () => ({ hasTile: async (u: string) => store.has(u) }))
     vi.stubGlobal('fetch', async (u: string) => {
       if (u.endsWith('/tiles?v=3')) return { ok: true, status: 200, json: async () => manifest(complete) }
       fetched.push(u); store.add(u)

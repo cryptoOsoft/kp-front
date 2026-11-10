@@ -1273,8 +1273,8 @@ span.wb-ghost-label { cursor: default; }
      table could clear it and a pill (z90) landed on that row. It is therefore listed among the
      variable-height bottom owners that push transient feedback to the top lane instead
      (15-mobile.css). Keep the two in step if this dock ever moves. */
-  /* ⚠️ …and since 29.09.2026 it is a slide-up BOTTOM SHEET here (owner; AGENTS · «What a surface
-     IS on a phone»): flush with the bottom edge and both sides, over the two bars (GeorefDock
+  /* ⚠️ …and since 29.09.2026 it is a slide-up BOTTOM SHEET here (owner; docs/ui-conventions.md · «What a
+     surface IS on a phone»): flush with the bottom edge and both sides, over the two bars (GeorefDock
      portals it into `.app` for that — `.whiteboard` is its own stacking context), the grab bar on
      top, pushed down to close. It was a card floating above the bars, 10px in from each side. It
      hugs its content up to the sheet cap and pays the bottom inset itself. */

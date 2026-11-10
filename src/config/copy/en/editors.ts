@@ -208,6 +208,7 @@ export const editorsCopy: Localizable<Pick<Copy, Keys>> = {
     kindWandStoreys: 'This line runs over several storeys – a wall stays on one.',
     distance: 'Length',
     measurement: 'Measurement',
+    hoseSplit: '{n} + {r} spare × {m} m',
     showOnMap: 'On map',
     inputMode: 'Input',
     modeFreehand: 'Freehand',

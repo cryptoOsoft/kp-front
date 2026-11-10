@@ -241,6 +241,11 @@ describe('marker glyphs', () => {
     expect(markerSpacing(undefined)).toBe(MARKER_SPACING_PX)
   })
 
+  // «WT» at the one-letter rhythm read as a dotted band (09.11.2026)
+  it('gives a longer letter marker room in proportion to its length', () => {
+    expect(markerSpacing('WT')).toBe(2 * MARKER_SPACING_PX)
+  })
+
   // they touch rather than sit apart — a row of separate dots is not a covered band
   it('spaces the Abwurfzone rings no further apart than they are wide', () => {
     const g = markerGlyph('◯')!

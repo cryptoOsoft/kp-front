@@ -8,7 +8,7 @@ import { appConfig } from '../config/appConfig'
 import { fillTemplate } from '../lib/format'
 import { HATCH_CHIP_VB, HatchDefs, LineStylePicker, hatchPatternId } from '../lib/draw'
 import { DEFAULT_INK, markerGlyph } from '../lib/lineStyle'
-import { fmtDistance, fmtArea, hoseCount } from '../lib/geo'
+import { fmtDistance, fmtArea, hoseSplit } from '../lib/geo'
 import { CONTENT_LABELS } from '../lib/lineDecor'
 import { floorBadge } from '../lib/symbolRender'
 import { cx } from '../lib/cx'
@@ -23,7 +23,7 @@ import { Menu } from '../lib/overlays'
 import { OnOff, Segmented } from './Segmented'
 import { AddRelayButton, WaterRelay } from './WaterRelay'
 import { HOSE_SIZES, HOSES, hoseDefaults, lineHose, relayAddPatch } from '../lib/hydraulics'
-import { usePublishRelay, useRelay, type RelayValue } from '../lib/useRelay'
+import { useLineMeasureAsk, usePublishRelay, useRelay, type RelayValue } from '../lib/useRelay'
 import type { HoseSize, LineAttachment, LineContent, LineEndpoint, LngLat, LineRoutingMode, RelaySettings } from '../types'
 
 // small glyph for the line-ending picker: plain · arrow · arrow with Entwicklungsgrenze · FKS
@@ -205,6 +205,14 @@ interface Props {
 
 const FILL_OPACITIES = appConfig.drawing.fillOpacities
 
+/** The Messung's «Schläuche» value: «34 + 3 Reserve × 20 m», or «1 × 20 m» when the reserve
+ *  rounds into the run's own last hose (lib/geo · hoseSplit). */
+function hosesText(lengthM: number, lines: number): string {
+  const { need, reserve } = hoseSplit(lengthM, lines)
+  const m = appConfig.drawing.hoseLengthM
+  return reserve ? fillTemplate(appConfig.copy.drawingEditor.hoseSplit, { n: need, r: reserve, m }) : `${need} × ${m} m`
+}
+
 export function DrawEditor({ drawing, pointCount, readOnly = false, areaM2, boxM, perimeterM, supportsDistance = false, lengthM, profileCoords, onColor, onDashed, onLabel, onLabelCommit, onMarker, onArrow, onEnding, onReverse, onContent, onHose, waterRelay, onLineNo, onFloorTag, onAbschnittLeiter, onAbschnittAuftrag, people = [], abschnittCount = 0, onTrupp, trupps = [], truppOnLine, truppOnLineOut = false, onShowTrupp, onWand, wandBlocked, usedLineNos = [], onShowDistance, onRadius, onHatch, onToggleLock, locked, onDelete, onClose, attachmentLabels, onRouting, onDetach, onFocusAttachment, attachmentHidden, onRevealAttachment, gpsInfo, onRevertGps, onDetachHere }: Props) {
   // The Auftrag input is uncontrolled (see its comment), so the unmount commit reads the DOM
   // node — kept, never nulled, because React detaches element refs before passive cleanups run.
@@ -241,7 +249,12 @@ export function DrawEditor({ drawing, pointCount, readOnly = false, areaM2, boxM
   // Opening it shows everything at once, Höhenprofil included: the length is free (it comes from
   // the geometry), the profile costs a swisstopo request – so it only fetches once the group is
   // opened, which also keeps a plain tap on a line offline-silent. No second toggle inside.
-  const [measureOpen, setMeasureOpen] = useState(false)
+  // …save when the line was opened from one of its pumps on the map: then the tap was about the
+  // Wassertransport, and the group opens with it (lib/useRelay · askLineMeasure) – folding it by
+  // hand answers the ask.
+  const measureAsk = useLineMeasureAsk(waterRelay?.lineId)
+  const [measureOwn, setMeasureOwn] = useState(false)
+  const measureOpen = measureOwn || measureAsk.asked
   const hasProfileCoords = isLine && !!profileCoords && profileCoords.length >= 2
   const { profile, loading: profileLoading } = useLineProfile(profileCoords ?? [], hasProfileCoords && measureOpen)
   // Wassertransport of this Leitung (components/WaterRelay): computed from the same profile and
@@ -727,7 +740,7 @@ export function DrawEditor({ drawing, pointCount, readOnly = false, areaM2, boxM
             all; the old An/Aus toggle lives on here as «Auf Karte», which is what it always did. */}
         {(isLine ? lengthM != null || supportsDistance : areaM2 != null) && (
           <div className="de-group" ref={measureRef}>
-            <button type="button" className={`de-prof-toggle de-group-toggle${measureOpen ? ' on' : ''}`} aria-expanded={measureOpen} onClick={() => setMeasureOpen((o) => !o)}>
+            <button type="button" className={`de-prof-toggle de-group-toggle${measureOpen ? ' on' : ''}`} aria-expanded={measureOpen} onClick={() => { setMeasureOwn(!measureOpen); measureAsk.settle() }}>
               <span className="de-conn-title">{appConfig.copy.drawingEditor.measurement}</span><Icon id="chevron-down" className="chev" />
             </button>
             {measureOpen && isLine && lengthM != null && (
@@ -737,9 +750,10 @@ export function DrawEditor({ drawing, pointCount, readOnly = false, areaM2, boxM
                 </div>
                 {/* the hose length rides in the VALUE («45 × 20 m»): as «Schläuche à 20 m» the
                     label was the one in the sheet that broke onto two lines on a phone, «20» above
-                    «m» (owner 05.11.2026: the Messung's labels looked different from the rows above) */}
+                    «m» (owner 05.11.2026: the Messung's labels looked different from the rows above).
+                    The reserve is named apart («34 + 3 Reserve × 20 m», Manuel 09.11.2026) */}
                 <div className="de-row"><span>{appConfig.copy.measure.hoses}</span>
-                  <b className="de-measure-v">{hoseCount(lengthM, HOSES[lineHose(drawing)].lines)} × {appConfig.drawing.hoseLengthM} m</b>
+                  <b className="de-measure-v">{hosesText(lengthM, HOSES[lineHose(drawing)].lines)}</b>
                 </div>
               </>
             )}
@@ -778,7 +792,7 @@ export function DrawEditor({ drawing, pointCount, readOnly = false, areaM2, boxM
             )}
             {/* a Leitung's Wassertransport chart carries the terrain itself – it stands in for the
                 Höhenprofil, in ONE column: inputs, chart and tapped pump, result and «Pumpen auf
-                Karte» (mockups/wt-nov04-m4b.html, round 3 mock F-A, 04.11.2026; the switch 05.11.) */}
+                Karte» (mock M4b, round 3 mock F-A, 04.11.2026; the switch 05.11.) */}
             {measureOpen && relayShown && (
               <WaterRelay ctrl={relayCtrl} onClose={() => setRelayAdded(false)} mapPumps />
             )}

@@ -14,14 +14,12 @@ import type { MiniKarteProps } from '../components/MiniKarte'
 import { formForPdf, pageStamp, type FormAnno } from './boardForm'
 import { pendenzenForPdf } from './pendenzenPage'
 import { isOnline } from './connectivity'
-import { downloadBlob } from './download'
+import { ApiError } from './api'
+import { downloadPdf } from './download'
 import { buildKrokiPayload } from './krokiPayload'
-import { linkSessionHeaders } from './linkMode'
 import { formatDateTime } from './report'
 import type { LiveSection } from './boardTemplate'
 import type { TimelineEvent } from '../types'
-
-const BASE = import.meta.env.VITE_KP_RUECK_URL ?? ''
 
 /** No server to draw the paper: the device is offline (or the request never got an answer). */
 export class TafelPrintOffline extends Error {}
@@ -71,19 +69,11 @@ export async function printTafelPages(
   if (!isOnline()) throw new TafelPrintOffline()
   const form = new FormData()
   form.append('payload', JSON.stringify(tafelPrintPayload(pages, incident, scene, new Date(), titles, timeline)))
-  let res: Response
   try {
-    res = await fetch(`${BASE}/api/incidents/${encodeURIComponent(incident.id)}/tafel/pdf`, {
-      method: 'POST',
-      credentials: 'include',
-      // a bare `fetch` (the answer is a blob): the session-mode header rides by hand (api · rawFetch)
-      headers: linkSessionHeaders(),
-      body: form,
-    })
-  } catch {
+    await downloadPdf(`/api/incidents/${encodeURIComponent(incident.id)}/tafel/pdf`, form, filenameOf(incident.title))
+  } catch (e) {
     // no answer at all — a dead connection the browser had not noticed yet
-    throw new TafelPrintOffline()
+    if (e instanceof ApiError && e.status === 0) throw new TafelPrintOffline()
+    throw e
   }
-  if (!res.ok) throw new Error(`Tafel-PDF fehlgeschlagen (${res.status})`)
-  downloadBlob(await res.blob(), filenameOf(incident.title))
 }

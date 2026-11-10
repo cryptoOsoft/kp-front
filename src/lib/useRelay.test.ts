@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from 'vitest'
 import { act, renderHook } from '@testing-library/react'
-import { dismissRelayBubble, parseFlow, usePublishRelay, useRelay, useRelayOverlay, type RelayValue } from './useRelay'
+import { dismissRelayBubble, parseFlow, pumpLabel, usePublishRelay, useRelay, useRelayOverlay, type RelayValue } from './useRelay'
 import { RELAY } from './hydraulics'
 import type { LngLat } from '../types'
 
@@ -91,6 +91,14 @@ describe('useRelay — what an edit writes', () => {
 })
 
 // the Wasser picker: a preset or a typed amount, read as l/min within the engine's range
+// the map's Motorspritzen all read «MS 2» (Manuel 09.11.2026): each wears the chart's name for it
+describe('pumpLabel', () => {
+  it('names a pump as the chart does – P1, P2 …, the bare number once there are many', () => {
+    expect([0, 1].map((i) => pumpLabel(i, 2))).toEqual(['P1', 'P2'])
+    expect(pumpLabel(0, RELAY.manyPumps + 1)).toBe('1')
+  })
+})
+
 describe('parseFlow', () => {
   it('reads a preset, a bare number and a Swiss thousands mark', () => {
     expect(parseFlow('800 l/min')).toBe(800)

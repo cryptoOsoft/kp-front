@@ -5,12 +5,13 @@
 // backwards: a map tile is re-downloadable from the internet in a second, the Lagekarte is not
 // reproducible at all. So when a workspace write is refused we evict tiles and try again.
 //
-// The `map-tiles` cache is the right victim. It is the largest consumer by far (up to 4000
-// entries per the Workbox runtimeCaching rule, plus whatever «Alles für offline laden» pushed in),
-// and it is the only cache holding purely derivative data — plan PDFs, reference geodata and
-// incident media are all station or incident records.
+// The base-map tiles are the right victim (lib/tileStore, kind `map`). They are the largest
+// consumer by far (up to 4000 entries, plus whatever «Alles für offline laden» pushed in), and
+// the only store holding purely derivative data — plan PDFs, reference geodata and incident
+// media are all station or incident records.
 
-const TILE_CACHE = 'map-tiles'
+import { deleteTiles, LEGACY_TILE_CACHES, tileUrls } from './tileStore'
+
 /** How many tiles to drop per attempt. Big enough that one pass frees real space (≈ 15 MB at
  *  30 KB/tile, ≈ 45 MB of a retina screen's 2× tiles), small enough that an operator who prefetched an area doesn't lose all of it. */
 export const EVICT_BATCH = 500
@@ -22,33 +23,28 @@ export const EVICT_MIN_GAP_MS = 30_000
 let lastEvictAt = -Infinity
 
 /**
- * Delete up to `batch` of the OLDEST entries from the tile cache. Returns how many were removed
- * (0 when there is no cache, nothing in it, Cache Storage is unavailable, or an eviction ran
- * less than EVICT_MIN_GAP_MS ago).
- *
- * Ordering caveat, deliberately accepted: the Cache Storage API exposes no timestamps, so we lean
- * on `cache.keys()` resolving in insertion order — which the spec does require, since the request
- * list is append-ordered. That makes the first N keys the least recently ADDED (not the least
- * recently used, which we cannot know). Good enough: it evicts an older area rather than the one
- * just downloaded. We deliberately do NOT read Workbox's expiration metadata to do better — that
- * is a private implementation detail of the plugin and would break silently on upgrade.
+ * Delete up to `batch` of the OLDEST stored map tiles. Returns how many were removed (0 when
+ * nothing is stored, the store is unavailable, or an eviction ran less than EVICT_MIN_GAP_MS ago).
+ * Oldest = least recently STORED (the worker's `at`), so an older area goes before the one just
+ * downloaded. A legacy `map-tiles` cache not moved over yet (lib/tileStore) is older than all of
+ * them and goes whole.
  */
 export async function evictOldTiles(batch = EVICT_BATCH): Promise<number> {
   const now = Date.now()
   if (now - lastEvictAt < EVICT_MIN_GAP_MS) return 0 // rate-limited: reads as «nothing to evict»
   lastEvictAt = now
   try {
-    if (typeof caches === 'undefined') return 0
-    if (!(await caches.has(TILE_CACHE))) return 0
-    const cache = await caches.open(TILE_CACHE)
-    const keys = await cache.keys()
-    if (!keys.length) return 0
-    const victims = keys.slice(0, batch)
-    const results = await Promise.all(victims.map((r) => cache.delete(r).catch(() => false)))
-    return results.filter(Boolean).length
+    return await dropLegacyTiles() || await deleteTiles((await tileUrls('map'))?.slice(0, batch) ?? [])
   } catch {
     return 0 // eviction is a best-effort rescue; never let it become its own failure
   }
+}
+
+/** Delete the legacy map-tile cache; how many tiles it held (0 without one). */
+async function dropLegacyTiles(): Promise<number> {
+  if (typeof caches === 'undefined' || !(await caches.has(LEGACY_TILE_CACHES.map))) return 0
+  const held = (await (await caches.open(LEGACY_TILE_CACHES.map)).keys()).length
+  return (await caches.delete(LEGACY_TILE_CACHES.map)) ? held : 0
 }
 
 /**

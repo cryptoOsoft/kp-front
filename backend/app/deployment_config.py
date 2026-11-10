@@ -1,7 +1,7 @@
 """The deployment-config singleton — one row, ``deployment_config`` id=1.
 
 Everything a deployment configures about itself hangs off that single row: the config
-document, the plan scales, the telemetry consent, and the station-level secrets each
+document, the plan scales, and the station-level secrets each
 admin surface mints (statistics export, Erfassungs-Poster, Einsatz-Link).
 
 Those secret surfaces are the reason this helper exists. They write to the row *before*

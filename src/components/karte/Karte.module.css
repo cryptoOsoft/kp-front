@@ -218,7 +218,7 @@ button.hydRow.lit:global(.list-row):not(:disabled) { background-color: var(--sel
    medium names («Amselstrasse 24-32, Auf der Wacht 2») stay one line. The measuring twin below
    wears the same rules, so the placement pass collides the folded size. A folded box is as wide
    as its longest line, not the 280px (owner, round 3): CSS cannot shrink a wrapped box, so
-   useKarteTags reads the twin's lines and KarteApp hands the tag that width inline (e2e/karte-tag-fit.mjs). */
+   useKarteTags reads the twin's lines and KarteApp hands the tag that width inline (e2e/karte-tag-fit.spec.ts). */
 .tagMk { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden;
   width: max-content; max-width: 280px; text-wrap: balance; text-align: center;
   padding: 4px var(--sp-2); border-radius: var(--r-xs); border: 1.5px solid color-mix(in srgb, var(--obj-plans) 45%, transparent);

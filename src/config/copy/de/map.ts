@@ -56,6 +56,8 @@ export const mapCopy = {
     coordsLocked: 'Festgehalten – ✕ zum Beenden',
     coordsExit: 'Koordinaten beenden',
     autoMode: 'Automatisch',
+    // 'device' follows the OS light/dark setting (prefers-color-scheme), 'auto' the daylight
+    deviceMode: 'Gerät',
     dayMode: 'Tag',
     nightMode: 'Nacht',
   },

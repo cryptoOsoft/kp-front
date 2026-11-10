@@ -81,9 +81,12 @@ before/after comparison. Review `Survived` and `NoCoverage` mutants as missing-t
 fault. Equivalent changes can survive correct tests: record the reason instead of asserting
 private implementation details or suppressing mutation operators to improve the score.
 
-This is an explicit local quality check, separate from the existing coverage floor and the
-seven required PR checks. Its initial score floor is 78%; raise it deliberately as gaps close,
-never lower it to make a run pass. Run `just ci` before pushing as usual.
+This is a quality check separate from the existing coverage floor and the seven required PR
+checks. It runs by hand, and every Monday in «Mutation testing (weekly)»
+(`.github/workflows/mutation.yml`, also Actions → Run workflow): a cold run whose per-module
+table lands in the job summary and whose HTML report is an artifact; it gates no merge. Its
+initial score floor is 78%; raise it deliberately as gaps close, never lower it to make a run
+pass. Run `just ci` before pushing as usual.
 
 ### Audit on 2026-10-28
 
@@ -144,8 +147,9 @@ No such cases were suppressed to improve the score.
 
 Moved here from AGENTS.md on 2026-10-18, wording unchanged.
 
-**Tests** are Vitest (node env), colocated as `*.test.ts`, focused on pure `src/lib` logic
-(plus a few components); the backend uses pytest. Pre-commit covers backend Ruff and staged
+**Tests** are Vitest, colocated as `*.test.ts(x)`: pure `src/lib` logic in the default node
+environment, and component and hook tests in jsdom (a `@vitest-environment jsdom` line at the
+top of the file – about half of the files); the backend uses pytest. Pre-commit covers backend Ruff and staged
 frontend ESLint, not the full gate. `just ci` also runs the coverage floor, the bundle budget,
 audits, licenses and `just schema-check` (a throwaway Postgres migrated to head, then `alembic
 check` against the models); image, secrets, e2e, visual and perf stay CI's.
@@ -165,10 +169,12 @@ check` against the models); image, secrets, e2e, visual and perf stay CI's.
   way to pass. The gzipped entry, App, maplibre, pdf-worker and CSS chunks have a +5 % budget
   against `scripts/bundle-baseline.json` (`scripts/check-bundle-size.mjs`, CI); a deliberate
   growth is an `--update` in its own commit, with the reason.
-- **`jsdom` is held on 30.0.x** (`~30.0.1`, Dependabot ignores 30.1): 30.1's blob URLs cannot
-  read the Node `Blob` Vitest supplies, so maplibre-gl 4.7 fails at import and MapView, mapTwist
-  and the IncidentWorkspace harness stop loading. Lift it with a jsdom past 30.1 or MapLibre 6
-  (#193) – never by mocking MapLibre away in those tests.
+- **`jsdom` is held on 30.0.x** (`~30.0.1`, Dependabot ignores everything from 30.1.0): since
+  30.1 its blob URLs cannot read the Node `Blob` Vitest supplies, so maplibre-gl fails at import
+  and MapView, mapTwist and the IncidentWorkspace harness stop loading. MapLibre 6 did not fix
+  it: jsdom 31.0.0 on maplibre-gl 6.14 still fails that way, plus five `JournalComposer` cases
+  (#557, 08.11.2026). Lift it with a jsdom release that passes the whole suite, in a PR that also
+  removes the Dependabot rule – never by mocking MapLibre away in those tests.
 - **CLI subprocess tests run outside `backend/`**: pydantic reads `.env` from the cwd, so a
   station's `backend/.env` would leak into them (`tests/test_admin_cli_output.py` · `_run`).
 - **e2e** runs on the production image in CI ([`e2e/README.md`](../../e2e/README.md)). ⚠️
@@ -176,7 +182,7 @@ check` against the models); image, secrets, e2e, visual and perf stay CI's.
   24.09.2026). A spec imports `test` from `e2e/helpers`, never from `@playwright/test` (eslint
   enforces it). A report a test provokes on purpose is listed with `expectedClientErrors`;
   nothing turns the guard off.
-- **The look is gated too.** CI's «Visual» job shoots nine frozen states and compares them with
+- **The look is gated too.** CI's «Visual» job shoots sixteen frozen states and compares them with
   `e2e/visual/baseline/` (`maxDiffPixels: 20`). A changed pixel you did not mean is a regression;
   a look you changed on purpose gets new baselines from CI (`just visual-accept <run-id>`) in its
   own commit, saying why – never to turn the check green, never shot on a laptop
@@ -258,7 +264,9 @@ Azure node can keep sending data without tripping apt's stall timeout
 timeout, browser inventory and test checks remain unchanged.
 
 Every suite retains the client-error/render-storm guard, the field scenario's no-retry policy,
-and the browser's own observation windows. Parallelize by isolated stacks, not additional
+and the browser's own observation windows. The other specs get one retry in CI; a test that
+needed it is named in the job summary and as a warning on the run («Flaky tests», from
+Playwright's JSON report) – fix it then, a flake and a regression look the same once it is red. Parallelize by isolated stacks, not additional
 workers mutating one shared incident or fleet.
 
 ## Measure the delivery path

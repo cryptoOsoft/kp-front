@@ -20,6 +20,7 @@ import { Icon } from '../lib/icons'
 import { isDemoMode } from '../lib/deploymentConfig'
 import { LockChip } from './LockChip'
 import { LINE_DASH_ML } from '../lib/draw'
+import { DRAFT_ANTS, marchDraftAnts } from '../lib/draftAnts'
 import { MapImages } from './MapImages'
 import { markerParamsAlong, markerSpacing, lerpPoint, vertexHandleIndices, evenIndices, arrowEndIndices, DEFAULT_INK, EXTEND_STEP_PX } from '../lib/lineStyle'
 import { centroid, rotateAround, turnedBy } from '../lib/selectionTransform'
@@ -82,13 +83,6 @@ const GHOST_TRAIL_INK = '#8a8f98'
  *  at NIGHT (hill climb r17, Opus 7): a translucent red over the dark base mixes into a muddy
  *  brown, so the night wash is thinner and the zone reads as its stroke's hue. Day paints it whole. */
 const NIGHT_FILL_SCALE = 0.5
-/** The open draft's marching dashes (27.10.2026): MapLibre cannot animate a dash offset, so the
- *  dash pattern itself steps through one period — MapLibre's own «animate a line» recipe. */
-const DRAFT_ANTS: number[][] = [
-  [0, 4, 3], [0.5, 4, 2.5], [1, 4, 2], [1.5, 4, 1.5], [2, 4, 1], [2.5, 4, 0.5], [3, 4, 0],
-  [0, 0.5, 3, 3.5], [0, 1, 3, 3], [0, 1.5, 3, 2.5], [0, 2, 3, 2], [0, 2.5, 3, 1.5], [0, 3, 3, 1], [0, 3.5, 3, 0.5],
-]
-
 // Every edit handle of a SELECTED drawing (node pads, «+» midpoints, grow arrows, detach chips,
 // the Absperrkreis's radius ring) rides at MARKER_Z.selected: a react-map-gl
 // marker defaults to z-auto, which paints BELOW every resting symbol/team (MARKER_Z 4–8), so the
@@ -859,17 +853,14 @@ export const MapView = forwardRef<MapRef, MapViewProps>(function MapView(props, 
 
   // the draft outline/fill; its vertices render as draggable Markers (not circles) below
   const draftFC = useMemo(() => fc(draft.length >= 2 ? [draftKind === 'area' && draft.length >= 3 ? polyFeat(draft) : lineFeat(draft)] : []), [draft, draftKind])
-  // …and its dashes march while it is open (DRAFT_ANTS) — straight onto the layer, no re-render
+  // …and its dashes march while it is open (lib/draftAnts) — straight onto the layer, no re-render
   const draftShown = !!draftKind && draft.length >= 2
   useEffect(() => {
     const map = mapReady ? mapInst.current : null
     if (!map || !draftShown || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
-    let i = 0
-    const t = window.setInterval(() => {
-      i = (i + 1) % DRAFT_ANTS.length
-      if (map.getLayer('l-draft-line')) map.setPaintProperty('l-draft-line', 'line-dasharray', DRAFT_ANTS[i])
-    }, 60)
-    return () => window.clearInterval(t)
+    return marchDraftAnts(map.getContainer(), (dash) => {
+      if (map.getLayer('l-draft-line')) map.setPaintProperty('l-draft-line', 'line-dasharray', dash)
+    })
   }, [mapReady, draftShown])
   // measure path: line / polygon only — the vertices are draggable Markers, not circles
   const measureFC = useMemo(() => fc(measurePoints.length >= 2
@@ -1459,7 +1450,7 @@ export const MapView = forwardRef<MapRef, MapViewProps>(function MapView(props, 
           so the in-progress shape edits exactly like the measure path */}
       <Source id="s-draft" type="geojson" data={draftFC}>
         {/* the OPEN look (27.10.2026, the Plan's twin · .wb-draft-open): amber marching dashes
-            until the drawing is saved — the march is useDraftAnts below */}
+            until the drawing is saved — the march is lib/draftAnts · marchDraftAnts */}
         <Layer id="l-draft-fill" type="fill" filter={['==', ['geometry-type'], 'Polygon']} paint={{ 'fill-color': openTone, 'fill-opacity': 0.1 }} />
         <Layer id="l-draft-line" type="line" layout={{ 'line-cap': 'butt' }} paint={{ 'line-color': openTone, 'line-width': 3, 'line-dasharray': DRAFT_ANTS[0] }} />
         {/* fat transparent hit line so segment clicks (insert vertex) are easy to land */}

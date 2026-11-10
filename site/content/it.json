@@ -4,7 +4,8 @@
     "title": "KP Front – Condotta d’intervento digitale per i pompieri",
     "description": "KP Front è il posto di comando digitale sul posto: mappa, piani, squadre, diario e rapporto – offline e open source.",
     "ogTitle": "KP Front – Condotta d’intervento digitale per i pompieri",
-    "ogDescription": "Il posto di comando digitale sul posto: mappa, piani, squadre, diario e rapporto – offline e open source."
+    "ogDescription": "Il posto di comando digitale sul posto: mappa, piani, squadre, diario e rapporto – offline e open source.",
+    "imageAlt": "KP Front con carta digitale della situazione e simboli tattici per la condotta d’intervento."
   },
   "schema": {
     "description": "Condotta d’intervento digitale e carta della situazione per i pompieri – con carte swisstopo, segni tattici secondo le convenzioni CSP, sorveglianza della protezione respiratoria e diario d’intervento continuo.",
@@ -12,6 +13,7 @@
       "Carta della situazione su carte swisstopo con segni tattici secondo le convenzioni CSP",
       "Sorveglianza della protezione respiratoria con pressione, tempo di rientro, orologio di contatto e allarmi",
       "Piani d’oggetto e degli edifici come lavagna per disegnare e misurare",
+      "Trasporto d’acqua: pressione lungo la condotta con posizionamento automatico delle pompe",
       "Diario d’intervento che viene solo integrato e mai riscritto",
       "Piano turni per interventi lunghi, con vista sulla copertura",
       "Rapporto d’intervento in PDF, precompilato con i dati dell’intervento",
@@ -237,6 +239,7 @@
           "Settori, cerchi di sbarramento, superfici e disegno a mano libera",
           "Condotte con annotazioni CSP, ognuna assegnata a una squadra",
           "Misurazione di distanze e superfici, in scala anche sul piano",
+          "<strong>Trasporto d’acqua</strong>: pressione lungo una condotta in base al profilo altimetrico, al diametro della manichetta e alla portata – il calcolo posiziona da sé le pompe e può riportarle direttamente sulla mappa",
           "Livelli: idranti, catasto delle condotte, servizi cartografici cantonali",
           "<strong>Prontuario delle sostanze pericolose</strong>: numeri ONU, informazioni sulle sostanze e indicazioni sulle distanze di isolamento e protezione, disponibili direttamente durante l’intervento",
           "Informazioni meteorologiche e sul vento a supporto della valutazione della situazione, più il radar delle precipitazioni di MeteoSvizzera come livello",
@@ -279,7 +282,7 @@
         ]
       },
       {
-        "h3": "Esercizio",
+        "h3": "Funzionamento",
         "items": [
           "<strong>Funziona offline</strong> come app installabile – la verifica di prontezza indica prima dell’intervento se i dati necessari sono sul dispositivo",
           "Più dispositivi collegati lavorano sullo stesso stato – dopo un’interruzione della connessione, le modifiche vengono nuovamente sincronizzate",
@@ -365,7 +368,7 @@
       },
       {
         "q": "Come cominciamo?",
-        "a": "Con la <a href=\"https://demo.kp-front.ch\" target=\"_blank\" rel=\"noopener\">demo</a>,\n          senza registrazione – a Musterdorf sta già bruciando, e tutti i visitatori condividono lo\n          stesso intervento (ricomincia a mezzanotte e a mezzogiorno). Poi provatela a un’esercitazione.\n          Se va bene, la <a href=\"https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md\" target=\"_blank\" rel=\"noopener\">guida all’installazione</a> porta alla vostra istanza."
+        "a": "Con la <a href=\"https://demo.kp-front.ch\" target=\"_blank\" rel=\"noopener\">demo</a>,\n          senza registrazione – a Musterdorf sta già bruciando, e tutti i visitatori condividono lo\n          stesso intervento (si riavvia ogni giorno alle 00:00, fuso orario Europe/Zurich). Poi provatela a un’esercitazione.\n          Se va bene, la <a href=\"https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md\" target=\"_blank\" rel=\"noopener\">guida all’installazione</a> porta alla vostra istanza."
       }
     ]
   },

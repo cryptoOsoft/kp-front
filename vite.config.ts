@@ -16,6 +16,7 @@ import { defineConfig, loadEnv, type Plugin, type Rollup } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA, type VitePWAOptions } from 'vite-plugin-pwa'
 import { resolveCustomMedia } from './src/lib/breakpoints.ts'
+import { gradientPngs, splashGradients, startupImages } from './scripts/startup-images.mjs'
 
 type RuntimeCache = NonNullable<NonNullable<VitePWAOptions['workbox']>['runtimeCaching']>[number]
 type RuntimePlugin = NonNullable<NonNullable<RuntimeCache['options']>['plugins']>[number]
@@ -69,6 +70,32 @@ function inlineSnailLoader(): Plugin {
       if (!html.includes(marker)) throw new Error('Boot splash is missing the snail loader marker')
       const artwork = readFileSync(new URL('./public/firefighter-snail-loader.svg', import.meta.url), 'utf-8')
       return html.replace(marker, `<div class="snail-loader" aria-hidden="true">${artwork}</div>`)
+    },
+  }
+}
+
+// iOS launch images: the splash background instead of black while iOS starts the installed app
+// (scripts/startup-images.mjs has the why). Build only, emitted as plain files outside the
+// precache (no png in globPatterns) – iOS fetches the one matching its screen itself.
+function iosStartupImages(): Plugin {
+  const screens = startupImages()
+  return {
+    name: 'kp-ios-startup-images',
+    apply: 'build',
+    // one run of tags without whitespace between them: Vite's tag injection puts a text node
+    // before each, and the cold-start journey's DOM-node gate counts those too
+    transformIndexHtml(html, context) {
+      if (context.filename !== resolve('index.html')) return html
+      const links = screens.flatMap(({ files }) => Object.values(files))
+        .map(({ file, media }) => `<link rel="apple-touch-startup-image" media="${media}" href="/${file}">`).join('')
+      return html.replace('</head>', `${links}</head>`)
+    },
+    generateBundle() {
+      const gradients = splashGradients(readFileSync(resolve('index.html'), 'utf-8'))
+      for (const { w, h, files } of screens) {
+        const pngs = gradientPngs(w, h, gradients)
+        for (const [scheme, { file }] of Object.entries(files)) this.emitFile({ type: 'asset', fileName: file, source: pngs[scheme] })
+      }
     },
   }
 }
@@ -138,7 +165,7 @@ function dropManifestFromPrecache(): Plugin {
 // still answered by the PRECACHED index.html of whatever build the device's worker holds — and
 // under registerType 'prompt' that is legitimately an old one — which then imports an AdminApp
 // hash the server no longer has: a 404 on every device that had not restarted since the deploy
-// (the pdf.worker story, AGENTS.md). Going to the network for the shell means /admin always boots
+// (the pdf.worker story). Going to the network for the shell means /admin always boots
 // the deploy it talks to. Offline, /admin is the browser's own offline page; accepted.
 //
 // Deliberately LOUD like the plugin above: no AdminApp chunk, or no AdminApp entry in the
@@ -242,9 +269,15 @@ export default defineConfig(({ mode }) => {
     // same URL died the same way («Setting up fake worker failed», 08.09.). It is one
     // self-contained minified ESM with nothing to pre-bundle, so serving it as source is free.
     optimizeDeps: { exclude: ['pdfjs-dist/build/pdf.worker.min.mjs'] },
+    // jsPDF's three optional peers never run here (src/lib/unbundled.ts has the why): aliased
+    // to a stub, so their chunks leave the build and the precache.
+    resolve: {
+      alias: Object.fromEntries(['html2canvas', 'canvg', 'dompurify'].map((lib) => [lib, resolve('src/lib/unbundled.ts')])),
+    },
     css: { postcss: { plugins: [customMedia()] } },
     plugins: [
       inlineSnailLoader(),
+      iosStartupImages(),
       buildStampMeta(),
       customMediaResolved(),
       react(),
@@ -324,9 +357,11 @@ export default defineConfig(({ mode }) => {
           // for it but not the `hidden` part, so sw.js and workbox-*.js came out POINTING at maps
           // of Workbox's own code, which nobody will ever need to symbolicate.
           sourcemap: false,
-          // Notification routing plus the auth-aware incident-media cache. Imported before
-          // Workbox registers routes; sw-media-cache owns /api/media/* itself.
-          importScripts: ['sw-notify.js', 'sw-media-cache.js'],
+          // The worker's half of the launch timing line, notification routing, and the auth-aware
+          // incident-media cache, and the map + plan tiles in IndexedDB. Imported before Workbox
+          // registers routes; sw-media-cache owns /api/media/* itself, sw-tile-store the tiles
+          // and plan-tile manifests (out of Cache Storage: its size is a launch cost on iOS).
+          importScripts: ['sw-boot-timing.js', 'sw-notify.js', 'sw-media-cache.js', 'sw-tile-store.js'],
           // maplibre + pdf.worker chunks are large; precache them so the shell works offline.
           maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
           navigateFallback: '/index.html',
@@ -347,24 +382,6 @@ export default defineConfig(({ mode }) => {
           ],
           cleanupOutdatedCaches: true,
           runtimeCaching: [
-            {
-              // Base-map tiles (cross-origin → opaque, status 0). Cache-first so a
-              // previously-viewed (or pre-downloaded) area renders with no signal. `tiles-a…d.`
-              // is CARTO's vector host: the street names drawn over its unlabelled raster
-              // (lib/basemapLabels).
-              urlPattern: /^https:\/\/([a-d]\.|tiles-[a-d]\.)?(basemaps\.cartocdn\.com|tile\.openstreetmap\.org|[a-c]\.tile\.opentopomap\.org|server\.arcgisonline\.com|wmts\.geo\.admin\.ch|geowms\.bl\.ch)\//,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'map-tiles',
-                // A miss here is fetched past the browser's own HTTP cache (revalidated, a 304 when
-                // nothing changed): CARTO serves its tiles `immutable` for 30 days, so after a
-                // provider re-renders its map (lib/tilePurge, 17.10.2026) a purged tile would
-                // otherwise come straight back in the old look from the HTTP cache.
-                fetchOptions: { cache: 'no-cache' },
-                cacheableResponse: { statuses: [0, 200] },
-                expiration: { maxEntries: 4000, maxAgeSeconds: 60 * 60 * 24 * 30 },
-              },
-            },
             {
               // The map's glyph ranges (public/fonts · lib/mapView MAP_GLYPHS): fetched by the map
               // the first time a name is drawn, and by the offline download. Not precached – 1 MB
@@ -420,38 +437,6 @@ export default defineConfig(({ mode }) => {
               // old set stale-first. ⚠️ Before the generic reference rule.
               urlPattern: /\/api\/reference\/(?:underground|houses)(?:\?|$)/,
               handler: 'NetworkOnly',
-            },
-            {
-              // A plan TILE (backend · app/plan_tiles, 21.09.2026): the revision is part of the
-              // path, so the address is immutable and cache-first for good. Its own cache, and a
-              // big one — a dense A1 is ~1 500 tiles (10 MB), an ordinary A3/A4 sheet a few
-              // hundred — prefetched per Einsatzobjekt (lib/planTilePrefetch) so a sheet opened
-              // once online is whole offline.
-              // ⚠️ Listed before BOTH reference routes: the manifest below would otherwise match
-              // the pinned-PDF rule and freeze its `complete` flag, and a tile would land in the
-              // 50-entry `reference-data` cache and evict the symbols. Purged on an explicit
-              // denial with the others (public/sw-media-cache.js).
-              urlPattern: /\/api\/reference\/[^/?]+\/tiles\/\d+\/\d+\/\d+\/\d+\/\d+$/,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'plan-tiles',
-                plugins: [referenceSessionPlugin],
-                cacheableResponse: { statuses: [200] },
-                expiration: { maxEntries: 12000, maxAgeSeconds: 60 * 60 * 24 * 90, purgeOnQuotaError: true },
-              },
-            },
-            {
-              // …and its manifest: geometry that never changes plus a live `complete` flag, so
-              // the network is asked first and the cached copy answers offline.
-              urlPattern: /\/api\/reference\/[^/?]+\/tiles\?/,
-              handler: 'NetworkFirst',
-              options: {
-                cacheName: 'plan-tile-manifests',
-                plugins: [referenceSessionPlugin],
-                networkTimeoutSeconds: 3,
-                cacheableResponse: { statuses: [200] },
-                expiration: { maxEntries: 400, maxAgeSeconds: 60 * 60 * 24 * 90 },
-              },
             },
             {
               // A PINNED plan revision (`/api/reference/plan:x?v=3`) is IMMUTABLE by construction

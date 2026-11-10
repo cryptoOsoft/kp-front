@@ -535,7 +535,6 @@ export const adminCopy: Localizable<Pick<Copy, 'admin'>> = {
         items: [
           { name: 'SECRET_KEY', why: 'cifra i PIN e i valori di questa pagina – non può stare nel database che protegge.' },
           { name: 'ADMIN_SECRET', why: 'apre proprio questa amministrazione. Chi può aprirla potrebbe altrimenti concedersi un nuovo accesso.' },
-          { name: 'KP_TELEMETRY_ENABLED / _DSN', why: 'è il veto del gestore sull’amministrazione. Un veto che l’amministrazione può cambiare non è un veto.' },
           { name: 'DATABASE_URL, POSTGRES_*', why: 'servono prima ancora che esista una connessione al database.' },
           { name: 'APP_PORT, DOMAIN, KP_FRONT_TAG', why: 'li legge Docker Compose, non l’app – qui un riavvio è inevitabile.' },
         ],
@@ -1693,6 +1692,9 @@ export const adminCopy: Localizable<Pick<Copy, 'admin'>> = {
       liveSnapshot: 'Stato sistema in tempo reale',
       updatedAt: 'Aggiornato alle {time}',
       healthSummary: 'Stato del sistema',
+      loginLocksTitle: 'Accesso bloccato per i nuovi dispositivi',
+      loginLocksTip: 'Per questo account sono stati inseriti troppi PIN errati da dispositivi sconosciuti. I dispositivi che hanno già effettuato l\'accesso con l\'account non sono interessati. Il blocco termina da solo; se i tentativi continuano, ritorna. In caso di dubbio, reimpostare il PIN dell\'account.',
+      loginLockRow: '{name} – nuovi dispositivi bloccati ancora per {minutes} min',
       server: 'Server',
       reachable: 'raggiungibile',
       error: 'Impossibile caricare i dati di sistema.',

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { drawingEditChanges, drawingLogName, endingFlags, endingOf, endingWireFlags, type LineEnding } from './drawingEdit'
+import { drawingEditChanges, drawingLogName, endingFlags, endingOf, endingWireFlags, pumpWarningRows, type LineEnding } from './drawingEdit'
+import { fillTemplate } from './format'
+import { RELAY } from './hydraulics'
 import { replayEmits } from './replay.test-utils'
 import type { Drawing } from '../types'
 import { appConfig } from '../config/appConfig'
@@ -67,7 +69,7 @@ describe('drawingEditChanges (the Verlauf line for editing a drawing)', () => {
   it('names a new Schlauch, and stays quiet on the Wassertransport planning', () => {
     expect(drawingEditChanges(line({}), line({ hose: '110' }))).toEqual(['Schlauch: 110 mm'])
     expect(drawingEditChanges(line({ hose: '75' }), line({ hose: '2x75' }))).toEqual(['Schlauch auf 2× 75 geändert'])
-    expect(drawingEditChanges(line({}), line({ relay: { flow: 1200, pumps: [{ atM: 300 }] } }))).toEqual([])
+    expect(drawingEditChanges(line({}), line({ relay: { flow: 1200, pumps: [{ atM: 100 }] } }))).toEqual([])
     // …but «Pumpen auf Karte» puts Motorspritzen on the Karte, or takes them off
     expect(drawingEditChanges(line({ relay: {} }), line({ relay: { showPumps: true } }))).toEqual([appConfig.copy.log.pumpsShown])
     expect(drawingEditChanges(line({ relay: { showPumps: true } }), line({ relay: { pumps: [{ atM: 9 }] } }))).toEqual([appConfig.copy.log.pumpsHidden])
@@ -138,5 +140,31 @@ describe('endingWireFlags — the Abschluss in replay', () => {
     const drawings = [{ id: 'd', kind: 'line', coords: [[7, 47], [8, 48]], ...endingFlags(from) } as Drawing]
     const replayed = await replayEmits({ drawings }, [['draw.edit', { id: 'd', patch: endingWireFlags(to) }]])
     expect(endingOf(replayed.drawings[0])).toBe(to)
+  })
+})
+
+// Manuel 09.11.2026: the Rapport named «Pumpen auf der Karte», never the warning under the chart.
+// ~1.3 km, 75 mm at 800 l/min from a hydrant, flat: the water reaches 2 bar at ~400 m, so a pump
+// pinned at 500 m gets about 1 bar.
+describe('pumpWarningRows (a pump warning, as it appears)', () => {
+  const low = (atM = 500) => line({ relay: { pumps: [{ atM }] } })
+  const row = fillTemplate(appConfig.copy.log.pumpLowInlet, { n: 1, min: RELAY.minInletBar })
+
+  it('writes the warning the edit brings, in the drawing edit row', () => {
+    expect(pumpWarningRows(line({ relay: {} }), low())).toEqual([row])
+    expect(drawingEditChanges(line({ relay: {} }), low())).toEqual([row])
+  })
+
+  it('stays quiet while the same warning stands through later edits, or goes away', () => {
+    expect(pumpWarningRows(low(500), low(520))).toEqual([])
+    expect(pumpWarningRows(low(), line({ relay: {} }))).toEqual([])
+  })
+
+  it('names what a Leitung adopted from Messen arrives with', () => {
+    expect(pumpWarningRows(null, low())).toEqual([row])
+  })
+
+  it('compares nothing across a moved path (the profile would be the old one\'s)', () => {
+    expect(pumpWarningRows(line({ relay: {} }), { ...low(), coords: [[7.5, 47.4], [7.52, 47.41]] })).toEqual([])
   })
 })

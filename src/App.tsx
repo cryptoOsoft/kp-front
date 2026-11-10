@@ -33,7 +33,7 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { isAtemschutzLinkKind, useAuth } from './lib/auth'
 import { IncidentWorkspace } from './IncidentWorkspace'
 import {
-  WorkspaceSync, listIncidentsResilient, getIncident, archiveIncident,
+  WorkspaceSync, listIncidentsResilient, listIncidentsShared, getIncident, archiveIncident,
   migrateLegacyWorkspace, takeDiveraAlarm, attachDiveraAlarm, discardWorkspaceCache,
   isIncidentRunning, type DiveraAlarm, type IncidentFull, type IncidentMeta, type Workspace,
 } from './lib/incidents'
@@ -526,7 +526,7 @@ export default function App() {
         if (inc) await bootOpen(inc as IncidentMeta)
         return
       }
-      let { list, offline } = await listIncidentsResilient().catch((e: unknown) => {
+      let { list, offline } = await listIncidentsShared().catch((e: unknown) => {
         // A REFUSAL, not silence (isUnverifiable already turned silence into the cached list):
         // the launcher would otherwise render «keine offenen Einsätze» over a list that simply
         // failed, with nothing on screen to say so.
@@ -922,6 +922,10 @@ export default function App() {
             onOpenVisits={openVisitsFromKarte}
             running={runningNow}
             onOpenIncident={openOrUncover}
+            onSettings={home.onSettings}
+            onHelp={home.onHelp}
+            // App's sheets and dialogs over the viewer own the keyboard (KarteApp · useKarteKeys)
+            keysOff={landingSheet !== null || feedbackFor !== null || overlay !== null || showWelcome}
           />
         </Suspense>
       ) : screen === 'launcher' ? (

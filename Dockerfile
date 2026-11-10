@@ -19,9 +19,10 @@ RUN npm install -g pnpm@10.18.3
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 # Only SPA inputs: a backend, workflow or docs edit must not rebuild the frontend. Vite also
-# reads the coverage floor while resolving its config, even for a production build.
+# reads the coverage floor while resolving its config, even for a production build, and
+# imports the iOS launch-image generator (vite.config · iosStartupImages).
 COPY index.html vite.config.ts tsconfig.json ./
-COPY scripts/coverage-floor.json ./scripts/coverage-floor.json
+COPY scripts/coverage-floor.json scripts/startup-images.mjs ./scripts/
 COPY src ./src
 COPY public ./public
 # .git is dockerignored, so the build stamp's sha comes in as a build arg: Railway passes

@@ -1,4 +1,4 @@
-// Deployment-config resolution layer (Phase 1.B · T1.5).
+// Deployment-config resolution layer.
 //
 // A single kp-front build serves many fire-brigade deployments. The static `appConfig`
 // (src/config/appConfig.ts) carries the sensible defaults; each deployment can OVERRIDE

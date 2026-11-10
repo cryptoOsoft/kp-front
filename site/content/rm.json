@@ -4,7 +4,8 @@
     "title": "KP Front – Direcziun digitala d’acziun per ils pumpiers",
     "description": "KP Front è il post da commando digital al lieu d’acziun: charta, plans, gruppas, decurs e rapport – utilisabel offline ed open source.",
     "ogTitle": "KP Front – Direcziun digitala d’acziun per ils pumpiers",
-    "ogDescription": "Il post da commando digital al lieu d’acziun: charta, plans, gruppas, decurs e rapport – utilisabel offline ed open source."
+    "ogDescription": "Il post da commando digital al lieu d’acziun: charta, plans, gruppas, decurs e rapport – utilisabel offline ed open source.",
+    "imageAlt": "KP Front cun charta digitala da situaziun e segns tactics per la direcziun d’acziun."
   },
   "schema": {
     "description": "Direcziun digitala d’acziun e charta da situaziun per ils pumpiers – cun chartas da swisstopo, segns tactics tenor las convenziuns FKS, surveglianza da la protecziun respiratorica e decurs d’acziun continuant.",
@@ -12,6 +13,7 @@
       "Charta da situaziun sin chartas da swisstopo cun segns tactics tenor las convenziuns FKS",
       "Surveglianza da la protecziun respiratorica cun pressiun, temp da retratga, ura da contact ed alarms",
       "Plans d’object e d’edifizis sco tavla da lavur per dissegnar e mesirar",
+      "Transport d’aua: squitsch lung la conducziun cun plazzament automatic da las pumpas",
       "Decurs d’acziun che vegn mo cumplettà e mai surscrit",
       "Plan da temp per acziuns lungas, cun survista da la cuvrida",
       "Rapport d’acziun sco PDF, preemplenì cun las datas da l’acziun",
@@ -237,6 +239,7 @@
           "Secturs, zonas serradas, surfatschas e dissegn liber",
           "Lingias da stizzar cun annotaziuns FKS, mintga lingia è attribuida ad ina gruppa",
           "Mesirar distanzas e surfatschas, era sin plans tenor scala",
+          "<strong>Transport d’aua</strong>: squitsch lung ina conducziun da stgalims tenor il profil d’autezza, il diameter dal stgalim e la quantitad d’aua – il quint plazza sez las pumpas e po las metter directamain sin la charta",
           "Nivels: idrants, cataster da conducts, servetschs chantunals da chartas",
           "<strong>Register da materias privlusas</strong>: nums ONU, infurmaziuns davart substanzas e recumandaziuns per distanzas da bloccada e da protecziun, disponibel directamain durant l’acziun",
           "Infurmaziuns meteorologicas e da vent per sustegnair la valitaziun da la situaziun, ed il radar da precipitaziuns da MeteoSvizra sco nivel",
@@ -365,7 +368,7 @@
       },
       {
         "q": "Co cumenzar?",
-        "a": "Cun la <a href=\"https://demo.kp-front.ch\" target=\"_blank\" rel=\"noopener\">demo</a>,\n          senza registraziun – a Musterdorf arda gia, e tut ils visitaders partan la medema\n          intervenziun (ella cumenza da nov a mesanotg ed a mezdi). Suenter testar durant in exercizi. Sche l’applicaziun cunvegna, maina\n          l’<a href=\"https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md\" target=\"_blank\" rel=\"noopener\">instrucziun d’installaziun</a> a l’atgna instanza."
+        "a": "Cun la <a href=\"https://demo.kp-front.ch\" target=\"_blank\" rel=\"noopener\">demo</a>,\n          senza registraziun – a Musterdorf arda gia, e tut ils visitaders partan la medema\n          intervenziun (ella cumenza mintga di da nov a las 00:00, zona d’urari Europe/Zurich). Suenter testar durant in exercizi. Sche l’applicaziun cunvegna, maina\n          l’<a href=\"https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md\" target=\"_blank\" rel=\"noopener\">instrucziun d’installaziun</a> a l’atgna instanza."
       }
     ]
   },

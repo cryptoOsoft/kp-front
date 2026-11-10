@@ -30,7 +30,7 @@ from sqlalchemy import select
 
 from app import scheduler
 from app.config import settings
-from app.models import Incident, Personnel, PersonPosition, PrintJob, TelemetryOutbox, VisitHash, VisitStat
+from app.models import Incident, Personnel, PersonPosition, PrintJob, VisitHash, VisitStat
 
 MARKER = "rolled-back-by-the-job"
 
@@ -507,30 +507,6 @@ def _position(incident_id, person_id, *, device: str, at: datetime) -> PersonPos
     )
 
 
-# --- telemetry ------------------------------------------------------------------------
-
-
-async def test_delivered_telemetry_is_retired_and_a_veto_sends_nothing(db_session, run_job, fresh, monkeypatch):
-    """Two halves on one tick. The flush is free while the deployer's env veto stands — it
-    returns before touching the database, so a queued row keeps its untouched `attempts`. The
-    outbox sweep runs anyway, because retention is not consent."""
-    monkeypatch.setattr(settings, "telemetry_enabled", False)
-    now = datetime.now(UTC)
-    db_session.add_all(
-        [
-            TelemetryOutbox(channel="error", payload_json={"k": "delivered"}, sent_at=now - timedelta(days=20)),
-            TelemetryOutbox(channel="error", payload_json={"k": "queued"}, attempts=0),
-        ]
-    )
-    await db_session.commit()
-
-    await run_job(scheduler._telemetry_flush)
-
-    left = await fresh(select(TelemetryOutbox))
-    assert [r.payload_json["k"] for r in left] == ["queued"]
-    assert (left[0].sent_at, left[0].attempts) == (None, 0)
-
-
 # --- demo reset -----------------------------------------------------------------------
 
 
@@ -664,7 +640,6 @@ async def _ok(url):
         ),
         ("_visit_hashes_sweep", "app.visits", "prune", "Visit sweep failed", {}),
         ("_positions_sweep", "app.scheduler", "execute_dml", "Position sweep failed", {}),
-        ("_telemetry_flush", "app.telemetry.forwarder", "flush", "Telemetry flush failed", {}),
     ],
 )
 async def test_a_collaborator_that_raises_is_rolled_back_logged_and_survived(
@@ -723,7 +698,6 @@ async def test_the_credential_backed_jobs_are_registered_before_their_credential
         "auto_archive",
         "positions_sweep",
         "visit_hashes_sweep",
-        "telemetry_flush",
     } <= ids
     # The two that stay boot-gated, and correctly so: the plan store's bucket credentials are
     # not browser-settable, and a demo wipe is not something a station may switch on by accident.

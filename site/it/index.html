@@ -78,12 +78,18 @@
 <meta property="og:image" content="https://kp-front.ch/shots/lage.jpg">
 <meta property="og:image:width" content="1500">
 <meta property="og:image:height" content="937">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:alt" content="KP Front con carta digitale della situazione e simboli tattici per la condotta d’intervento.">
 <meta property="og:locale" content="it_CH">
 <meta property="og:locale:alternate" content="de_CH">
 <meta property="og:locale:alternate" content="fr_CH">
 <meta property="og:locale:alternate" content="rm_CH">
 <meta property="og:locale:alternate" content="en_GB">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="KP Front – Condotta d’intervento digitale per i pompieri">
+<meta name="twitter:description" content="Il posto di comando digitale sul posto: mappa, piani, squadre, diario e rapporto – offline e open source.">
+<meta name="twitter:image" content="https://kp-front.ch/shots/lage.jpg">
+<meta name="twitter:image:alt" content="KP Front con carta digitale della situazione e simboli tattici per la condotta d’intervento.">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -98,6 +104,7 @@
         "Carta della situazione su carte swisstopo con segni tattici secondo le convenzioni CSP",
         "Sorveglianza della protezione respiratoria con pressione, tempo di rientro, orologio di contatto e allarmi",
         "Piani d’oggetto e degli edifici come lavagna per disegnare e misurare",
+        "Trasporto d’acqua: pressione lungo la condotta con posizionamento automatico delle pompe",
         "Diario d’intervento che viene solo integrato e mai riscritto",
         "Piano turni per interventi lunghi, con vista sulla copertura",
         "Rapporto d’intervento in PDF, precompilato con i dati dell’intervento",
@@ -213,8 +220,14 @@
       "url": "https://kp-front.ch/it/",
       "name": "KP Front – Condotta d’intervento digitale per i pompieri",
       "description": "KP Front è il posto di comando digitale sul posto: mappa, piani, squadre, diario e rapporto – offline e open source.",
+      "primaryImageOfPage": {
+        "@type": "ImageObject",
+        "url": "https://kp-front.ch/shots/lage.jpg",
+        "width": 1500,
+        "height": 937
+      },
       "inLanguage": "it-CH",
-      "dateModified": "2026-11-04",
+      "dateModified": "2026-11-08",
       "isPartOf": {
         "@id": "https://kp-front.ch/#website"
       },
@@ -304,7 +317,7 @@
           "name": "Come cominciamo?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Con la demo, senza registrazione – a Musterdorf sta già bruciando, e tutti i visitatori condividono lo stesso intervento (ricomincia a mezzanotte e a mezzogiorno). Poi provatela a un’esercitazione. Se va bene, la guida all’installazione porta alla vostra istanza."
+            "text": "Con la demo, senza registrazione – a Musterdorf sta già bruciando, e tutti i visitatori condividono lo stesso intervento (si riavvia ogni giorno alle 00:00, fuso orario Europe/Zurich). Poi provatela a un’esercitazione. Se va bene, la guida all’installazione porta alla vostra istanza."
           }
         }
       ]
@@ -713,6 +726,7 @@
           <li>Settori, cerchi di sbarramento, superfici e disegno a mano libera</li>
           <li>Condotte con annotazioni CSP, ognuna assegnata a una squadra</li>
           <li>Misurazione di distanze e superfici, in scala anche sul piano</li>
+          <li><strong>Trasporto d’acqua</strong>: pressione lungo una condotta in base al profilo altimetrico, al diametro della manichetta e alla portata – il calcolo posiziona da sé le pompe e può riportarle direttamente sulla mappa</li>
           <li>Livelli: idranti, catasto delle condotte, servizi cartografici cantonali</li>
           <li><strong>Prontuario delle sostanze pericolose</strong>: numeri ONU, informazioni sulle sostanze e indicazioni sulle distanze di isolamento e protezione, disponibili direttamente durante l’intervento</li>
           <li>Informazioni meteorologiche e sul vento a supporto della valutazione della situazione, più il radar delle precipitazioni di MeteoSvizzera come livello</li>
@@ -760,7 +774,7 @@
         </ul>
       </div>
       <div class="fgroup">
-        <h3>Esercizio</h3>
+        <h3>Funzionamento</h3>
         <ul class="flist">
           <li><strong>Funziona offline</strong> come app installabile – la verifica di prontezza indica prima dell’intervento se i dati necessari sono sul dispositivo</li>
           <li>Più dispositivi collegati lavorano sullo stesso stato – dopo un’interruzione della connessione, le modifiche vengono nuovamente sincronizzate</li>
@@ -884,7 +898,7 @@
         <h3>Come cominciamo?</h3>
         <p>Con la <a href="https://demo.kp-front.ch" target="_blank" rel="noopener">demo</a>,
           senza registrazione – a Musterdorf sta già bruciando, e tutti i visitatori condividono lo
-          stesso intervento (ricomincia a mezzanotte e a mezzogiorno). Poi provatela a un’esercitazione.
+          stesso intervento (si riavvia ogni giorno alle 00:00, fuso orario Europe/Zurich). Poi provatela a un’esercitazione.
           Se va bene, la <a href="https://github.com/feuerwehr-oberwil/kp-front/blob/main/docs/SETUP.md" target="_blank" rel="noopener">guida all’installazione</a> porta alla vostra istanza.</p>
       </div>
     </div>

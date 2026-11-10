@@ -136,6 +136,13 @@ export const panelsCopy = {
     title: 'Einstellungen',
     deviceGroup: 'Gerät',
     colorScheme: 'Farbschema',
+    // the line under «Farbschema»: what the selected option does («Automatisch» vs «Gerät»)
+    colorSchemeHint: {
+      auto: 'Wechselt mit der Tageszeit – hell ab Sonnenaufgang, dunkel ab Sonnenuntergang',
+      device: 'Folgt dem Hell/Dunkel in den Einstellungen dieses Geräts',
+      day: 'Immer hell',
+      night: 'Immer dunkel – gedämpfte Karte und Oberfläche',
+    },
     // Two sliders, not one size: an unlinked Modul-2/3 sheet is a whole floor on one page and
     // needs far smaller symbols than the map. A georeferenced sheet follows Karte automatically.
     symbolSizeMap: 'Symbolgrösse auf der Karte',
@@ -145,7 +152,7 @@ export const panelsCopy = {
     symbolCaptions: 'Beschriftungen',
     symbolCaptionsSub: 'Kennwert unter dem Symbol',
     railLabels: 'Beschriftung der Werkzeugleisten',
-    railLabelsSub: 'Wort unter jedem Zeichen in den beiden Leisten',
+    railLabelsSub: 'Wort unter jedem Zeichen in allen Leisten',
     // Gerätepräferenz, Standard AN (lib/prefs · keyHints): der Buchstabe auf jedem Feld beider Leisten
     keyHints: 'Tastenkürzel anzeigen',
     keyHintsSub: 'Buchstaben an den Werkzeugleisten – nur auf Geräten mit Tastatur und Maus.',

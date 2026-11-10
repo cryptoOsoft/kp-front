@@ -94,7 +94,7 @@
   box-shadow: var(--e4); animation: ml-in .16s var(--ease); }
 @keyframes ml-in { from { opacity: 0; transform: translateY(-8px); } }
 /* NO tone edge on any row (29.09.2026, follow-ups; the alarm lost its red bar in sweep 3 T13):
-   a row's tone is its leading glyph's colour and nothing else (AGENTS · «ONE message surface» —
+   a row's tone is its leading glyph's colour and nothing else (docs/ui-conventions.md · «Messages – ONE surface» –
    «never an edge»). Every Meldung carries an `icon` (lib/meldungen · required), so no row is left
    without its tone. Calm is the default glyph ink. */
 .ml-row { display: flex; align-items: center; gap: var(--sp-3); min-height: 52px; padding: var(--sp-1) var(--sp-2) var(--sp-1) var(--sp-4); }
@@ -537,17 +537,19 @@
    because there the card genuinely appears over new ground. */
 .login .loading-card { animation: none; }
 /* The Einsatz's opening cover lifts off the finished workspace (lib/bootCover · BOOT_COVER_FADE_MS,
-   keep in step). It never fades IN: it takes over from a Splash already on screen. */
+   keep in step), and so does the static boot cover off the app (lib/snailLaunch · liftBootCover).
+   It never fades IN: it takes over from a Splash already on screen. */
 .login.splash.leaving { opacity: 0; transition: opacity .24s var(--ease); pointer-events: none; }
-/* Static pre-React boot splash (markup in index.html). Paint immediately so the snail's
-   entrance is visible. main.tsx holds it through the 630 ms arrival even on a warm launch,
-   then React's snail continues the same clock instead of replaying it.
+/* Static pre-React boot splash (markup in index.html, a sibling ABOVE #root). Paint immediately
+   so the snail's entrance is visible. React mounts beneath it; lib/snailLaunch · liftBootCover
+   lifts it after the full 630 ms arrival once the app is on screen, and a React loading stage
+   it reveals continues the same clock instead of replaying it.
    ⚠️ index.html inlines this rule (plus .login/.loading-card/.loading-stuck/.boot-hint
    below and the --ink/--accent/--app-bg tokens they use) in a <style> block, so the splash still
    renders before this stylesheet — or if it never arrives — has loaded. Keep both copies in
    sync; same selectors there on purpose, so this rule simply overrides the inline one once it
    loads (equal specificity, later in the cascade). */
-.boot-splash { animation: none; overflow: hidden; }
+.boot-splash { animation: none; overflow: hidden; z-index: 2147483000; }
 /* The firefighter snail's sizing and animation live in its SVG. Vite inlines the same source
    in the boot splash; components/SnailLoader uses it once React has mounted. */
 .loading-name { font-size: var(--fs-3); font-weight: var(--fw-bold); letter-spacing: .14em; text-transform: uppercase; color: var(--ink); }
@@ -910,52 +912,59 @@ textarea.note-pill-input { resize: none; overflow: hidden; display: block; line-
 .present-ask-field { flex: 1 1 auto; gap: var(--sp-1); }
 .present-name { width: 220px; max-width: 100%; height: var(--tap); padding: 0 var(--sp-3); border: 1px solid var(--border); border-radius: var(--r-xs);
   background: var(--surface); color: var(--ink); font: var(--fw-regular) var(--fs-3) var(--body); }
-/* the follow chip a panned follower's pill turns into: one tap jumps back */
+/* the follow chip a panned follower's pill turns into: one tap jumps back. The floating glass of
+   every map chip with the presenter's red as its edge and words (owner pick 09.11.2026, mock
+   nov09-folgen-button C): quiet over a full Lage, never a second alarm-red slab beside the fire */
 .present-again { pointer-events: auto; display: inline-flex; align-items: center; gap: var(--sp-2); height: var(--tap-lg);
-  padding: 0 var(--sp-4) 0 var(--sp-2); border: none; border-radius: var(--r-pill); background: var(--present); color: var(--on-accent-ink);
-  font: var(--fw-bold) var(--fs-3) var(--body); box-shadow: 0 0 0 3px var(--surface), var(--e4); cursor: pointer; }
-.present-again .present-av { box-shadow: 0 0 0 2px var(--on-accent-ink); background: var(--present); }
+  padding: 0 var(--sp-4) 0 var(--sp-2); border: none; border-radius: var(--r-pill);
+  background: var(--float-bg); backdrop-filter: var(--float-blur); color: var(--red-strong);
+  font: var(--fw-bold) var(--fs-3) var(--body); box-shadow: inset 0 0 0 2.5px var(--present), var(--e4); cursor: pointer; }
+.present-again .present-av { box-shadow: none; background: var(--present); }
 .present-again:active { background-image: linear-gradient(var(--press), var(--press)); }
 .present-hint { padding: var(--sp-1) var(--sp-3); border-radius: var(--r-xs); background: var(--float-bg); box-shadow: var(--float-edge);
   color: var(--ink); font-size: var(--fs-1); font-weight: var(--fw-medium); max-width: 100%; text-align: center; text-wrap: balance; }
 
-/* the rings: a named circle that fades (lib/presentation · RING_MS = 4 s; this animation is it) */
+/* the rings: a named circle that stands until somebody taps the × on its name (owner pick
+   09.11.2026 – they faded after 4 s before); it pops in once */
 .present-rings { position: absolute; inset: 0; pointer-events: none; z-index: 20; overflow: visible; }
-.present-ring { position: absolute; width: 0; height: 0; animation: present-ring-life 4s ease-out forwards; }
+.present-ring { position: absolute; width: 0; height: 0; animation: present-ring-in .32s ease-out; }
 /* ⚠️ border-box: the global `* { box-sizing }` does not reach a pseudo-element, and a content-box
    44px circle with a 3px border is 50px from the same top-left – 3px off the tap (staging 06.11.) */
 .present-ring::before { content: ''; position: absolute; left: -22px; top: -22px; width: 44px; height: 44px; border-radius: 50%; box-sizing: border-box;
   border: 3px solid var(--tone); background: color-mix(in srgb, var(--tone) 14%, transparent); }
 .present-ring-dot { position: absolute; left: -6px; top: -6px; width: 12px; height: 12px; border-radius: 50%; background: var(--tone);
   box-shadow: 0 0 0 2px var(--surface); }
-.present-ring-name { position: absolute; left: 28px; top: -13px; padding: 2px var(--sp-2); border-radius: var(--r-pill); background: var(--tone);
+.present-ring-name { position: absolute; left: 28px; top: -13px; display: inline-flex; align-items: center; gap: var(--sp-1);
+  padding: 2px var(--sp-2); border-radius: var(--r-pill); background: var(--tone);
   color: var(--on-accent-ink); font-size: var(--fs-1); font-weight: var(--fw-bold); white-space: nowrap; box-shadow: var(--e1); }
+.present-ring-name:has(.present-unmark) { top: -15px; padding-right: var(--sp-1); }
+/* the × on a mark's name (Presentation · UnmarkX): small on the tag, a 44px target around it */
+.present-unmark { position: relative; pointer-events: auto; display: grid; place-items: center; width: 22px; height: 22px; padding: 0;
+  border: none; border-radius: 50%; background: color-mix(in srgb, #000 22%, transparent); color: inherit; cursor: pointer; }
+.present-unmark::after { content: ''; position: absolute; inset: -11px; }
+.present-unmark .i { width: 13px; height: 13px; }
 /* a ring close to another wears its tag on the left (and/or a row up or down – the inline
    translateY): lib/presentation · placeTags keeps the tags off each other */
 .present-ring-name[data-side='left'] { left: auto; right: 28px; }
-@keyframes present-ring-life {
+@keyframes present-ring-in {
   0% { opacity: 0; transform: scale(.6); }
-  8% { opacity: 1; transform: scale(1); }
-  70% { opacity: 1; }
-  100% { opacity: 0; }
+  100% { opacity: 1; transform: scale(1); }
 }
-/* the lines («Zeigen»: press and drag): the person's colour on a light halo; a finished line fades
-   like a ring (the hook takes it off at RING_MS). On a plan the SVG spans the board in 0..1 units
+/* the lines («Zeigen»: press and drag): the person's colour on a light halo; a finished line stands
+   like a ring, its name and × at the tip. On a plan the SVG spans the board in 0..1 units
    (`viewBox`, non-scaling strokes); on the Karte and a form page it is the layer in px. */
 .present-line { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 .present-line path { fill: none; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 .present-line-halo { stroke: var(--surface); stroke-width: 8px; opacity: .85; }
 .present-line-ink { stroke: var(--tone); stroke-width: 4px; }
-.present-line[data-done], .present-line-tip[data-done] { animation: present-line-fade 4s ease-out forwards; }
 .present-line-tip { position: absolute; width: 10px; height: 10px; transform: translate(-50%, -50%); border-radius: 50%; background: var(--tone);
   box-shadow: 0 0 0 2px var(--surface); }
-@keyframes present-line-fade { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
+.present-line-tip .present-ring-name { left: 18px; top: -10px; }
 /* a form page's layer: the page's visible band, clipping what is scrolled away (an edge arrow
    stands for it) */
 .present-page-marks { overflow: hidden; }
-/* reduced motion: the global rule (03-map.css) would end the life at once and `forwards` would hold
-   it invisible – the ring stands still instead, and the hook takes it off at RING_MS */
-@media (prefers-reduced-motion: reduce) { .present-ring, .present-line, .present-line-tip { animation: none !important; } }
+/* reduced motion: no pop-in */
+@media (prefers-reduced-motion: reduce) { .present-ring { animation: none !important; } }
 
 /* the edge arrows: a ring or a line outside what this screen shows (owner pick 06.11.2026, «Fit +
    edge arrows»), at the edge in the direction of it, with the name on the inside */

@@ -10,7 +10,7 @@ import { readFile } from 'node:fs/promises'
 // Runs against a live, seeded stack (see playwright.config.ts). The German strings
 // below mirror src/config/copy/de.ts (the default de-CH deployment locale).
 
-import { test, expect, expectNoCrash, login, ensureIncidentOpen, OFFLINE_FETCH_FAILURE } from './helpers'
+import { test, expect, expectNoCrash, login, ensureIncidentOpen, openApp, adminContext, ADMIN_SECRET, OFFLINE_FETCH_FAILURE } from './helpers'
 
 test('core surfaces render and survive reload', async ({ page }) => {
   await login(page)
@@ -50,6 +50,50 @@ test('core surfaces render and survive reload', async ({ page }) => {
   await page.reload()
   await expect(page.locator('nav.navrail'), 'still authenticated and in an incident after reload').toBeVisible()
   await expectNoCrash(page, 'after reload')
+})
+
+// «Karte & Objekte» – the home every launch without an Einsatz lands on (docs/karte-objekte.md).
+// Until 09.11.2026 the specs only clicked its menu on the way to an Einsatz, so a white Karte home
+// passed the gate. One object of this test's own goes in through the admin API (a fresh stack has
+// no catalogue); it stays on the disposable stack, as the Objektbesuche spec's does.
+test.describe('Karte & Objekte', () => {
+  test.skip(!ADMIN_SECRET, 'set E2E_ADMIN_SECRET to the deployment ADMIN_SECRET to run this')
+
+  test('the map mounts, the search finds a station object, its panel opens and closes', async ({ page, baseURL }) => {
+    // the Karte draws through software WebGL in CI: every step on it takes a second or more
+    test.setTimeout(120_000)
+    const name = `E2E Karte ${Date.now()}`
+    const admin = await adminContext(baseURL)
+    const created = await admin.post('/api/objects', { data: { name, address: 'Teststrasse 7', lat: 47.5142, lng: 7.5561 } })
+    expect(created.ok(), `object: ${created.status()}`).toBe(true)
+    const { id } = await created.json() as { id: string }
+    await admin.dispose()
+
+    await login(page)
+    // by its route: an Einsatz another case left open would take the launch
+    await openApp(page, '/karte')
+    const karte = page.locator('[data-karte]')
+    const canvas = karte.locator('canvas.maplibregl-canvas').first()
+    await expect(canvas).toBeVisible()
+    await expectNoCrash(page, 'Karte & Objekte')
+
+    // the search answers from the catalogue on the device, by name
+    await karte.locator('.topbar input').first().fill(name)
+    await page.getByRole('option', { name }).click()
+
+    // the pick opens the object: its panel, its address in the URL, its name tag on the map
+    const panel = page.locator('[data-karte-panel]')
+    await expect(panel).toContainText(name)
+    await expect(page).toHaveURL(new RegExp(`/karte\\?objekt=${id}$`))
+    await expect(karte.locator('.maplibregl-marker').getByRole('button', { name })).toBeVisible()
+    await expectNoCrash(page, 'Karte & Objekte · object panel')
+
+    // back: the panel's ✕ leaves the map standing
+    await panel.locator('button.ip-x').click()
+    await expect(panel).toHaveCount(0)
+    await expect(canvas).toBeVisible()
+    await expectNoCrash(page, 'Karte & Objekte · after closing the object')
+  })
 })
 
 async function enterJournalRow(page: Page, text: string) {
@@ -111,14 +155,17 @@ test.describe('loading snail', () => {
   test.use({ serviceWorkers: 'block' })
 
   type Launch = {
-    /** The boot cover's entrance at the moment React removes the cover: its own clock then
-     *  (performance time since the animation's `startTime`), its length and its play state. */
-    handover?: { clock: number; duration: number; playState: string; idleClock?: number }
-    replacedAt?: number
-    reactClock?: number
+    /** The boot cover's entrance at the moment it starts to lift (lib/snailLaunch · liftBootCover):
+     *  its own clock then (performance time since the animation's `startTime`), its length, its
+     *  play state, the idle loop's clock, and what it lifts onto. */
+    handover?: { clock: number; duration: number; playState: string; idleClock?: number; onto: { app: boolean; reactSplash: boolean; reactLag?: number } }
   }
 
-  async function prepareLaunch(page: Page, configDelay = 0) {
+  /** `meDelay`: how long `/api/auth/me` stays pending, so React's first Splash stays mounted beneath
+   *  the cover – a number of ms, or a promise the test resolves itself (`held`). A case that
+   *  asserts the cover lifts ONTO that Splash holds it: against a fixed delay a slow runner lifted
+   *  the cover after the answer, and the case failed and passed on retry (CI run 42492513971). */
+  async function prepareLaunch(page: Page, { configDelay = 0, meDelay = 500 }: { configDelay?: number; meDelay?: number | Promise<void> } = {}) {
     await page.emulateMedia({ reducedMotion: 'no-preference' })
     await page.route('**/api/config', async route => {
       if (configDelay) await new Promise(resolve => setTimeout(resolve, configDelay))
@@ -126,8 +173,7 @@ test.describe('loading snail', () => {
     })
     await page.route('**/api/plan-scales', route => route.fulfill({ json: {} }))
     await page.route('**/api/auth/me', async route => {
-      // Keep React's first Splash mounted briefly so its continued clock can be read.
-      await new Promise(resolve => setTimeout(resolve, 500))
+      await (typeof meDelay === 'number' ? new Promise(resolve => setTimeout(resolve, meDelay)) : meDelay)
       await route.fulfill({ status: 401, json: { detail: 'Not authenticated' } })
     })
     await page.route('**/api/auth/refresh', route => route.fulfill({ status: 401, json: { detail: 'Not authenticated' } }))
@@ -136,17 +182,13 @@ test.describe('loading snail', () => {
       const state: Launch = {}
       Object.assign(window, { __snailLaunch: state })
       // ⚠️ Not `animationend`: WebKit and Chromium dispatch animation events only with a rendering
-      // update. On a loaded runner none came between the entrance's end and React's commit, the
-      // removed cover never got its `animationend`, and this test failed although the entrance
-      // had ended at least 60 ms earlier by its own clock (CI 08.10.2026: replaced at 694 ms, run 37805366133).
-      // So read the entrance's own clock at the very moment React takes the cover out: its first
-      // commit empties #root with `textContent = ''` (react-dom `clearContainer`).
-      const handover = (root: Node) => {
-        const cover = root instanceof Element ? root.querySelector(':scope > .boot-splash') : null
-        const arrival = cover?.querySelector('.firefighter-snail')?.getAnimations()
-          .find(animation => (animation as CSSAnimation).animationName === 'fs-arrival')
+      // update, and on a loaded runner none came in time (CI 08.10.2026, run 37805366133). So read
+      // the entrance's own clock at the moment the cover starts to lift – its `leaving` class.
+      const handover = (cover: Element) => {
+        const snail = cover.querySelector('.firefighter-snail')
+        const arrival = snail?.getAnimations().find(animation => (animation as CSSAnimation).animationName === 'fs-arrival')
         if (state.handover || !arrival || typeof arrival.startTime !== 'number') return
-        const shell = cover?.querySelector('.firefighter-snail')?.getAnimations({ subtree: true })
+        const shell = snail?.getAnimations({ subtree: true })
           .find(animation => (animation as CSSAnimation).animationName.endsWith('-shell'))
         const now = performance.now()
         const duration = Number(arrival.effect?.getComputedTiming().duration)
@@ -158,69 +200,107 @@ test.describe('loading snail', () => {
           // The still-running shell owns idle continuity; its delay includes the resume offset.
           idleClock: typeof shell?.startTime === 'number'
             ? now - shell.startTime - Number(shell.effect?.getTiming().delay || 0) + duration : undefined,
+          onto: {
+            app: !!document.querySelector('#root .login-state'),
+            reactSplash: !!document.querySelector('#root .splash'),
+          },
         }
+        // A React stage it reveals: how far its loader's loop STARTS after the cover's, on the
+        // shared timeline – a frame or so when it continues the clock, its whole mount time when
+        // it replays. Read once the loader has a start time (it may have mounted this very frame).
+        const onto = state.handover.onto
+        const coverStart = shell?.startTime
+        const readLag = (frames: number) => {
+          const reactShell = document.querySelector('#root .snail-loader svg')?.getAnimations({ subtree: true })
+            .find(animation => (animation as CSSAnimation).animationName.endsWith('-shell'))
+          if (typeof reactShell?.startTime === 'number' && typeof coverStart === 'number') onto.reactLag = reactShell.startTime - coverStart
+          else if (reactShell && frames > 0) requestAnimationFrame(() => readLag(frames - 1))
+        }
+        readLag(30)
       }
-      const textContent = Object.getOwnPropertyDescriptor(Node.prototype, 'textContent')!
-      Object.defineProperty(Node.prototype, 'textContent', {
-        ...textContent,
-        set(this: Node, value: string | null) { handover(this); textContent.set!.call(this, value) },
-      })
-      let sawBoot = false
-      new MutationObserver(() => {
-        if (document.querySelector('.boot-splash')) sawBoot = true
-        else if (sawBoot && state.replacedAt === undefined) {
-          state.replacedAt = performance.now()
-          const clock = document.querySelector('.snail-loader svg')?.getAnimations({ subtree: true })
-            .find(animation => (animation as CSSAnimation).animationName.endsWith('-shell'))?.currentTime
-          if (typeof clock === 'number') state.reactClock = clock
-        }
-      }).observe(document, { childList: true, subtree: true })
+      new MutationObserver(records => {
+        for (const r of records) if (r.target instanceof Element && r.target.matches('.boot-splash.leaving')) handover(r.target)
+      }).observe(document, { subtree: true, attributes: true, attributeFilter: ['class'] })
     })
   }
 
-  const observation = (page: Page) => page.evaluate(() => Reflect.get(window, '__snailLaunch') as Launch)
+  /** a promise that stays pending until `release()` */
+  function held() {
+    let release = () => {}
+    const pending = new Promise<void>(resolve => { release = resolve })
+    return { pending, release }
+  }
 
-  test('a fast startup shows the entire entrance before React takes over', async ({ page }) => {
+  const observation = (page: Page) => page.evaluate(() => Reflect.get(window, '__snailLaunch') as Launch)
+  /** how far a revealed React loader's loop starts after the cover's (see `readLag`) */
+  async function reactLag(page: Page): Promise<number> {
+    await expect.poll(async () => (await observation(page)).handover?.onto.reactLag).toBeDefined()
+    return (await observation(page)).handover?.onto.reactLag ?? NaN
+  }
+  /** the cover's state at the moment it started to lift, once it has */
+  async function lifted(page: Page, timeout = 5_000): Promise<NonNullable<Launch['handover']>> {
+    await expect.poll(async () => (await observation(page)).handover, { timeout }).toBeDefined()
+    const { handover } = await observation(page)
+    if (!handover) throw new Error('the boot cover never started to lift')
+    return handover
+  }
+
+  test('a fast startup shows the entire entrance, then lifts straight onto the app', async ({ page }) => {
     await prepareLaunch(page)
     await page.goto('/')
-    await expect.poll(async () => (await observation(page)).replacedAt).toBeDefined()
-    const { handover, reactClock } = await observation(page)
-    // The entrance ran, on its own clock, to its end (630 ms) before React removed the cover.
+    const handover = await lifted(page)
+    // The entrance ran, on its own clock, to its end (630 ms) before the cover began to lift.
     // Its clock is performance time since the animation's `startTime`: unlike `currentTime`, which
     // stands still between frames, it is exact at any moment, also when frames are overdue.
-    expect(handover, 'the cover must still carry its started entrance when React removes it').toBeDefined()
-    expect(handover!.duration).toBe(630)
-    expect(['running', 'finished']).toContain(handover!.playState)
-    expect(handover!.clock).toBeGreaterThanOrEqual(handover!.duration)
-    // React's snail continues that same clock instead of replaying (any of) the entrance.
-    expect(reactClock).toBeGreaterThanOrEqual(handover!.clock)
+    expect(handover.duration).toBe(630)
+    expect(['running', 'finished']).toContain(handover.playState)
+    expect(handover.clock).toBeGreaterThanOrEqual(handover.duration)
+    // React built the app beneath it: the cover lifts onto the login, no loading stage between.
+    expect(handover.onto).toMatchObject({ app: true, reactSplash: false })
     await expect(page.locator('.boot-splash')).toHaveCount(0)
     await expect(page.locator('.login-state')).toBeVisible()
   })
 
-  test('a slow boot preserves the idle phase instead of replaying the entrance', async ({ page }) => {
-    await prepareLaunch(page, 2_500)
+  test('a slow boot reveals React\'s first stage at once, on the cover\'s clock', async ({ page }) => {
+    // the entrance ended ~2.4 s before React mounts: its 2 s hold is long over, so the cover lifts
+    // with React's first render (the auth stage, /me still pending) instead of hiding it longer
+    const me = held()
+    await prepareLaunch(page, { configDelay: 3_000, meDelay: me.pending })
     await page.goto('/')
-    await expect.poll(async () => (await observation(page)).reactClock).toBeGreaterThan(2_000)
-    const { handover, reactClock } = await observation(page)
-    expect(handover!.clock).toBeGreaterThanOrEqual(handover!.duration)
-    expect(reactClock).toBeGreaterThanOrEqual(handover!.clock)
+    const handover = await lifted(page)
+    expect(handover.onto.reactSplash).toBe(true)
+    expect(Math.abs(await reactLag(page))).toBeLessThanOrEqual(250)
+    me.release()
     await expect(page.locator('.login-state')).toBeVisible()
     await expect(page.locator('.boot-splash')).toHaveCount(0)
   })
 
-  test('an update reload resumes before the first paint and continues through React', async ({ page }) => {
+  test('a React loading stage the cover reveals continues its clock instead of replaying', async ({ page }) => {
+    // React mounts ≥ 800 ms into the launch: a replayed loader would trail the cover by that much,
+    // a continued one only by the frame a fresh animation takes to start (up to ~100 ms on a
+    // loaded runner)
+    const me = held()
+    await prepareLaunch(page, { configDelay: 800, meDelay: me.pending })
+    await page.goto('/')
+    const handover = await lifted(page, 10_000)
+    // still on the auth stage two seconds after the entrance: the cover reveals it (its status
+    // and its «Neu laden» hint must be readable), and its snail is on the cover's clock
+    expect(handover.onto.reactSplash).toBe(true)
+    expect(Math.abs(await reactLag(page))).toBeLessThanOrEqual(250)
+    me.release()
+    await expect(page.locator('.login-state')).toBeVisible()
+  })
+
+  test('an update reload resumes before the first paint and continues to the lift', async ({ page }) => {
     await prepareLaunch(page)
     await page.addInitScript(() => {
       sessionStorage.setItem('kp-snail-resume', JSON.stringify({ at: Date.now(), elapsed: 2_000 }))
     })
     await page.goto('/')
-    await expect.poll(async () => (await observation(page)).reactClock).toBeGreaterThanOrEqual(2_000)
-    const { handover, reactClock } = await observation(page)
-    if (!handover || handover.idleClock === undefined) throw new Error('The resumed boot cover must retain its idle animation clock')
+    const handover = await lifted(page)
+    if (handover.idleClock === undefined) throw new Error('The resumed boot cover must retain its idle animation clock')
     expect(handover.clock).toBeGreaterThanOrEqual(2_000)
     expect(handover.idleClock).toBeGreaterThanOrEqual(2_000)
-    expect(reactClock).toBeGreaterThanOrEqual(handover.idleClock)
     expect(await page.evaluate(() => sessionStorage.getItem('kp-snail-resume'))).toBeNull()
     await expect(page.locator('.login-state')).toBeVisible()
   })

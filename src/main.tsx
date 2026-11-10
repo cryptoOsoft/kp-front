@@ -1,3 +1,5 @@
+// FIRST import: its evaluation is the «bundle starts» moment of the launch's timing line
+import { markBoot, reportBoot } from './lib/bootTiming'
 import { StrictMode, Suspense, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
 import { initServiceWorker } from './lib/swUpdate'
@@ -8,6 +10,7 @@ import { installGlobalErrorReporting } from './lib/reportError'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import './fonts.css'
 import './app.css'
+import { onAccountKnown } from './lib/accountKnown'
 import { AuthProvider, useAuth } from './lib/auth'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { LoginScreen } from './components/LoginScreen'
@@ -15,7 +18,7 @@ import { DemoRibbon } from './components/DemoRibbon'
 import { Splash } from './components/Splash'
 import { lockChromeZoom } from './lib/lockZoom'
 import { loadPrefs, applyTheme, resolveTheme } from './lib/prefs'
-import { bootDeploymentConfig, applyDeploymentBranding } from './lib/deploymentConfig'
+import { bootDeploymentConfig, applyDeploymentBranding, deploymentName } from './lib/deploymentConfig'
 import { loadStationPlanScales, refreshStationPlanScales } from './lib/stationPlanScale'
 import { migrateLocalStorageToIdb } from './lib/storageMigration'
 import { requestPersistentStorage } from './lib/idb'
@@ -24,7 +27,9 @@ import { ensureErg } from './lib/erg'
 import { ensureUnHazard } from './lib/unHazard'
 import { whenIdle } from './lib/idle'
 import { purgeStaleTiles } from './lib/tilePurge'
-import { waitForSnailArrival } from './lib/snailLaunch'
+import { liftBootCover } from './lib/snailLaunch'
+import { apiBeacon } from './lib/api'
+import { GIT_SHA } from './lib/buildInfo'
 
 // zoom applies only to the map/plan, not the UI chrome (app feel, not a web page)
 lockChromeZoom()
@@ -35,7 +40,8 @@ installGlobalErrorReporting()
 
 // Night ergonomics: resolve the colour scheme before first paint so the app never
 // flashes the wrong chrome. Default 'auto' tracks daylight (brigade region at boot,
-// the incident coordinate once known via useAutoTheme); 'day'/'night' are overrides.
+// the incident coordinate once known via useAutoTheme); 'device' follows the OS setting;
+// 'day'/'night' are overrides.
 applyTheme(resolveTheme(loadPrefs().theme, null, new Date()))
 
 // Ask for PERSISTENT storage: without it this origin's bucket is "best-effort" and the browser
@@ -136,8 +142,15 @@ void (async () => {
     // wait, the outer bound is only there for a cache read that never answers (see above).
     const cfg = await withBudget(bootDeploymentConfig(BOOT_BUDGET_MS, applyDeploymentBranding), BOOT_BUDGET_MS + 1_000, {})
     applyDeploymentBranding(cfg)
-    // station plan calibration (public, offline-cached) — so plans measure out of the box (#3)
-    void loadStationPlanScales()
+    markBoot('cfg')
+    // The static cover now stays up until the app is on screen, so it carries the station name
+    // React's <Splash> used to bring: into the line index.html reserves for it.
+    const wordmark = document.querySelector('.boot-splash .loading-name')
+    if (wordmark) wordmark.textContent = deploymentName()
+    // station plan calibration (offline-cached) — so plans measure out of the box (#3). Its
+    // route needs a session, so it is loaded once the account is known, not at this anonymous
+    // point of the boot.
+    onAccountKnown(() => { void loadStationPlanScales() })
     // …and re-read it whenever this device comes back to the foreground. The document holds
     // STATION data — the Massstab and the Georeferenz of a sheet — which somebody sets on the
     // KP tablet while the phone in the same Einsatz sits in a pocket. The boot load runs once,
@@ -163,6 +176,9 @@ void (async () => {
     // idle callback fires in the first quiet moment after first paint (2 s at the latest), and
     // both files are precached, so offline they land exactly as before.
     if (fieldRoute) whenIdle(() => { void ensureUnHazard(); void ensureErg() })
+    // Tiles cached by releases before 08.11.2026 move from Cache Storage into the worker's tile
+    // store (public/sw-tile-store.js), asked on every launch until it is done – well after the boot.
+    setTimeout(() => navigator.serviceWorker?.controller?.postMessage({ type: 'kp-tile-migrate' }), 10_000)
   } catch (e) {
     // Boot init must never white-screen the kiosk: fall through to defaults and render.
     console.error('Boot init failed (continuing with defaults):', e)
@@ -180,10 +196,16 @@ void (async () => {
   // /terminal is the enrolled Stations-Terminal — a standing link session without a token in
   // the address (its credential is a device cookie), routed through the same link chunk.
   const isLink = window.location.pathname.startsWith('/l/') || window.location.pathname === '/terminal'
-  // Finish the static cover's 630 ms arrival before replacing it, even on a warm launch.
-  // React Splash continues the same clock; a long boot has already finished this entrance.
-  await waitForSnailArrival()
-  createRoot(document.getElementById('root')!).render(
+  // The launch's timing line (lib/bootTiming) – the field app only: a link page's session may not
+  // post outside its allow-list, and the poster and /admin are not what anyone launches at 3am.
+  if (fieldRoute && !isLink) reportBoot((body) => apiBeacon('/api/diag/boot', body), GIT_SHA)
+  markBoot('root')
+  // React mounts BENEATH the static cover (index.html), which finishes its 630 ms arrival and
+  // lifts once the app is on screen (lib/snailLaunch · liftBootCover): the app builds during the
+  // entrance instead of after it, and a normal launch never shows React's own loading stages.
+  const rootEl = document.getElementById('root')!
+  void liftBootCover(rootEl)
+  createRoot(rootEl).render(
     <StrictMode>
       {/* Root boundary: login, landing list, overlays, and the admin app used to sit
           OUTSIDE any boundary, so a throw there still white-screened. The inner

@@ -44,10 +44,11 @@ interface Props {
    *  earns most — «Auswahl», «Linie», «Fläche», «Messen» are short, real words, and nine glyphs
    *  with no text is the densest thing on the screen for anybody who does not know them. */
   labels?: RailLabels
-  /** the surface binds the tool hotkeys (lib/hotkeys), so each tile may wear its letter. Default
-   *  true – the Karte and the Plan; the Karte's viewer rail (Pin · Messen · ERG) has no keyboard
-   *  layer and passes false, so «Messen» does not advertise a D that does nothing there. */
-  hotkeys?: boolean
+  /** the letter a tile wears – the key the surface's keyboard layer binds to that tool. Default
+   *  lib/hotkeys · railToolKey (the Einsatz's Karte and Plan); the Karte & Objekte viewer passes
+   *  its own table (lib/karte/hotkeys · karteToolKey: P · D · G), so a badge never names a letter
+   *  that does nothing on the surface it is shown on. */
+  toolKey?: (id: string) => string | undefined
   /** the surface's VIEW controls – the Karte's Ebenen · Ansichten · − +, the Plan's Einpassen ·
    *  north dial · − +. Where they stand is this rail's call (see `ViewBar` below): the pinned end
    *  of the phone's folded bar, their own small bar in the corner below the rail everywhere else. */
@@ -79,7 +80,7 @@ const MAXW = 280
  *  wanting the words permanently is what the `railLabels` device pref is for. */
 let lastExpanded = false
 
-export function ToolRail({ primary, tools, active, open = false, onPick, toolRefs, extras, controls, className, labels, hotkeys = true }: Props) {
+export function ToolRail({ primary, tools, active, open = false, onPick, toolRefs, extras, controls, className, labels, toolKey = railToolKey }: Props) {
   const [expanded, setExpandedState] = useState(lastExpanded)
   const setExpanded = (v: boolean) => { lastExpanded = v; setExpandedState(v) }
   const nav = appConfig.copy.navRail
@@ -88,7 +89,7 @@ export function ToolRail({ primary, tools, active, open = false, onPick, toolRef
   // the footer's two, nothing scrolls. The vertical rail has the room and is unchanged.
   const phone = useIsPhone()
   const bar = phone ? barTools(tools) : tools
-  const keyHint = (toolId: string) => (hotkeys ? <RailKey k={railToolKey(toolId)} /> : null)
+  const keyHint = (toolId: string) => <RailKey k={toolKey(toolId)} />
   /** the armed tool that came out of the sheet, which the «+» tile wears while it is armed */
   const face = phone ? addFace(tools, active) : null
 
@@ -205,15 +206,15 @@ export function ToolRail({ primary, tools, active, open = false, onPick, toolRef
       <button className={`vrail-grip rail-grip${rail.dragging ? ' drag' : ''}`} aria-label={nav.resize} {...rail.gripProps} />
     </aside>
   )
-  return phone || controls == null ? aside : <>{aside}<ViewBar label={nav.viewBar}>{controls}</ViewBar></>
+  return phone || controls == null ? aside : <>{aside}<ViewBar label={nav.viewBar} labelled={labels === 'short'}>{controls}</ViewBar></>
 }
 
 /** A tile's shortcut letter (lib/hotkeys) – the same badge as the left rail, shown by the device
  *  pref «Tastenkürzel anzeigen» (lib/prefs · keyHints) and, in CSS (04b-rail · .rail-key), only
  *  with a mouse and keyboard, in the tile's top-left corner. Never on a phone: its folded bar's
  *  tiles are doors to many tools. The rail puts it on its tools; a surface puts it on a view-bar
- *  button whose key its keyboard layer binds (MapToolDocks · Ebenen B, Whiteboard · Einpassen 0) –
- *  the Karte viewer, which has no keyboard layer, puts none. The tile must be `position: relative`. */
+ *  button whose key its keyboard layer binds (MapToolDocks and KarteApp · Ebenen B, Whiteboard ·
+ *  Einpassen 0). The tile must be `position: relative`. */
 export function RailKey({ k }: { k: string | undefined }) {
   const [keyHints] = useKeyHints()
   const phone = useIsPhone()
@@ -221,13 +222,14 @@ export function RailKey({ k }: { k: string | undefined }) {
 }
 
 /** The tablet/laptop home of a ToolRail's view controls: one small bar in the bottom corner on
- *  the rail's side (07-toolrail · .view-bar), its buttons in a row with their words under the
- *  glyphs. ⚠️ Rendered as the rail's NEXT SIBLING, never inside it: the rail's backdrop-filter
+ *  the rail's side (07-toolrail · .view-bar), its buttons in a row – with their words under the
+ *  glyphs when the rails wear theirs (`labelled`, the device pref «Beschriftung»), glyphs only
+ *  when they do not: one rule for every bar (owner, 07.11.2026). ⚠️ Rendered as the rail's NEXT SIBLING, never inside it: the rail's backdrop-filter
  *  makes it the containing block of anything positioned within, and the stylesheet keys off the
  *  pair (`:has(+ .view-bar)` lifts the rail's foot above the bar; a rule that hides the rail
  *  hides `+ .view-bar` with it). Its measured width goes out as `--view-bar-w` – the map's ⓘ
  *  stands just left of it (03-map) – and is released on unmount, like the rail's `--vrail-w`. */
-function ViewBar({ label, children }: { label: string; children: React.ReactNode }) {
+function ViewBar({ label, labelled, children }: { label: string; labelled: boolean; children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null)
   useLayoutEffect(() => {
     const el = ref.current
@@ -239,5 +241,5 @@ function ViewBar({ label, children }: { label: string; children: React.ReactNode
     ro.observe(el)
     return () => { ro.disconnect(); root.style.removeProperty('--view-bar-w') }
   }, [])
-  return <div ref={ref} className="view-bar" role="group" aria-label={label}>{children}</div>
+  return <div ref={ref} className={`view-bar${labelled ? ' labelled' : ''}`} role="group" aria-label={label}>{children}</div>
 }

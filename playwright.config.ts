@@ -37,7 +37,9 @@ export default defineConfig({
   updateSnapshots: process.env.CI ? 'none' : 'missing',
   timeout: 60_000,
   expect: { timeout: 15_000 },
-  reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : 'list',
+  // json: the browser jobs read it for the tests that only passed on a retry
+  // (.github/scripts/flaky-summary.mjs) – a retry must not hide a flake
+  reporter: process.env.CI ? [['list'], ['html', { open: 'never' }], ['json', { outputFile: 'test-results/report.json' }]] : 'list',
   use: {
     baseURL,
     trace: 'retain-on-failure',

@@ -27,6 +27,38 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
         ],
       },
       {
+        id: 'karte-objekte', title: 'Mappa & oggetti – senza intervento', icon: 'pin',
+        blocks: [
+          { kind: 'lead', text: 'Senza un intervento aperto, KP Front arriva qui: la carta del corpo con tutti i suoi oggetti, per consultare e prepararsi. Non è un intervento – misurare, segnare e consultare avviene solo su questo dispositivo, e nulla viene salvato.' },
+          { kind: 'sub', text: 'Ricerca e oggetti' },
+          { kind: 'list', items: [
+            'Il campo in alto cerca **indirizzi e oggetti**. Un risultato apre le sue informazioni: pericoli, idranti vicini e i **piani d’oggetto**.',
+            'Ogni oggetto è contornato sulla carta con i suoi edifici e porta il suo nome; toccarlo lo apre. Toccare un altro edificio mostra ciò che il registro ne sa.',
+            'I piani dell’oggetto scelto stanno nella barra sinistra e si aprono nello stesso lettore di piani dell’intervento – solo in lettura. Il pulsante in basso a sinistra riporta all’oggetto.',
+          ], only: 'wide' },
+          { kind: 'list', items: [
+            'La ricerca in alto a destra trova **indirizzi e oggetti**. Un risultato apre le sue informazioni: pericoli, idranti vicini e i **piani d’oggetto**.',
+            'Ogni oggetto è contornato sulla carta con i suoi edifici e porta il suo nome; toccarlo lo apre. Toccare un altro edificio mostra ciò che il registro ne sa.',
+            'I piani sono righe nelle informazioni dell’oggetto e si aprono nello stesso lettore di piani dell’intervento – solo in lettura. «Indietro» in basso riporta alla carta.',
+          ], only: 'phone' },
+          { kind: 'list', items: [
+            '**Visita oggetto** e **Segnala** nelle informazioni avviano il rilevamento, dove il corpo lo ha predisposto.',
+          ] },
+          { kind: 'sub', text: 'Strumenti' },
+          { kind: 'list', items: [
+            '**Posa punto** – un punto con indirizzo e coordinate (LV95 + WGS84) da copiare. Anche una pressione lunga sulla carta libera ne posa uno.',
+            '**Misura** – distanza o area.',
+            '**Merci pericolose** – inserire il numero ONU: le indicazioni ADR/ERG e le distanze come cerchi attorno al punto scelto.',
+            '**Livelli** – condotte, idranti, radar meteo e i dati della stazione; un’impostazione propria, indipendente da ogni intervento.',
+            '**Checklist** – le checklist e le guide degli apparecchi del corpo da leggere, con una ricerca propria.',
+          ] },
+          { kind: 'list', only: 'keyboard', items: [
+            'Con la tastiera: tutte le scorciatoie di questa vista in **Scorciatoie da tastiera** › «Mappa & oggetti».',
+          ] },
+          { kind: 'note', text: 'Quando un intervento è in corso, compare nella barra in alto – rosso, arancione per un esercizio – e un tocco lo apre. Un allarme viene mostrato, ma mai aperto da sé.' },
+        ],
+      },
+      {
         id: 'navigation', title: 'Navigazione e interfaccia', icon: 'cursor',
         blocks: [
           { kind: 'lead', text: 'Tre zone fisse: la barra delle aree a sinistra, la barra dell’intervento in alto, la barra degli strumenti a destra.', only: 'wide' },
@@ -40,7 +72,6 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
           { kind: 'sub', text: 'Barra sinistra', only: 'wide' },
           { kind: 'list', items: [
             'Cambia area di lavoro: **Mappa** (Situazione), i **Piani** (Moduli/edifici), **Checklist**, **Autoprotezione**.',
-            'In modalità Situazione, **Livelli** e il selettore della **Mappa** sono fissati in basso – sempre visibili.',
             'Trascinando il bordo destro della barra la si espande con le etichette o la si richiude.',
           ], only: 'wide' },
           { kind: 'sub', text: 'Barra dell’intervento in alto' },
@@ -60,33 +91,41 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
           ] },
           { kind: 'sub', text: 'Barra degli strumenti a destra', only: 'wide' },
           { kind: 'list', items: [
-            'Gli strumenti di disegno e posizionamento; in basso, fissata, la navigazione della carta (zoom, adatta, coordinate).',
+            'Gli strumenti di disegno e posizionamento.',
+            'Sotto, nell’angolo in basso a destra, la **barra di visualizzazione** – sempre visibile, anche quando gli strumenti scorrono: sulla carta **Livelli** e **Viste** (la bussola), sul piano **Adatta** e la freccia del nord; con il mouse anche **−** e **+**.',
           ], only: 'wide' },
         ],
       },
       {
         id: 'tastatur', title: 'Scorciatoie da tastiera', icon: 'type', only: 'keyboard',
         blocks: [
-          { kind: 'lead', text: 'Con una tastiera si raggiunge tutto senza mouse. Le scorciatoie non agiscono mentre si scrive in un campo di testo. Dove un’area di una delle due barre, o «Diario» e «Voce» in alto, ha un tasto, il tasto è stampato sopra.' },
+          { kind: 'lead', text: 'Con la tastiera tutto è raggiungibile senza mouse. Le scorciatoie non fanno nulla mentre si scrive in un campo, né dietro una finestra aperta. Dove una casella ha un tasto, la sua lettera vi è scritta – in entrambe le barre, nella barra di visualizzazione in basso a destra e su «Registro» e «Voce» in alto (finché «Mostra le scorciatoie da tastiera» è attivo nelle **Impostazioni**).' },
           { kind: 'sub', text: 'Cambiare area' },
           { kind: 'list', items: [
-            'I numeri aprono il modulo di piano con quel numero – quali esistono dipende dai moduli del corpo: [[1]] modulo 1, [[2]] o [[3]] il modulo «2/3», [[4]] modulo 4 …',
-            '[[K]] Carta · [[C]] Checklist · [[A]] Squadre (A come Atemschutz) · [[P]] Presenza · [[M]] Materiale · [[R]] Rapporto – ogni tasto è la prima lettera della parola TEDESCA, perché è a quella che la scorciatoia è legata.',
-            '[[⌘]] [[[]] / [[⌘]] [[]]] scorre tutte le aree una per una (anche Dintorni ed Edificio, che non hanno numero).',
+            'I numeri aprono il modulo di piano con quel numero – quali esistono dipende dai moduli di questo corpo: [[1]] modulo 1, [[2]] o [[3]] il modulo «2/3», [[4]] modulo 4 …',
+            '[[K]] Mappa · [[C]] Checklist · [[A]] Squadre (A come Atemschutz) · [[P]] Presenze · [[M]] Materiale · [[R]] Rapporto – ogni volta la prima lettera della parola TEDESCA, perché è a questa che il tasto è legato.',
+            '[[⌘]] [[[]] / [[⌘]] [[]]] scorre tutte le aree una alla volta (anche Dintorni ed Edificio, che non hanno numero).',
           ] },
           { kind: 'sub', text: 'Strumenti (uguali in Situazione e Piano)' },
           { kind: 'list', items: [
-            '[[V]] Selezione · [[W]] Selezione multipla · [[S]] Simbolo · [[L]] Linea · [[F]] Superficie · [[U]] Perimetro · [[N]] Nota · [[T]] Squadra · [[D]] Misurare (solo carta).',
+            '[[V]] Selezione · [[W]] Selezione multipla · [[S]] Simbolo · [[L]] Linea · [[F]] Area · [[U]] Perimetro · [[N]] Nota · [[T]] Squadra · [[D]] Misura.',
           ] },
           { kind: 'sub', text: 'Modifica' },
           { kind: 'list', items: [
-            '[[⌘]] [[Z]] Annulla · [[⌘]] [[⇧]] [[Z]] Ripristina · [[⌘]] [[D]] Duplica.',
-            '[[Esc]] chiude nell’ordine: strumento → pannello aperto → selezione. [[⌫]] elimina la selezione.',
+            '[[⌘]] [[Z]] Annulla · [[⌘]] [[⇧]] [[Z]] Ripristina · [[⌘]] [[D]] Duplica · [[⌫]] elimina la selezione.',
+            '[[Esc]] torna indietro di un livello a ogni pressione finché la carta è libera: un simbolo in posa → rilevamento coordinate → Livelli / Viste → lo strumento → il pannello della nota → la selezione. In un campo [[Esc]] lascia solo il campo; chiude la **Voce** e ne tiene il testo per la prossima volta.',
           ] },
           { kind: 'sub', text: 'Vista e pannelli' },
           { kind: 'list', items: [
-            '[[+]] / [[−]] Zoom · [[0]] Adatta · [[G]] La mia posizione · [[X]] Formato coordinate. «Verso nord» non ha un tasto – a questo serve la bussola, sempre visibile e che ruota con la carta.',
-            '[[J]] Cronologia · [[E]] Voce · [[B]] Livelli · [[⌘]] [[,]] Impostazioni · [[?]] questa guida.',
+            '[[+]] / [[−]] Zoom · [[0]] Adatta · [[G]] La mia posizione · [[X]] Formato coordinate. «Verso nord» non ha tasto – a questo serve la bussola, sempre visibile e che ruota con la carta.',
+            '[[J]] Registro · [[E]] Voce · [[B]] Livelli · [[⌘]] [[,]] Impostazioni · [[?]] questo aiuto.',
+            'Sulla **lavagna**, [[Pag↑]] / [[Pag↓]] sfogliano le sue pagine.',
+          ] },
+          { kind: 'sub', text: 'Mappa & oggetti (senza intervento)' },
+          { kind: 'list', items: [
+            'Gli stessi tasti dove esiste la stessa cosa: [[K]] Mappa · [[C]] Checklist · i numeri i moduli dell’oggetto scelto · [[D]] Misura · [[B]] Livelli · [[G]] La mia posizione · [[0]] Adatta · [[+]] / [[−]] Zoom · [[⌘]] [[,]] Impostazioni · [[?]] questo aiuto.',
+            'In più, ciò che esiste solo qui: [[P]] Posa punto (P come Punkt) · [[U]] Merci pericolose (U come numero ONU) · [[/]] o [[⌘]] [[K]] la ricerca.',
+            '[[Esc]] torna passo per passo alla carta: ricerca → Viste → strumento → piano aperto → selezione.',
           ] },
         ],
       },
@@ -96,7 +135,7 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
           { kind: 'lead', text: 'La carta tattica sopra lo sfondo cartografico reale (area d’intervento e dintorni).' },
           { kind: 'list', items: [
             '**Mappa di base** (in alto nel pannello livelli) cambia lo sfondo: Carto, OpenStreetMap o satellite.',
-            '**Ingrandisci/Riduci**, **Adatta** e **Rileva coordinate** in basso nella barra destra. Durante il rilevamento, tocca la carta per fissare un punto (LV95 + WGS84); la bussola si riorienta a nord.',
+            '**Viste** – la bussola in basso a destra – offre **Verso nord**, **Adatta**, **La mia posizione**, **Rileva coordinate** e le viste salvate; con il mouse **−** e **+** stanno accanto. Durante il rilevamento, tocca la carta per fissare un punto (LV95 + WGS84).',
             '**Vento** mostrato in continuo (direzione + temperatura), così la direzione di propagazione è subito chiara.',
             '**Veicoli** appaiono in tempo reale via GPS (nome + orientamento), la propria posizione come punto blu fisso.',
             '**Info edificio** in basso a sinistra indica i pericoli dell’edificio sul luogo d’intervento (⚠ gas · PV) e apre la sua scheda: pericoli, **Misure immediate** e Osservazioni in alto, i dati dei registri sotto. La prima volta che questo dispositivo apre l’intervento, la scheda si apre da sola perché venga letta – la carta resta utilizzabile. ✕ la chiude; poi la riapre il chip. Un altro luogo o oggetto con contenuto la mostra di nuovo.',
@@ -137,9 +176,48 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
             '**Perimetro di sicurezza** – trascina dal centro al bordo per impostare il raggio in metri (riempimento regolabile).',
             '**Nota** – testo libero direttamente sulla carta.',
             '**Misura** – distanza (distanza + profilo altimetrico) o superficie (area + perimetro). Trascina i punti per spostarli, tocca la linea per inserire punti intermedi, clic destro per rimuovere un punto.',
+            '**Trasporto d’acqua** – sotto il profilo altimetrico di una distanza o in una condotta: scegliere Ø della manichetta, portata, fonte (idrante, stagno, pompa) e pressione d’entrata; il grafico mostra la pressione lungo la condotta, **Tutte le pompe automatiche** posiziona le pompe. **Mettere sulla carta come condotta** conserva il calcolo, **Pompe sulla mappa** le disegna come simboli.',
           ] },
           { kind: 'sub', text: 'Preimpostazioni dei simboli' },
           { kind: 'lead', text: 'Ogni simbolo porta solo i comandi sensati: **Rotazione** per i segni orientati (frecce, scale, pareti), **Quantità** dove più elementi contano, **Piano** o un **intervallo di piani** (es. scala/ascensore), **Propagazione** per le situazioni di danno – più i campi di immissione adatti (es. nome, sostanza, stato).' },
+        ],
+      },
+      {
+        id: 'wassertransport', title: 'Trasporto d’acqua', icon: 'drop',
+        blocks: [
+          { kind: 'lead', text: 'Calcola una condotta di trasporto: quanta pressione arriva dove, e dove devono stare le pompe. Un **aiuto alla pianificazione** – le fonti dei numeri sono dietro la **ⓘ** nell’intestazione (AGV, FKS).' },
+          { kind: 'sub', text: 'Disegnare la condotta' },
+          { kind: 'list', items: [
+            'Disegnare una **Linea** lungo la strada, **dalla fonte all’intervento** – l’acqua scorre dal primo all’ultimo punto. Toccare la condotta, aprire **Misura** e toccare **Calcolare il trasporto d’acqua**.',
+            'Oppure provare prima: **Misurare › Distanza**, poi **Calcolare il trasporto d’acqua** sotto il profilo altimetrico. **Mettere sulla carta come condotta** riprende la distanza con tutto il calcolo.',
+            'Direzione sbagliata? **⇄** nell’intestazione la inverte, il disegno resta. La lettera all’inizio della condotta (**H**, **W**, **P**) mostra dov’è la fonte.',
+          ] },
+          { kind: 'sub', text: 'Fonte, acqua, pressione in entrata' },
+          { kind: 'list', items: [
+            '**Ø del tubo** (in una condotta, la sua riga **Tubo**) – 55, 75, 2× 75 o 110 mm; la perdita di carico viene dalla tabella AGV.',
+            '**Acqua** – la portata che deve arrivare in fondo (l/min). Scegliere una proposta o digitare un’altra quantità.',
+            '**Fonte** – idrante, stagno o pompa. La **pressione in entrata** è quella con cui la condotta vi inizia: la pressione statica all’idrante, la pressione in uscita di una pompa. Uno stagno non ne ha – la prima pompa sta alla fonte.',
+          ] },
+          { kind: 'sub', text: 'Leggere il diagramma' },
+          { kind: 'list', items: [
+            'La linea nera è la **pressione** lungo la condotta, sotto il **terreno**. Le fasce: verde **buono** sopra 3 bar, giallo **scarso** 2–3 bar, rosso **troppo poco** sotto 2 bar.',
+            'I punti **P1**, **P2** … sono le pompe – messe automaticamente dove la pressione scende a 2 bar (FKS: una pompa ha bisogno di almeno 2 bar in entrata). Sulla mappa portano gli stessi nomi.',
+            'Passare sopra il diagramma o toccarlo mostra la pressione in quel punto – la mappa segna il punto.',
+            'Sotto, **salita/discesa** e **pressione in fondo**. **Tubi** indica la riserva a parte, p. es. «34 + 3 di riserva × 20 m».',
+          ] },
+          { kind: 'sub', text: 'Spostare le pompe' },
+          { kind: 'list', items: [
+            'Toccare una pompa mostra dove sta, la sua **pressione in entrata** e la **pressione in uscita** (regolabile con **−**/**+**).',
+            '**Trascinare** una pompa – di lato nel diagramma o lungo la condotta sulla mappa – la fissa lì («a mano»); le pompe successive vengono ricalcolate. **Tutte le pompe automatiche** ripristina tutto.',
+            '**Sulla mappa** disegna le pompe come motopompe sulla mappa e sullo schizzo stampato. Toccare una pompa sulla mappa apre la condotta con la **Misura** aperta.',
+          ] },
+          { kind: 'sub', text: 'Avvisi' },
+          { kind: 'list', items: [
+            '**Pompa 1: pressione in entrata sotto 2 bar** – una pompa messa a mano sta troppo lontano; avvicinarla alla fonte o toccare **Tutte le pompe automatiche**. **Nessuna pressione**: lì non arriva più acqua.',
+            '**Più del solito** – molte pompe; accanto, quante ne servirebbero con un altro Ø del tubo.',
+            '**Calcolato senza profilo altimetrico** (offline, fuori dalla Svizzera) e **fuori dalla tabella AGV** – i numeri sono stimati.',
+            'Un avviso di pompa viene annotato una volta nella **cronologia** quando compare, e così arriva nel rapporto.',
+          ] },
         ],
       },
       {
@@ -293,7 +371,7 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
             'Il **dettaglio del croquis** sta come campo accanto al modulo: spostare, ingrandire, **verticale/orizzontale** e lo **stato del croquis** – quale momento mostra l’immagine, con segni dove è successo qualcosa. Si stampa esattamente ciò che è a schermo; non c’è un passaggio di conferma.',
             '**Rapporto d’intervento (PDF)** genera il rapporto finito – reso lato server, un solo pulsante. Il **▾** accanto apre **«Sezioni»**: cosa finisce sulla carta (croquis, piani, protezione respiratoria, presenze, materiale, cronologia, foto, prova di verifica dettagliata). Il menu resta aperto mentre si spunta.',
             'Dove un corpo gestisce una **stampante di sede**: **Stampa** mette il rapporto nella sua coda. Messo in coda non è stampato – finché un lavoro resta in sospeso compare come **stampa in sospeso** sotto la testata del rapporto, con **Verifica** e **Annulla**. Il rapporto vale come prodotto solo quando la stampante annuncia «stampato».',
-            'Se il corpo ha depositato moduli propri (Amministrazione › Rapporto), sotto le foto compare **Moduli e link** – un elenco da spuntare. **Apri** richiama il modulo con parola chiave, luogo, data e capo intervento già compilati, per quanto il link lo preveda. La spunta si mette a mano: l’app non vede se un modulo è stato inviato.',
+            'Se il corpo ha depositato moduli propri (Amministrazione › Rapporto), alla fine, sotto il ritaglio dello schizzo, compare **Moduli e link** – un elenco da spuntare. **Apri** richiama il modulo con parola chiave, luogo, data e capo intervento già compilati, per quanto il link lo preveda. La spunta si mette a mano: l’app non vede se un modulo è stato inviato.',
             'Se qualcosa non torna nel record – una catena di verifica interrotta, una nota vocale senza trascrizione, una foto ancora in coda – accanto ai pulsanti compare una **pastiglia arancione di avviso**. Conta i punti e li apre; se tutto è in ordine non compare affatto.',
             'Persona di contatto e riscontro alla centrale hanno un **Non applicabile** a fine riga – per il falso allarme o la perdita d’olio dove non esistono. È una risposta, non un salto: viene registrata e appare così nel rapporto.',
             '**Chiudi intervento** chiude l’intervento e fissa l’ora di fine. Le foto e le note vocali non ancora caricate partono prima; se non è possibile (offline) **restano salvate** e partiranno alla prossima apertura — la conferma dice quante.',
@@ -350,7 +428,7 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
           ] },
           { kind: 'sub', text: 'Tasti', only: 'keyboard' },
           { kind: 'list', only: 'keyboard', items: [
-            '[[Esc]] annulla lo strumento attivo o deseleziona.',
+            '[[Esc]] torna indietro di un livello – strumento, pannello aperto, selezione (l’ordine completo in **Scorciatoie da tastiera**).',
             '[[Canc]] / [[Backspace]] elimina la selezione (non mentre si scrive in un campo).',
           ] },
           { kind: 'sub', text: 'Giorno / notte' },

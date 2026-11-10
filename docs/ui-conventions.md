@@ -18,7 +18,7 @@ sheets, overlays, the button spec and the touch vocabulary. Phone-only layout is
   darkened all of our day chrome while the WebGL map canvas, which no filter touches, stayed
   light (round 7, point 2). Do **not** "fix" that with `light dark`: that hands the native
   surfaces back to the OS setting and re-opens the white-accessory-bar bug. Guarded by
-  `e2e/blink-force-dark.mjs`.
+  `e2e/blink-force-dark.spec.ts`.
 - **CSS:** design tokens, the day/night flip (`[data-theme="night"]`), and shared chrome live
   in **`src/styles/NN-*.css`** – one numbered file per block (tokens, base, map, chrome, one per
   surface), listed in order by `src/app.css`, which is now a manifest of `@import`s and holds no
@@ -85,7 +85,9 @@ sheets, overlays, the button spec and the touch vocabulary. Phone-only layout is
   or laptop they are their own small **view bar** in the bottom corner on the rail's side
   (`ToolRail` · `ViewBar`, `.view-bar`, staging review 06.11.2026 — the rail's old pinned footer
   cost the tools ~245px and a laptop scrolled «Messen» away), on the phone the folded bar's pinned
-  end. Whatever shares that corner clears it through ONE reserve, `--view-bar-reserve`: the
+  end. Its buttons wear their words exactly when the rails do («Beschriftung», `railLabels`;
+  owner, 07.11.2026 – words there beside unlabelled rails read as a fault): glyph over word, or a
+  46px glyph tile and a lower bar (`--view-bar-h` follows, and with it the reserve). Whatever shares that corner clears it through ONE reserve, `--view-bar-reserve`: the
   rail's foot, the detail panel, the Verlauf drawer, Ebenen and the Ansichten menu (which open
   upward from it), the presentation pill (Presentation · PILL_OBSTACLES) and the Plan's fit
   (`lib/whiteboard · VIEW_BAR_INSET`); the map's ⓘ stands left

@@ -127,6 +127,10 @@
    derselbe Entscheid übersehen hat — und er blieb ausgerechnet dort stehen, wo er am wenigsten
    nützt. Ohne die Wörter bleibt er: dann ist er der Weg, die Beschriftung zu sehen. */
 .rail.labelled .rail-grip { display: none; }
+/* …except on the rail that keeps its chevron with the words on: the Karte & Objekte left rail
+   (KartePlans · KarteNavRail, `.rail-keeps-exp`; losing chevron and grip there was the regression of
+   20.10.2026). Its grip widens it like the chevron does. */
+.rail.labelled.rail-keeps-exp .rail-grip { display: flex; }
 
 /* ── The shortcut-letter badge (`.rail-key`, lib/hotkeys) – ONE look on both rails (31.10.2026).
    The left NavRail wears a surface's letter (K · C · A …), the right ToolRail a tool's (V · L · F …).

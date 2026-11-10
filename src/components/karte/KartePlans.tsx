@@ -22,11 +22,14 @@
 //     network — and, when it cannot come (offline, not stored), that it needs the network instead
 //     of staying soft without a word (owner, review round 3, lib/planSharpness).
 
-import { Suspense, useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState, type ComponentProps } from 'react'
 import { appConfig } from '../../config/appConfig'
 import { Icon } from '../../lib/icons'
 import { cx } from '../../lib/cx'
-import { RAIL_COMPACT, RAIL_WIDE, railMonoMax } from '../../lib/navRail'
+import { RAIL_COMPACT, RAIL_LABELLED, RAIL_WIDE, railMonoMax } from '../../lib/navRail'
+import type { RailLabels } from '../../lib/prefs'
+import { SURFACE_KEY } from '../../lib/hotkeys'
+import { RailKey } from '../ToolRail'
 import { useRail } from '../../lib/useRail'
 import { getApprovedPlanAlignments, referenceUrl, type PlanFloor } from '../../lib/incidents'
 import { floorPackOf, packBuildingDoc, PACK_TRIM_MS, trimmedPackFrame, type FloorPackView } from '../../lib/floorPackBinding'
@@ -57,9 +60,13 @@ import s from './Karte.module.css'
  *  so people might not know what it actually is»): the same chevron on top, grip and widths
  *  (lib/useRail – it publishes `--rail-w`, which the object panel, the plan reader,
  *  the floor list and the Checkliste surface sit beside). Open per mount, as there.
- *  Keep this navigation collapsible regardless of «Beschriftung»: applying the saved toolbar
- *  label preference replaced its chevron and grip with stacked captions (regression 20.10.2026). */
-export function KarteNavRail({ obj, docs, active, onMap, onLibrary, onDoc, notHeld }: {
+ *  «Beschriftung» (`labels`) puts the word under each glyph, as on every other bar (owner,
+ *  07.11.2026) – and ⚠️ unlike the Einsatz's NavRail the chevron and the grip STAY: dropping them
+ *  with the words on was the regression of 20.10.2026 («restore collapsible peacetime
+ *  navigation»), so `labels` is not handed to useRail, whose rule is to collapse a labelled rail.
+ *  Karte and Checkliste wear their letters (K, C — lib/karte/hotkeys); a plan tile's number IS
+ *  its key, as on the Einsatz's rail. */
+export function KarteNavRail({ obj, docs, active, onMap, onLibrary, onDoc, notHeld, labels = 'off' }: {
   /** the selected object; null = only the two surfaces */
   obj: StationObject | null
   docs: ViewerPlanDoc[]
@@ -70,6 +77,8 @@ export function KarteNavRail({ obj, docs, active, onMap, onLibrary, onDoc, notHe
   onDoc: (id: string) => void
   /** offline: the documents this device does not hold — dimmed, still tappable (the surface says why) */
   notHeld?: ReadonlySet<string> | null
+  /** device pref «Beschriftung» (lib/prefs · railLabels): the word under each glyph */
+  labels?: RailLabels
 }) {
   const nav = appConfig.copy.navRail
   const C = appConfig.copy.karte
@@ -79,7 +88,7 @@ export function KarteNavRail({ obj, docs, active, onMap, onLibrary, onDoc, notHe
   const [expanded, setExpanded] = useState(false)
   const { scrollRef, edge, dragging, nudge, apply, gripProps } = useRail({
     varName: '--rail-w',
-    compactW: RAIL_COMPACT,
+    compactW: labels === 'short' ? RAIL_LABELLED : RAIL_COMPACT,
     wideW: RAIL_WIDE,
     side: 'left',
     expanded, setExpanded,
@@ -90,7 +99,7 @@ export function KarteNavRail({ obj, docs, active, onMap, onLibrary, onDoc, notHe
   })
   const shown = plans ? docs.map((d) => d.doc) : []
   return (
-    <nav className={cx('navrail rail', expanded && 'expanded', dragging && 'dragging')}
+    <nav className={cx('navrail rail', expanded && 'expanded', dragging && 'dragging', labels === 'short' && 'labelled rail-keeps-exp')}
       aria-label={obj?.name ?? C.title} data-mono-max={railMonoMax(shown)}>
       <button type="button" className="nav-exp rail-exp" onClick={() => apply(!expanded)} aria-expanded={expanded} aria-label={expanded ? nav.collapse : nav.expand}>
         <span className="nav-exp-ic rail-exp-ic"><Icon id="chevron" className="chev" /></span><span className="rail-exp-t">{expanded ? nav.collapse : nav.expand}</span>
@@ -102,10 +111,12 @@ export function KarteNavRail({ obj, docs, active, onMap, onLibrary, onDoc, notHe
           <button type="button" className={cx('nav-item', active === 'map' && 'on')} aria-pressed={active === 'map'} aria-label={nav.map} onClick={onMap}>
             <span className="nav-glyph"><Icon id="map" /></span>
             <span className="nav-label">{nav.map}</span>
+            <RailKey k={SURFACE_KEY.map} />
           </button>
           <button type="button" className={cx('nav-item', active === 'library' && 'on')} aria-pressed={active === 'library'} aria-label={library} onClick={onLibrary} data-karte-library="">
             <span className="nav-glyph"><Icon id="checklist" /></span>
             <span className="nav-label">{library}</span>
+            <RailKey k={SURFACE_KEY.checklists} />
           </button>
           {plans && <div className="nav-sep rail-sep" />}
           {plans && docs.map(({ doc, row }) => {
@@ -127,8 +138,12 @@ export function KarteNavRail({ obj, docs, active, onMap, onLibrary, onDoc, notHe
   )
 }
 
+/** The open reader's Einpassen and zoom, filled by its Whiteboard – the Karte's 0 and + − reach a
+ *  plan through them (KarteApp · useKarteKeys), as an Einsatz's reach its Plan. */
+export type ReaderHandles = Required<Pick<ComponentProps<typeof Whiteboard>, 'fitRef' | 'keysRef'>>
+
 /** A module PDF or the Gebäude stack, over the map. */
-export function KarteSurface({ obj, doc, phone, sym, onMap, offline = false, held = null, gebaeude = null }: {
+export function KarteSurface({ obj, doc, phone, sym, onMap, offline = false, held = null, gebaeude = null, reader, labels }: {
   obj: StationObject
   doc: ViewerPlanDoc
   phone: boolean
@@ -141,6 +156,9 @@ export function KarteSurface({ obj, doc, phone, sym, onMap, offline = false, hel
   held?: boolean | null
   /** the Gebäude stack's availability, for «some storeys are missing» */
   gebaeude?: Lamp | null
+  reader?: ReaderHandles
+  /** device pref «Beschriftung»: the reader's view bar wears its words like the Karte's */
+  labels?: RailLabels
 }) {
   const C = appConfig.copy.karte
   // offline and not on the device: say so instead of a reader that would spin on a dead fetch
@@ -152,8 +170,8 @@ export function KarteSurface({ obj, doc, phone, sym, onMap, offline = false, hel
         {missing
           ? <div className={s.surfaceNote}><div className={s.note}><Icon id="info" /><span>{doc.plan ? C.planOfflineMissing : C.floorsOfflineMissing}</span></div></div>
           : doc.plan
-            ? <KartePlanBoard key={doc.doc.imageUrl} obj={obj} doc={doc} sym={sym} offline={offline} />
-            : <KarteGebaeudeBoard key={obj.plans.map((p) => `${p.id}@${p.version}`).join('|')} obj={obj} doc={doc} sym={sym} offline={offline} partOffline={partFloors} />}
+            ? <KartePlanBoard key={doc.doc.imageUrl} obj={obj} doc={doc} sym={sym} offline={offline} reader={reader} labels={labels} />
+            : <KarteGebaeudeBoard key={obj.plans.map((p) => `${p.id}@${p.version}`).join('|')} obj={obj} doc={doc} sym={sym} offline={offline} partOffline={partFloors} reader={reader} labels={labels} />}
       </div>
       <div className={s.chipRow}>
         {/* the way back is a back: «‹ Zurück» / «‹ Objekt» (owner, 28.10.2026 – it wore the building
@@ -180,8 +198,9 @@ const NOTHING = () => {}
  * history. No `onCalibrate`, no `onObjectSwitch`, no `incidentId` — so nothing can be stored
  * under an Einsatz, because there is none.
  */
-export function KartePlanBoard({ obj, doc, sym, offline = false, building = null, floorPack = null, note = null }: {
+export function KartePlanBoard({ obj, doc, sym, offline = false, building = null, floorPack = null, note = null, reader, labels }: {
   obj: StationObject; doc: ViewerPlanDoc; sym: ReturnType<typeof useSymbols>; offline?: boolean
+  reader?: ReaderHandles; labels?: RailLabels
   /** the Gebäude: the stack the object's floor pack seeds (KarteGebaeudeBoard) — null for a module */
   building?: BuildingDoc | null
   floorPack?: FloorPackView | null
@@ -223,6 +242,9 @@ export function KartePlanBoard({ obj, doc, sym, offline = false, building = null
         // the chip over the sheet names the object these plans are of, as in an Einsatz
         objectName={obj.name}
         objectAddress={obj.address}
+        fitRef={reader?.fitRef}
+        keysRef={reader?.keysRef}
+        railLabels={labels}
       />
     </Suspense>
     </PlanSharpnessContext.Provider>
@@ -240,8 +262,9 @@ type GebaeudeState = { building: BuildingDoc; view: FloorPackView } | 'list' | n
  * Whiteboard has no door to an edit: no building pick (`onBuildingFace` absent), no storey added or
  * removed (`readOnly` + a pack stack), no compass turn (`onReorient` absent), no tools.
  */
-function KarteGebaeudeBoard({ obj, doc, sym, offline, partOffline }: {
+function KarteGebaeudeBoard({ obj, doc, sym, offline, partOffline, reader, labels }: {
   obj: StationObject; doc: ViewerPlanDoc; sym: ReturnType<typeof useSymbols>; offline: boolean; partOffline: boolean
+  reader?: ReaderHandles; labels?: RailLabels
 }) {
   const C = appConfig.copy.karte
   const [state, setState] = useState<GebaeudeState>(null)
@@ -274,7 +297,7 @@ function KarteGebaeudeBoard({ obj, doc, sym, offline, partOffline }: {
   }, [obj])
   if (state === 'list') return <KarteFloors obj={obj} partOffline={partOffline} />
   if (!state) return <div className="whiteboard"><div className="workspace-loading"><LoadingStatus size="surface">{appConfig.copy.loading}</LoadingStatus></div></div>
-  return <KartePlanBoard obj={obj} doc={doc} sym={sym} offline={offline} building={state.building} floorPack={state.view} note={partOffline ? C.floorsPartOffline : null} />
+  return <KartePlanBoard obj={obj} doc={doc} sym={sym} offline={offline} building={state.building} floorPack={state.view} note={partOffline ? C.floorsPartOffline : null} reader={reader} labels={labels} />
 }
 
 /** «Schärfere Ansicht wird geladen …» over the plan — the Shell trail every in-app wait wears —

@@ -1,14 +1,24 @@
-import { describe, expect, it } from 'vitest'
+import 'fake-indexeddb/auto'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { purgeStaleTiles, TILE_PURGES } from './tilePurge'
+import { clearTiles, tileUrls } from './tileStore'
+import { seedTiles } from './tileStore.test-utils'
 
-/** A Cache Storage with one `map-tiles` cache holding these URLs. */
-function fakeCaches(urls: string[], { failKeys = false } = {}) {
+beforeEach(() => clearTiles())
+
+/** The map tiles held now, oldest first. */
+const held = async () => (await tileUrls('map')) ?? []
+
+/** A Cache Storage holding a legacy `map-tiles` cache of these URLs (tiles before 08.11.2026). */
+function legacyCaches(urls: string[]) {
   const held = new Set(urls)
-  const cache = {
-    keys: async () => { if (failKeys) throw new Error('quota'); return [...held].map((url) => ({ url }) as Request) },
-    delete: async (r: Request) => held.delete(r.url),
-  }
-  return { held, api: { has: async (n: string) => n === 'map-tiles', open: async () => cache as unknown as Cache } }
+  const cache = { keys: async () => [...held].map((url) => ({ url })), delete: async (r: { url: string }) => held.delete(r.url) }
+  vi.stubGlobal('caches', {
+    has: async (n: string) => n === 'map-tiles' && held.size > 0,
+    open: async () => cache,
+    delete: async (n: string) => { if (n !== 'map-tiles') return false; held.clear(); return true },
+  })
+  return held
 }
 
 function fakeStorage(init: Record<string, string> = {}) {
@@ -23,43 +33,51 @@ const SWISSIMAGE = 'https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/defa
 
 describe('purgeStaleTiles', () => {
   it('deletes the stale provider tiles once and keeps every other base map', async () => {
-    const c = fakeCaches([CARTO_DARK, CARTO_DAY, OSM, SWISSIMAGE])
+    await seedTiles('map', [CARTO_DARK, CARTO_DAY, OSM, SWISSIMAGE])
     const st = fakeStorage()
-    expect(await purgeStaleTiles({ caches: c.api, storage: st.api, online: true, retina: true })).toBe(2)
-    expect([...c.held]).toEqual([OSM, SWISSIMAGE])
+    expect(await purgeStaleTiles({ storage: st.api, online: true, retina: true })).toBe(2)
+    expect(await held()).toEqual([OSM, SWISSIMAGE])
     expect(JSON.parse(st.m.get('kp.tilePurges')!)).toEqual(TILE_PURGES.map((p) => p.id))
     // a tile fetched afresh after the purge is the new look: never thrown away again
-    c.held.add(CARTO_DARK)
-    expect(await purgeStaleTiles({ caches: c.api, storage: st.api, online: true })).toBe(0)
-    expect(c.held.has(CARTO_DARK)).toBe(true)
+    await seedTiles('map', [CARTO_DARK], () => 10)
+    expect(await purgeStaleTiles({ storage: st.api, online: true })).toBe(0)
+    expect(await held()).toContain(CARTO_DARK)
+  })
+
+  it('also purges a legacy map-tile cache the worker has not moved over yet', async () => {
+    const legacy = legacyCaches([CARTO_DARK, OSM])
+    try {
+      await seedTiles('map', [CARTO_DAY])
+      expect(await purgeStaleTiles({ storage: fakeStorage().api, online: true, retina: false })).toBe(2)
+      expect([...legacy]).toEqual([OSM])
+      expect(await held()).toEqual([])
+    } finally { vi.unstubAllGlobals() }
   })
 
   it('never runs offline — an old look beats no map — and runs on the next boot online', async () => {
-    const c = fakeCaches([CARTO_DARK])
+    await seedTiles('map', [CARTO_DARK])
     const st = fakeStorage()
-    expect(await purgeStaleTiles({ caches: c.api, storage: st.api, online: false })).toBe(0)
-    expect(c.held.has(CARTO_DARK)).toBe(true)
+    expect(await purgeStaleTiles({ storage: st.api, online: false })).toBe(0)
+    expect(await held()).toEqual([CARTO_DARK])
     expect(st.m.has('kp.tilePurges')).toBe(false)
-    expect(await purgeStaleTiles({ caches: c.api, storage: st.api, online: true })).toBe(1)
+    expect(await purgeStaleTiles({ storage: st.api, online: true })).toBe(1)
   })
 
-  it('a cache that cannot be read is not marked done', async () => {
-    const c = fakeCaches([CARTO_DARK], { failKeys: true })
-    const st = fakeStorage()
-    expect(await purgeStaleTiles({ caches: c.api, storage: st.api, online: true })).toBe(0)
-    expect(st.m.has('kp.tilePurges')).toBe(false)
+  it('a store that cannot be read is not marked done', async () => {
+    vi.stubGlobal('indexedDB', undefined)
+    try {
+      const st = fakeStorage()
+      expect(await purgeStaleTiles({ storage: st.api, online: true })).toBe(0)
+      expect(st.m.has('kp.tilePurges')).toBe(false)
+    } finally { vi.unstubAllGlobals() }
   })
 
   it('only the purges this device has not run yet', async () => {
-    const c = fakeCaches([CARTO_DARK, OSM])
+    await seedTiles('map', [CARTO_DARK, OSM])
     const st = fakeStorage({ 'kp.tilePurges': JSON.stringify(['carto-gl-2026-10']) })
     const purges = [...TILE_PURGES, { id: 'osm-test', match: /tile\.openstreetmap\.org/ }]
-    expect(await purgeStaleTiles({ caches: c.api, storage: st.api, online: true, purges })).toBe(1)
-    expect([...c.held]).toEqual([CARTO_DARK])
-  })
-
-  it('without Cache Storage nothing happens', async () => {
-    expect(await purgeStaleTiles({ caches: null, storage: fakeStorage().api, online: true })).toBe(0)
+    expect(await purgeStaleTiles({ storage: st.api, online: true, purges })).toBe(1)
+    expect(await held()).toEqual([CARTO_DARK])
   })
 
   // review round 4: a retina screen asks CARTO for `@2x` tiles (lib/carto · withCartoRetina); the
@@ -67,13 +85,13 @@ describe('purgeStaleTiles', () => {
   it('drops the 1× CARTO tiles on a retina screen only, and keeps the 2× ones', async () => {
     const done = fakeStorage({ 'kp.tilePurges': JSON.stringify(['carto-gl-2026-10']) })
     const RETINA = 'https://b.basemaps.cartocdn.com/dark_all/18/136574/91654@2x.png?key=k'
-    const c = fakeCaches([CARTO_DARK, CARTO_DAY, RETINA, OSM])
+    await seedTiles('map', [CARTO_DARK, CARTO_DAY, RETINA, OSM])
     // a 1× screen still draws its 1× tiles: nothing goes, and it is asked again on the next boot
-    expect(await purgeStaleTiles({ caches: c.api, storage: done.api, online: true, retina: false })).toBe(0)
-    expect(c.held.size).toBe(4)
+    expect(await purgeStaleTiles({ storage: done.api, online: true, retina: false })).toBe(0)
+    expect(await held()).toHaveLength(4)
     expect(JSON.parse(done.m.get('kp.tilePurges')!)).toEqual(['carto-gl-2026-10'])
-    expect(await purgeStaleTiles({ caches: c.api, storage: done.api, online: true, retina: true })).toBe(2)
-    expect([...c.held]).toEqual([RETINA, OSM])
+    expect(await purgeStaleTiles({ storage: done.api, online: true, retina: true })).toBe(2)
+    expect(await held()).toEqual([RETINA, OSM])
     expect(JSON.parse(done.m.get('kp.tilePurges')!)).toContain('carto-retina-2026-10')
   })
 })

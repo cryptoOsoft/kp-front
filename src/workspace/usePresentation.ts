@@ -14,7 +14,8 @@
 //   surface switch, which detaches («Wieder folgen»).
 // · «Zeigen» makes one-finger taps rings and press-and-drag lines (lib/useZeigen). Both are drawn
 //   here at once and sent – a line as it grows, the whole of it every STROKE_MS; everybody
-//   else's arrive with the poll and fade (lib/presentation · RING_MS).
+//   else's arrive with the poll. They stand until somebody joined taps the × on a mark's name
+//   (`unmark`) or the presenter switches «Zeigen» off (`clear`) – lib/presentation · applyMarks.
 // · Offline or unreachable: there is no presentation on this device (no pill, no rings) and
 //   nothing is queued – a pointer from a minute ago means nothing.
 //
@@ -31,8 +32,8 @@ import { checklistPick, showChecklist, subscribeChecklistPick } from '../lib/che
 import { newId } from '../lib/ids'
 import { findScroller, scrollToAnchor, topAnchor } from '../lib/presentAnchor'
 import {
-  addRing, addStroke, capPoints, fitZoom, isJoined, liveRings, liveStrokes, nextFade, nextFollow, NOT_PRESENTING, ringsOn,
-  RING_MS, STROKE_MS, strokesOn, throttle,
+  addRing, addStroke, applyMarks, capPoints, fitZoom, isFollower, isJoined, liveStrokes, nextFollow, nextStale, NO_MARKS, NOT_PRESENTING, ringsOn,
+  STROKE_MS, strokesOn, throttle, type Marks,
   type Anchor, type PointerAt, type PresentationState, type PresentedView, type Ring, type Stroke, type StrokeData,
 } from '../lib/presentation'
 import { presentationMarker, setPresentationMarker, subscribePresentationMarker, usePresentationMarker } from '../lib/presentationMarker'
@@ -91,6 +92,8 @@ export interface BoardPresentation {
   onSelect: (id: string | null) => void
   /** the presenter's open detail, for a follower's board to open (`nonce` per request) */
   select: { id: string | null; nonce: number } | null
+  /** the × on a mark's name: takes it off every screen */
+  onUnmark: (key: string) => void
 }
 
 /** What the pill shows of a poll's answer – a new answer with the same key is not a re-render. */
@@ -164,8 +167,8 @@ export function usePresentation({
   const [snap, setSnap] = useState<PresentationState | null>(null)
   const [reachable, setReachable] = useState(true)
   const [follow, dispatch] = useReducer(nextFollow, NOT_PRESENTING)
-  const [rings, setRings] = useState<Ring[]>([])
-  const [strokes, setStrokes] = useState<Stroke[]>([])
+  const [marks, setMarks] = useState<Marks>(NO_MARKS)
+  const { rings, strokes } = marks
   const [zeigen, setZeigen] = useState(false)
   const zeigenRef = useRef(zeigen)
   useEffect(() => { zeigenRef.current = zeigen }, [zeigen])
@@ -185,6 +188,8 @@ export function usePresentation({
   const hasPlanRef = useRef(hasPlan)
   const planSection = useRef<PlanSection | null>(null)
   const joinedId = useRef<string | null>(null)
+  /** the presentation the marks on this device belong to */
+  const marksOf = useRef<string | null>(null)
   /** what the follower was last put on – a difference is a hand-made move */
   const expected = useRef<{ mode: string; planId: string | null; page: string | null; checklist: string | null; detail: string | null; journal: boolean } | null>(null)
   /** the presenter's newest view, for «Folgen» / «Wieder folgen» */
@@ -369,16 +374,10 @@ export function usePresentation({
       setSnap((prev) => (prev && roomKey(prev) === roomKey(s) ? prev : s))
       dispatch({ type: 'server', id, mine: !!id && s.presenter?.client === CLIENT })
       const f = followRef.current
+      // the marks of THIS presentation only: a new one (or none) starts from a clean slate
+      if (id !== marksOf.current) { marksOf.current = id; setMarks(NO_MARKS) }
       const now = Date.now()
-      for (const m of fresh) {
-        if (m.kind === 'pointer' && m.client !== CLIENT) {
-          const ring: Ring = { key: `${m.client}:${m.seq}`, client: m.client, name: m.name, link: m.link, at: m.at, born: now }
-          setRings((r) => addRing(r, ring, now))
-        } else if (m.kind === 'stroke' && m.client !== CLIENT) {
-          const line: Stroke = { key: `${m.client}:${m.stroke.id}`, client: m.client, name: m.name, link: m.link, line: m.stroke, born: now }
-          setStrokes((st) => addStroke(st, line, now))
-        }
-      }
+      setMarks((mk) => applyMarks(mk, fresh, CLIENT, now))
       if (f.kind === 'following' && f.id === id && s.view && fresh.some((m) => m.kind === 'view')) applyView(s.view)
       // dropped from the room (a hidden tab outlived its presence): join again
       if (id && isJoined(f) && f.kind !== 'presenting' && joinedId.current === id && !s.participants.some((p) => p.client === CLIENT)) {
@@ -403,7 +402,7 @@ export function usePresentation({
 
   // join when following starts, leave when it stops – one signal per transition
   useEffect(() => {
-    const joined = (follow.kind === 'following' || follow.kind === 'detached') ? follow.id : null
+    const joined = isFollower(follow) ? follow.id : null
     if (joined && joinedId.current !== joined) {
       joinedId.current = joined
       void signal({ kind: 'join', name: isLink ? storedPresentName() : undefined })
@@ -413,20 +412,16 @@ export function usePresentation({
     }
   }, [follow, isLink, signal])
 
-  // the rings and lines fade on their own
+  // the marks stand; only a line whose finger never came up goes stale on its own
   useEffect(() => {
-    const now = Date.now()
-    const ringFade = rings.length ? Math.max(50, Math.min(...rings.map((x) => x.born)) + RING_MS - now) : null
-    const lineFade = nextFade(strokes, now)
-    const wait = ringFade == null ? lineFade : lineFade == null ? ringFade : Math.min(ringFade, lineFade)
+    const wait = nextStale(strokes, Date.now())
     if (wait == null) return
     const t = setTimeout(() => {
       const at = Date.now()
-      setRings((r) => { const l = liveRings(r, at); return l.length === r.length ? r : l })
-      setStrokes((st) => { const l = liveStrokes(st, at); return l.length === st.length ? st : l })
+      setMarks((mk) => { const l = liveStrokes(mk.strokes, at); return l.length === mk.strokes.length ? mk : { ...mk, strokes: l } })
     }, wait)
     return () => clearTimeout(t)
-  }, [rings, strokes])
+  }, [strokes])
 
   // --- presenting: send what is on screen --------------------------------------------------
   const sender = useRef<ReturnType<typeof throttle<PresentedView>> | null>(null)
@@ -524,16 +519,30 @@ export function usePresentation({
     if (latestView.current) applyView(latestView.current)
   }, [applyView])
   const leave = useCallback(() => dispatch({ type: 'leave' }), [])
-  const toggleZeigen = useCallback(() => setZeigen((z) => !z), [])
+  // the presenter switching «Zeigen» off takes every mark away, on every screen (owner, 09.11.2026)
+  const toggleZeigen = useCallback(() => {
+    if (zeigenRef.current && followRef.current.kind === 'presenting') {
+      setMarks(NO_MARKS)
+      void signal({ kind: 'clear' })
+    }
+    setZeigen((z) => !z)
+  }, [signal])
+  /** the × on a mark's name: off this screen at once, then off everybody's */
+  const unmark = useCallback((key: string) => {
+    const [client, id] = [key.slice(0, key.indexOf(':')), key.slice(key.indexOf(':') + 1)]
+    setMarks((mk) => ({ rings: mk.rings.filter((r) => r.key !== key), strokes: mk.strokes.filter((x) => x.key !== key) }))
+    void signal({ kind: 'unmark', mark: { client, id } })
+  }, [signal])
 
   /** the name beside this device's own marks */
   const myName = useCallback(() => (snap?.presenter?.client === CLIENT ? snap.presenter.name : (isLink ? storedPresentName() : '') || C.me), [snap, isLink, C])
 
   /** a tap with «Zeigen» on: drawn here at once, then sent */
-  const point = useCallback((at: PointerAt) => {
-    const now = Date.now()
-    setRings((r) => addRing(r, { key: `${CLIENT}:${newId('r')}`, client: CLIENT, name: myName(), link: isLink, at, born: now }, now))
-    void signal({ kind: 'pointer', at })
+  const point = useCallback((at: Omit<PointerAt, 'id'>) => {
+    const id = newId('r')
+    const mine = { ...at, id }
+    setMarks((mk) => ({ ...mk, rings: addRing(mk.rings, { key: `${CLIENT}:${id}`, client: CLIENT, name: myName(), link: isLink, at: mine, born: Date.now() }) }))
+    void signal({ kind: 'pointer', at: mine })
   }, [myName, isLink, signal])
 
   // a line with «Zeigen» on: drawn here as it grows, sent whole every STROKE_MS (and at the end)
@@ -547,7 +556,7 @@ export function usePresentation({
   const showLine = useCallback((l: LineDraft) => {
     const now = Date.now()
     const sent = { ...l, points: capPoints(l.points) }
-    setStrokes((st) => addStroke(st, { key: `${CLIENT}:${l.id}`, client: CLIENT, name: myName(), link: isLink, line: sent, born: now }, now))
+    setMarks((mk) => ({ ...mk, strokes: addStroke(mk.strokes, { key: `${CLIENT}:${l.id}`, client: CLIENT, name: myName(), link: isLink, line: sent, born: now }, now) }))
     strokeSender.current?.push(sent)
   }, [myName, isLink])
   const beginLine = useCallback((base: Omit<StrokeData, 'id' | 'points' | 'done'>, first: [number, number]) => {
@@ -634,6 +643,7 @@ export function usePresentation({
     onView: (s) => { planSection.current = s; if (presenting && modeRef.current === 'plans') pushView() },
     onSelect: setBoardSel,
     select: follow.kind === 'following' ? boardSelect : null,
+    onUnmark: unmark,
   } : undefined
 
   return {
@@ -650,7 +660,7 @@ export function usePresentation({
     marks: available && joined ? shown.length + shownLines.length : 0,
     board,
     isLink,
-    start, end, followNow, leave, toggleZeigen,
+    start, end, followNow, leave, toggleZeigen, unmark,
   }
 }
 

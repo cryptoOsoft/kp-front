@@ -968,7 +968,7 @@ span.jr-pinned-from { color: var(--ink-dim); }
    unreadable. */
 /* 44px wide: the Verlauf's own time column, to the pixel (.hist-ev .t), and the same type —
    12.5px mono, tabular, and the log's FIRST-stamp weight and ink (`:is(.hist-ev .t, .jr-when)`
-   above, r30). This one is a `<button>`, so 12.5 is its floor anyway (AGENTS · the 3am
+   above, r30). This one is a `<button>`, so 12.5 is its floor anyway (the 3am
    tenet); the log's span joined it in hill climb r9. «HH:MM» is 37.5px (five mono glyphs at
    0.6em), so the 44 leaves the clock 6px of air before the gutter.
    ⚠️ On the ITEM's line (r11): the item text's 1.5 line (r19) and the body's 2px padding, so the

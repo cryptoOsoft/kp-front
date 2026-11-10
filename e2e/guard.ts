@@ -60,7 +60,7 @@ const LOOP_SIGNS = /Minified React error #185|Maximum update depth exceeded|rend
 /** report kinds that ARE a crash — never excused by `expectedClientErrors` */
 const NEVER_EXCUSED = new Set(['render', 'surface-recrash', 'render-storm'])
 
-/** The basemap tile hosts — the same list as the service worker's `map-tiles` rule (vite.config.ts). */
+/** The basemap tile hosts — the same list as the service worker's `map` tiles (public/sw-tile-store.js). */
 const BASEMAP_TILE = /^https:\/\/([a-d]\.|tiles-[a-d]\.)?(basemaps\.cartocdn\.com|tile\.openstreetmap\.org|[a-c]\.tile\.opentopomap\.org|server\.arcgisonline\.com|wmts\.geo\.admin\.ch|geowms\.bl\.ch)\//
 /** «kind: message» of what a broken tile reports: WebKit's words for a fetch that failed (bare, or
  *  as MapLibre 6 wraps it: `AJAXError: Load failed (0): <url>`, and then only for a basemap tile's

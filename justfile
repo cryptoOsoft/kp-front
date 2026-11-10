@@ -139,7 +139,7 @@ dev: db migrate
     # PINs are peppered with SECRET_KEY (app/auth/security.py), so the dev backend must run
     # under the SAME key the dev DB's users were hashed with — the one in the root .env.
     # ONLY that var: the rest of .env is the docker deployment's config (real Divera/Traccar
-    # keys, telemetry) and must not leak into a dev server. Without it every boot mints a
+    # keys) and must not leak into a dev server. Without it every boot mints a
     # throwaway key and every login answers «Falsche PIN».
     (cd backend && SECRET_KEY="$(grep -m1 '^SECRET_KEY=' ../.env 2>/dev/null | cut -d= -f2- || true)" uv run uvicorn app.main:app --reload --port {{api_port}}) &
     api=$!

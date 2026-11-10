@@ -48,7 +48,16 @@ station, one incident, one operator**, not scaled down from dispatch-center soft
 
 ## Highlights
 
+- **Karte & Objekte:** The start when no Einsatz is open – the station area with every
+  Einsatzobjekt, its plans and floors, the register facts of any building and a Gefahrgut lookup,
+  read-only, with the hand-over to an Objektbesuch. It reads offline what the device already
+  holds ([`docs/karte-objekte.md`](docs/karte-objekte.md)).
 - **Karte:** MapLibre map, tactical symbols, drawing, sectors, radii, notes, photos, and audio.
+- **Wassertransport:** Under a measured Strecke or in a Leitung – hose Ø, flow, source and inlet
+  pressure in; the pressure along the line over its Höhenprofil out, with the pumps placed
+  automatically and drawn on the Karte as symbols.
+- **Messungen:** A Messpunkt on the Karte, a plan or a Gebäude storey keeps gas readings with
+  their history. Past A1 it turns amber, past A2 red, and the «Messungen» list shows every point.
 - **Gebäude-Info:** The building at the Einsatzort – federal GWR and BFE register facts
   (Geschosse, Baujahr, heating energy, Schutzraum, PV) next to the Objekt's own
   **Sofortmassnahmen** and Bemerkungen, cached for offline use. When the building has a hazard,
@@ -80,11 +89,21 @@ station, one incident, one operator**, not scaled down from dispatch-center soft
   coverage curve across the span, printable as the «Zeitplan» Führungsformular.
 - **Reference data:** ADR lookup, wind, the MeteoSwiss precipitation radar, hydrants, utility
   lines, and Traccar vehicle positions.
+- **Links & Standort teilen:** An Einsatz is shared by link – a read-only view link, the
+  Atemschutz-Link, the Stations-Terminal, and the Erfassungs-Poster whose QR code lets the crew
+  enter attendance, Material and Beilagen without a login. With **Standort teilen** a member's
+  own phone shows the command post where they are working – voluntary, and gone when the Einsatz
+  closes ([`docs/roles-and-access.md`](docs/roles-and-access.md),
+  [`PRIVACY.md`](PRIVACY.md#sharing-your-own-location-during-an-einsatz)).
+- **Präsentationsmodus:** One editor presents; the other devices and view-link holders follow the
+  surface and section, and everyone joined can point («Zeigen»). Only start and end reach the
+  record ([`docs/presentation.md`](docs/presentation.md)).
 - **Verlauf:** Append-only incident journal – entries, Meldungen, photos and voice memos with
   transcripts. An entry can stay open as a **Pendenz** until somebody ticks it off, or carry a
   **Fälligkeit**; a typo can be corrected and the line says that it was.
 - **Einsatzrapport:** The station's own Erfassungsblatt, pre-filled from the record and composed
-  server-side into a PDF that prints from the device – Verlauf, Aufträge/Pendenzen,
+  server-side into a PDF that prints from the device, or with «Ausdrucken» on the station printer
+  where a station runs the print agent – Verlauf, Aufträge/Pendenzen,
   Atemschutz-Journal, Kroki with a Massstab, the Tafel pages, photos as Beilagen, and the Wehr's
   own forms as a list to tick off. An optional **«Auswertung»** sheet at the end adds key figures
   and a timeline for the debrief.
@@ -241,7 +260,8 @@ commit that has been carrying live incidents. Releases exist for *other* station
 ## Architecture & key decisions
 
 A tablet-first PWA talks to a single FastAPI service that serves the app same-origin, owns the
-database and asset store, and is the only thing that reaches external services – one deployment
+database and asset store, and proxies the external services (two browser-direct exceptions:
+[Integrations](#integrations)) – one deployment
 per station. The one-page overview – every optional integration and the station-data CLIs
 included – and the full diagrams (data provenance, backend modules, config layers, sync flow)
 are in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
@@ -313,10 +333,12 @@ configuration, nothing that can't be undone.
 
 ## Integrations
 
-Every external service is proxied by the backend – the one deliberate exception is basemap
-tiles, which the browser fetches directly so it can cache them (shown in the architecture
-diagram); the server fetches tiles itself only to draw the map into its PDFs (Rapport, Tafel
-print). Each connector is **optional** – the app runs fully without any of them, and each one
+Every external service is proxied by the backend, with two exceptions the browser fetches
+directly: map tiles (basemap and cantonal WMS), so it can cache them (shown in the architecture
+diagram), and the Höhenprofil of a drawn or measured line, which sends that line's coordinates
+to swisstopo's elevation service (`api3.geo.admin.ch`). The server fetches tiles itself only to
+draw the map into its PDFs (Rapport, Tafel print). [`PRIVACY.md`](PRIVACY.md) lists every request
+that carries a location. Each connector is **optional** – the app runs fully without any of them, and each one
 is fail-closed: no credential configured means the feature is off, not degraded. Server-only
 secrets (`SECRET_KEY`, `ADMIN_SECRET`, …) stay environment-only; integration credentials (Divera,
 Traccar, VAPID, STT, CARTO, webhook secrets, …) are settable from `/admin` and stored encrypted
@@ -331,12 +353,12 @@ and never readable back over the API except CARTO's browser tile key.
 | **Vehicle GPS** | in | [Traccar](https://www.traccar.org/) | Currently Traccar-specific – no abstraction yet. It can be generalised the same way as the alarm connectors |
 | **Maps & geocoding** | in | swisstopo geocoding (search, LV95); Carto, OpenStreetMap and swisstopo-satellite base maps; cantonal WMS layers | `GEOCODER_URL` plus config-driven reference layers – see [docs/geodata-architecture.md](docs/geodata-architecture.md) |
 | **Weather** | in | MeteoSwiss / Open-Meteo (wind for the spread estimate); MeteoSwiss precipitation radar on the Karte | `WEATHER_LAYER_ENABLED=false` turns the map layer off |
+| **Station printer** | out | A print agent on the station's network (it lives in [KP Rück](https://github.com/feuerwehr-oberwil/kp-rueck) and serves both apps) pulls queued Rapport and Zeitplan PDFs over HTTPS and prints them via CUPS – the server never reaches into the station LAN | Set `PRINT_AGENT_SECRET`; unset means no «Ausdrucken» button. See [tools/PRINT-AGENT.md](tools/PRINT-AGENT.md) |
 | **Speech-to-text** | out | Any OpenAI-compatible `/v1/audio/transcriptions` server – Groq, OpenAI, or a self-hosted faster-whisper | Set `STT_BASE_URL`. Empty means off everywhere, and audio never leaves the instance |
 | **Push notifications** | out | Web Push (VAPID) for Atemschutz alarms – including an Atemschutznotfall – and reminders when the app is killed, «Neuer Einsatz» for a new Divera alarm, and «Neuer Objektbesuch» to the accounts an admin picks | Unset keys disable the sweep entirely |
 | **Station data** | in | Reference geodata, object plans, checklists, and Tafel pages loaded from a private data repo via `admin_geodata` / `admin_objects` / `admin_checklists` / `admin_board_templates` | GeoJSON must be WGS84. See [docs/STATION-DATA.md](docs/STATION-DATA.md) |
 | **SharePoint** | in (out for Objektbesuche) | Microsoft 365 via Graph: a scheduled, read-only pull of Objektpläne, Geodaten, Checklisten and the Arbeitsmappe; optionally, Objektbesuche filed one-way into a SharePoint folder under a separate app registration | Set the `sharepoint_*` credentials and `sharepoint.sources`. See [docs/sharepoint-connector.md](docs/sharepoint-connector.md) |
 | **Microsoft login** | in | Optional «Mit Microsoft anmelden» via Entra ID onto existing accounts only – never creates users or changes roles | Set the four `ENTRA_LOGIN_*` credentials (tenant, client, secret, allow-list). See [docs/microsoft-login.md](docs/microsoft-login.md) |
-| **Rückmeldung (Telemetrie)** | out | Sanitised crash reports. With no maintainer ingest any more, they are sent **nowhere** unless `KP_TELEMETRY_DSN` points at the station's own GlitchTip/Sentry. **Off by default, and there is no switch in the admin UI** – the consent card was removed on 2026-09-10, so consent stays off unless it is set through the admin API; the deployer can also veto it outright with `KP_TELEMETRY_ENABLED=0` | Point `KP_TELEMETRY_DSN` at your own GlitchTip, or leave it empty. Full detail in [PRIVACY.md](PRIVACY.md) |
 
 New connectors are welcome contributions – the alarm seam is the model to copy.
 
@@ -363,10 +385,16 @@ See [GitHub issues](https://github.com/feuerwehr-oberwil/kp-front/issues) for cu
 ```text
 src/                       React/Vite frontend
   components/              UI surfaces
+  workspace/               the open Einsatz: state, sync and undo wiring
+  admin/ · capture/ · link/   /admin, the Erfassungs-Poster page, the Einsatz-Link pages
   config/                  copy, locale, defaults, and storage keys
   data/                    neutral fallback data
   lib/                     domain logic, offline storage, and sync
+  styles/                  the numbered CSS cascade
 backend/                   FastAPI/PostgreSQL service
+shared/                    which files are shared with KP Rück by copy (MANIFEST.json)
+scripts/                   setup, release, and CI helper scripts
+deploy/                    the Caddyfile of the compose stack
 e2e/                       Playwright smoke + field scenario against the built image
 examples/demo-data/        synthetic Musterdorf deployment data
 examples/scenarios/        fake-alarm scenarios for `app.fake_scenario`
