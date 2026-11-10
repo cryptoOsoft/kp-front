@@ -69,6 +69,10 @@ export interface AbschlussFacts {
    *  openConflicts). Absent on a caller that does not know about them yet — which reads as
    *  «none», so an older surface can never show the step as open. */
   openConflicts?: number
+  /** The Einsatz is CLOSED. The Anwesenheit is then read-only until «Wieder öffnen», so an empty
+   *  one is no longer an open point on the Rapport – it could not be answered there, and what was
+   *  not recorded stays empty on the paper (owner pick C11, EL phone sweep 10.11.2026). */
+  closed?: boolean
 }
 
 export function stepDone(step: AbschlussStep, f: AbschlussFacts): boolean {
@@ -76,7 +80,7 @@ export function stepDone(step: AbschlussStep, f: AbschlussFacts): boolean {
     case 'zeiten':
       return !!f.reportMeta.endedAt
     case 'anwesenheit':
-      return f.attendanceCount > 0
+      return f.attendanceCount > 0 || !!f.closed
     case 'mittel':
       // zero entries is a legitimate rapport — but only when someone SAID so
       return f.mittelCount > 0 || !!f.reportMeta.mittelConfirmedNone
@@ -128,8 +132,8 @@ export function nextOpenStep(missing: readonly AbschlussStep[], from: AbschlussS
  * workspace the blob: between a keystroke and its save the two may differ by the field being
  * typed. That is the only difference left, and it closes with the save.
  */
-export function abschlussFacts(reportMeta: ReportMeta, attendanceCount: number, mittelCount: number, openConflictCount: number): AbschlussFacts {
-  return { reportMeta, attendanceCount, mittelCount, openConflicts: openConflictCount }
+export function abschlussFacts(reportMeta: ReportMeta, attendanceCount: number, mittelCount: number, openConflictCount: number, closed: boolean): AbschlussFacts {
+  return { reportMeta, attendanceCount, mittelCount, openConflicts: openConflictCount, closed }
 }
 
 /**

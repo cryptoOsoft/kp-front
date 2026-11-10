@@ -64,6 +64,9 @@ export function writeRapportPage(incidentId: string, page: RapportPage, s?: Stor
 /**
  * Which of the three the bar's «Rapport» tile opens.
  *
+ * 0. the Rapport, always, where `rapportFirst` says so (EL phone sweep B3, 10.11.2026): for the
+ *    `el` role, whose main thing it is, and on a closed Einsatz, where the Anwesenheit is a
+ *    read-only «0 anwesend» and the tile's badge counts the Rapport's open points;
  * 1. the one this device last left the group on, for this Einsatz — the Appell is «tile →
  *    correct a name → away → tile», several times over, and a tap that always landed on the
  *    Rapport would cost an extra one on every single round trip;
@@ -73,8 +76,9 @@ export function writeRapportPage(incidentId: string, page: RapportPage, s?: Stor
  * 3. else the Rapport itself, which is what the tile says.
  */
 export function initialRapportPage(
-  { incidentId, presentCount, store: s }:
-  { incidentId: string; presentCount: number; store?: Store },
+  { incidentId, presentCount, rapportFirst = false, store: s }:
+  { incidentId: string; presentCount: number; rapportFirst?: boolean; store?: Store },
 ): RapportPage {
+  if (rapportFirst) return 'rapport'
   return readRapportPage(incidentId, s) ?? (presentCount === 0 ? 'anwesenheit' : 'rapport')
 }

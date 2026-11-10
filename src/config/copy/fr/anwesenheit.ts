@@ -78,6 +78,10 @@ export const anwesenheitCopy: Localizable<Pick<Copy, Keys>> = {
     conflictElInTrupp: '{name} est chef d\'intervention et en même temps dans le binôme {trupp}.',
     conflictLeft: '{name} est enregistré comme «parti».',
     onlyPresent: 'Présents seulement',
+    // the phone's one word under each of the three head glyphs (AnwesenheitView)
+    onlyPresentWord: 'Présents',
+    rankFilterWord: 'Grade',
+    statusFilterWord: 'Statut',
     rankFilterLabel: 'Filtrer par grade',
     rankAll: 'Tous',
     backAgain: 'De retour',

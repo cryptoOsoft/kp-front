@@ -11,7 +11,7 @@ import type { ReportMeta } from '../lib/workspace'
 import type { AttendanceEntry, PlanDocument, TimelineEvent } from '../types'
 
 // ONE number for «what is still open in the Rapport» (owner, staging 26.09.2026: «why is there 3
-// in the bottom when 6 are open?»). The phone's «Einsatz» badge showed the HEAD COUNT, and the
+// in the bottom when 6 are open?»). The phone's «Rapport» badge (the tile read «Einsatz» then) showed the HEAD COUNT, and the
 // workspace's own count (useAbschluss) left the unsettled Anwesenheits-Abweichungen out while the
 // Rapport's chip counted them. Pinned end to end: the chip, the Abschluss's list, the badge and
 // the chooser's row say the same number from the same inputs (lib/abschluss · abschlussFacts).
@@ -78,12 +78,12 @@ describe('the Rapport\'s «noch offen» is ONE number', () => {
     expect(r.abschlussMissing).toContain('abweichungen')
     expect(n).toBeGreaterThan(0)
 
-    // 2 · the phone's «Einsatz» tile: the badge is that number, not the head count beside it
+    // 2 · the phone's «Rapport» tile: the badge is that number, not the head count beside it
     render(<NavRail mode="rapport" onMode={vi.fn()} planDocs={docs} activePlanId="modul1" onSelectPlan={vi.fn()}
       fold openCount={n} presentCount={3} mittelCount={0} />)
-    const tile = screen.getByRole('button', { name: /^Einsatz/ })
+    const tile = screen.getByRole('button', { name: /^Rapport/ })
     expect(tile.querySelector('.nav-count')?.textContent).toBe(String(n))
-    expect(tile.getAttribute('aria-label')).toBe(`Einsatz · ${controlChipLabel(n, 0)}`)
+    expect(tile.getAttribute('aria-label')).toBe(`Rapport · ${controlChipLabel(n, 0)}`)
 
     // 3 · …and the chooser's Rapport row says it in the chip's own words; the head count is one
     // row further down, where it belongs
@@ -106,6 +106,6 @@ describe('the Rapport\'s «noch offen» is ONE number', () => {
 
   it('a Rapport with nothing open puts no badge on the tile', () => {
     render(<NavRail mode="map" onMode={vi.fn()} planDocs={docs} activePlanId="modul1" onSelectPlan={vi.fn()} fold openCount={0} presentCount={12} />)
-    expect(screen.getByRole('button', { name: /^Einsatz/ }).querySelector('.nav-count')).toBeNull()
+    expect(screen.getByRole('button', { name: /^Rapport/ }).querySelector('.nav-count')).toBeNull()
   })
 })

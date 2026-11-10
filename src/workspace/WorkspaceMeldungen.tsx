@@ -8,7 +8,6 @@ import type { Dispatch, SetStateAction } from 'react'
 import { AtemschutzAlarmMeldungen } from '../components/AtemschutzAlarmMeldung'
 import { AtemschutzNotfallMeldungen } from '../components/AtemschutzNotfall'
 import { GpsFollowMeldung } from '../components/GpsFollowMeldung'
-import { InstallBanner } from '../components/InstallBanner'
 import { NoBasemapMeldung } from '../components/NoBasemapMeldung'
 import { ReviewBanner } from '../components/panels'
 import { ReminderBanner } from '../components/ReminderBanner'
@@ -20,7 +19,6 @@ import { WindShiftMeldung } from '../components/WindShiftMeldung'
 import { appConfig } from '../config/appConfig'
 import type { AtemschutzAlarmState } from '../lib/atemschutz'
 import type { AuthUser } from '../lib/auth'
-import { isDemoMode } from '../lib/deploymentConfig'
 import type { useGpsNotices, GpsEnd } from '../lib/gpsReturn'
 import { Icon } from '../lib/icons'
 import type { IncidentMeta, SyncStatus } from '../lib/incidents'
@@ -64,7 +62,6 @@ export interface WorkspaceMeldungenProps {
   rapportReturn: boolean
   setRapportReturn: Dispatch<SetStateAction<boolean>>
   openRapport: () => void
-  setInstallGuideOpen: Dispatch<SetStateAction<boolean>>
   tabLockLost: boolean
   /** this tab follows a presentation (lib/presentation · isFollower): the tab-lock row steps aside */
   followingPresentation: boolean
@@ -90,7 +87,7 @@ export function WorkspaceMeldungen({
   setNoBasemap, setOfflineReadyOpen, trupps, azAlarm, canEditTrupps, azIntervalMin, azGraceSec, mode,
   setAzRowsShown, muteAtemschutz, setMode, setPanel, setTruppFocus, mapUI, tacticalLocked, gpsMeld,
   releaseOnSite, revertAll, followAll, replayActive, incidentMeta, journal, rapportReturn,
-  setRapportReturn, openRapport, setInstallGuideOpen, tabLockLost, followingPresentation, user, onTakeOverTab, needsReview,
+  setRapportReturn, openRapport, tabLockLost, followingPresentation, user, onTakeOverTab, needsReview,
   readOnly, intakeReviewedAt, onEditMeta, onReviewDone, azAlarmActive, truppPlace, setTruppStatus,
   syncStatus, exportEntries, syncNow,
 }: WorkspaceMeldungenProps) {
@@ -204,11 +201,6 @@ export function WorkspaceMeldungen({
       {/* No standing «Offline» row (removed 05.10.2026, owner: «no need for this large offline
           banner at the top of the screen»): the head's «● Offline» chip stays on screen the
           whole time, and the one-shot toast (useIncidentSync) announces the spell once. */}
-
-      {/* "Als App installieren" nudge — browser-tab only, one ✕ dismisses it for good
-          on this device (the menu keeps the permanent entry).
-          Hidden on the demo: a visitor isn't installing the demo as their command app. */}
-      {!isDemoMode() && <InstallBanner onOpenGuide={() => setInstallGuideOpen(true)} />}
 
       {/* No demo «Zurücksetzen» button: it sat bottom-centre over the map's bottom controls
           (obstructing them on a phone), and a plain page reload already restores the pristine

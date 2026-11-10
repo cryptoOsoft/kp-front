@@ -328,7 +328,7 @@ export function IncidentWorkspace({
   // …and a blob from a NEWER build makes this one read-only until that build is in (re-read on
   // every poll by useWorkspaceBlob · applyWorkspace; workspace/access · olderBuild)
   const [olderBuild, setOlderBuild] = useState(bootGate.newerSchema)
-  const { running, readOnly, outboxReadOnly, canEditIncident, canEditTrupps, canEditRecord, canEditRapport, canEditMeta, canWriteRecord, canWriteBlob, tacticalLocked } =
+  const { running, readOnly, outboxReadOnly, canEditIncident, canEditTrupps, canEditRecord, canEditRapport, canEditMeta, canCloseIncident, canWriteRecord, canWriteBlob, tacticalLocked } =
     useWorkspaceFlags({ user, asLink, isEl, isEditor, roleReadOnly, forceReadOnly, tabLockLost, replayActive, incidentMeta, olderBuild })
   // «Standort zu Fotos» (lib/devicePosition): a session that writes the record lends the device's
   // position to a picture without one — after asking ONCE per device, with the reason.
@@ -1594,7 +1594,7 @@ export function IncidentWorkspace({
   })
   // «Alle Einsätze» closes THIS Einsatz through the same confirm (prop `abschlussRef`) — offered
   // exactly where the Einsatz-Menü row is (WorkspaceTopBar · onArchive)
-  const canCloseHere = canEditIncident && !readOnly && !incidentMeta.is_archived
+  const canCloseHere = canCloseIncident && !readOnly && !incidentMeta.is_archived
   // …and the Einsatz-Menü the list was opened from is put away first (`menuCloseKey`): it stays
   // logically open under «Alle Einsätze», and once the list stepped aside it stood open behind
   // the question (sweep 09.11.2026). The menu's own «Abschliessen» keeps it, as before.
@@ -2749,6 +2749,7 @@ export function IncidentWorkspace({
   // somebody on the Anwesenheit because they were given a job (workspace/useRosterRoles)
   const roster = useRosterRoles({
     linkedTrupps, truppOfPerson, pickablePersonnel, attendance, allTrupps, phoneFold, mode, incidentMeta,
+    rapportFirst: isEl || !running,
     rosterIdByName, rosterById, trupps, setSelectedId, log, canWriteRecord, attSet, openTruppSave,
     addGuest, replayActive, setAttendance, setTrupps, createTrupp, editTrupp, reactivateTrupp,
   })
@@ -3168,7 +3169,7 @@ export function IncidentWorkspace({
       <WorkspaceTopBar {...{
         incidentView, incidentMeta, reportMeta, running, voice, journalOpen, setJournalOpen, reminders,
         linkScoped, readOnly, setComposerOpen, tabLockLost, isEditor, onTakeOverTab, startVoiceMemo,
-        startQuickPhoto, onHistoryPress, histCanUndo, histCanRedo, undoLabel, redoLabel, canEditIncident,
+        startQuickPhoto, onHistoryPress, histCanUndo, histCanRedo, undoLabel, redoLabel, canEditIncident, canCloseIncident,
         canEditRecord, displayWeather, openWeatherDetails, view, azAlarm, mode, azRowsShown, setMode,
         setPanel, setTruppFocus, mapUI, replayActive, gpsStale, gpsAgeMs, share, onShareChangeName,
         onBackFromArchive, onReactivateActive, isPhone, phoneTools, planFit, incidents, syncStatus, journal,
@@ -3189,7 +3190,7 @@ export function IncidentWorkspace({
         setNoBasemap, setOfflineReadyOpen, trupps, azAlarm, canEditTrupps, azIntervalMin, azGraceSec, mode,
         setAzRowsShown, muteAtemschutz, setMode, setPanel, setTruppFocus, mapUI, tacticalLocked, gpsMeld,
         releaseOnSite, revertAll, followAll, replayActive, incidentMeta, journal, rapportReturn,
-        setRapportReturn, openRapport, setInstallGuideOpen, tabLockLost, followingPresentation: isFollower(presentation.follow), user, onTakeOverTab, needsReview,
+        setRapportReturn, openRapport, tabLockLost, followingPresentation: isFollower(presentation.follow), user, onTakeOverTab, needsReview,
         readOnly, intakeReviewedAt, onEditMeta, onReviewDone, azAlarmActive, truppPlace, setTruppStatus,
         syncStatus, exportEntries, syncNow,
       }} />
@@ -3232,7 +3233,7 @@ export function IncidentWorkspace({
 
       <MapControls {...{
         mapUI, mapUtility, mapRef, view, viewsApi, readOnly, isEl, viewsOpen, toggleViews, coord, panel,
-        layersPreset, togglePanel, isPhone, slimRail, displayWeather, openWeatherDetails, replayActive,
+        layersPreset, togglePanel, isPhone, displayWeather, openWeatherDetails, replayActive,
         georefMode, buildingInfo, buildingFirst, setPanel, composerOpen, journalOpen, offlineReadyOpen,
         // an incident link may not read the station: no «Unterirdische Bauten» row it could never fill
         layers: linkScoped ? layers.filter((l) => l.id !== UNDERGROUND_LAYER_ID) : layers,
@@ -3338,7 +3339,7 @@ export function IncidentWorkspace({
         planDocs, mapLayers, sym, incidentView, view, symbolCaptions, board, effBuilding, captureUsage,
         attachments, canEditRapport, addAttachments, captionAttachment, removeAttachment, canShareLink,
         running, assignRole, assignTypedName, saveReportMeta, canEditMeta, onEditMeta, setMode,
-        setRapportReturn, canWriteRecord, resolveAttendanceConflict, canEditIncident, readOnly,
+        setRapportReturn, canWriteRecord, resolveAttendanceConflict, canCloseIncident, readOnly,
         confirmAndComplete, setJournalOpen, setJournalFromRapport, reportSignatures,
         signRapport: canEditRapport ? signRapport : undefined,
         voidSignatures: canEditRapport ? voidSignatures : undefined,

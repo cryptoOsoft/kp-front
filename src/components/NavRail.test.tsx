@@ -229,14 +229,14 @@ describe('the open count on the Rapport tile', () => {
     const badge = rapport().querySelector('.nav-count')
     expect(badge?.textContent).toBe('6')
     expect(badge?.classList.contains('nav-open')).toBe(true)
-    expect(rapport().getAttribute('aria-label')).toBe('Einsatz · 6 offen')
+    expect(rapport().getAttribute('aria-label')).toBe('Rapport · 6 offen')
   })
 
   // nothing open is nothing to say — and the head count never stands in for it
   it('paints nothing while nothing is open', () => {
     setup({ fold: true, openCount: 0, presentCount: 12 })
     expect(rapport().querySelector('.nav-count')).toBeNull()
-    expect(rapport().getAttribute('aria-label')).toBe('Einsatz')
+    expect(rapport().getAttribute('aria-label')).toBe('Rapport')
   })
 
   // on a tablet the Rapport has its own tile and its own chip, right there

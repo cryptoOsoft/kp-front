@@ -9,7 +9,7 @@ import { useMeldung } from '../lib/useMeldung'
 // re-nagging, the 3am rule). Last rank in the Meldeleiste: nothing waits on it.
 // ⚠️ The ✕, not a second «Später» button (20.10.2026, S10): the row had two ways to wave it
 // away, and «Später» hid it for good — the one dismiss of the strip is its ✕, «Ausblenden».
-// Self-contained: the workspace only mounts it and provides the guide opener.
+// Self-contained: App mounts it outside an Einsatz and provides the guide opener.
 export function InstallBanner({ onOpenGuide }: { onOpenGuide: () => void }) {
   const [, bump] = useState(0)
   useEffect(() => onInstallStateChange(() => bump((v) => v + 1)), [])

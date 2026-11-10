@@ -102,9 +102,10 @@ export function NavRail(p: Props) {
   // the phone bar's one plan tile — `null` with no plan documents at all, which is the rail's
   // existing empty state (no tile, and the separator above it is already conditional)
   const folded = p.fold ? foldPlanTiles(p.planDocs, p.activePlanId) : null
-  // folded, the tile is the door to Rapport · Anwesenheit · Material, so it wears the word for
-  // the whole record («Einsatz», owner 18.09.2026); on the rail it is the Rapport alone
-  const rapportWord = p.fold ? nav.rapportGroup : appConfig.copy.modes.rapport
+  // folded, the tile is the door to Rapport · Anwesenheit · Material, and still says «Rapport»:
+  // its badge counts the Rapport's open points (it read «Einsatz» from 18.09. to 10.11.2026,
+  // EL phone sweep B2)
+  const rapportWord = appConfig.copy.modes.rapport
   // what is still open in the Rapport, on the tile that leads there — only on a folded bar (see
   // `openCount`), and only while something is
   const rapportCount = p.fold ? (p.openCount ?? 0) : 0
