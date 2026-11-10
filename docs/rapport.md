@@ -109,6 +109,30 @@ the three mockup rounds: `docs/planning/signature-2026-10-15/` (local, gitignore
   «Einsatzjournal · 23.10.2026» (`reportPdfDirect · oneDay` → `ReportPayload.journalDay`). Rows
   across midnight keep «Datum Zeit» on every row.
 
+## Messungen (10.11.2026)
+
+A Messpunkt's gas readings print as their own section (owner pick 1B), a Beilage after the
+Einsatzjournal and the Pendenzen (`lib/readingLog · readingsForReport` → `ReportPayload.messungen`
+→ `app/report/messungen`):
+
+- **One block per Messpunkt**: a head row – room, Geschoss («UG»), how often it was measured, and
+  at the right edge the LAST reading («zuletzt 19:04 · CO 0 ppm», with its Stufe when it has one) –
+  then the history, oldest first, the newest row bold. One row per radio report (the panel's
+  `readingRows` fold); it leads with the gas the map's pill wore for those values (`worstGas`), the
+  other gases beside the Stufe. Points worst first by their last reading (`compareReadings`).
+- **The Stufe is a word** – «A1 Voralarm», «A2 Hauptalarm», «über Messbereich (A2 Hauptalarm)»,
+  «unlesbar». The square before it and the colour only repeat it: a monochrome print says the
+  same. Worded by the composer (`labels.py`), the client sends the state.
+- **The limits print once above the table** («Grenzwerte dieses Einsatzes: …», `readingLimitsText`):
+  they are the station's setting, and the paper outlives it.
+- **No switch.** The section prints whenever a point has a reading and is absent otherwise – heading
+  included. It is not part of the signed scope (`reportSignature · NOT_SIGNED`).
+- ⚠️ **The Journal carries none of the reading rows** (owner: «in the verlauf everything but in the
+  pdf just in the separate table»): `report · journalRows` drops a reading row and the ↶ / ↷ of one
+  (`readingLog · isReadingRow` – by the row's icon, never by its words: «Messung im Keller
+  angeordnet» is somebody's entry and prints).
+- «O₂» / «H₂S» print through `<sub>` (`messungen · _gas`): Helvetica has no subscript digits.
+
 ## What the figure pages carry
 
 - **What the Rapport's figure pages carry (18.09.2026).** The **Kroki is the picture**; everything
