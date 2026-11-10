@@ -175,7 +175,7 @@ export const anwesenheitCopy = {
     // an instruction, so it names the filter and lets `aria-pressed` say whether it is on.
     onlyPresent: 'Nur Anwesende',
     // the phone's one word under each of the three head glyphs (AnwesenheitView)
-    onlyPresentWord: 'Anwesende',
+    onlyPresentWord: 'Vor Ort',
     rankFilterWord: 'Grad',
     statusFilterWord: 'Status',
     rankFilterLabel: 'Nach Grad filtern',

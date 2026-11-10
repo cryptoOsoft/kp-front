@@ -79,7 +79,7 @@ export const anwesenheitCopy: Localizable<Pick<Copy, Keys>> = {
     conflictLeft: '{name} è registrato come «andato».',
     onlyPresent: 'Solo presenti',
     // the phone's one word under each of the three head glyphs (AnwesenheitView)
-    onlyPresentWord: 'Presenti',
+    onlyPresentWord: 'Sul posto',
     rankFilterWord: 'Grado',
     statusFilterWord: 'Stato',
     rankFilterLabel: 'Filtra per grado',

@@ -73,9 +73,11 @@ export function useAbschluss({
   setMode, setPanel, setOfflineReadyOpen, requestReportStep, standDownTrupps, noteInsideAtClose, noteNotfallAtClose, flushOutboxes, markClosing,
   patchReportMeta,
 }: Args) {
+  // the Rapport's own «closed» (RapportSurface · `!running`), so its chip and every door count alike
+  const closedNow = !isIncidentRunning(incidentMeta)
   const abschlussMissing = useMemo(
-    () => missingSteps(abschlussFacts(reportMeta, Object.keys(attendance).length, mittelLineCount(mittel), openConflictCount, incidentMeta.is_archived)),
-    [reportMeta, attendance, mittel, openConflictCount, incidentMeta.is_archived],
+    () => missingSteps(abschlussFacts(reportMeta, Object.keys(attendance).length, mittelLineCount(mittel), openConflictCount, closedNow)),
+    [reportMeta, attendance, mittel, openConflictCount, closedNow],
   )
   /** How many Trupps are still recorded as being out there (lib/atemschutz · truppStillDeployed).
    *  NOT an ABSCHLUSS_STEP: those are the Rapport's Mindestangaben, and this is a state of the
@@ -164,21 +166,24 @@ export function useAbschluss({
        ⚠️ Not while a crew is still recorded inside: that is the question that matters, and the
        confirm below asks it («Noch im Einsatz …»). Closing the waiting crews first would put
        «nicht eingesetzt» rows beside a Trupp nobody has reported out. */
-    const registered = standDownTrupps && truppsStillOut === 0 ? truppsRef.current.filter(truppStillRegistered) : []
+    /* ⚠️ Asked of EVERY closer (review of #581): the `el` role closes too and cannot write the
+       Tafel (no `standDownTrupps`). It gets the same question with «Trotzdem abschliessen» in
+       place of the stand-down – as with crews still inside, its close writes nothing for them. */
+    const registered = truppsStillOut === 0 ? truppsRef.current.filter(truppStillRegistered) : []
     let standDown: string[] = []
     if (registered.length > 0) {
       const answer = await confirmDialog({
         // every question of the chain carries a title (owner review 26.09.2026)
         title: A.registeredTitle,
         message: registeredAbschlussMessage(registered),
-        confirmLabel: A.registeredStandDown,
+        confirmLabel: standDownTrupps ? A.registeredStandDown : A.insideClose,
         altLabel: A.registeredToBoard,
         cancelLabel: appConfig.copy.cancel,
         safeAnswer: 'alt',
       })
       if (answer === 'alt') { setMode('atemschutz'); setPanel(null); return false }
       if (answer !== true) return false
-      standDown = registered.map((t) => t.id)
+      if (standDownTrupps) standDown = registered.map((t) => t.id)
     }
     // ⚠️ Pending media belongs in this list. The Abschluss closes the incident, and a Foto or a
     // Sprachnotiz that never got a connection is still sitting on THIS device — the operator is

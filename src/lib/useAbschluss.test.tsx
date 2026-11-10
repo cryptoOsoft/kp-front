@@ -166,6 +166,15 @@ describe('useAbschluss', () => {
       expect(a.onCompleteRapport).not.toHaveBeenCalled()
     })
 
+    // review of #581: the `el` role closes too and cannot write the Tafel – it is still asked
+    it('a closer that cannot stand down is asked the same question, with «Trotzdem abschliessen»', async () => {
+      const ask = vi.mocked(confirmDialog)
+      ask.mockReset().mockResolvedValue(true)
+      const a = args({ trupps: [sich], onCompleteRapport: vi.fn(async () => true) })
+      await expect(renderHook(() => useAbschluss(a)).result.current.confirmAndComplete()).resolves.toBe(true)
+      expect(ask.mock.calls[0][0]).toMatchObject({ title: A.registeredTitle, confirmLabel: A.insideClose, altLabel: A.registeredToBoard })
+    })
+
     it('«Zur Tafel» goes to the board and closes nothing', async () => {
       const ask = vi.mocked(confirmDialog)
       ask.mockReset().mockResolvedValueOnce('alt' as never)
