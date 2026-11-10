@@ -17,7 +17,7 @@
      standard opt-out from that UA adjustment and leaves the native-surface behaviour above
      unchanged — which `light dark` would NOT: that hands scrollbars and the iOS accessory bar
      back to the OS setting, re-opening the white-bar bug this comment exists for. Measured
-     with `e2e/blink-force-dark.mjs`: day chrome 26 → 242 mean luminance under auto-dark. */
+     with `e2e/blink-force-dark.spec.ts`: day chrome 26 → 242 mean luminance under auto-dark. */
   color-scheme: only light;
   /* Field-readable glass: opaque enough to hold contrast over aerial imagery
      and in daylight, with a faint dark hairline so edges read on any base map. */
@@ -49,14 +49,16 @@
   --open: var(--amber);
   --snap: #db2777;
   /* Präsentationsmodus (05.11.2026, docs/presentation.md): the presenter's colour – the pill, the
-     «Wieder folgen» chip, their pointer rings – and five more for everybody else's rings. People,
-     not states: no ink, tool or status wears these. Mid-tones that read on day and night alike. */
-  --present: var(--snap);
+     «Wieder folgen» chip, their pointer rings and lines – and five more for everybody else's rings.
+     People, not states: no ink, tool or status wears these. Mid-tones that read on day and night
+     alike. The presenter is FW red (owner, 09.11.2026 – «Pink ist nicht Feuerwehr»; it was the
+     snap magenta), so the fifth person's tone moved off the burnt orange that read as the same red. */
+  --present: var(--red-fill);
   --present-1: var(--present);
   --present-2: #0d9488;
   --present-3: var(--blue);
   --present-4: #7c3aed;
-  --present-5: #c2410c;
+  --present-5: #a16207;
   --present-6: var(--green);
   /* layered shadow: hairline edge + tight contact + soft ambient — holds the
      panel edge over dark aerial imagery where the white border alone vanishes */
@@ -458,6 +460,9 @@
   --ink-faint: #97a2b8;   /* #a4b0c2 / #8a95ab until 04.11.2026 – see the day tier */
   /* brighter, slightly desaturated accents for contrast on dark surfaces */
   --red: #ff5a4d;
+  /* the presenter (--present) keeps the day's fill red at night: it carries white name tags like
+     the other people tones, and the bright night red under white is under 3:1 */
+  --present: #da3628;
   --blue: #5aa0ff;
   --green: #38c172;
   --amber: #f4b033;

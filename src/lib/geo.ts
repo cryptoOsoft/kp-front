@@ -142,6 +142,15 @@ export function hoseCount(lenM: number, lines = 1): number {
   return Math.ceil((lenM * (1 + reserve)) / h) * lines
 }
 
+/** hoseCount, split into the hoses the run itself takes and the reserve on top — what the Leitung's
+ *  «Messung» shows («34 + 3 Reserve × 20 m» for 665 m), so the 10 % do not read as a miscount. */
+export function hoseSplit(lenM: number, lines = 1): { need: number; reserve: number } {
+  const total = hoseCount(lenM, lines)
+  const h = appConfig.drawing.hoseLengthM
+  const need = total ? Math.ceil(lenM / h) * lines : 0
+  return { need, reserve: total - need }
+}
+
 /** hose-length helper for the Messpfeil label, e.g. "~5 Schläuche" (incl. the reserve); `lines`
  *  as in hoseCount (lib/hydraulics · hoseLines). */
 export function hoseLengthHint(lenM: number, lines = 1): string {

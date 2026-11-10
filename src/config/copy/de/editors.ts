@@ -96,6 +96,13 @@ export const editorsCopy = {
     readingOr: 'oder',
     readingInfoLevels: 'Gelb = A1 (Voralarm) erreicht, rot = A2 (Hauptalarm) erreicht.',
     readingInfoStale: 'Mit Alter (z. B. 18′) und nur der Rahmen farbig = älter als {min} min.',
+    /** das Feld eines Messwerts (Entscheid 3B/4A, 10.11.2026): nur Ziffern, daneben das Häkchen
+     *  «über Messbereich» (zählt als A2); `readingUnreadable` unter einem alten Wert, der keine
+     *  Zahl ist; `readingAgain` = der Knopf unter den Feldern, eine Nachmessung mit denselben
+     *  Werten und der Zeit jetzt. */
+    readingOver: 'über Messbereich',
+    readingUnreadable: 'Unlesbar – Zahl eingeben',
+    readingAgain: 'Gleich gemessen',
     removeField: 'Feld löschen',
     // the ⇄ square at the end of the Einsatzleiter glyph's EL row (title/aria). Says what HAPPENS,
     // not what the button is: an Ablösung is «übergeben», and both Anwesenheits-Bemerkungen follow
@@ -305,6 +312,8 @@ export const editorsCopy = {
     distance: 'Länge',
     // Messung group: the numbers of an already drawn line (length, Schläuche, elevation profile)
     measurement: 'Messung',
+    // die Schläuche einer Leitung: was die Strecke braucht, und die Reserve darauf (lib/geo · hoseSplit)
+    hoseSplit: '{n} + {r} Reserve × {m} m',
     showOnMap: 'Auf Karte',
     inputMode: 'Eingabe',
     modeFreehand: 'Freihand',

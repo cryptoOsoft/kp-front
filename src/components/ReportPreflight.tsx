@@ -46,7 +46,9 @@ import type { ReportDraft, ReportOptions } from '../lib/report'
 import {
   defaultReportOptions, formatDateTime, hasVisiblePlanAnnotation, missingTranscriptCount, pendenzRows, proofLabel,
 } from '../lib/report'
-import { TAFEL_ID, findForms } from '../lib/boardForm'
+import { TAFEL_ID } from '../lib/boardForm'
+import { EF_PAGE_ID, RAPPORT_PAGE_ID, tafelKindPrints, tafelMenuKinds, tafelPrintKinds } from '../lib/tafelPicks'
+import { isDrawnBoardKind } from '../lib/workspace'
 import { abschlussFacts, missingSteps, nextOpenStep, stepDone, type AbschlussFacts, type AbschlussStep } from '../lib/abschluss'
 import { abschlussSheet, controlChipLabel } from '../lib/abschlussOpen'
 import { hoursRows, unresolvedHoursRows } from '../lib/attendanceHours'
@@ -292,11 +294,8 @@ export function ReportPreflight({
   const pendenzCount = useMemo(() => pendenzRows(events).length, [events])
   // the Gebäude section's count is its diagnostic, like the Pendenzen's: «(0)» says no storey
   // carries anything, which is why no Gebäude page will print
-  // the Tafel's pages, plus its Skizze when it carries ink (reportPdfDirect · tafelPayload)
-  const tafelPageCount = useMemo(() => {
-    const annos = board?.[TAFEL_ID] ?? []
-    return findForms(annos).length + (hasVisiblePlanAnnotation({ [TAFEL_ID]: annos }, TAFEL_ID) ? 1 : 0)
-  }, [board])
+  // the Tafel's Skizze, when it carries ink (reportPdfDirect · tafelPayload); its pages: `tafelKinds`
+  const tafelSkizze = useMemo(() => hasVisiblePlanAnnotation({ [TAFEL_ID]: (board?.[TAFEL_ID] ?? []).filter((a) => isDrawnBoardKind(a.kind)) }, TAFEL_ID), [board])
   const stackFloorCount = useMemo(() => {
     const stack = plans.find((p) => p.floorStack)
     return stack && building ? usedStackFloors(building, board?.[stack.id] ?? []).length : 0
@@ -311,6 +310,10 @@ export function ReportPreflight({
     warmTemplates().list.then((l) => { if (alive) setChecklistTemplates(l) }, () => {})
     return () => { alive = false }
   }, [checklists])
+  // the Tafel's pages, one tick per kind (lib/tafelPicks), and its Skizze when it carries ink
+  // (reportPdfDirect · tafelPayload). Judged on the pages as drawn, checklist problems included.
+  const tafelKinds = useMemo(() => tafelPrintKinds(board?.[TAFEL_ID] ?? [],
+    checklists ? { checklists, templates: checklistTemplates } : undefined), [board, checklists, checklistTemplates])
   // what this Einsatz's Rapport looked like when it was last left (useReportPlace · rapportKept),
   // read once: every seed below that it carries is a mount-time seed
   const [kept] = useState(() => rapportKept.read(incident.id))
@@ -1434,8 +1437,17 @@ export function ReportPreflight({
                   // ⚠️ NOT one of the «Pläne»: an Objektplan is reference, the Gebäude is the Einsatz's
                   // own work (Trupp positions per storey). Only storeys that carry something print.
                   { kind: 'check' as const, label: fillTemplate(P.toggleGebaeude, { n: stackFloorCount }), checked: options.gebaeude && stackFloorCount > 0, disabled: stackFloorCount === 0, onChange: (v: boolean) => patchOpt({ gebaeude: v }) },
-                  // the Tafel's pages (Erste Führung …) and its Skizze — the Einsatz's own work, ON
-                  { kind: 'check' as const, label: fillTemplate(P.toggleTafel, { n: tafelPageCount }), checked: options.tafel !== false && tafelPageCount > 0, disabled: tafelPageCount === 0, onChange: (v: boolean) => patchOpt({ tafel: v }) },
+                  // the Tafel's pages, each kind its own tick (owner, 09.11.2026 – lib/tafelPicks): the
+                  // Erste Führung and the Rapport sheet always stand here, disabled while the Tafel has
+                  // none (or, the EF, nothing on it), any other kind only while it is on the Tafel
+                  ...tafelMenuKinds(tafelKinds).map((k) => ({
+                    kind: 'check' as const,
+                    label: k.id === EF_PAGE_ID ? P.toggleErsteFuehrung : k.id === RAPPORT_PAGE_ID ? P.toggleRapportPage : fillTemplate(P.toggleTafelPage, { title: k.title, n: k.count }),
+                    checked: tafelKindPrints(k, options.tafelPages),
+                    disabled: k.count === 0 || (k.id !== RAPPORT_PAGE_ID && !k.filled),
+                    onChange: (v: boolean) => patchOpt({ tafelPages: { ...options.tafelPages, [k.id]: v } }),
+                  })),
+                  ...(tafelSkizze ? [{ kind: 'check' as const, label: P.toggleTafelSkizze, checked: options.tafel !== false, onChange: (v: boolean) => patchOpt({ tafel: v }) }] : []),
                   { kind: 'sep' as const },
                   { kind: 'check' as const, label: fillTemplate(P.toggleAtemschutz, { n: truppCount }), checked: options.atemschutz, onChange: (v: boolean) => patchOpt({ atemschutz: v }) },
                   { kind: 'check' as const, label: fillTemplate(P.toggleAttendance, { n: attendanceCount }), checked: options.attendance, onChange: (v: boolean) => patchOpt({ attendance: v }) },
@@ -2463,54 +2475,6 @@ export function ReportPreflight({
                 )}
               </div>
             </CheckRow>
-            {/* …and under the Beilagen, the station's own paperwork: the Getränkeabrechnung, a
-                Schadenmeldung, whatever this Wehr still has to fill in elsewhere. It belongs in
-                THIS column because the column's question is «was ist noch offen» — and a form
-                that has not been sent is exactly that. It never reaches the paper (the printed
-                rapport is the record, not the to-do list), and where a station has configured
-                none the whole card is absent rather than empty.
-                ⚠️ …and absent for a session that cannot edit the Rapport (`canEditIn`, RBAC audit
-                22.10.2026): the station's pre-filled forms are the editor's paperwork, and a
-                viewer opening a Schadenmeldung with this Einsatz's data in it is not a read. */}
-            {canEditIn && stationLinks.length > 0 && (
-              <CheckRow
-                tab="beilagen"
-                done={linksDoneCount === stationLinks.length}
-                label={P.linksHead}
-                sub={fillTemplate(P.linksCount, { done: linksDoneCount, n: stationLinks.length })}
-              >
-                <div className="rp-check-extra">
-                  <div className="rp-links">
-                    {stationLinks.map((link) => {
-                      const at = linksDone[link.id]
-                      return (
-                        <div key={link.id} className={cx('rp-link', at && 'on')}>
-                          {/* tick + title are ONE target, as on the Partnerorganisationen rows —
-                              a 40px checkbox beside a label is a miss waiting to happen */}
-                          <TickRow
-                            className="rp-link-tick" disabled={!canEdit} checked={!!at}
-                            aria-label={fillTemplate(at ? P.linksMarkOpen : P.linksMarkDone, { title: link.title })}
-                            onToggle={() => setLinkDone(link.id, !at)}
-                          >
-                            <span className="rp-link-txt">
-                              <span className="rp-link-title">{link.title}</span>
-                              {/* the note says WHEN this has to be filled in; once it is done the
-                                  row answers the more useful question instead — when it was */}
-                              {at
-                                ? <span className="rp-link-note">{fillTemplate(P.linksDoneAt, { at: formatDateTime(at) })}</span>
-                                : link.note?.trim() && <span className="rp-link-note">{link.note.trim()}</span>}
-                            </span>
-                          </TickRow>
-                          <Button className="rp-link-open" icon={<Icon id="external" />} onClick={() => openLink(link)}>
-                            {P.linksOpen}
-                          </Button>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              </CheckRow>
-            )}
           </div>
 
           {/* The Kroki, on the page. It was a modal that opened on the press of PDF / Ausdrucken,
@@ -2556,6 +2520,57 @@ export function ReportPreflight({
                   onViewChange={(v) => patchOpt({ krokiView: v })}
                 />
             </section>
+          )}
+
+          {/* …and at the end of the column, under the Kroki, the station's own paperwork: the
+              Getränkeabrechnung, a Schadenmeldung, whatever this Wehr still has to fill in
+              elsewhere (Manuel 09.11.2026: to the end – it stood between the Fotos and the
+              Kroki, the rows that make the rapport). It belongs in THIS
+              column because the column's question is «was ist noch offen» — and a form
+              that has not been sent is exactly that. It never reaches the paper (the printed
+              rapport is the record, not the to-do list), and where a station has configured
+              none the whole card is absent rather than empty.
+              ⚠️ …and absent for a session that cannot edit the Rapport (`canEditIn`, RBAC audit
+              22.10.2026): the station's pre-filled forms are the editor's paperwork, and a
+              viewer opening a Schadenmeldung with this Einsatz's data in it is not a read. */}
+          {canEditIn && stationLinks.length > 0 && (
+            <CheckRow
+              tab="beilagen"
+              done={linksDoneCount === stationLinks.length}
+              label={P.linksHead}
+              sub={fillTemplate(P.linksCount, { done: linksDoneCount, n: stationLinks.length })}
+            >
+              <div className="rp-check-extra">
+                <div className="rp-links">
+                  {stationLinks.map((link) => {
+                    const at = linksDone[link.id]
+                    return (
+                      <div key={link.id} className={cx('rp-link', at && 'on')}>
+                        {/* tick + title are ONE target, as on the Partnerorganisationen rows —
+                            a 40px checkbox beside a label is a miss waiting to happen */}
+                        <TickRow
+                          className="rp-link-tick" disabled={!canEdit} checked={!!at}
+                          aria-label={fillTemplate(at ? P.linksMarkOpen : P.linksMarkDone, { title: link.title })}
+                          onToggle={() => setLinkDone(link.id, !at)}
+                        >
+                          <span className="rp-link-txt">
+                            <span className="rp-link-title">{link.title}</span>
+                            {/* the note says WHEN this has to be filled in; once it is done the
+                                row answers the more useful question instead — when it was */}
+                            {at
+                              ? <span className="rp-link-note">{fillTemplate(P.linksDoneAt, { at: formatDateTime(at) })}</span>
+                              : link.note?.trim() && <span className="rp-link-note">{link.note.trim()}</span>}
+                          </span>
+                        </TickRow>
+                        <Button className="rp-link-open" icon={<Icon id="external" />} onClick={() => openLink(link)}>
+                          {P.linksOpen}
+                        </Button>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </CheckRow>
           )}
 
           {/* ── Weitergeben ─────────────────────────────────────────────────────────────

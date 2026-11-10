@@ -153,6 +153,12 @@ export function pumpsText(n: number): string {
   return n === 0 ? R.pumpsNone : n === 1 ? R.pumpsOne : fillTemplate(R.pumpsMany, { n })
 }
 
+/** Pump `i`'s (0-based) short name, the same on the chart's dot and the map's marker – «P1», «P2»
+ *  …, the bare number once there are more than `RELAY.manyPumps` (the dots get crowded). */
+export function pumpLabel(i: number, count: number): string {
+  return count > RELAY.manyPumps ? String(i + 1) : fillTemplate(appConfig.copy.relay.pumpShort, { n: i + 1 })
+}
+
 /** What the Wasser picker hands back — a preset («800 l/min») or whatever was typed — as l/min:
  *  the leading whole number (a Swiss «1'200» included), clamped to the engine's range; null for
  *  anything without one, which then changes nothing. */
@@ -252,4 +258,37 @@ export function dismissRelayBubble(): boolean {
   notify()
   open.onClose()
   return true
+}
+
+// ── «Messung» asked open ─────────────────────────────────────────────────────────────────────
+// A Motorspritze of a resting Leitung tapped on the map selects the Leitung (RelayPumpMarkers ·
+// LinePumps) – and what the tap was about is the Wassertransport, so its editor opens with
+// «Messung» unfolded (Manuel 09.11.2026: it opened folded, the numbers one more tap away). The
+// same module-store reasoning as the pumps above: the map and the editor are siblings several
+// layers apart. The ask holds until that line's editor folds the group by hand or goes away.
+
+let measureAsk: string | null = null
+const askListeners = new Set<() => void>()
+/** editors mounted per line, so an unmount clears the ask only when the last one went */
+const askHolders = new Map<string, number>()
+const subscribeAsk = (l: () => void) => { askListeners.add(l); return () => { askListeners.delete(l) } }
+const setAsk = (id: string | null) => { if (measureAsk !== id) { measureAsk = id; for (const l of askListeners) l() } }
+
+/** Open the «Messung» of Leitung `lineId` in its editor – before or after it is selected. */
+export const askLineMeasure = (lineId: string) => setAsk(lineId)
+
+/** For the Leitung editor (DrawEditor): `asked` – its «Messung» was asked open for `lineId`;
+ *  `settle` – the group was toggled by hand, the ask is answered. Gone with the editor too. */
+export function useLineMeasureAsk(lineId: string | undefined): { asked: boolean; settle: () => void } {
+  const asked = useSyncExternalStore(subscribeAsk, () => lineId != null && measureAsk === lineId, () => false)
+  useEffect(() => {
+    if (lineId == null) return
+    askHolders.set(lineId, (askHolders.get(lineId) ?? 0) + 1)
+    return () => {
+      askHolders.set(lineId, (askHolders.get(lineId) ?? 1) - 1)
+      // after the commit, not in it: StrictMode's dev remount tears down and sets up again at once
+      queueMicrotask(() => { if (!askHolders.get(lineId) && measureAsk === lineId) setAsk(null) })
+    }
+  }, [lineId])
+  return { asked, settle: () => { if (lineId != null && measureAsk === lineId) setAsk(null) } }
 }

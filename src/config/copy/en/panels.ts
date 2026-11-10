@@ -78,6 +78,12 @@ export const panelsCopy: Localizable<Pick<Copy, Keys>> = {
     title: 'Settings',
     deviceGroup: 'Device',
     colorScheme: 'Color scheme',
+    colorSchemeHint: {
+      auto: 'Changes with the time of day – light from sunrise, dark from sunset',
+      device: 'Follows the light/dark setting of this device',
+      day: 'Always light',
+      night: 'Always dark – dimmed map and interface',
+    },
     symbolSizeMap: 'Symbol size – map',
     symbolSizeMapSub: 'Tactical symbols on the situation map and linked module plans',
     symbolSizeBoard: 'Symbol size – modules',

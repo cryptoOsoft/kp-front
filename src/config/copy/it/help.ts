@@ -183,6 +183,44 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
         ],
       },
       {
+        id: 'wassertransport', title: 'Trasporto d’acqua', icon: 'drop',
+        blocks: [
+          { kind: 'lead', text: 'Calcola una condotta di trasporto: quanta pressione arriva dove, e dove devono stare le pompe. Un **aiuto alla pianificazione** – le fonti dei numeri sono dietro la **ⓘ** nell’intestazione (AGV, FKS).' },
+          { kind: 'sub', text: 'Disegnare la condotta' },
+          { kind: 'list', items: [
+            'Disegnare una **Linea** lungo la strada, **dalla fonte all’intervento** – l’acqua scorre dal primo all’ultimo punto. Toccare la condotta, aprire **Misura** e toccare **Calcolare il trasporto d’acqua**.',
+            'Oppure provare prima: **Misurare › Distanza**, poi **Calcolare il trasporto d’acqua** sotto il profilo altimetrico. **Mettere sulla carta come condotta** riprende la distanza con tutto il calcolo.',
+            'Direzione sbagliata? **⇄** nell’intestazione la inverte, il disegno resta. La lettera all’inizio della condotta (**H**, **W**, **P**) mostra dov’è la fonte.',
+          ] },
+          { kind: 'sub', text: 'Fonte, acqua, pressione in entrata' },
+          { kind: 'list', items: [
+            '**Ø del tubo** (in una condotta, la sua riga **Tubo**) – 55, 75, 2× 75 o 110 mm; la perdita di carico viene dalla tabella AGV.',
+            '**Acqua** – la portata che deve arrivare in fondo (l/min). Scegliere una proposta o digitare un’altra quantità.',
+            '**Fonte** – idrante, stagno o pompa. La **pressione in entrata** è quella con cui la condotta vi inizia: la pressione statica all’idrante, la pressione in uscita di una pompa. Uno stagno non ne ha – la prima pompa sta alla fonte.',
+          ] },
+          { kind: 'sub', text: 'Leggere il diagramma' },
+          { kind: 'list', items: [
+            'La linea nera è la **pressione** lungo la condotta, sotto il **terreno**. Le fasce: verde **buono** sopra 3 bar, giallo **scarso** 2–3 bar, rosso **troppo poco** sotto 2 bar.',
+            'I punti **P1**, **P2** … sono le pompe – messe automaticamente dove la pressione scende a 2 bar (FKS: una pompa ha bisogno di almeno 2 bar in entrata). Sulla mappa portano gli stessi nomi.',
+            'Passare sopra il diagramma o toccarlo mostra la pressione in quel punto – la mappa segna il punto.',
+            'Sotto, **salita/discesa** e **pressione in fondo**. **Tubi** indica la riserva a parte, p. es. «34 + 3 di riserva × 20 m».',
+          ] },
+          { kind: 'sub', text: 'Spostare le pompe' },
+          { kind: 'list', items: [
+            'Toccare una pompa mostra dove sta, la sua **pressione in entrata** e la **pressione in uscita** (regolabile con **−**/**+**).',
+            '**Trascinare** una pompa – di lato nel diagramma o lungo la condotta sulla mappa – la fissa lì («a mano»); le pompe successive vengono ricalcolate. **Tutte le pompe automatiche** ripristina tutto.',
+            '**Sulla mappa** disegna le pompe come motopompe sulla mappa e sullo schizzo stampato. Toccare una pompa sulla mappa apre la condotta con la **Misura** aperta.',
+          ] },
+          { kind: 'sub', text: 'Avvisi' },
+          { kind: 'list', items: [
+            '**Pompa 1: pressione in entrata sotto 2 bar** – una pompa messa a mano sta troppo lontano; avvicinarla alla fonte o toccare **Tutte le pompe automatiche**. **Nessuna pressione**: lì non arriva più acqua.',
+            '**Più del solito** – molte pompe; accanto, quante ne servirebbero con un altro Ø del tubo.',
+            '**Calcolato senza profilo altimetrico** (offline, fuori dalla Svizzera) e **fuori dalla tabella AGV** – i numeri sono stimati.',
+            'Un avviso di pompa viene annotato una volta nella **cronologia** quando compare, e così arriva nel rapporto.',
+          ] },
+        ],
+      },
+      {
         id: 'plan', title: 'Piano – moduli ed edifici', icon: 'doc',
         blocks: [
           { kind: 'lead', text: 'Una lavagna per oggetto sopra i piani dei moduli/edifici. Piano per piano, con strumenti propri.' },
@@ -333,7 +371,7 @@ export const helpCopy: Localizable<Pick<Copy, 'help'>> = {
             'Il **dettaglio del croquis** sta come campo accanto al modulo: spostare, ingrandire, **verticale/orizzontale** e lo **stato del croquis** – quale momento mostra l’immagine, con segni dove è successo qualcosa. Si stampa esattamente ciò che è a schermo; non c’è un passaggio di conferma.',
             '**Rapporto d’intervento (PDF)** genera il rapporto finito – reso lato server, un solo pulsante. Il **▾** accanto apre **«Sezioni»**: cosa finisce sulla carta (croquis, piani, protezione respiratoria, presenze, materiale, cronologia, foto, prova di verifica dettagliata). Il menu resta aperto mentre si spunta.',
             'Dove un corpo gestisce una **stampante di sede**: **Stampa** mette il rapporto nella sua coda. Messo in coda non è stampato – finché un lavoro resta in sospeso compare come **stampa in sospeso** sotto la testata del rapporto, con **Verifica** e **Annulla**. Il rapporto vale come prodotto solo quando la stampante annuncia «stampato».',
-            'Se il corpo ha depositato moduli propri (Amministrazione › Rapporto), sotto le foto compare **Moduli e link** – un elenco da spuntare. **Apri** richiama il modulo con parola chiave, luogo, data e capo intervento già compilati, per quanto il link lo preveda. La spunta si mette a mano: l’app non vede se un modulo è stato inviato.',
+            'Se il corpo ha depositato moduli propri (Amministrazione › Rapporto), alla fine, sotto il ritaglio dello schizzo, compare **Moduli e link** – un elenco da spuntare. **Apri** richiama il modulo con parola chiave, luogo, data e capo intervento già compilati, per quanto il link lo preveda. La spunta si mette a mano: l’app non vede se un modulo è stato inviato.',
             'Se qualcosa non torna nel record – una catena di verifica interrotta, una nota vocale senza trascrizione, una foto ancora in coda – accanto ai pulsanti compare una **pastiglia arancione di avviso**. Conta i punti e li apre; se tutto è in ordine non compare affatto.',
             'Persona di contatto e riscontro alla centrale hanno un **Non applicabile** a fine riga – per il falso allarme o la perdita d’olio dove non esistono. È una risposta, non un salto: viene registrata e appare così nel rapporto.',
             '**Chiudi intervento** chiude l’intervento e fissa l’ora di fine. Le foto e le note vocali non ancora caricate partono prima; se non è possibile (offline) **restano salvate** e partiranno alla prossima apertura — la conferma dice quante.',

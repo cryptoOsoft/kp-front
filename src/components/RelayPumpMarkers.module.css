@@ -26,6 +26,14 @@
 .symbol::before { display: none; }
 .symbol.sel { outline: 3px solid color-mix(in srgb, var(--wt-pump) 55%, transparent); }
 .symbol.low { outline: 3px solid var(--red-fill); }
+/* …and the chart's P1, P2 on it, at its lower right like a symbol's count badge – the glyph alone
+   reads «MS 2» on every pump */
+.tag {
+  position: absolute; right: -4px; bottom: -4px; min-width: 18px; height: 18px; padding: 0 4px; box-sizing: border-box;
+  display: grid; place-items: center; border-radius: var(--r-pill); border: 1.5px solid var(--surface); box-shadow: var(--e1);
+  background: var(--wt-pump); color: var(--on-fill); font: var(--fw-heavy) var(--fs-micro)/1 var(--body); pointer-events: none;
+}
+.low .tag { background: var(--red-fill); }
 
 .source {
   display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; box-sizing: border-box;

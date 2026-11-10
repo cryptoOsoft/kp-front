@@ -74,6 +74,21 @@ L = {
     "personalCount": "<b>{n} Anwesende</b>",
     "personalTotals": "<b>{n} Anwesende</b> · Einsatzstunden <b>{h}</b> · gerundet <b>{r}</b>",
     "journal": "Einsatzjournal",
+    # «Messungen» (10.11.2026): one block per Messpunkt. The Stufe is a WORD on every row that
+    # has one — the mark and the colour are extra, a monochrome print keeps the word. Over range
+    # says both what the detector showed and what it counts as.
+    "messungen": "Messungen",
+    "messungenLimits": "Grenzwerte dieses Einsatzes: {limits}.",
+    "colGas": "Gas",
+    "colWert": "Wert",
+    "colStufe": "Stufe · weitere Gase",
+    "messungOne": "1 Messung",
+    "messungMany": "{n} Messungen",
+    "messungLast": "zuletzt {t}",
+    "stageA1": "A1 Voralarm",
+    "stageA2": "A2 Hauptalarm",
+    "stageOver": "über Messbereich (A2 Hauptalarm)",
+    "stageUnreadable": "unlesbar",
     #: stands in for a figure sheet the renderer threw on (plan / Skizze pages)
     "pageFailed": "Seite «{t}» konnte nicht gedruckt werden.",
     # Aufträge / Pendenzen — the column headings are word-for-word the BGV form's, so whoever

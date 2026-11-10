@@ -7,10 +7,12 @@ on:
   # release.yml runs this whole gate against the tag before publishing an image.
   workflow_call:
 
-# Cancel superseded runs on the same ref (saves CI minutes on rapid pushes).
+# A PR's superseded runs are cancelled (saves CI minutes on rapid pushes). `main` is different:
+# prod deploys from it, so every commit that lands there gets its own verdict – a group per
+# commit, because a shared group would still drop a run that waits behind a running one.
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.ref }}${{ github.ref == 'refs/heads/main' && format('-{0}', github.sha) || '' }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 permissions:
   contents: read
@@ -111,7 +113,8 @@ jobs:
   frontend-tests:
     name: Frontend unit tests + coverage
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # 6.1 min median, 6.4 max over 618 files (04.–08.11.2026): 10 left a slow runner no room.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6
@@ -127,10 +130,16 @@ jobs:
         run: |
           [ -f coverage/coverage-summary.json ] || exit 0
           node -e '
-            const t = require("./coverage/coverage-summary.json").total
+            const { total: t, ...files } = require("./coverage/coverage-summary.json")
             const f = require("./scripts/coverage-floor.json").floor
             const rows = ["statements", "branches", "functions", "lines"].map((m) => `| ${m} | ${t[m].pct.toFixed(2)} % | ${f[m]} % |`)
             console.log(["### Frontend coverage (vitest)", "", "| | measured | floor |", "|---|---|---|", ...rows].join("\n"))
+            // where the untested code is: the floor is one global number and says nothing per file
+            const worst = Object.entries(files)
+              .map(([file, { statements: s }]) => ({ file: file.replace(process.cwd() + "/", ""), uncovered: s.total - s.covered, pct: s.pct }))
+              .sort((a, b) => b.uncovered - a.uncovered).slice(0, 15)
+              .map((x) => `| \`${x.file}\` | ${x.uncovered} | ${x.pct.toFixed(1)} % |`)
+            console.log(["", "#### The 15 files with the most uncovered statements", "", "| file | uncovered | covered |", "|---|---:|---:|", ...worst].join("\n"))
           ' >> "$GITHUB_STEP_SUMMARY"
 
   # Preserve the required check's name. Failed, cancelled or skipped children never pass it.
@@ -469,6 +478,12 @@ jobs:
           E2E_FLEET_SECRET: ${{ env.ALARM_WEBHOOK_SECRET }}  # parks the fake TLF (field scenario)
         run: pnpm exec playwright test
 
+      # `retries: 1` turns a flake into a green run; this names every test that needed the retry
+      # in the job summary and as a warning, so it is seen before it becomes a red `main`.
+      - name: Flaky tests (passed only on a retry)
+        if: always()
+        run: node .github/scripts/flaky-summary.mjs test-results/report.json
+
       - name: Upload Playwright report (on failure)
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -596,8 +611,8 @@ jobs:
         run: docker compose down -v
 
   # --- Visual: screenshot regression tests against committed baselines ---------------------
-  # Nine frozen states of the production container (Lage, Plan, Trupps, Verlauf, Rapport, kiosk;
-  # tablet and phone, one night) compared pixel by pixel with e2e/visual/baseline/
+  # Sixteen frozen states of the production container (Lage, Plan, Trupps, Verlauf, Rapport, kiosk,
+  # an open sheet, an editor, the Karte home; tablet and phone, day and night) compared pixel by pixel with e2e/visual/baseline/
   # (e2e/screens.visual.ts, docs/testing/visual-regression.md). It catches what no assertion
   # names: a merged visual pass that a later merge silently undid (#231). Its own runner loads
   # the shared image alongside the browser and performance suites; a required check since

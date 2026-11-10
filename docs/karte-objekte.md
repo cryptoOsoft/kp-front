@@ -279,7 +279,7 @@ The rules that are easy to break:
   Kaibmattweg 1-5, Stallenrain 1 (EH)» ran off both screen edges); the placement pass measures the
   folded size on its off-screen twin. A folded tag's box is as wide as its longest line, not the
   280 px (Karte Haus round 3: «boxes fitted to the width»): CSS cannot shrink a wrapped box, so
-  the twin's lines are measured and the tag gets that width inline (`e2e/karte-tag-fit.mjs`). Round 1 hung the tag under its building's south edge,
+  the twin's lines are measured and the tag gets that width inline (`e2e/karte-tag-fit.spec.ts`). Round 1 hung the tag under its building's south edge,
   round 2 moved it inside its own building when that spot was another object's — both put the
   name somewhere the point is not, and that read as a moved marker.
 - **A tag is the name, never a plan count** (owner, round 3: «we just care that there are
@@ -502,8 +502,8 @@ The rules that are easy to break:
   Gebäude card (`BuildingCard`) wears the SAME disclosure since review round 7 — it was a `title=`
   tooltip, which a finger never sees (owner, 20.10.2026): the button, what it opens and the aria
   contract are `components/BuildingFacts` · `RegisterHintButton` / `RegisterHintBody`, each
-  surface in its own rhythm – but there it stands OPEN each time the card opens (sweep 30.10.2026
-  #6, building-card.md); this peacetime panel keeps it folded. Its tags and the station's notes are
+  surface in its own rhythm – folded on both since 09.11.2026 (the card stood OPEN from sweep
+  30.10.2026 #6 until Manuel's demo, building-card.md). Its tags and the station's notes are
   the panel's own pieces there too (`RegisterTags`, `StationNotes` – Karte Haus round 3), so the
   two cannot drift apart.
 - **Missing is said – what was ASKED for and not answered.** A register that could not be asked,

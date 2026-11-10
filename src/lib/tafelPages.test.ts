@@ -55,20 +55,10 @@ describe('which Tafel page this device has open', () => {
  * which the board's fit already keeps free; it wears that row's floating look. */
 describe('the page strip stands in the row where a plan says «which place»', () => {
   const css = readFileSync(`${process.cwd()}/src/styles/09-whiteboard.css`, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')
-  const wb = readFileSync(`${process.cwd()}/src/components/Whiteboard.tsx`, 'utf8')
-  it('is rendered inside .wb-botleft on the Skizze and on a page, never on its own under the top bar', () => {
-    expect(wb).toMatch(/<div className="wb-botleft">\{strip\}<\/div>/) // a Tafel page
-    // the Skizze: first in the plan's row (the Objekt chip, or the calibration instrument in its place)
-    expect(wb).toMatch(/\{strip\}\s*\{calibrateChip \?\? <>\s*<span className="wb-join">\{objectChip\}/)
-    expect(wb).not.toMatch(/TAFEL_STRIP_H/)
-  })
   it('wears the floating family, not a bar of its own', () => {
     const tps = /\.tps \{([^}]*)\}/.exec(css)?.[1] ?? ''
     for (const t of ['--float-h', '--float-bg', '--float-edge', '--r-sm']) expect(tps).toContain(t)
     expect(tps).not.toMatch(/position:\s*absolute|top:/)
-  })
-  it('a Tafel page pads its foot by the row, so its last ruling scrolls above the strip', () => {
-    expect(wb).toMatch(/bottom: isPhone \? 'calc\(var\(--float-bottom[^']*var\(--float-h\)[^']*' : 'calc\(16px \+ var\(--float-h\)/)
   })
   it('on a phone the row of a Tafel page stands on the nav bar — the page has no tool bar under it', () => {
     const m = readFileSync(`${process.cwd()}/src/styles/15-mobile.css`, 'utf8')

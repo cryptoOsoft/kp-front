@@ -4,7 +4,7 @@
 import type { Copy, Localizable } from '../index'
 
 type Keys =
-  | 'measure' | 'relay' | 'shapes' | 'log' | 'objectDone' | 'addSheet' | 'toolDock'
+  | 'measure' | 'relay' | 'shapes' | 'log' | 'objectDone' | 'readingLog' | 'addSheet' | 'toolDock'
 
 export const drawingCopy: Localizable<Pick<Copy, Keys>> = {
   measure: {
@@ -77,7 +77,7 @@ export const drawingCopy: Localizable<Pick<Copy, Keys>> = {
     noTerrain: 'Calcolato senza profilo altimetrico – manca la pendenza',
     manyPumps: '{n} pompe – più del solito',
     outsideTable: '{flow} l/min fuori dalla tabella AGV – stimato',
-    lowInlet: 'Pompa {n} sotto {min} bar',
+    lowInlet: 'Pompa {n}: pressione in entrata sotto {min} bar',
     noInlet: 'Pompa {n}: nessuna pressione',
     stuck: 'Calcolo interrotto – una pompa dà troppo poca pressione',
   },
@@ -115,6 +115,8 @@ export const drawingCopy: Localizable<Pick<Copy, Keys>> = {
     symbolPlaced: 'Simbolo «{name}» posizionato',
     pumpsShown: 'Pompe sulla mappa',
     pumpsHidden: 'Pompe tolte dalla mappa',
+    pumpLowInlet: 'La pompa {n} riceve meno di {min} bar di pressione in entrata',
+    pumpNoInlet: 'La pompa {n} non riceve pressione',
     shapePlaced: '{name} posizionato',
     notePlaced: 'Nota posizionata',
     shapeDrawn: '{name} disegnato',
@@ -184,6 +186,14 @@ export const drawingCopy: Localizable<Pick<Copy, Keys>> = {
     removeHint: 'solo in caso di errore',
     logDone: '{name}: stato {word}',
     logReopened: '{name}: stato attivo',
+  },
+  readingLog: {
+    row: 'Misura {name}: {values}',
+    rowAgain: 'Misura {name}: {values} – misura identica',
+    state: { a1: 'A1 preallarme', a2: 'A2 allarme principale', over: 'fuori campo di misura', unreadable: 'illeggibile' },
+    reached: '{stage} raggiunto',
+    backTo: 'ritorno a {stage}',
+    calmAgain: 'di nuovo nel campo normale',
   },
   addSheet: { tile: 'Aggiungi', tools: 'Disegno & squadra' },
   toolDock: {

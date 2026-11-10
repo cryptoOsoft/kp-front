@@ -204,7 +204,10 @@ is split per surface into `src/config/copy/de/<surface>.ts` since 2026-10-09):
   line on the map included (a pin). Its switch «Pumpen auf Karte» (`relay.showPumps`, 05.11.2026)
   does: it puts the calculated Motorspritzen on the Karte and the printed Kroki or takes them off
   («Leitung 1: Pumpen auf der Karte» / «… Pumpen von der Karte genommen», `lib/drawingEdit`), one
-  undo step per flip. The pumps themselves are derived (`lib/linePumps`), never entities, so they
+  undo step per flip. A pump WARNING writes too, as it appears («Leitung 1: Pumpe 1 erhält unter
+  2 bar Eingangsdruck», `lib/drawingEdit · pumpWarningRows`, Manuel 09.11.2026): compared over the
+  settled burst, so one that stands through later edits is not written again, and a Leitung
+  adopted from Messen writes the ones it arrives with. The pumps themselves are derived (`lib/linePumps`), never entities, so they
   write nothing of their own. (It replaced «Pumpen als Symbole setzen», 04.–05.11.2026, whose
   «{n} Pumpen als Symbol gesetzt» rows and ordinary Motorspritzen stay in those Einsätze.)
 
@@ -335,6 +338,35 @@ Karte does). Review item 21b split the two acts (`src/lib/objectDone.ts`):
   Spur entfernen», «Geschoss entfernen», «… entfernt oder gekürzt»). Kept on «gelöscht»: records
   that are not on the picture – a Verlauf Eintrag, a Schicht, an Anwesenheits-Zeit, a Mittel
   line, a saved Ansicht, an Übung. `config/copy/removalWords.test.ts` pins the picture's set.
+
+## Messungen – every reading of a Messpunkt (2026-11-10)
+
+Sweep 09.11.2026 (FEAT.1): the values that justified «Gebäude freigegeben» lived in a map symbol.
+On the Plan a reading wrote nothing; on the Karte only the settle row «Messpunkt: CO: 180», without
+unit or stage. Owner pick 2A: **every reading is a row** (`src/lib/readingLog.ts · readingAct`).
+
+| Act | Verlauf row | Audit | ↶ |
+|---|---|---|---|
+| A measured field committed with a changed value (Karte panel, Plan panel, Gebäude) | «Messung Keller Heizraum (UG): CO 180 ppm – A2 Hauptalarm erreicht» – the point (its «Raum», else the symbol's name), its Geschoss, the gases THIS commit changed with unit and stage | `entity.edit` / `board.edit` with `{ fields, readings }` | yes – one prop-edit step named by the row; the ↶ writes «… rückgängig gemacht» |
+| «über Messbereich» ticked | «… CO >100 ppm – über Messbereich, A2 Hauptalarm erreicht» | the same | yes |
+| «Gleich gemessen» | «Messung Wohnung (1. OG): CO 0 ppm · O₂ 20,9 Vol-% – gleich gemessen» – every gas as it stands | `{ readings }` | yes |
+
+- **A crossing is worded as one**: «… erreicht» when the stage is new for that gas (against the
+  reading before), «zurück auf A1 Voralarm» from A2, «wieder im Normalbereich» back to calm; a
+  stage that merely holds is named plainly («– A2 Hauptalarm»), a calm value carries no stage.
+  An unreadable older value reads «– unlesbar».
+- **One row per commit, naming what that commit changed** – a radio report typed gas by gas is
+  three short rows, never the same values three times. A gas emptied again reads «CO –».
+- **One act, one row**: written by the commit's handler (`useMapActions · commitEntityFields`,
+  `Whiteboard · commitAnnoFields`) and nowhere else. The Karte's settle row leaves measured
+  fields to it (`entityEdit · entityEditChanges` skips a `readout` field); the room still logs
+  there («Messpunkt: Raum auf Gang Nord geändert»).
+- The row wears the Messgerät icon (`READING_ICON`) and jumps to the point (`entityId` on the
+  Karte, `annoId` + sheet on a plan).
+- ⚠️ **Not on the printed Einsatzjournal.** The Rapport prints the readings as their own section
+  ([`rapport.md`](rapport.md) › Messungen); `report · journalRows` drops these rows and their
+  ↶ / ↷ (`isReadingRow`). Rows the Karte's settle wrote before 10.11.2026 («Messpunkt: CO: 180»)
+  stay in their Einsätze and print as written.
 
 ## A taken-back act is two rows – on paper too (2026-09-25)
 

@@ -66,6 +66,8 @@ export interface WorkspaceMeldungenProps {
   openRapport: () => void
   setInstallGuideOpen: Dispatch<SetStateAction<boolean>>
   tabLockLost: boolean
+  /** this tab follows a presentation (lib/presentation · isFollower): the tab-lock row steps aside */
+  followingPresentation: boolean
   user: AuthUser | null
   onTakeOverTab: () => void
   needsReview: boolean
@@ -88,7 +90,7 @@ export function WorkspaceMeldungen({
   setNoBasemap, setOfflineReadyOpen, trupps, azAlarm, canEditTrupps, azIntervalMin, azGraceSec, mode,
   setAzRowsShown, muteAtemschutz, setMode, setPanel, setTruppFocus, mapUI, tacticalLocked, gpsMeld,
   releaseOnSite, revertAll, followAll, replayActive, incidentMeta, journal, rapportReturn,
-  setRapportReturn, openRapport, setInstallGuideOpen, tabLockLost, user, onTakeOverTab, needsReview,
+  setRapportReturn, openRapport, setInstallGuideOpen, tabLockLost, followingPresentation, user, onTakeOverTab, needsReview,
   readOnly, intakeReviewedAt, onEditMeta, onReviewDone, azAlarmActive, truppPlace, setTruppStatus,
   syncStatus, exportEntries, syncNow,
 }: WorkspaceMeldungenProps) {
@@ -216,8 +218,10 @@ export function WorkspaceMeldungen({
       {/* another tab of this browser is editing this incident → this one is read-only; one tap
           moves editing here. For every session that WRITES – editor and el (the el keeps the
           record, and froze silently without it; RBAC audit §4, 22.10.2026) – not for a viewer,
-          which is read-only anyway. The Atemschutz-Link mounts its own (IncidentWorkspace · asLink). */}
-      {tabLockLost && (user?.role === 'editor' || user?.role === 'el') && <TabLockBanner onTakeOver={onTakeOverTab} />}
+          which is read-only anyway. The Atemschutz-Link mounts its own (IncidentWorkspace · asLink).
+          Not while this tab follows a presentation (owner, 09.11.2026): the second tab is open to
+          follow, the pill says so – the row comes back the moment the following ends. */}
+      {tabLockLost && !followingPresentation && (user?.role === 'editor' || user?.role === 'el') && <TabLockBanner onTakeOver={onTakeOverTab} />}
 
       {/* ⚠️ «Einsatz abgeschlossen» is NOT published here (23.08.). Read-only is a property of the
           incident, not a message about it, so it rides beside the Einsatzname as a mode chip in

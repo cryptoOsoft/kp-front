@@ -31,6 +31,7 @@ import { auswertungForPdf, computeAuswertung } from './auswertung'
 import { fahrzeugRows } from './alarmzeiten'
 import type { ChecklistState, ChecklistTemplate } from './checklists'
 import { formatSymbolName } from './format'
+import { readingsForReport } from './readingLog'
 import { SHAPE_DEFS, shapeAspect } from './shapes'
 import { placardSvgForSymbol } from './placard'
 import { ensureErg } from './erg'
@@ -41,6 +42,7 @@ import { resolvePlanAnnos } from './lineAttachments'
 import type { JournalLink } from './journalLinks'
 import { TAFEL_ID, findForms, formForPdf, pageStamp, pageTitles } from './boardForm'
 import { problemView, type ProblemSource } from './problemLink'
+import { tafelKindPrints, tafelPrintKinds } from './tafelPicks'
 import type { LiveSection } from './boardTemplate'
 import { isPendenzenPage, pendenzenForPdf } from './pendenzenPage'
 import { isDrawnBoardKind } from './workspace'
@@ -448,19 +450,24 @@ export function tafelPayload(
   caption: string,
   problems?: ProblemSource,
   pendenzen: { timeline: readonly TimelineEvent[]; inRapport: boolean } = { timeline: [], inRapport: false },
+  print: { pages?: Readonly<Record<string, boolean>>; skizze?: boolean } = {},
 ): { boardPages: Record<string, unknown>[]; boardMap?: unknown; skizze?: Record<string, unknown> } {
   const annos = board?.[TAFEL_ID] ?? []
   const T = appConfig.copy.tafel
   const titles = pageTitles(annos)
   // each page as the Tafel draws it: a problem section with every problem of the Einsatz, the
-  // checklist's ticks included (lib/problemLink · problemView); the «Aufträge / Pendenzen» page
-  // only while the Rapport's own section does not print the same list (see above)
+  // checklist's ticks included (lib/problemLink · problemView); only the kinds of page the print
+  // menu has ticked (lib/tafelPicks – the Rapport sheet is off unless asked for, an empty page
+  // never prints); the «Aufträge / Pendenzen» page only while the Rapport's own section does not
+  // print the same list (see above)
   const forms = findForms(annos)
+  const kinds = new Map(tafelPrintKinds(annos, problems).map((k) => [k.id, k]))
+  const printed = forms.filter((a) => tafelKindPrints(kinds.get(a.form.page.id), print.pages))
   const live = (s: LiveSection, base: Record<string, unknown>) => pendenzenForPdf(s, base, pendenzen.timeline, Date.now())
-  const pages = forms
+  const pages = printed
     .filter((a) => !(pendenzen.inRapport && isPendenzenPage(a.form)))
     .map((a) => formForPdf(problemView(a, forms, problems), { up: T.trendUp, same: T.trendSame, down: T.trendDown }, undefined, T.head, titles.get(a.id), pageStamp(a.form, T), live))
-  const wantsMap = findForms(annos).some((a) => a.form.page.sections.some((x) => x.type === 'map' && !x.hidden))
+  const wantsMap = printed.some((a) => a.form.page.sections.some((x) => x.type === 'map' && !x.hidden))
   const map = wantsMap && scene
     ? buildKrokiPayload({
         entities: scene.entities, drawings: scene.drawings.map((d) => ({ ...d, label: undefined })), layers: scene.layers,
@@ -469,7 +476,7 @@ export function tafelPayload(
     : null
   const ink = annos.filter((a) => isDrawnBoardKind(a.kind))
   const tafel = plans.find((p) => p.id === TAFEL_ID)
-  const skizze = tafel && hasVisiblePlanAnnotation({ [TAFEL_ID]: ink }, TAFEL_ID)
+  const skizze = print.skizze !== false && tafel && hasVisiblePlanAnnotation({ [TAFEL_ID]: ink }, TAFEL_ID)
     ? {
         label: `${tafel.code} · ${T.skizze}`, caption,
         // the blank sheet's own A4 shape (useMeasuredSheet · seed): h/w of a landscape sheet
@@ -570,11 +577,10 @@ export function buildDirectReportPayload(args: DirectReportArgs): Record<string,
     }
   }
 
-  // the Tafel — its own switch, ON unless the operator took it off (an older draft has none)
-  const tafel = draft.options.tafel !== false
-    ? tafelPayload(board, plans, scene, trupps, figureCaption, args.checklists && args.checklistTemplates ? { checklists: args.checklists, templates: args.checklistTemplates } : undefined,
-      { timeline: events, inRapport: !!draft.options.pendenzen })
-    : { boardPages: [] as Record<string, unknown>[] }
+  // the Tafel — a tick per kind of page (lib/tafelPicks) and one for its Skizze, which is ON
+  // unless the operator took it off (an older draft has neither)
+  const tafel = tafelPayload(board, plans, scene, trupps, figureCaption, args.checklists && args.checklistTemplates ? { checklists: args.checklists, templates: args.checklistTemplates } : undefined,
+    { timeline: events, inRapport: !!draft.options.pendenzen }, { pages: draft.options.tafelPages, skizze: draft.options.tafel !== false })
   if (tafel.skizze) planPages.unshift(tafel.skizze)
 
   const cfg = getDeploymentConfig()
@@ -584,6 +590,7 @@ export function buildDirectReportPayload(args: DirectReportArgs): Record<string,
     title: incident.title,
     at: formatDateTime(draft.options.krokiAt ?? draft.generatedAt),
   })
+  const messungen = readingsForReport(scene?.entities ?? [], board ?? {})
   const payload = {
     incident: {
       title: incident.title, id: incident.id, type: incident.type ?? undefined, address: incident.address ?? undefined,
@@ -614,7 +621,9 @@ export function buildDirectReportPayload(args: DirectReportArgs): Record<string,
       endedAt: meta.endedAt ? formatDateTime(meta.endedAt) : undefined,
       partnerContacts: meta.partnerContacts,
     },
-    options: { tafel: draft.options.tafel !== false, kroki: !!kroki, atemschutz: draft.options.atemschutz, attendance: draft.options.attendance, mittel: draft.options.mittel, journal: draft.options.journal, pendenzen: draft.options.pendenzen, krokiLandscape: draft.options.krokiLandscape, auswertung: draft.options.auswertung },
+    // `tafel`: the server's switch for the board pages – they travel already picked (lib/tafelPicks;
+    // `draft.options.tafel` is the Skizze's tick since 09.11.2026), so it says only whether any do
+    options: { tafel: tafel.boardPages.length > 0, kroki: !!kroki, atemschutz: draft.options.atemschutz, attendance: draft.options.attendance, mittel: draft.options.mittel, journal: draft.options.journal, pendenzen: draft.options.pendenzen, krokiLandscape: draft.options.krokiLandscape, auswertung: draft.options.auswertung },
     // Beilagen: only the ones actually ON the server. A blob: URL is a photo that has not
     // finished uploading, and the server cannot fetch it — printing would silently drop it, so
     // it is left out here and the preflight says so beside the row.
@@ -736,6 +745,10 @@ export function buildDirectReportPayload(args: DirectReportArgs): Record<string,
     journal: draft.options.journal ? journal : [],
     journalDay: draft.options.journal ? journalDay : undefined,
     pendenzen: draft.options.pendenzen ? pendenzen : [],
+    // «Messungen» (lib/readingLog): every Messpunkt with its readings – a Beilage beside the
+    // Journal, which leaves the reading rows to it. Printed whenever there are any.
+    messungen: messungen.points,
+    messungenLimits: messungen.limits || undefined,
     // the internal Beilage (lib/auswertung): computed HERE, where the ISO stamps are
     auswertung: draft.options.auswertung
       ? (() => {
@@ -776,7 +789,7 @@ export function signedPartOf(args: DirectReportArgs): string {
 }
 
 /**
- * «→» and «←» become «->» and «<-» — for the PAPER only.
+ * «→» and «←» become «->» and «<-», «☑» becomes «✔» — for the PAPER only.
  *
  * The journal writes real arrows on purpose («EL → Sanität» is the shape of a Funkprotokoll line)
  * and they are what the app shows, searches and stores. The rapport, though, is composed in
@@ -787,9 +800,14 @@ export function signedPartOf(args: DirectReportArgs): string {
  * the operator typed: what the app holds stays the record, and only the rendering compromises.
  * ⚠️ Applied to the whole payload rather than to the journal rows alone — an arrow is just as
  * likely in a Kurzbericht, a Bemerkung or a Mittel remark.
+ *
+ * The checklist's «☑» (lib/useChecklistActions · milestoneRow) has no glyph in Helvetica either,
+ * and printed as «■» (Manuel 09.11.2026). It becomes «✔», which ReportLab sets from ZapfDingbats,
+ * one of the PDF base fonts every viewer carries (checked on the composer's ReportLab 5.0:
+ * «☑» and «☐» fall to the black box, «✔» and «❑» draw).
  */
 export function forPaper(v: unknown): unknown {
-  if (typeof v === 'string') return v.replace(/→/g, '->').replace(/←/g, '<-')
+  if (typeof v === 'string') return v.replace(/→/g, '->').replace(/←/g, '<-').replace(/☑/g, '✔')
   if (Array.isArray(v)) return v.map(forPaper)
   if (v && typeof v === 'object') {
     return Object.fromEntries(Object.entries(v as Record<string, unknown>).map(([k, x]) => [k, forPaper(x)]))
@@ -809,5 +827,7 @@ export async function readyDirectReportPayload(args: DirectReportArgs): Promise<
 
 export async function downloadDirectReportPdf(args: DirectReportArgs): Promise<void> {
   const payload = await readyDirectReportPayload(args)
-  await downloadReportPdf(args.incident.id, payload, reportFilenameHint(args.incident.title), args.transport)
+  const { incident, draft } = args
+  const name = reportFilenameHint({ title: incident.title, address: incident.address, startedAt: draft.meta.startedAt ?? incident.started_at })
+  await downloadReportPdf(incident.id, payload, name, args.transport)
 }

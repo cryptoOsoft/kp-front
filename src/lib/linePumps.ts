@@ -1,7 +1,8 @@
 import { appConfig } from '../config/appConfig'
 import type { Drawing, Entity, LngLat } from '../types'
+import { fillTemplate } from './format'
 import { pathLengthM, pointAlongPath } from './geo'
-import { hoseDefaults, planFor, resolveRelay, RELAY_PUMP_SYMBOL } from './hydraulics'
+import { hoseDefaults, planFor, resolveRelay, RELAY, RELAY_PUMP_SYMBOL, type RelayPlan, type RelayPump } from './hydraulics'
 import { cachedProfile, loadProfile, reverseProfile, type ProfileResult } from './profile'
 
 // The pumps a Leitung draws on the Karte («Pumpen auf Karte», RelaySettings · showPumps; owner
@@ -26,13 +27,37 @@ export const drawsPumps = (d: Pick<Drawing, 'kind' | 'role' | 'relay' | 'coords'
  *  (lib/useRelay's reading: a shown relay IS a Wassertransport, so an absent Ø is the relay
  *  default). `profile`: the DRAWN path's, as fetched; null plans on flat ground. */
 export function linePumpSpots(d: Pick<Drawing, 'coords' | 'hose' | 'relay'>, profile: ProfileResult | null): LngLat[] {
+  const at = linePlan(d, profile)
+  return at ? at.plan.pumps.map((p) => pointAlongPath(at.coords, p.dist)) : []
+}
+
+/** The Wassertransport plan of a Leitung, along the route the water takes (`coords`) – what
+ *  linePumpSpots places and linePumpWarnings reads. Null: no route to compute along. */
+function linePlan(d: Pick<Drawing, 'coords' | 'hose' | 'relay'>, profile: ProfileResult | null): { plan: RelayPlan; coords: LngLat[] } | null {
   const reversed = !!d.relay?.reverse
   const coords = reversed ? [...d.coords].reverse() : d.coords
   const lengthM = pathLengthM(coords)
-  if (coords.length < 2 || lengthM < 1) return []
+  if (coords.length < 2 || lengthM < 1) return null
   const prof = profile && reversed ? reverseProfile(profile) : profile
-  const plan = planFor(resolveRelay(d.hose, d.relay, hoseDefaults().relay), lengthM, prof?.points ?? null)
-  return plan.pumps.map((p) => pointAlongPath(coords, p.dist))
+  return { plan: planFor(resolveRelay(d.hose, d.relay, hoseDefaults().relay), lengthM, prof?.points ?? null), coords }
+}
+
+/** The warning of every pump that gets too little water (RelayPump · low – only a pump moved or
+ *  set by hand can), in pump order: the panel's red lines (WaterRelay) and, in the Verlauf's own
+ *  words, its rows (lib/drawingEdit). */
+export function pumpWarnings(pumps: readonly RelayPump[], words: { lowInlet: string; noInlet: string } = appConfig.copy.relay): string[] {
+  return pumps.flatMap((p, i) => !p.low ? []
+    : [p.inBar > 0 ? fillTemplate(words.lowInlet, { n: i + 1, min: RELAY.minInletBar }) : fillTemplate(words.noInlet, { n: i + 1 })])
+}
+
+/** The pump warnings a stored Leitung's Wassertransport stands on, as Verlauf rows – on the
+ *  profile already fetched for its path (flat ground without one, as the editor then plans).
+ *  Null: no Wassertransport, or no route. */
+export function linePumpWarnings(d: Pick<Drawing, 'coords' | 'hose' | 'relay'>): string[] | null {
+  if (!d.relay || !Array.isArray(d.coords)) return null
+  const at = linePlan(d, cachedProfile(d.coords) ?? null)
+  const L = appConfig.copy.log
+  return at && pumpWarnings(at.plan.pumps, { lowInlet: L.pumpLowInlet, noInlet: L.pumpNoInlet })
 }
 
 /** Every drawn pump of `drawings` as the Motorspritze the PAPER prints (krokiPayload, and the

@@ -20,6 +20,7 @@ import { mittelReportRows } from './mittel'
 import { isNachtrag, repeatRuns, rowPhotos, rowText } from './verlauf'
 import { linkMarkup, type JournalLink } from './journalLinks'
 import { jsonEqual } from './jsonEqual'
+import { isReadingRow } from './readingLog'
 
 export interface KrokiView {
   center: LngLat
@@ -60,10 +61,15 @@ export interface ReportOptions {
   /** the «Auswertung» Beilage — key figures, swimlanes, Lehren (lib/auswertung). Internal: it
    *  prints on its own landscape sheet at the very end, after everything that gets signed. */
   auswertung: boolean
-  /** the Tafel's pages (10.10.2026): every board-template page in its own layout, and the
-   *  Skizze when it carries ink. Optional, because a draft saved before it existed lacks it —
-   *  absent reads as ON (reportPdfDirect · `tafel !== false`). */
+  /** the Tafel's Skizze, when it carries ink (10.10.2026). Until 09.11.2026 this one switch also
+   *  carried every page of the Tafel; the pages have their own ticks now (`tafelPages`). Optional,
+   *  because a draft saved before it existed lacks it — absent reads as ON (reportPdfDirect ·
+   *  `tafel !== false`). */
   tafel?: boolean
+  /** the Tafel's pages, one tick per kind of page by its template page id («ef», «rapport» …):
+   *  only the operator's own picks — an absent id prints by the default (lib/tafelPicks ·
+   *  tafelKindPrints: a page with something on it, never the Rapport sheet unless ticked). */
+  tafelPages?: Record<string, boolean>
 }
 
 export const defaultReportOptions: ReportOptions = {
@@ -104,8 +110,9 @@ export const defaultReportOptions: ReportOptions = {
   // ASK for. Its own last sheet, so the signed part goes out without it; the operator's own tick
   // is kept per Einsatz (ReportPreflight · optionOverrides). The QR-Erfassung's PDF has it off too.
   auswertung: false,
-  // ON: the Erste Führung is the Einsatz's own work, like the Gebäude; a Tafel with nothing on it
-  // simply carries no page (reportPdfDirect · tafelPayload)
+  // ON: the Skizze is the Einsatz's own work, like the Gebäude; a Tafel with nothing drawn on it
+  // simply carries no page (reportPdfDirect · tafelPayload). The pages default per kind, from
+  // the data (lib/tafelPicks), so `tafelPages` starts empty.
   tafel: true,
 }
 
@@ -194,6 +201,9 @@ function historyCountersPrintedRow(e: TimelineEvent): boolean {
 function printableTacticalText(e: TimelineEvent): boolean {
   const text = e.text.trim()
   if (!text) return false
+  // a Messpunkt's reading (and its ↶ / ↷) is in the Verlauf, but on paper only in the «Messungen»
+  // table (owner, 10.11.2026: «in the pdf just in the separate table») – lib/readingLog
+  if (isReadingRow(e)) return false
   if (OMIT_TEXT.some((p) => p && text.includes(p))) return false
   if (/verschoben$/i.test(text)) return false
   return true

@@ -141,7 +141,7 @@ export function MapControls({
               Gebäude chip keeps its words, the radar pill gives way (WeatherLayer.module.css). */}
           {(showBuilding || showReadings || wxRadarInRow) && (
             <div className="wb-botleft wx-row">
-              {showBuilding && <BuildingFloat info={buildingInfo} compact={isPhone} autoOpen={buildingAutoOpen} onRead={buildingFirst.markRead} />}
+              {showBuilding && <BuildingFloat info={buildingInfo} autoOpen={buildingAutoOpen} onRead={buildingFirst.markRead} />}
               {/* «Messungen» + the worst reading: the list of every Messpunkt (ReadingsChip) */}
               {showReadings && <ReadingsChip points={readings.points} compact={isPhone} onGo={readings.go} />}
               {wxRadarInRow && (

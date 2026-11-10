@@ -3,7 +3,7 @@
 **Status:** CI job «Visual», since 2026-10-09 – a required check since 2026-10-10 (owner decision)
 **Audience:** anyone whose PR turns the «Visual» check red, and whoever accepts a new baseline
 
-Every PR shoots nine frozen states of the app and compares them pixel by pixel with the baselines
+Every PR shoots sixteen frozen states of the app and compares them pixel by pixel with the baselines
 committed in `e2e/visual/baseline/`. Unit tests and the e2e specs assert what someone thought to
 name; a screenshot catches the rest: a merged visual pass that a later merge silently undid (#231
 was lost from staging that way, 26.09.2026), a token that changed under a surface, a bar that
@@ -11,8 +11,8 @@ moved, a corner that went back to 8 px.
 
 ## What runs
 
-`e2e/screens.visual.ts` against the production container, in Chromium. Each state opens **its
-own** copy of the `real` fat incident (`src/lib/fatIncident`, the busiest Einsatz on record:
+`e2e/screens.visual.ts` against the production container, in Chromium. Each Einsatz state opens
+**its own** copy of the `real` fat incident (`src/lib/fatIncident`, the busiest Einsatz on record:
 Karte objects, a Gebäude with annotations, three Trupps inside, 316 Verlauf rows, Pendenzen),
 five hours in.
 
@@ -26,6 +26,13 @@ five hours in.
 | `trupps-phone` | 390×844 | the Trupps board on a phone |
 | `verlauf-phone` | 390×844 | the Verlauf drawer: Pendenzen, rows, the replay strip |
 | `rapport-tablet` | 1180×820 | the Einsatzrapport preflight |
+| `trupps-phone-night` | 390×844 | the Trupps board on a phone at night |
+| `rapport-phone-night` | 390×844 | the Einsatzrapport preflight on a phone at night |
+| `trupp-anmelden-phone` | 390×844 | an open bottom sheet: «Trupp anmelden» over the Trupps board |
+| `trupp-anmelden-phone-night` | 390×844 | the same sheet at night |
+| `symbol-editor-tablet` | 1180×820 | a selected symbol on the Karte with its editor open |
+| `karte-home-tablet` | 1180×820 | «Karte & Objekte», the home outside an Einsatz: bar, rails, three station objects |
+| `karte-home-phone` | 390×844 | the same home on a phone |
 | `kiosk-tablet` | 1180×820 | the kiosk login (signed out) |
 
 ## Keeping it deterministic
@@ -43,8 +50,14 @@ pinned (`e2e/visual/harness.ts`):
   fires every due timer at once, and one baseline of four came out with «Offline» in its head.
 - **The data.** The fat incident is generated from a seeded RNG, so it is the same Einsatz every
   time, and each state gets a fresh one on a fresh stack. The theme is set explicitly (the default
-  «auto» follows daylight), and so is the surface (the prefs cookie).
-- **The outside world.** Basemap tiles are one flat PNG; the weather, the building outlines and the Gebäude card
+  «auto» follows daylight), and so is the surface (the prefs cookie). The two Karte home states
+  seed no Einsatz; their station catalogue is three canned objects and their camera is fixed
+  (`harness · openKarte`) – the server fills a real object's footprint and the region's houses
+  from registers on the internet, minutes after it was created, so a real catalogue would draw a
+  different map from run to run.
+- **The outside world.** Basemap tiles are one flat PNG – a dark one for a night basemap, as
+  Dark Matter's ground is: with the light tile the night paint lifted the map to white under dark
+  chrome, a picture no crew sees (until 09.11.2026); the weather, the building outlines and the Gebäude card
   (`/api/incidents/{id}/building`, whose registers the SERVER asks) are
   canned (`perf/harness · isolateFromOutside`, shared with the performance journeys). Nothing on
   screen comes from the internet.
@@ -131,7 +144,9 @@ point `LD_LIBRARY_PATH` at Chromium's missing libraries.
   the theme, and what to wait for or tap once it is open. Prefer a state a crew actually sees over
   a dialog nobody opens.
 - Keep the list short. Every state costs a few seconds and one more picture to review on a
-  deliberate change; nine cover every surface and both form factors.
+  deliberate change. Nine covered every surface and both form factors; seven more (09.11.2026)
+  cover what those could not show: night on a phone, an open sheet in both themes, an editor,
+  and the Karte home.
 - Its baseline comes from «Visual baselines» on the PR (label `visual-update`).
 
 ## CI cost

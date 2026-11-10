@@ -4,9 +4,10 @@
 //       invited    «BA Bastian präsentiert · Folgen» (a link holder gives a name first, once)
 //       following  «BA Folgst Bastian · Zeigen · ✕»
 //       detached   the pill itself becomes the chip «BA Wieder folgen»
-//   · MapRings / BoardRings / PageMarks – the fading named rings and lines, on the Karte (inside
+//   · MapRings / BoardRings / PageMarks – the named rings and lines, on the Karte (inside
 //     MapLibre's container, so they pan with it), on a plan (inside the board, in plan space) and
-//     on a Tafel form page (anchored to its rows, lib/presentAnchor – a form reflows per screen)
+//     on a Tafel form page (anchored to its rows, lib/presentAnchor – a form reflows per screen).
+//     Each stands until somebody taps the × on its name (`onUnmark`, owner pick 09.11.2026)
 //   · EdgeArrows – a small named arrow at the edge for a ring or a line that stands outside what
 //     this screen shows (owner pick 06.11.2026: «Fit + edge arrows»). Every mark carries
 //     `data-present-mark`; its surface `data-present-host` – the arrows measure one against the
@@ -195,7 +196,7 @@ function shownRect(host: Element): Rect {
 }
 
 /** A small named arrow at the screen's edge for every ring or line tip outside what it shows.
- *  Measured every frame while there are marks at all (they live seconds); idle otherwise. */
+ *  Measured every frame while there are marks at all; idle otherwise. */
 function EdgeArrows({ on }: { on: boolean }) {
   const [arrows, setArrows] = useState<Arrow[]>([])
   useEffect(() => {
@@ -232,12 +233,29 @@ function EdgeArrows({ on }: { on: boolean }) {
   )
 }
 
-function RingMark({ r, presenter, style, tag }: { r: Ring; presenter: string | null; style: CSSProperties; tag?: TagPlace }) {
+/** Takes one mark away, on every screen (usePresentation · unmark). */
+type Unmark = (key: string) => void
+
+/** The × on a mark's name. Its pointer-down stops here: under «Zeigen» it must not become a ring
+ *  (lib/useZeigen leaves `.present-unmark` alone), nor reach the board or the map beneath it. */
+function UnmarkX({ mark, onUnmark }: { mark: string; onUnmark: Unmark }) {
+  const C = appConfig.copy.presentation
+  return (
+    <button type="button" className="present-unmark" aria-label={C.unmark} title={C.unmark}
+      onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onUnmark(mark) }}>
+      <Icon id="close" />
+    </button>
+  )
+}
+
+function RingMark({ r, presenter, style, tag, onUnmark }: { r: Ring; presenter: string | null; style: CSSProperties; tag?: TagPlace; onUnmark?: Unmark }) {
   return (
     <span className="present-ring" data-tone={personTone(r.client, presenter)} style={style}
       data-present-mark={r.key} data-label={ringLabel(r)}>
       <span className="present-ring-dot" />
-      <span className="present-ring-name" data-side={tag?.side} style={tag?.dy ? { transform: `translateY(${tag.dy}px)` } : undefined}>{ringLabel(r)}</span>
+      <span className="present-ring-name" data-side={tag?.side} style={tag?.dy ? { transform: `translateY(${tag.dy}px)` } : undefined}>
+        {ringLabel(r)}{onUnmark && <UnmarkX mark={r.key} onUnmark={onUnmark} />}
+      </span>
     </span>
   )
 }
@@ -253,17 +271,22 @@ function tagsFor(rings: Ring[], at: (r: Ring) => { x: number; y: number } | null
 
 /** A line drawn with «Zeigen»: the person's colour on a light halo, and its tip as a mark (the
  *  edge arrows follow the pen). `d` in the layer's own units (px, or 0..1 with `scaled`). */
-function LineMark({ s, presenter, d, tip, scaled = false }: { s: Stroke; presenter: string | null; d: string; tip: { x: number | string; y: number | string } | null; scaled?: boolean }) {
+function LineMark({ s, presenter, d, tip, scaled = false, onUnmark }: { s: Stroke; presenter: string | null; d: string; tip: { x: number | string; y: number | string } | null; scaled?: boolean; onUnmark?: Unmark }) {
   const tone = personTone(s.client, presenter)
   return (
     <>
-      <svg className="present-line" data-tone={tone} data-done={s.line.done || undefined} key={`${s.key}:${s.line.done}`}
+      <svg className="present-line" data-tone={tone}
         viewBox={scaled ? '0 0 1 1' : undefined} preserveAspectRatio={scaled ? 'none' : undefined}>
         <path className="present-line-halo" d={d} />
         <path className="present-line-ink" d={d} />
       </svg>
-      {tip && <span className="present-line-tip" data-tone={tone} data-done={s.line.done || undefined} style={{ left: tip.x, top: tip.y }}
-        data-present-mark={s.key} data-label={ringLabel(s)} />}
+      {tip && (
+        <span className="present-line-tip" data-tone={tone} style={{ left: tip.x, top: tip.y }}
+          data-present-mark={s.key} data-label={ringLabel(s)}>
+          {/* a finished line wears its name and × at the tip, like a ring */}
+          {s.line.done && <span className="present-ring-name">{ringLabel(s)}{onUnmark && <UnmarkX mark={s.key} onUnmark={onUnmark} />}</span>}
+        </span>
+      )}
     </>
   )
 }
@@ -273,7 +296,7 @@ const pathOf = (pts: readonly { x: number; y: number }[]) => pts.map((q, i) => `
 /** The rings and lines on the Karte, drawn inside MapLibre's own container so they sit on the
  *  map. The points are projected in the map's own `move` (never while rendering), one frame late
  *  at most. */
-export function MapRings({ mapRef, rings, strokes = [], presenter }: { mapRef: React.RefObject<MapRef | null>; rings: Ring[]; strokes?: Stroke[]; presenter: string | null }) {
+export function MapRings({ mapRef, rings, strokes = [], presenter, onUnmark }: { mapRef: React.RefObject<MapRef | null>; rings: Ring[]; strokes?: Stroke[]; presenter: string | null; onUnmark?: Unmark }) {
   const [drawn, setDrawn] = useState<{ host: HTMLElement; at: Record<string, { x: number; y: number }>; lines: Record<string, { x: number; y: number }[]>; w: number } | null>(null)
   useEffect(() => {
     const map = mapRef.current?.getMap()
@@ -297,14 +320,14 @@ export function MapRings({ mapRef, rings, strokes = [], presenter }: { mapRef: R
   const tags = tagsFor(rings, (r) => drawn?.at[r.key] ?? null, drawn?.w)
   if (!drawn || (!rings.length && !strokes.length)) return null
   return createPortal(
-    <div className="present-rings" data-present-host="" aria-hidden>
+    <div className="present-rings" data-present-host="">
       {strokes.map((s) => {
         const pts = drawn.lines[s.key]
-        return pts?.length ? <LineMark key={s.key} s={s} presenter={presenter} d={pathOf(pts)} tip={pts[pts.length - 1]} /> : null
+        return pts?.length ? <LineMark key={s.key} s={s} presenter={presenter} d={pathOf(pts)} tip={pts[pts.length - 1]} onUnmark={onUnmark} /> : null
       })}
       {rings.map((r) => {
         const pt = drawn.at[r.key]
-        return pt ? <RingMark key={r.key} r={r} presenter={presenter} tag={tags[r.key]} style={{ left: pt.x, top: pt.y }} /> : null
+        return pt ? <RingMark key={r.key} r={r} presenter={presenter} tag={tags[r.key]} style={{ left: pt.x, top: pt.y }} onUnmark={onUnmark} /> : null
       })}
     </div>,
     drawn.host,
@@ -313,10 +336,11 @@ export function MapRings({ mapRef, rings, strokes = [], presenter }: { mapRef: R
 
 /** The rings and lines on a plan: children of the board, placed in plan space (`mapY` stacks
  *  storeys). */
-export function BoardRings({ rings, strokes = [], presenter, mapY, size }: {
+export function BoardRings({ rings, strokes = [], presenter, mapY, size, onUnmark }: {
   rings: Ring[]
   strokes?: Stroke[]
   presenter: string | null
+  onUnmark?: Unmark
   mapY: (floor: number | undefined, y: number) => number
   /** the board's drawn size (px), so the tags can be kept apart on screen */
   size: { w: number; h: number }
@@ -325,14 +349,14 @@ export function BoardRings({ rings, strokes = [], presenter, mapY, size }: {
   const tags = tagsFor(rings, at)
   if (!rings.length && !strokes.length) return null
   return (
-    <div className="present-rings" aria-hidden>
+    <div className="present-rings">
       {strokes.map((s) => {
         const pts = s.line.points.map(([x, y]) => ({ x, y: mapY(s.line.floor ?? 0, y) }))
         const last = pts[pts.length - 1]
-        return <LineMark key={s.key} s={s} presenter={presenter} d={pathOf(pts)} scaled tip={last ? { x: `${last.x * 100}%`, y: `${last.y * 100}%` } : null} />
+        return <LineMark key={s.key} s={s} presenter={presenter} d={pathOf(pts)} scaled tip={last ? { x: `${last.x * 100}%`, y: `${last.y * 100}%` } : null} onUnmark={onUnmark} />
       })}
       {rings.map((r) => r.at.x == null || r.at.y == null ? null : (
-        <RingMark key={r.key} r={r} presenter={presenter} tag={tags[r.key]}
+        <RingMark key={r.key} r={r} presenter={presenter} tag={tags[r.key]} onUnmark={onUnmark}
           style={{ left: `${r.at.x * 100}%`, top: `${mapY(r.at.floor ?? 0, r.at.y) * 100}%` }} />
       ))}
     </div>
@@ -346,7 +370,7 @@ export function BoardRings({ rings, strokes = [], presenter, mapY, size }: {
  * its first point's anchor and the rest as offsets in that element's widths, so it scales with
  * the row. The layer is the page's visible band (`top`, and the form's own foot reserve) and clips what is
  * scrolled away – those stand as edge arrows instead. Positions are read every frame while
- * there are marks (they live seconds), so they ride the page's own scroll.
+ * there are marks, so they ride the page's own scroll.
  */
 export function PageMarks({ p, top }: { p: BoardPresentation; top: number }) {
   const layerRef = useRef<HTMLDivElement>(null)
@@ -395,14 +419,14 @@ export function PageMarks({ p, top }: { p: BoardPresentation; top: number }) {
   }, [root, rings, strokes])
   const tags = tagsFor(rings, (r) => drawn?.at[r.key] ?? null, drawn?.w)
   return (
-    <div ref={layerRef} className="present-rings present-page-marks" data-present-host="" aria-hidden style={{ top }}>
+    <div ref={layerRef} className="present-rings present-page-marks" data-present-host="" style={{ top }}>
       {drawn && strokes.map((s) => {
         const pts = drawn.lines[s.key]
-        return pts?.length ? <LineMark key={s.key} s={s} presenter={p.presenter} d={pathOf(pts)} tip={pts[pts.length - 1]} /> : null
+        return pts?.length ? <LineMark key={s.key} s={s} presenter={p.presenter} d={pathOf(pts)} tip={pts[pts.length - 1]} onUnmark={p.onUnmark} /> : null
       })}
       {drawn && rings.map((r) => {
         const pt = drawn.at[r.key]
-        return pt ? <RingMark key={r.key} r={r} presenter={p.presenter} tag={tags[r.key]} style={{ left: pt.x, top: pt.y }} /> : null
+        return pt ? <RingMark key={r.key} r={r} presenter={p.presenter} tag={tags[r.key]} style={{ left: pt.x, top: pt.y }} onUnmark={p.onUnmark} /> : null
       })}
     </div>
   )
