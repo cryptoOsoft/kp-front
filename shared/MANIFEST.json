@@ -44,7 +44,7 @@
         },
         {
           "path": "backend/app/data/alarm_keywords.json",
-          "sha256": "7cef662c7eb41e54bab668828bad05975339f5d4de8691b1b6ca6ef0bee102de"
+          "sha256": "ce974806450c2d58530adafe7237661311eb278b35d43cc9cd3cbc979cb64322"
         }
       ]
     },

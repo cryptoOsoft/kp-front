@@ -122,6 +122,37 @@ def test_classification_end_to_end(title: str, expected: str):
 @pytest.mark.parametrize(
     ("title", "expected"),
     [
+        # The real alarm of 2026-11-10 (SMS «…, Verunreinigung, Ölspur»), filed as Diverse.
+        ("Verunreinigung, Allschwilerstrasse", "Ölwehr"),
+        # The street must not classify: BAHN and BMA sit earlier in the list than these words.
+        ("Wasserschaden, Bahnhofstrasse 5", "Technische Hilfeleistung"),
+        ("Türöffnung, Kaibmattweg 3", "Technische Hilfeleistung"),
+        ("Hilfeleistung, Hauptstrasse 1", "Technische Hilfeleistung"),
+        ("Elementarereignis, Hauptstrasse 1", "Elementarereignis"),
+        ("Med Ustü dringlich, Hauptstrasse 1", "Diverse Einsätze"),
+        ("Med Ustü nicht dringlich, Kaibmattweg 3", "Diverse Einsätze"),
+    ],
+)
+def test_classification_reads_the_einsatzart_not_the_street(title: str, expected: str):
+    # fwo-divera titles an alarm «Einsatzart, Strasse»; only the part before the comma counts.
+    assert divera.detect_type(title, vocab=alarm_keywords.SHIPPED) == expected
+
+
+@pytest.mark.parametrize(
+    ("title", "text", "expected"),
+    [
+        ("Wasserschaden, Kaibmattweg 3", "Meldung: Keller unter Wasser", "LOW"),  # BMA in the street
+        ("Wasserschaden, Mühlegasse 2", "Meldung: Keller unter Wasser", "LOW"),  # GAS in the street
+        ("Hilfeleistung, Hauptstrasse 1", "Meldung: Person in Lift", "HIGH"),  # the text still counts
+    ],
+)
+def test_priority_reads_the_einsatzart_and_the_text_not_the_street(title: str, text: str, expected: str):
+    assert divera.infer_priority(title, text, vocab=alarm_keywords.SHIPPED) == expected
+
+
+@pytest.mark.parametrize(
+    ("title", "expected"),
+    [
         ("Wohnungsbrand", "HIGH"),
         ("Person in Lift", "HIGH"),
         ("Gasleck Industriestrasse", "HIGH"),

@@ -619,8 +619,11 @@ at the next MAJOR, together with the `autoOpen*` keys above.
 
 Incoming alarms are classified from the words in their title: a **damage category** (the FKS
 Schadenkategorie stored on the incident) and a **priority** (`HIGH` wakes everyone; everything
-else is `LOW`). The words that do that are German fire-service words – `FEUER`, `VU`,
-`MED USTÜ` – and they ship with the app in
+else is `LOW`). Only the title's **Einsatzart** counts – the part before its first comma –
+because the dispatch titles an alarm «Einsatzart, Strasse» and street names carry keywords
+(«Bahnhofstrasse» holds `BAHN`, «Kaibmattweg» holds `BMA`); the priority also reads the text.
+The words that do that are German fire-service words – `FEUER`, `VU`, `MED USTÜ` – and they
+ship with the app in
 [`backend/app/data/alarm_keywords.json`](../backend/app/data/alarm_keywords.json). **Nearly
 every station should leave this alone.** The file is not vendor-specific: it is what a Swiss
 brigade's dispatch text looks like, whoever delivers it.
@@ -640,13 +643,13 @@ in** – the file is the starting point, not a base to patch.
   "schema_version": 1,                            // the shape this block was written against
   "keyword_to_category": {
     "pairs": [                                    // ORDERED: first keyword found in the
-      ["INCENDIE", "brandbekaempfung"],           // uppercased title wins. Keywords must be
+      ["INCENDIE", "brandbekaempfung"],           // uppercased Einsatzart wins. Keywords must be
       ["ACCIDENT", "strassenrettung"]             // UPPERCASE – matching uppercases the title
     ]
   },
   "fallback_category": "diverse_einsaetze",       // used when nothing matches
   "high_priority_keywords": {
-    "groups": [                                   // any match in title+text ⇒ HIGH. The grouping
+    "groups": [                                   // any match in Einsatzart+text ⇒ HIGH. The grouping
       { "group": "Feu",                           // is for the reader; order means nothing here.
         "keywords": ["INCENDIE", "FUMÉE"] }       // Only life-threatening words belong here.
     ]
@@ -671,7 +674,7 @@ is rejected, because those alarms would silently file under «Diverse Einsätze�
 
 ```bash
 curl -s http://localhost:8001/api/config | jq .alarmVocabulary
-# { "source": "shipped", "schemaVersion": 1, "titleKeywords": 19,
+# { "source": "shipped", "schemaVersion": 1, "titleKeywords": 25,
 #   "highPriorityKeywords": 41, "fallbackCategory": "diverse_einsaetze" }
 ```
 

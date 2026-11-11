@@ -58,8 +58,16 @@
   "keyword_to_category": {
     "_readme": [
       "Alarm title keyword -> damage category key. ORDER MATTERS: the matcher walks this list",
-      "and the first keyword found in the uppercased title wins. Keys are uppercase and",
-      "compared against an uppercased title. Nothing matched falls through to fallback_category."
+      "and the first keyword found in the uppercased title's Einsatzart wins. Keys are uppercase",
+      "and compared against an uppercased title. Nothing matched falls through to fallback_category.",
+      "",
+      "Both matchers read only the Einsatzart: the title up to its first comma. The dispatch",
+      "titles an alarm «Einsatzart, Strasse» («Einsatzart, Gemeinde» for Nachbarhilfe), and",
+      "street names carry keywords: «Bahnhofstrasse» holds BAHN, «Kaibmattweg» holds BMA.",
+      "",
+      "The last six rows are the Ausrückordnung's Einsatzarten that matched nothing until",
+      "2026-11-11, routed as the station books them in WinFAP. MED USTÜ routes to the fallback",
+      "on purpose: listed so the decision is written down, not left to the fall-through."
     ],
     "pairs": [
       ["FEUER", "brandbekaempfung"],
@@ -80,15 +88,21 @@
       ["BMA", "bma_unechte_alarme"],
       ["FEHLALARM", "bma_unechte_alarme"],
       ["DIENST", "dienstleistungen"],
-      ["TIER", "gerettete_tiere"]
+      ["TIER", "gerettete_tiere"],
+      ["VERUNREINIGUNG", "oelwehr"],
+      ["WASSERSCHADEN", "technische_hilfeleistung"],
+      ["TÜRÖFFNUNG", "technische_hilfeleistung"],
+      ["HILFELEISTUNG", "technische_hilfeleistung"],
+      ["ELEMENTAR", "elementarereignis"],
+      ["MED USTÜ", "diverse_einsaetze"]
     ]
   },
   "fallback_category": "diverse_einsaetze",
   "high_priority_keywords": {
     "_readme": [
-      "Any match anywhere in title + text makes the alarm HIGH; everything else is LOW. Order is",
-      "irrelevant here (it is an any-match, not a first-hit), so the grouping below is for the",
-      "reader. Only life-threatening situations belong in this list - it is not a severity",
+      "Any match in the title's Einsatzart + the text makes the alarm HIGH; everything else is",
+      "LOW. Order is irrelevant here (it is an any-match, not a first-hit), so the grouping below",
+      "is for the reader. Only life-threatening situations belong in this list - it is not a severity",
       "ranking, it is the answer to 'wake everyone up'."
     ],
     "groups": [
