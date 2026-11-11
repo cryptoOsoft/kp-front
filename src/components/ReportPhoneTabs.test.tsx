@@ -198,10 +198,16 @@ describe('Einsatzrapport · phone tabs', () => {
     const incident = { ...(INCIDENT as object), id: 'i-done' } as typeof INCIDENT
     const openMenu = () => fireEvent.click(screen.getByRole('button', { name: 'Weitere Druckoptionen' }))
     const journal = () => screen.getByRole('menuitemcheckbox', { name: 'Einsatzjournal' })
+    // everything recorded and the PDF made: the head carries the green close (owner pick H2 C)
+    const done = {
+      alarmiertAt: START.toISOString(), endedAt: new Date(START.getTime() + 3_600_000).toISOString(), einsatzleiter: 'Widmer Céline',
+      kontaktpersonNone: true, summary: 'Zimmerbrand gelöscht', rueckmeldungNone: true, mittelConfirmedNone: true,
+      reportMadeAt: new Date().toISOString(),
+    }
     const sheet = (onComplete?: () => Promise<boolean>) => (
       <ReportPreflight
-        incident={incident} reportMeta={{ alarmiertAt: START.toISOString() }} events={[]}
-        annotatedPlanCount={0} truppCount={0} attendanceCount={0} mittelCount={0}
+        incident={incident} reportMeta={done} events={[]}
+        annotatedPlanCount={0} truppCount={0} attendanceCount={1} mittelCount={0}
         mapContentCount={0} onSaveMeta={vi.fn()} onComplete={onComplete}
       />
     )

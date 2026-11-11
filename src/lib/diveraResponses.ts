@@ -1,5 +1,5 @@
 // The Anwesenheit's «Anrückend» block, as data: who answered the Divera alarm «kommt» / «kommt
-// nicht», laid over the Mannschaft and over who is already here. Yes / no and names only (owner,
+// nicht» (that one a count only), laid over the Mannschaft and over who is already here. Yes / no and names only (owner,
 // 09.10.2026: «just yes/no is enough») — no answer time, no status words, no notes.
 //
 // ⚠️ A Divera answer is NEVER presence. This module only sorts the answers into what the block
@@ -14,10 +14,9 @@ export interface Anrueckend {
   counts: { coming: number; notComing: number }
   /** answered and already recorded here (anwesend, or here and gone again) */
   here: number
-  /** said they come, not recorded yet — the way the crew list below sorts them */
+  /** said they come, not recorded yet — the way the crew list below sorts them. «kommt nicht»
+   *  has no list, only its count (owner, 11.11.2026: «the people not here are useless»). */
   coming: Person[]
-  /** said they DON'T come — their own, muted group; still tappable (a misclick happens) */
-  notComing: Person[]
   /** answers from somebody this device's roster does not know — only ever a number */
   unmapped: number
 }
@@ -48,12 +47,14 @@ export function buildAnrueckend(
     return out.sort(byRankThenName)
   }
   const coming = pick(resp.coming)
-  const notComing = pick(resp.not_coming)
+  // walked for the counts only: one of them recorded here after all (a misclick in Divera) is
+  // «da» in the head line, one this roster lacks is unmapped – the names are not shown
+  pick(resp.not_coming)
   return {
     counts: {
       coming: resp.counts?.coming ?? (resp.coming?.length ?? 0),
       notComing: resp.counts?.not_coming ?? (resp.not_coming?.length ?? 0),
     },
-    here, unmapped, coming, notComing,
+    here, unmapped, coming,
   }
 }

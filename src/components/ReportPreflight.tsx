@@ -82,7 +82,7 @@ const NO_SIGNATURES: ReportSignature[] = []
  *  the nav calls this page, «Rapport». The Kontrolle chip never folds: a bare «⚠ 4» beside the
  *  close action had to be decoded (council round 3), so where «4 offen» does not fit the head takes
  *  its second row instead — title + chip above, «Abschliessen» + «PDF» under it (13-incident.css). */
-const RP_FOLD = { print: 1, complete: 2, pdf: 3, title: 4 } as const
+const RP_FOLD = { print: 1, pdf: 2, complete: 3, title: 4 } as const
 
 // «Zeig mir diese offene Angabe» from outside the sheet — lives with the tabs (useReportPlace)
 export { requestReportStep } from './useReportPlace'
@@ -114,53 +114,36 @@ function MissingFact() {
 }
 
 
-// «Später» on the Abschluss-Band, per incident. Same kind of box as the kept place (useReportPlace ·
-// rapportKept) and for the same reason — the surface unmounts on every hop to Anwesenheit/Mittel/Verlauf, and a dismissal that
-// did not survive that would put the band back on screen two taps later. Deliberately NOT in the
-// workspace blob and NOT on disk: it is one operator postponing one decision on one device, and a
-// «Später» that outlived a reload would turn the only surface that says «dieser Einsatz ist noch
-// offen» permanently silent — which is the failure this whole band exists to fix.
-const bandDismissed: { current: Set<string> } = { current: new Set() }
-/** …and the same for the «Rapport unterschreiben» strip of a closed Einsatz, per close (`signKey`) */
+// «Später» on the «Rapport unterschreiben» strip of a closed Einsatz, per close (`signKey`). Same
+// kind of box as the kept place (useReportPlace · rapportKept) and for the same reason — the
+// surface unmounts on every hop to Anwesenheit/Mittel/Verlauf, and a dismissal that did not
+// survive that would put the strip back two taps later. Deliberately NOT in the workspace blob and
+// NOT on disk: it is one operator postponing one step on one device.
 const signBandDismissed = new Set<string>()
 
 /**
- * The open points inside the Kontrolle chip's popover – ONE list (EL phone sweep C6, 10.11.2026):
- * the rows and the answers of the «Angaben fehlen noch» confirm (lib/abschlussOpen). A row JUMPS to
- * the thing it names, a full 44px row; its button answers it here – the write moves `missing`, so
- * an answered row is simply gone. This list only jumped, and it is the one people open first.
- * Without `onFix` (a session that may not edit) the rows are doors only.
+ * The open points inside the Kontrolle chip's popover – the rows of the «Angaben fehlen noch»
+ * confirm (lib/abschlussOpen). A row JUMPS to the thing it names, a full 44px row, and that is all
+ * it does (owner, 11.11.2026: «just open the position» – the one-tap answers are gone).
  */
-function ControlOpenList({ missing, onGo, onFix, onLeave }: {
+function ControlOpenList({ missing, onGo }: {
   missing: AbschlussStep[]
   onGo: (step: AbschlussStep) => void
-  onFix?: (over: Partial<ReportMeta>) => void
-  /** a button that goes to its field («Wählen», «Schreiben») puts the popover away first */
-  onLeave: () => void
 }) {
-  const rows = abschlussOpenItems(missing.map((step) => ({ kind: 'step' as const, step })), { step: onGo },
-    onFix ? { fix: (_step, over) => { onFix(over) }, now: serverNowIso } : undefined)
+  const rows = abschlussOpenItems(missing.map((step) => ({ kind: 'step' as const, step })), { step: onGo })
   return rows.map((it, i) => (
-    <div key={missing[i]} className="rp-control-row">
-      <button type="button" className="rp-control-step" onClick={it.onClick}>
-        <span>{it.label}</span><Icon id="chevron" />
-      </button>
-      {it.action && (
-        <Button className="rp-control-answer" onClick={() => {
-          if (it.action?.leaves) onLeave()
-          it.action?.onClick()
-        }}>{it.action.label}</Button>
-      )}
-    </div>
+    <button key={missing[i]} type="button" className="rp-control-step" onClick={it.onClick}>
+      <span>{it.label}</span><Icon id="chevron" />
+    </button>
   ))
 }
 
 /**
- * One strip under the Rapport's head (28.10.2026): the guide to the next open point (#14) and the
- * Abschluss band (#15) wear it alike, at one size – a tap target with a small lead line over the
- * thing it goes to, an optional ✕ in front, and room under it for one more line (`children`).
+ * One strip under the Rapport's head (28.10.2026): the guide to the next open point (#14), the
+ * «Alles erfasst → PDF» band (#15) and «Rapport unterschreiben» wear it alike, at one size – a
+ * tap target with a small lead line over the thing it goes to, and an optional ✕ in front.
  */
-function RpStrip({ lead, count, title, icon, done = false, busy = false, onGo, onHide, hideLabel, children }: {
+function RpStrip({ lead, count, title, icon, done = false, busy = false, onGo, onHide, hideLabel }: {
   lead: string
   /** the amber «noch n offen» after the lead (the guide) */
   count?: string
@@ -172,7 +155,6 @@ function RpStrip({ lead, count, title, icon, done = false, busy = false, onGo, o
   onGo: () => void
   onHide?: () => void
   hideLabel?: string
-  children?: ReactNode
 }) {
   return (
     <div className={cx('rp-strip', done && 'rp-strip-done')}>
@@ -187,7 +169,6 @@ function RpStrip({ lead, count, title, icon, done = false, busy = false, onGo, o
         </span>
         <Icon id="chevron" className="rp-strip-chev" />
       </button>
-      {children}
     </div>
   )
 }
@@ -794,12 +775,9 @@ export function ReportPreflight({
     setPdfBusy(true)
     try {
       await downloadDirectReportPdf({ ...pdfArgs(draft), signatures: printedSignatures(liveSigs, sigValid, closed) })
-      // The PDF is the proof; the next step («Einsatz abschliessen») is said by the Abschluss band
-      // under the head, which `reportMadeAt` turns on. No toast beside it (owner #31, 30.10.2026):
-      // the same words twice, one of them over the head. A fresh PDF brings a band put away with
-      // «Später» back – this is the moment it exists for.
+      // The PDF is the proof; the next step («Einsatz abschliessen») is the green head tile, which
+      // `reportMadeAt` turns on once nothing is open. No toast beside it (owner #31, 30.10.2026).
       stampReportMade(also)
-      showBand()
     } catch {
       toast(appConfig.copy.report.pdfFailed, { icon: 'warn', tone: 'warn' })
     } finally {
@@ -848,7 +826,7 @@ export function ReportPreflight({
       const payload = await readyDirectReportPayload({ ...pdfArgs(buildDraft(also)), signatures: printedSignatures(liveSigs, sigValid, closed) })
       const jobId = await enqueuePrint(t, incident.id, payload)
       // ⚠️ NOT `stampReportMade`. EINGEREIHT IST NICHT GEDRUCKT: the stamp is the sole condition
-      // for the band «Rapport erstellt. Der Einsatz ist noch offen – abschliessen?», and until
+      // for the head's green «Einsatz abschliessen» (`closeReady`), and until
       // 22.08. it was set the instant the job left this device — including straight after the
       // dialog that had just said the printer was offline. So the app offered to close an Einsatz
       // whose rapport existed on no sheet of paper anywhere. What is recorded here is the OPEN
@@ -967,38 +945,21 @@ export function ReportPreflight({
     // building is the version that gets filed, so the gap is said out loud once, by name,
     // before it goes. Same words the Abschluss confirm uses; the only difference is that this
     // one is a warning and that one is a decision.
-    /** what the sheet's own buttons answered — written at once, AND onto this print: the draft is
-     *  built from this render's `meta`, which the write reaches only a render later */
-    let answered: Partial<ReportMeta> = {}
     if (missing.length) {
-      /* The rows are the Abschluss confirm's (31.10.2026, lib/abschlussOpen · abschlussSheet):
-         the same order, the same buttons («Jetzt setzen», «Nichts verwendet», «Entfällt»,
-         «Wählen», «Schreiben»), the same re-read after an answer. Each row still goes to its
-         field – the same jump the «noch offen» chip makes – and tapping one resolves the ask
-         false: nothing prints while the operator is off filling it in.
+      /* The rows are the Abschluss confirm's (31.10.2026, lib/abschlussOpen · abschlussSheet): the
+         same order, each row a jump to its field – the same jump the «noch offen» chip makes – and
+         tapping one resolves the ask false: nothing prints while the operator is off filling it in.
          ⚠️ Mindestangaben ONLY. The Abschluss's other two rows are about CLOSING: a Trupp still
          out is asked because the close freezes the Tafel over it (a print mid-Einsatz is a
          Zwischenausdruck, the crew is the Tafel's business), the pending uploads because the
          operator is about to walk away (here the Kontrolle chip says them). Nor is the Einsatzende
-         pre-filled with «jetzt» – the close writes that one; printing sets no end, so here it is
-         an open row like the others, with the step's own «Jetzt setzen». */
-      const sheet = abschlussSheet(missing.map((step) => ({ kind: 'step' as const, step })), { step: guideTo }, {
-        write: canEdit ? (over) => { answered = { ...answered, ...over }; persist(over) } : undefined,
-        now: serverNowIso,
-      })
-      const spec = () => {
-        const { items, anyOpen } = sheet()
-        // answered to the last one in the sheet: no longer «fehlen noch», and no «trotzdem» note
-        return {
-          title: anyOpen ? P.exportIncompleteTitle : P.exportCompleteTitle,
-          message: anyOpen ? P.exportIncompleteLead : '',
-          items,
-          note: anyOpen ? P.exportIncompleteMsg : undefined,
-        }
-      }
+         pre-filled with «jetzt» – the close writes that one; printing sets no end. */
+      const { items } = abschlussSheet(missing.map((step) => ({ kind: 'step' as const, step })), { step: guideTo })
       const ok = await confirmDialog({
-        ...spec(),
-        refresh: spec,
+        title: P.exportIncompleteTitle,
+        message: P.exportIncompleteLead,
+        items,
+        note: P.exportIncompleteMsg,
         confirmLabel: action === 'print' ? R.send : P.pdfFull,
         cancelLabel: appConfig.copy.cancel,
       })
@@ -1022,9 +983,9 @@ export function ReportPreflight({
     if (framing.krokiPrint) persist(framing)
     // …and it rides along to the stamp that follows a successful export: that write lands after
     // this one, merges onto its own snapshot of the blob, and would otherwise drop the framing
-    // that was just saved. The sheet's answers ride with it, onto the paper as well.
-    if (action === 'pdf') void downloadPdf({ ...answered, ...framing })
-    else void sendToPrinter({ ...answered, ...framing })
+    // that was just saved.
+    if (action === 'pdf') void downloadPdf(framing)
+    else void sendToPrinter(framing)
   }
   const P = appConfig.copy.preflight
   const A = appConfig.copy.abschluss
@@ -1194,21 +1155,15 @@ export function ReportPreflight({
     if (await onComplete?.()) forgetPlace()
   }
 
-  // The Abschluss-Band under the head (see the JSX): shown once a rapport has been produced and
-  // nothing is left open — the two facts that together mean «only the bookkeeping is missing».
-  // Both come off `meta`/`missing`, i.e. the LIVE form state: an Einsatzende typed a second ago
-  // makes the band appear without a round trip, exactly as it clears the head's «noch offen».
-  // Seeded once per mount, which is once per Einsatz — the workspace is keyed by incident id.
-  const [bandHidden, setBandHidden] = useState(() => bandDismissed.current.has(incident.id))
-  const hideBand = () => {
-    bandDismissed.current.add(incident.id)
-    setBandHidden(true)
-  }
-  const showBand = () => {
-    bandDismissed.current.delete(incident.id)
-    setBandHidden(false)
-  }
-  const showCloseBand = !!onComplete && !!meta.reportMadeAt && missing.length === 0 && !bandHidden
+  // THE close, in the head (owner pick H2 C, 11.11.2026): once a rapport has been produced – a PDF,
+  // or a print the relay reported done, both stamp `reportMadeAt` – and nothing is left open, the
+  // head grows a green «Einsatz abschliessen» where the «n offen» chip stood. It
+  // replaced the green «Rapport erstellt · Nächster Schritt» strip and the grey «Abschliessen»
+  // tile that led the row from the first second: the irreversible step stood first, active at
+  // «4 offen», and an EL never learnt that closing was theirs. Before that moment the close is the
+  // Einsatz ▾ menu's (WorkspaceTopBar). Off the LIVE form state: an Einsatzende typed a second ago
+  // turns it on without a round trip, exactly as it clears the head's «n offen».
+  const closeReady = !!onComplete && !!meta.reportMadeAt && missing.length === 0
   // …and ONE step later (owner pick A3, EL phone sweep 10.11.2026): the Einsatz is closed and
   // nobody has signed. The card sits at the end of «Personal & Mittel», reads «optional» and only
   // works after the close – nothing led there. The strip opens the Einsatzleiter's line of the
@@ -1220,14 +1175,14 @@ export function ReportPreflight({
   const showSignBand = canSign && !SIGNATURE_ROLES.some(sigValid) && signDismissed !== signKey
   // …and ONE step earlier (owner pick 15B, 28.10.2026): everything recorded, no PDF yet – the band
   // names the next step, «Einsatzrapport (PDF) erstellen». No «Später» on it (15x): it goes away by
-  // itself once the PDF exists, and turns into the Abschluss band above.
+  // itself once the PDF exists, and the head's green close takes over (`closeReady`).
   const showReadyBand = !!onComplete && canEditIn && !closedHint && !meta.reportMadeAt && missing.length === 0
 
   // The guide strip (owner pick 14 «top strip», 28.10.2026). A jump from the «n offen» list (or
   // from the «Angaben fehlen noch» confirm) remembers WHERE it went; the strip under the head then
   // names the next open point down the page (lib/abschluss · nextOpenStep) and a tap on it is the
   // same jump. At the last open point there is nothing after it, and the strip is gone; with
-  // nothing open the Abschluss band above takes over – the strip never becomes the PDF button.
+  // nothing open the «Alles erfasst» band takes over – the strip never becomes the PDF button.
   // ✕ forgets the place until the next jump from the list. Not for a session that cannot edit
   // (the list it walks is not drawn for one either).
   const [guideAt, setGuideAt] = useState<AbschlussStep | null>(null)
@@ -1240,7 +1195,7 @@ export function ReportPreflight({
   // not fit (a phone with something open) the head takes two rows: title + chip, then the actions.
   const headRef = useRef<HTMLElement>(null)
   usePageHeadFit(headRef, [
-    missing.length, warnCount, checking, controlOk, !!onComplete, printStatus?.available, printStatus?.online,
+    missing.length, warnCount, checking, controlOk, closeReady, printStatus?.available, printStatus?.online,
     printBusy, pdfBusy,
   ].join('|'))
 
@@ -1359,8 +1314,7 @@ export function ReportPreflight({
                 {openInControl && (
                   <div className="rp-control-open">
                     <div className="rp-control-open-head">{P.controlOpenHead}</div>
-                    <ControlOpenList missing={missing} onGo={(st) => { setControlOpen(false); guideTo(st) }}
-                      onFix={canEdit ? persist : undefined} onLeave={() => setControlOpen(false)} />
+                    <ControlOpenList missing={missing} onGo={(st) => { setControlOpen(false); guideTo(st) }} />
                   </div>
                 )}
                 {missTx > 0 && (
@@ -1402,10 +1356,11 @@ export function ReportPreflight({
                 where the one row runs out the head's ladder folds it (lib/pageHeadFit · `RP_FOLD`)
                 and a bare text node cannot be hidden. The label survives as `aria-label` + `title`,
                 so what is dropped is the pixels, never the naming. */}
-            {onComplete && (
-              <button className="ip-btn head-tile" data-fold={RP_FOLD.complete} onClick={() => void complete()} aria-label={A.complete} title={A.complete}>
-                {/* folded it keeps a WORD, like «PDF» beside it: a bare archive box was the least
-                    recognisable tile on the row for its most consequential action (council 04.11.2026) */}
+            {/* in the chip's place, beside the title (13-incident · .rp-head-close); folded it keeps
+                a WORD («Abschliessen»), never a bare archive box (council 04.11.2026) */}
+            {closeReady && (
+              <button className="ip-btn head-tile go rp-head-close" data-fold={RP_FOLD.complete} onClick={() => void complete()}
+                aria-label={A.complete} title={A.complete}>
                 <Icon id="archive" className="fold-long" /><span className="rp-btn-label fold-long">{A.complete}</span>
                 <span className="rp-btn-short fold-short" aria-hidden="true">{A.completeShort}</span>
               </button>
@@ -1419,6 +1374,9 @@ export function ReportPreflight({
                   {printBusy ? <ShellLoader /> : <Icon id="printer" />}
                   <span className={`dot print-relay-dot${printStatus.online ? ' online' : ''}`} aria-hidden />
                   <span className="rp-btn-label fold-long">{printBusy ? R.sending : R.send}</span>
+                  {/* folded it keeps a WORD, like «PDF» beside it (owner pick H1 A, 11.11.2026: a
+                      lone glyph in a tile as wide as its neighbours «looks a bit ugly») */}
+                  <span className="rp-btn-short fold-short" aria-hidden="true">{R.sendShort}</span>
                 </span>
                 {/* the offline reason is the dot's colour, the button's name and the confirm a
                     press raises — never a second line in the one-row head (13-incident.css) */}
@@ -1521,11 +1479,6 @@ export function ReportPreflight({
             </span>
           </div>
         </header>
-        {/* The Einsatz is done in every way except the bookkeeping: the paper exists, nothing is
-            missing, and it is still sitting on the open list. Archiving is a deliberate act that
-            nobody performs unless they know it exists, so this is the app saying it once, at the
-            one moment it is true — a line under the head, never a dialog. It blocks nothing:
-            «Später» takes it off the screen and the two buttons above are untouched. */}
         {closedHint && (
           <div className="rp-band rp-band-open" role="note">
             <Icon id="lock" className="rp-band-wait" />
@@ -1541,19 +1494,6 @@ export function ReportPreflight({
         {showReadyBand && (
           <RpStrip done lead={P.bandReady} title={P.bandPdf} busy={pdfBusy}
             icon={pdfBusy ? <ShellLoader /> : <Icon id="doc" />} onGo={() => void startOutput()} />
-        )}
-        {showCloseBand && (
-          <RpStrip done lead={P.bandDone} title={A.complete} icon={<Icon id="archive" />}
-            onGo={() => void complete()} onHide={hideBand} hideLabel={P.bandLater}>
-            {/* 15y: the ZIP is the step after the Abschluss, for the digital Ablage – a line, not a
-                second button (the same download the ▾ menu carries) */}
-            {hasStoredMedia && (
-              <p className="rp-strip-more">
-                <Icon id="download" />{P.bandZipLead}
-                <button type="button" className="rp-strip-link" onClick={() => downloadUrl(`/api/incidents/${incident.id}/media.zip`)}>{P.archiveZip}</button>
-              </p>
-            )}
-          </RpStrip>
         )}
         {showSignBand && (
           <RpStrip done lead={P.bandClosed} title={appConfig.copy.signature.sheetTitle} icon={<Icon id="signature" />}

@@ -4,12 +4,11 @@ import { FIXTURE, ROSTER } from './diveraResponses.fixture'
 import type { AttendanceState } from '../types'
 
 describe('the «Anrückend» block, as data — yes / no and names', () => {
-  it('lists who comes and who does not, and counts every answer in the head line', () => {
+  it('lists who comes, and counts every answer in the head line', () => {
     const a = buildAnrueckend(FIXTURE, ROSTER, {})!
     expect(a.counts).toEqual({ coming: 4, notComing: 2 })
     // the crew list's own order: Grad first, then the name
     expect(a.coming.map((p) => p.id)).toEqual(['p103', 'p101', 'p102'])
-    expect(a.notComing.map((p) => p.displayName)).toEqual(['Huber Lea', 'Weber Marco'])
     // 999 is on nobody's roster: the server sent a number, never who
     expect(a.unmapped).toBe(1)
   })
@@ -29,7 +28,6 @@ describe('the «Anrückend» block, as data — yes / no and names', () => {
     const a = buildAnrueckend(FIXTURE, ROSTER, att)!
     expect(a.here).toBe(2)
     expect(a.coming.map((p) => p.id)).toEqual(['p103', 'p102'])
-    expect(a.notComing.map((p) => p.id)).toEqual(['p105'])
     expect(a.counts.coming).toBe(4)
   })
 

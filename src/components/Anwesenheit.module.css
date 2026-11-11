@@ -298,27 +298,12 @@ button.ortStation:active:not(:disabled) { background-image: linear-gradient(var(
 /* «expected, not here yet»: the row's outline is DASHED — a present row below is solid and tinted,
    so the two never read as the same state, and neither leans on colour */
 .anrRow {
-  display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "who da" "meta da";
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "who da";
   align-items: center; column-gap: var(--sp-2); min-height: 46px; padding: var(--sp-1) var(--sp-1) var(--sp-1) var(--sp-3);
   border: 1px dashed var(--ink-faint); border-radius: var(--r-ctl);
   font: var(--fw-bold) var(--fs-2) var(--body); color: var(--ink);
 }
-/* a «kommt» row has no second line: the name centres on the «da» instead of hanging over a gap */
-.anrRow:not(:has(.anrMeta)) { grid-template-areas: "who da"; }
 .anrWho { grid-area: who; display: flex; align-items: center; gap: var(--sp-2); min-width: 0; }
 .anrWho > svg { width: 14px; height: 14px; flex: none; }
-.anrMeta {
-  grid-area: meta; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  font: var(--fw-medium) var(--fs-1) var(--body); color: var(--ink-dim);
-}
 .anrDa { grid-area: da; min-height: var(--tap); }
-/* «kommt nicht»: muted, but every row still SAYS it — ✕ + the word — and keeps its «da» (a
-   misclick in Divera happens). Not the done-dim of a gone row: that one means «was here». */
-.anrNo { border-style: solid; border-color: var(--glass-edge); background: none; color: var(--ink-dim); }
-.anrNo .name { color: var(--ink-dim); }
-.anrGroup {
-  display: flex; align-items: center; gap: var(--sp-2); margin: var(--sp-1) 0 0;
-  font: var(--eyebrow); letter-spacing: var(--eyebrow-track); text-transform: uppercase; color: var(--ink-dim);
-}
-.anrGroup > svg { width: 13px; height: 13px; }
 .anrFoot { margin: 2px 0 0; font: var(--fw-medium) var(--fs-micro) var(--body); color: var(--ink-faint); }

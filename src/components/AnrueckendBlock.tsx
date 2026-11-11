@@ -1,7 +1,6 @@
 import { Fragment, useCallback, useMemo, useState } from 'react'
 import { Icon } from '../lib/icons'
 import { appConfig } from '../config/appConfig'
-import { cx } from '../lib/cx'
 import { fillTemplate } from '../lib/format'
 import { buildAnrueckend } from '../lib/diveraResponses'
 import { getDiveraResponses, type DiveraResponses } from '../lib/incidents'
@@ -32,9 +31,9 @@ const lastKnown = new Map<string, DiveraResponses>()
  * - A Divera answer is NEVER presence. Nobody becomes anwesend because they pressed «komme»; the
  *   «da» button on a row is the ordinary check-in (`onMarkPresent`), one tap, by a person here.
  *   Once somebody is recorded they leave this block and stand in the list below.
- * - «kommt nicht» is its own group, muted but readable: ✕ glyph + the word on every row, never a
- *   colour alone (owner on the card: they are most likely not there, unless misclicked — so «da»
- *   is still offered on them).
+ * - «kommt nicht» is a COUNT in the head line, never a list (owner, 11.11.2026: «the people not
+ *   here are useless» – eleven muted rows pushed the crew list off the phone). Somebody who
+ *   misclicked and turns up anyway is checked in on the crew list below, like anybody.
  * - Nothing to show → nothing rendered: a station without Divera, or an Einsatz no Divera alarm
  *   belongs to, never sees an empty frame.
  *
@@ -82,14 +81,12 @@ export function AnrueckendBlock({ incidentId, people, attendance, canEdit, onMar
     <Fragment key={t}>{i > 0 ? ' · ' : ''}<span className={s.anrPart}>{t}</span></Fragment>
   ))
 
-  const row = (p: Person, notComing: boolean) => (
-    <li key={p.id} className={cx(s.anrRow, notComing && s.anrNo)}>
+  const row = (p: Person) => (
+    <li key={p.id} className={s.anrRow}>
       <div className={s.anrWho}>
-        {notComing && <Icon id="close" />}
         <RankBadge rank={p.rank} />
         <span className={s.name}>{p.displayName}</span>
       </div>
-      {notComing && <div className={s.anrMeta}>{R.notComingWord}</div>}
       {canEdit && (
         <Button
           className={s.anrDa}
@@ -104,7 +101,6 @@ export function AnrueckendBlock({ incidentId, people, attendance, canEdit, onMar
     </li>
   )
 
-  const listed = data.coming.length + data.notComing.length
   return (
     <section className={s.anr} aria-label={R.title}>
       <button type="button" className={s.anrHead} aria-expanded={open} onClick={() => setOpen((v) => !v)}
@@ -119,14 +115,9 @@ export function AnrueckendBlock({ incidentId, people, attendance, canEdit, onMar
       </button>
       {open && (
         <div className={s.anrBody}>
-          {data.coming.length > 0 && <ul className={s.anrList}>{data.coming.map((p) => row(p, false))}</ul>}
-          {data.notComing.length > 0 && (
-            <>
-              <h3 className={s.anrGroup}><Icon id="close" />{R.notComingGroup(data.notComing.length)}</h3>
-              <ul className={s.anrList}>{data.notComing.map((p) => row(p, true))}</ul>
-            </>
-          )}
-          {listed === 0 && <p className={s.anrFoot}>{R.allHere}</p>}
+          {data.coming.length > 0
+            ? <ul className={s.anrList}>{data.coming.map(row)}</ul>
+            : <p className={s.anrFoot}>{R.allHere}</p>}
           {/* the one sentence the block owes: an answer is not a check-in */}
           <p className={s.anrFoot}>
             {data.unmapped > 0 && <>{R.unmapped(data.unmapped)} · </>}

@@ -17,31 +17,34 @@ the queue has acknowledged its bytes. A queue entry without a target remains jou
 ## Abschluss – the «Noch offen» sheet (23.10.2026)
 
 `useAbschluss · confirmAndComplete` asks the one closing question over `lib/abschluss`'s
-Mindestangaben (`abschlussOpenItems`). Every row is a link to its field, and since the 3am sweep
-(owner's point 4) a row also carries its own **button**: «Nichts verwendet» (Material),
-«Entfällt» (Kontaktperson, Rückmeldung ELZ) write the same fields the Rapport's buttons write and
-the sheet stays open, re-reading itself (`ConfirmSpec · refresh`) — the row stays as a done one,
-the lead sentence and the button follow («Abschliessen» once nothing is open). «Wählen»
-(Einsatzleiter) and «Schreiben» (Kurzbericht) leave for the focused field. Anwesenheit and
-Abweichungen have no one-tap answer. An empty **Einsatzende is pre-filled with «jetzt»** on the
-deployment clock (`serverNowIso`), shown as a done row with «Ändern» in the step's own place on
-the list; the close writes it before
-the handover, so «Einsatzende» (the step `zeiten`) is only open on a sheet that may not write the Rapport. The success
-toast carries «Wieder öffnen» for 10 s (docs/undo.md). Close and reopen stamps come off
-`lib/serverClock`, like the Rapport's own «Jetzt» buttons.
+Mindestangaben (`abschlussOpenItems`). **Every row is a link to its field, and only that** (owner,
+11.11.2026: «drop the quick action buttons. just open the position»): the one-tap answers the 3am
+sweep had put on the rows («Jetzt setzen», «Nichts verwendet», «Entfällt», «Wählen», «Schreiben»)
+are gone from all three lists – this sheet, the print's «Angaben fehlen noch» and the Kontrolle
+chip's popover. The fast tap was often the wrong answer («Entfällt» for a Rückmeldung ELZ that was
+given). An empty **Einsatzende is pre-filled with «jetzt»** on the deployment clock
+(`serverNowIso`), shown as a done row in the step's own place on the list (a tap changes it); the
+close writes it before the handover, so «Einsatzende» (the step `zeiten`) is only open on a sheet
+that may not write the Rapport. The success toast says «Einsatz abgeschlossen» and carries «Wieder
+öffnen» for 10 s (docs/undo.md). Close and reopen stamps come off `lib/serverClock`, like the
+Rapport's own «Jetzt» buttons.
 
-**The print's «Angaben fehlen noch» is the same list (31.10.2026)**: both confirms take rows,
-order and buttons from ONE builder (`lib/abschlussOpen · abschlussSheet`); only the words around
-the list are each one's own. The print lists the Mindestangaben only – a Trupp still out and the
-pending uploads are closing questions – and pre-fills nothing: its Einsatzende row offers «Jetzt
-setzen». Answered to the last row, the title reads «Alle Angaben erfasst» and the «trotzdem» note
-goes; an answer given there is on the PDF made from that same tap (`ReportPreflight · startOutput`).
+**The crews question comes first, once** (`useAbschluss`): a Notfall, then Trupps still inside,
+then Trupps still angemeldet. «Zur Tafel» is the focused answer only for a closer who can write the
+Tafel; the `el` role gets «Trotzdem abschliessen» / «Abbrechen» («Abbrechen» focused) and the line
+«Austragen kann nur, wer die Atemschutz-Tafel führt.» (sweep R2, 11.11.2026). Answered «trotzdem»,
+the Trupps are not listed again on the sheet after it.
+
+**The print's «Angaben fehlen noch» is the same list (31.10.2026)**: both confirms take rows and
+order from ONE builder (`lib/abschlussOpen · abschlussSheet`); only the words around the list are
+each one's own. The print lists the Mindestangaben only – a Trupp still out and the pending uploads
+are closing questions – and pre-fills nothing.
 
 The Einsatzdaten card has no pencil (31.10.2026): the card is the pointer's target, its heading
 «Aus den Einsatzdaten» the keyboard's (a `role="button"` span – a `<button>` would be disabled
 with the Rapport's fieldset while the Einsatzdaten may still be edited).
 
-## The strip under the head – the guide and the Abschluss band (28.10.2026)
+## The strip under the head – the guide and the band (28.10.2026), the close in the head (11.11.2026)
 
 Owner picks 14 «top strip» and 15B (`ReportPreflight · RpStrip`, one size for both, outside the
 scrolling body so it stays visible with the keyboard up):
@@ -55,12 +58,17 @@ scrolling body so it stays visible with the keyboard up):
   (`nextOpenStep`: the next open one down the page, wrapping, never the current one). «Letzter
   offener Punkt» when only that one is left; at the last open point the strip is gone. ✕ puts it
   away until the next jump from the list. It never becomes the PDF button.
-- **The Abschluss band, one step earlier**: as soon as nothing is open and no PDF exists, the green
-  strip says «Alles erfasst · Nächster Schritt / Einsatzrapport (PDF) erstellen» (no «Später» –
-  it goes away by itself). Once the PDF exists: «Rapport erstellt · Nächster Schritt / Einsatz
-  abschliessen», ✕ = «Später», and under it «Danach für die Ablage: Beilagen herunterladen (ZIP)»
-  when the server holds Beilagen. The band is the only announcement – no «Rapport erstellt» toast
-  beside it (owner #31, 30.10.2026) – so a fresh PDF brings back a band put away with «Später».
+- **The band, one step earlier**: as soon as nothing is open and no PDF exists, the green strip
+  says «Alles erfasst · Nächster Schritt / Einsatzrapport (PDF) erstellen» (no «Später» – it goes
+  away by itself).
+- **The close is the head's** (owner picks H1 A + H2 C, 11.11.2026): the head row is «Ausdrucken ·
+  PDF ▾» (folded on a phone: «Drucken · PDF ▾», both with a word). Once nothing is open AND a
+  rapport exists – a PDF, or a print the relay reported done (both stamp `reportMadeAt`) – the head
+  grows a green «Einsatz abschliessen» in the place the «n offen» chip stood (beside the title; on a
+  phone the two halves keep the row under it). It
+  replaced the «Rapport erstellt · Nächster Schritt» strip and the grey «Abschliessen» tile that led
+  the row from the first second (active at «4 offen», the irreversible step first – sweep R9).
+  Before that moment the close is the Einsatz ▾ menu's. The ZIP of the Beilagen is in the PDF ▾ menu.
 
 ## Unterschriften – signing on the screen (15.10.2026)
 

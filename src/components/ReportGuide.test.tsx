@@ -76,21 +76,21 @@ describe('the Abschluss band, one step earlier (#15)', () => {
     expect(within(strip()!).getByRole('button', { name: (n) => n.includes(P.bandPdf) })).toBeTruthy()
     expect(within(strip()!).queryByRole('button', { name: P.bandLater })).toBeNull()
   })
-  it('turns into «Einsatz abschliessen» once the PDF exists', () => {
-    mount({ ...done, reportMadeAt: new Date().toISOString() }, { attendanceCount: 1, mittelCount: 0 })
-    expect(strip()!.textContent).toContain(P.bandDone)
-    expect(within(strip()!).getByRole('button', { name: new RegExp(A.complete) })).toBeTruthy()
-    expect(within(strip()!).getByRole('button', { name: P.bandLater })).toBeTruthy()
-  })
-  // #31 (30.10.2026): the band is the only announcement – no «Rapport erstellt» toast beside it –
-  // so a fresh PDF brings back a band put away with «Später»
-  it('comes back with a fresh PDF after «Später», and no toast says it twice', async () => {
-    mount({ ...done, reportMadeAt: new Date().toISOString() }, { attendanceCount: 1, mittelCount: 0 })
-    fireEvent.click(within(strip()!).getByRole('button', { name: P.bandLater }))
-    expect(strip()).toBeNull()
+  // owner pick H2 C (11.11.2026): the close is the HEAD's green tile, no longer a strip
+  it('grows the green «Einsatz abschliessen» in the head once the PDF exists – and only then', async () => {
+    mount(done, { attendanceCount: 1, mittelCount: 0 })
+    const close = () => screen.queryByRole('button', { name: A.complete })
+    expect(close()).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: P.pdfFull }))
-    await waitFor(() => expect(strip()?.textContent).toContain(P.bandDone))
-    expect(downloadDirectReportPdf).toHaveBeenCalledOnce()
+    await waitFor(() => expect(downloadDirectReportPdf).toHaveBeenCalledOnce())
+    cleanup()
+    mount({ ...done, reportMadeAt: new Date().toISOString() }, { attendanceCount: 1, mittelCount: 0 })
+    expect(close()?.closest('.rp-head')).toBeTruthy()
+    expect(strip()).toBeNull()
     expect(toast).not.toHaveBeenCalled()
+    // something open again (the Kurzbericht emptied): no close in the head
+    cleanup()
+    mount({ ...done, summary: undefined, reportMadeAt: new Date().toISOString() }, { attendanceCount: 1, mittelCount: 0 })
+    expect(close()).toBeNull()
   })
 })

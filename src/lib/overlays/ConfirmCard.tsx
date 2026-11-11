@@ -4,7 +4,6 @@ import { useRef } from 'react'
 // `disablePointerDismissal` from its props so it cannot be turned on. Dialog with the alert role
 // spelled out is the same component with the behaviour we want, rather than one fought against.
 import { Dialog } from '@base-ui/react/dialog'
-import { Button } from '../../components/Button'
 import { Icon } from '../icons'
 
 /**
@@ -24,13 +23,6 @@ export interface ConfirmItem {
   /** a short read-out at the row's end – the pre-filled Einsatzende's «jetzt 23:41» */
   end?: string
   onClick: () => void
-  /** The row's own answer, as a BUTTON at its end (3am sweep, 23.10.2026: «Nichts verwendet»,
-   *  «Entfällt», «Ändern»). The owner: «the tappable buttons where you can clearly just tap on
-   *  them … and don't have to infer that the whole line is clickable». It settles the point IN
-   *  the sheet, so the ask stays open and re-reads its spec (ConfirmSpec · refresh); `leaves`
-   *  marks the ones that go somewhere instead («Wählen», «Schreiben») – those resolve `false`
-   *  first, like the row itself. */
-  action?: { label: string; onClick: () => void; leaves?: boolean }
   /** already answered – a check instead of the chevron, the row stays as the record of it */
   done?: boolean
 }
@@ -69,10 +61,6 @@ export interface ConfirmSpec {
    *  Eingangsdruck («180 bestätigen» / «Ändern»), the Abschluss's «Zur Tafel». It is NOT `danger`:
    *  nothing is destroyed, so no red. Every dismissal still resolves `false`. */
   safeAnswer?: 'cancel' | 'alt'
-  /** Re-read the ask after a row's in-place action: what is still open, the words on the
-   *  title, the message and the buttons («Angaben fehlen noch» is not true any more once the last
-   *  one is answered in the sheet). Only the parts returned change. */
-  refresh?: () => Partial<Pick<ConfirmSpec, 'title' | 'items' | 'message' | 'note' | 'confirmLabel' | 'cancelLabel' | 'safeAnswer'>>
 }
 
 /**
@@ -88,11 +76,9 @@ export interface ConfirmSpec {
  * app answers to. A modal that does not respond to a tap beside it reads as a frozen app, and
  * that is the wrong thing to be wondering about with an Einsatz open.
  */
-export function ConfirmCard({ open, title, message, items, note, confirmLabel, cancelLabel, danger, altLabel, altDanger, safeAnswer, onResolve, onRefresh }: Omit<ConfirmSpec, 'refresh'> & {
+export function ConfirmCard({ open, title, message, items, note, confirmLabel, cancelLabel, danger, altLabel, altDanger, safeAnswer, onResolve }: ConfirmSpec & {
   open: boolean
   onResolve: (confirmed: boolean | 'alt') => void
-  /** a row's in-place action ran – the host re-reads the spec (ConfirmSpec · refresh) */
-  onRefresh?: () => void
 }) {
   const confirmRef = useRef<HTMLButtonElement>(null)
   const cancelRef = useRef<HTMLButtonElement>(null)
@@ -157,15 +143,6 @@ export function ConfirmCard({ open, title, message, items, note, confirmLabel, c
                         ? <Icon id="check" className="confirm-list-done" />
                         : <span className="confirm-list-chev" aria-hidden="true">›</span>}
                     </button>
-                    {/* the row's own answer beside it: settles the point here and the ask re-reads
-                        itself, or (`leaves`) goes to the field like the row does */}
-                    {it.action && (
-                      <Button className="confirm-list-action" onClick={() => {
-                        if (it.action!.leaves) { onResolve(false); it.action!.onClick(); return }
-                        it.action!.onClick()
-                        onRefresh?.()
-                      }}>{it.action.label}</Button>
-                    )}
                   </li>
                 ))}
             </ul>

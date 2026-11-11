@@ -5,6 +5,7 @@ import { renderHook } from '@testing-library/react'
 vi.mock('./ui', () => ({ confirmDialog: vi.fn() }))
 import { confirmDialog } from './ui'
 import { useAbschluss } from './useAbschluss'
+import { abschlussOpenLabel } from './abschlussOpen'
 import type { ReportMeta } from './workspace'
 import type { Trupp } from '../types'
 import type { ConfirmItem } from './overlays/ConfirmCard'
@@ -166,13 +167,16 @@ describe('useAbschluss', () => {
       expect(a.onCompleteRapport).not.toHaveBeenCalled()
     })
 
-    // review of #581: the `el` role closes too and cannot write the Tafel – it is still asked
-    it('a closer that cannot stand down is asked the same question, with «Trotzdem abschliessen»', async () => {
+    // review of #581: the `el` role closes too and cannot write the Tafel – it is still asked,
+    // but without a «Zur Tafel» it could do nothing on (sweep R2, 11.11.2026)
+    it('a closer that cannot stand down is asked the same question – «Abbrechen» focused, no «Zur Tafel»', async () => {
       const ask = vi.mocked(confirmDialog)
       ask.mockReset().mockResolvedValue(true)
       const a = args({ trupps: [sich], onCompleteRapport: vi.fn(async () => true) })
       await expect(renderHook(() => useAbschluss(a)).result.current.confirmAndComplete()).resolves.toBe(true)
-      expect(ask.mock.calls[0][0]).toMatchObject({ title: A.registeredTitle, confirmLabel: A.insideClose, altLabel: A.registeredToBoard })
+      const spec = ask.mock.calls[0][0]
+      expect(spec).toMatchObject({ title: A.registeredTitle, confirmLabel: A.insideClose, safeAnswer: 'cancel', note: A.boardNotYours })
+      expect(spec.altLabel).toBeUndefined()
     })
 
     it('«Zur Tafel» goes to the board and closes nothing', async () => {
@@ -249,7 +253,7 @@ describe('useAbschluss', () => {
     it('names them, focuses «Zur Tafel», and «Zur Tafel» closes nothing', async () => {
       const ask = vi.mocked(confirmDialog)
       ask.mockReset().mockResolvedValueOnce('alt' as never)
-      const a = args({ trupps: [inside] })
+      const a = args({ trupps: [inside], standDownTrupps: vi.fn() })
       await expect(renderHook(() => useAbschluss(a)).result.current.confirmAndComplete()).resolves.toBe(false)
       expect(ask.mock.calls[0][0]).toMatchObject({
         message: '1 Trupp ist noch drin:',
@@ -262,7 +266,7 @@ describe('useAbschluss', () => {
       expect(a.onCompleteRapport).not.toHaveBeenCalled()
     })
 
-    it('closing anyway goes on to the Abschluss itself — and writes no Austritt', async () => {
+    it('closing anyway goes on to the Abschluss itself — writes no Austritt, and does not ask again', async () => {
       const ask = vi.mocked(confirmDialog)
       ask.mockReset().mockResolvedValueOnce(true).mockResolvedValueOnce(true)
       const standDownTrupps = vi.fn()
@@ -270,6 +274,9 @@ describe('useAbschluss', () => {
       await expect(renderHook(() => useAbschluss(a)).result.current.confirmAndComplete()).resolves.toBe(true)
       expect(ask).toHaveBeenCalledTimes(2)
       expect(standDownTrupps).not.toHaveBeenCalled()
+      // sweep R2: the list after it carries no «Trupps noch im Einsatz» row – that was just answered
+      const labels = ask.mock.calls[1][0].items?.map((i) => (typeof i === 'string' ? i : 'label' in i ? i.label : i.text))
+      expect(labels).not.toContain(abschlussOpenLabel({ kind: 'trupps', n: 1 }))
     })
 
     // staging r3 F4: closing over them wrote nothing, and the record ended with open sorties
@@ -326,12 +333,12 @@ describe('useAbschluss', () => {
       const a = args({ patchReportMeta, onCompleteRapport: vi.fn(async () => { order.push('complete'); return true }) })
       await expect(renderHook(() => useAbschluss(a)).result.current.confirmAndComplete()).resolves.toBe(true)
       const spec = ask.mock.calls[0][0] as Ask
-      // the Einsatzende row is the pre-filled one, already set, with «Ändern» – ONE row, in the
+      // the Einsatzende row is the pre-filled one, already set – ONE row, in the
       // step's own place down the page (after Kontaktperson), as on the print's list (31.10.2026)
       const labels = spec.items?.map((i) => typeof i === 'string' ? i : i.label)
       expect(labels?.filter((l) => l === A.ende)).toHaveLength(1)
       expect(labels?.indexOf(A.ende)).toBe(labels!.indexOf(A.steps.kontaktperson) + 1)
-      expect(spec.items?.[labels!.indexOf(A.ende)]).toMatchObject({ done: true, end: expect.stringMatching(/\d/), action: { label: A.endeChange, leaves: true } })
+      expect(spec.items?.[labels!.indexOf(A.ende)]).toMatchObject({ done: true, end: expect.stringMatching(/\d/) })
       expect(order).toEqual(['patch:endedAt', 'complete'])
       expect(patchReportMeta.mock.calls[0][0].endedAt).toMatch(/^\d{4}-/)
     })
@@ -349,40 +356,17 @@ describe('useAbschluss', () => {
       await renderHook(() => useAbschluss(args())).result.current.confirmAndComplete()
       const spec = ask.mock.calls[1][0] as Ask
       expect(spec.items?.some(prefilled)).toBe(false)
-      // …and the rows are plain links then: no buttons on a sheet that cannot write
-      expect(spec.items?.every((i) => typeof i === 'string' || !i.action)).toBe(true)
     })
 
-    it('a row\'s button writes at once; the re-read sheet keeps the row as done and re-words itself', async () => {
-      const ask = vi.mocked(confirmDialog)
-      ask.mockReset().mockResolvedValueOnce(false)
-      const patchReportMeta = vi.fn()
-      // everything but Material answered already
-      const meta = { endedAt: '2026-10-23T20:00:00Z', einsatzleiter: 'Muster', kontaktpersonNone: true, summary: 'ok', rueckmeldungNone: true } as ReportMeta
-      const a = args({ patchReportMeta, reportMeta: meta, attendance: { p1: {} } as never })
-      await renderHook(() => useAbschluss(a)).result.current.confirmAndComplete()
-      const spec = ask.mock.calls[0][0] as Ask
-      expect(spec).toMatchObject({ confirmLabel: A.confirmAnyway, safeAnswer: 'cancel' })
-      const row = spec.items?.find((i) => typeof i !== 'string' && i.label === A.steps.mittel)
-      expect(row).toMatchObject({ action: { label: A.fix.mittel } })
-      if (typeof row === 'string' || !row?.action) throw new Error('no row')
-      row.action.onClick()
-      expect(patchReportMeta).toHaveBeenCalledWith({ mittelConfirmedNone: true })
-      // the sheet re-reads: nothing open any more — plain «Abschliessen», the row stays, done
-      const next = spec.refresh!()
-      expect(next).toMatchObject({ message: A.confirmMsg, confirmLabel: A.confirmBtn, safeAnswer: undefined })
-      expect(next.items?.[0]).toMatchObject({ label: A.steps.mittel, done: true, end: A.fix.mittel })
-    })
-
-    it('«Ändern» on the pre-filled Ende writes it and goes to the Rapport\'s field', async () => {
+    it('a tap on the pre-filled Ende writes it and goes to the Rapport\'s field', async () => {
       const ask = vi.mocked(confirmDialog)
       ask.mockReset().mockResolvedValueOnce(false)
       const patchReportMeta = vi.fn()
       const a = args({ patchReportMeta })
       await renderHook(() => useAbschluss(a)).result.current.confirmAndComplete()
       const ende = (ask.mock.calls[0][0] as Ask).items?.find((i) => typeof i !== 'string' && i.label === A.ende)
-      if (typeof ende === 'string' || !ende?.action) throw new Error('no Ende row')
-      ende.action.onClick()
+      if (typeof ende !== 'object' || !('onClick' in ende)) throw new Error('no Ende row')
+      ende.onClick()
       expect(patchReportMeta).toHaveBeenCalledWith({ endedAt: expect.stringMatching(/^\d{4}-/) })
       expect(a.requestReportStep).toHaveBeenCalledWith('zeiten')
       expect(a.setMode).toHaveBeenCalledWith('rapport')
