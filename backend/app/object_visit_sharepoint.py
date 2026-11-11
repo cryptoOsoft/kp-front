@@ -1,10 +1,11 @@
-"""Microsoft Graph, the WRITE half — used by the Objektbesuche delivery and nothing else.
+"""Microsoft Graph, the WRITE half – used by the two one-way filings and nothing else: the
+Objektbesuche delivery (``object_visit_delivery``) and the Einsatz-Ablage (``incident_archive``).
 
 ⚠️ This is deliberately NOT ``sharepoint_graph``. That module is the station-data importer and
 promises to be GET-only (its docstring): pointing the pull at a folder must never be able to
-damage it. Filing visit reports needs writes, so the writes live here, behind their own app
-registration (credential group ``sharepoint_export``, ``Sites.Selected`` WRITE on one site) —
-the importer's credentials are never used for writing.
+damage it. Filing needs writes, so the writes live here, behind their own app registration
+(credential group ``sharepoint_export``, ``Sites.Selected`` WRITE on one site) – the importer's
+credentials are never used for writing.
 
 :class:`GraphWriter` subclasses the importer's client only to reuse its token cache, its site →
 drive resolution and its error types; every method that sends something other than a GET is
@@ -12,27 +13,36 @@ defined below, in this module.
 
 What it does, and nothing more (docs/object-visits.md «Delivery»):
 
-* look an item up by path (``GET …/root:/{path}``), 404 → None;
+* look an item up by path (``GET …/root:/{path}``) or by id (``GET …/items/{id}``), 404 → None;
 * create a folder (``POST …/children`` with ``@microsoft.graph.conflictBehavior: fail``) — always
   after a lookup, and a 409 answered by looking up again (a lost response that DID create it);
-* upload bytes (``PUT …/root:/{path}:/content``) — idempotent by path, optionally ``If-Match``;
+* upload bytes (``PUT …/root:/{path}:/content``, or ``PUT …/items/{folder}:/{name}:/content`` into
+  a folder known by id) – idempotent by path, optionally ``If-Match``;
 * move an item into another folder (``PATCH`` its ``parentReference``).
 
 Nothing is ever deleted.
+
+Below the writer: the pieces both filings share – the placeholder expansion of a folder
+pattern, the retry backoff, the failure classification and the config fingerprint.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import re
-from typing import Any
+from datetime import timedelta
+from typing import TYPE_CHECKING, Any
 from urllib.parse import quote
 
 import httpx
 
 from .credentials import get as credential
 from .sharepoint_graph import GraphAuthError, GraphClient, GraphError, RemoteFile, _error_detail, _redact
+
+if TYPE_CHECKING:
+    from pydantic import BaseModel
 
 logger = logging.getLogger("kpfront.objectvisits")
 
@@ -106,6 +116,15 @@ class GraphWriter(GraphClient):
                 return None
             raise
 
+    async def item_by_id(self, drive_id: str, item_id: str) -> dict[str, Any] | None:
+        """The drive item with this id – wherever a person has moved it since – or None."""
+        try:
+            return await self.get_json(f"{self._graph_root}/drives/{drive_id}/items/{quote(item_id, safe='')}")
+        except GraphError as e:
+            if e.status == 404:
+                return None
+            raise
+
     async def ensure_folder(self, drive_id: str, base: str, segments: list[str]) -> str:
         """The id of ``base/segments…``, creating each missing segment below ``base``.
 
@@ -153,6 +172,18 @@ class GraphWriter(GraphClient):
             raise GraphError(f"upload of {path} answered without an item id")
         return body
 
+    async def upload_into(
+        self, drive_id: str, folder_id: str, name: str, data: bytes, content_type: str
+    ) -> dict[str, Any]:
+        """PUT the bytes as ``name`` into the folder with this id (replacing a file of that name).
+        By id, so a folder a person moved (a year folder archived away) still receives."""
+        url = f"{self._graph_root}/drives/{drive_id}/items/{quote(folder_id, safe='')}:/{quote(name, safe='')}:/content"
+        resp = await self._send("PUT", url, content=data, headers={"Content-Type": content_type})
+        body = resp.json()
+        if not isinstance(body, dict) or not body.get("id"):
+            raise GraphError(f"upload of {name} answered without an item id")
+        return body
+
     async def move(self, drive_id: str, item_id: str, parent_id: str, name: str | None = None) -> dict[str, Any]:
         """Move an item into another folder (keeping its name unless ``name`` is given)."""
         url = f"{self._graph_root}/drives/{drive_id}/items/{quote(item_id, safe='')}"
@@ -186,3 +217,52 @@ class GraphWriter(GraphClient):
         except ValueError:
             return None, remote.etag or None
         return (parsed if isinstance(parsed, dict) else None), remote.etag or None
+
+
+# --- shared by both filings --------------------------------------------------------------------
+
+#: 1 min · 5 min · 15 min · 1 h · 6 h (cap) – the retry steps after weather (409/412/429/5xx/network).
+BACKOFF_SECONDS = (60, 300, 900, 3600, 21600)
+
+
+def backoff(attempts: int) -> timedelta:
+    index = max(0, min(attempts - 1, len(BACKOFF_SECONDS) - 1))
+    return timedelta(seconds=BACKOFF_SECONDS[index])
+
+
+def short_error(error: Exception) -> str:
+    text = str(error) or error.__class__.__name__
+    return text[:400]
+
+
+def expand(pattern: str, values: dict[str, str]) -> list[str]:
+    """A destination's folder pattern → sanitised path segments. A value never adds a level:
+    a «/» inside a name is removed with the other characters SharePoint refuses."""
+    out: list[str] = []
+    for raw_segment in pattern.split("/"):
+        segment = raw_segment
+        for key, value in values.items():
+            segment = segment.replace("{" + key + "}", value)
+        if segment.strip():
+            out.append(sanitize_segment(segment))
+    return out
+
+
+def fingerprint(dest: BaseModel | None) -> str:
+    """What a destination and the writer's credentials look like – a change to either takes a
+    ``failed`` row back to ``pending``. Hashes, never values."""
+    creds = export_credentials() or ("", "", "")
+    raw = json.dumps(
+        {"dest": dest.model_dump() if dest else None, "creds": [hashlib.sha256(c.encode()).hexdigest() for c in creds]},
+        sort_keys=True,
+    )
+    return hashlib.sha256(raw.encode()).hexdigest()[:32]
+
+
+def export_writer(client: httpx.AsyncClient) -> GraphWriter:
+    """A writer on the ``sharepoint_export`` registration; 401 while the credentials are incomplete."""
+    creds = export_credentials()
+    if creds is None:
+        raise GraphAuthError("sharepoint_export credentials are incomplete", status=401)
+    tenant, client_id, secret = creds
+    return GraphWriter(client, tenant_id=tenant, client_id=client_id, client_secret=secret)

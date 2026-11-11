@@ -6,6 +6,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 // modal (ConfirmCard) and not the inline Ja/Nein the re-creatable config rows use (A2, UX sweep).
 const { listIncidents, deleteIncident } = vi.hoisted(() => ({ listIncidents: vi.fn(), deleteIncident: vi.fn() }))
 vi.mock('../lib/incidents', () => ({ listIncidents, deleteIncident }))
+// the Einsatz-Ablage's status; refused = not switched on (no column)
+const { apiGet, apiPost } = vi.hoisted(() => ({ apiGet: vi.fn(), apiPost: vi.fn() }))
+vi.mock('../lib/api', () => ({ apiGet, apiPost }))
+apiGet.mockRejectedValue(new Error('403'))
 
 import { IncidentHistoryView } from './IncidentHistoryView'
 import { appConfig } from '../config/appConfig'
@@ -53,5 +57,37 @@ describe('IncidentHistoryView — what a row says', () => {
     expect(screen.getByText('pager-x')).toBeTruthy()
     expect(screen.queryByText('manual')).toBeNull()
     expect(screen.getAllByText(appConfig.copy.exerciseBadge)).toHaveLength(1)
+  })
+})
+
+// The Einsatz-Ablage (docs/incident-archive.md): «abgelegt / ausstehend / Fehler: …» per Einsatz,
+// and the one way out of a Fehler
+describe('IncidentHistoryView – the Ablage column', () => {
+  const A = C.archive
+  const row = {
+    incidentId: 'inc-1', destination: 'sp', state: 'failed', attempts: 1, nextAttemptAt: null,
+    lastError: 'folder Fotoarchiv does not exist', deliveredAt: null, folders: [], reportVersions: 0, filedMedia: 0,
+  }
+
+  it('is not there while the Ablage is off', async () => {
+    listIncidents.mockResolvedValue([closed])
+    apiGet.mockResolvedValueOnce({ enabled: false, deliveries: [] })
+    render(<IncidentHistoryView />)
+    await screen.findByText(closed.title)
+    expect(screen.queryByText(A.column)).toBeNull()
+  })
+
+  it('says Fehler with the reason and retries that Einsatz', async () => {
+    listIncidents.mockResolvedValue([closed, { ...closed, id: 'inc-2', title: 'Übung Steiger', is_exercise: true }])
+    apiGet.mockResolvedValue({ enabled: true, deliveries: [row] })
+    apiPost.mockResolvedValue({ retried: 1 })
+    render(<IncidentHistoryView />)
+    expect(await screen.findByText(A.column)).toBeTruthy()
+    expect(screen.getByText(A.states.failed)).toBeTruthy()
+    expect(screen.getByText(row.lastError)).toBeTruthy()
+    expect(screen.getByText(A.exercise)).toBeTruthy()
+    fireEvent.click(screen.getByText(A.retry))
+    await waitFor(() => expect(apiPost).toHaveBeenCalledWith('/api/admin/incident-archive/retry', { incidentId: 'inc-1' }))
+    apiGet.mockRejectedValue(new Error('403'))
   })
 })

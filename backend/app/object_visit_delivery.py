@@ -30,7 +30,6 @@ Failures: 401/403/404 → ``failed`` (actionable). 409/412/429/5xx/network → b
 
 from __future__ import annotations
 
-import hashlib
 import json
 import logging
 import uuid
@@ -58,10 +57,15 @@ from .object_visit_report import local_time
 from .object_visit_sharepoint import (
     GraphPreconditionError,
     GraphWriter,
+    backoff,
+    expand,
     export_credentials,
+    fingerprint,
     join_path,
     sanitize_segment,
 )
+from .object_visit_sharepoint import export_writer as _writer
+from .object_visit_sharepoint import short_error as _short
 from .schemas import ObjectVisitDestination, ObjectVisitsConfig
 from .sharepoint_graph import GraphAuthError, GraphError
 
@@ -69,7 +73,6 @@ logger = logging.getLogger("kpfront.objectvisits")
 
 TICK_SECONDS = 30
 LEASE = timedelta(minutes=5)
-BACKOFF_SECONDS = (60, 300, 900, 3600, 21600)
 #: Rows a tick works through at most — a backlog drains steadily, a tick stays bounded.
 BATCH = 10
 
@@ -104,46 +107,12 @@ class Claim:
 # --- helpers ---------------------------------------------------------------------------------
 
 
-def backoff(attempts: int) -> timedelta:
-    index = max(0, min(attempts - 1, len(BACKOFF_SECONDS) - 1))
-    return timedelta(seconds=BACKOFF_SECONDS[index])
-
-
-def fingerprint(dest: ObjectVisitDestination | None) -> str:
-    """What the destination and the writer's credentials look like — a change to either takes a
-    ``failed`` row back to ``pending``. Hashes, never values."""
-    creds = export_credentials() or ("", "", "")
-    raw = json.dumps(
-        {"dest": dest.model_dump() if dest else None, "creds": [hashlib.sha256(c.encode()).hexdigest() for c in creds]},
-        sort_keys=True,
-    )
-    return hashlib.sha256(raw.encode()).hexdigest()[:32]
-
-
 def is_actionable(error: Exception) -> bool:
     """401/403/404, a refused token and a report that cannot be rendered need a person;
     everything else is weather."""
     if isinstance(error, (GraphAuthError, RenderError)):
         return True
     return isinstance(error, GraphError) and error.status == 404
-
-
-def _short(error: Exception) -> str:
-    text = str(error) or error.__class__.__name__
-    return text[:400]
-
-
-def expand(pattern: str, values: dict[str, str]) -> list[str]:
-    """A destination's folder pattern → sanitised path segments. A value never adds a level:
-    a «/» inside an object name is removed with the other characters SharePoint refuses."""
-    out: list[str] = []
-    for raw_segment in pattern.split("/"):
-        segment = raw_segment
-        for key, value in values.items():
-            segment = segment.replace("{" + key + "}", value)
-        if segment.strip():
-            out.append(sanitize_segment(segment))
-    return out
 
 
 def placeholders(visit_id: str, doc: dict[str, Any], obj: ObjectSite | None) -> dict[str, str]:
@@ -680,14 +649,6 @@ async def finish_superseded(
 
 
 # --- one claimed row, end to end -----------------------------------------------------------------
-
-
-def _writer(client: httpx.AsyncClient) -> GraphWriter:
-    creds = export_credentials()
-    if creds is None:
-        raise GraphAuthError("sharepoint_export credentials are incomplete", status=401)
-    tenant, client_id, secret = creds
-    return GraphWriter(client, tenant_id=tenant, client_id=client_id, client_secret=secret)
 
 
 async def deliver(

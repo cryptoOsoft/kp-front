@@ -564,6 +564,17 @@ export const adminCopy: Localizable<Pick<Copy, 'admin'>> = {
       deleteNote: 'Cette action est irréversible.',
       deleteOpenHint: 'Clôturer d\'abord',
       deleteFailed: 'Échec de la suppression',
+      archive: {
+        column: 'Classement',
+        states: { delivered: 'classée', pending: 'en attente', failed: 'Erreur', paused: 'en pause' },
+        exercise: 'Exercice – non classé',
+        onClose: 'à la clôture',
+        none: 'non classée',
+        noReport: 'sans PDF du rapport',
+        file: 'Classer',
+        retry: 'Réessayer',
+        retryFailed: 'Impossible de relancer le classement',
+      },
       actions: 'Actions',
     },
     autosave: {

@@ -563,6 +563,17 @@ export const adminCopy: Localizable<Pick<Copy, 'admin'>> = {
       deleteNote: 'This cannot be undone.',
       deleteOpenHint: 'Close it first',
       deleteFailed: 'Delete failed',
+      archive: {
+        column: 'Filing',
+        states: { delivered: 'filed', pending: 'pending', failed: 'Error', paused: 'paused' },
+        exercise: 'Exercise – not filed',
+        onClose: 'when closed',
+        none: 'not filed',
+        noReport: 'no report PDF',
+        file: 'File now',
+        retry: 'Retry',
+        retryFailed: 'Could not restart the filing',
+      },
       actions: 'Actions',
     },
     autosave: {

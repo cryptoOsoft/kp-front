@@ -26,7 +26,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.background import BackgroundTask
 
-from .. import audio, database, storage
+from .. import audio, database, incident_archive, storage
 from ..auth.dependencies import CurrentEditor, CurrentRecordWriter, CurrentUser
 from ..auth.incident_link import link_session_incident
 from ..credentials import get as credential
@@ -126,7 +126,9 @@ async def upload_media(
 ) -> dict:
     if kind not in ("photo", "audio", "file"):
         raise HTTPException(status_code=422, detail="kind muss 'photo', 'audio' oder 'file' sein")
-    inc = (await db.execute(select(Incident.id).where(Incident.id == incident_id))).scalar_one_or_none()
+    inc = (
+        await db.execute(select(Incident.is_archived, Incident.is_exercise).where(Incident.id == incident_id))
+    ).one_or_none()
     if inc is None:
         raise HTTPException(status_code=404, detail=INCIDENT_NOT_FOUND)
 
@@ -170,6 +172,10 @@ async def upload_media(
     media = Media(incident_id=incident_id, kind=kind, storage_key=key, content_type=content_type, created_by=user.id)
     db.add(media)
     await db.flush()
+    # A capture that reaches an Einsatz after its close (the offline queue, a late Beilage) is
+    # owed to the Einsatz-Ablage too (docs/incident-archive.md) – one outbox row, no Graph call.
+    if inc.is_archived and not inc.is_exercise:
+        await incident_archive.enqueue(db, incident_id)
     return {"id": str(media.id), "url": f"/api/media/{media.id}", "kind": kind, "content_type": content_type}
 
 

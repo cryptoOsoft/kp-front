@@ -33,10 +33,12 @@ from ..auth.viewer_scope import is_viewer
 from ..credentials import get as credential
 from ..credentials import load as load_credentials
 from ..database import execute_dml, get_db
+from ..incident_archive import keep_report_safely
 from ..models import Incident, PrintJob
 from ..report import ReportPayload
 from .incidents import get_incident_or_404
 from .report import (
+    ARCHIVE_ROLES,
     ReportAssetScope,
     _resolve_logo_bytes,
     compose_report_from_payload,
@@ -220,15 +222,19 @@ async def enqueue_print_job(
     kind: str,
     requested_by: uuid.UUID | None,
     scope: ReportAssetScope | None = None,
+    archive: bool = False,
 ) -> PrintJob:
     """Compose the Rapport-PDF (same path as the download endpoints) and queue it.
 
     `scope` is the download's own narrowing (`ReportAssetScope`): paper may reach no more than
-    the PDF the same caller could download."""
+    the PDF the same caller could download. `archive` hands the composed PDF – in reading order,
+    before any reversal for the printer – to the Einsatz-Ablage (docs/incident-archive.md)."""
     if not relay_available():
         raise HTTPException(status_code=403, detail="Stationsdrucker nicht konfiguriert")
     await refuse_when_backed_up(db, inc.id)
     pdf, data = await compose_report_from_payload(db, payload, scope=scope)
+    if archive:
+        await keep_report_safely(db, inc, data, pdf)
     # the PRINTER gets the stack it can deliver in order; the downloaded PDF stays as it reads
     if await wants_reverse_order(db):
         # Waiting for another PDFium operation must not block the API event loop.
@@ -291,7 +297,9 @@ async def report_print(
         if is_viewer(user)
         else None
     )
-    job = await enqueue_print_job(db, inc, payload, kind="report", requested_by=user.id, scope=scope)
+    job = await enqueue_print_job(
+        db, inc, payload, kind="report", requested_by=user.id, scope=scope, archive=user.role in ARCHIVE_ROLES
+    )
     return {"job_id": str(job.id), "status": job.status}
 
 

@@ -4296,6 +4296,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/incident-archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Archive Status
+         * @description ``{enabled, deliveries: [{incidentId, destination, state, …}]}`` – newest change first.
+         */
+        get: operations["archive_status_api_admin_incident_archive_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/admin/incident-archive/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Archive Retry
+         * @description «Erneut versuchen» (failed → pending) – and «Ablegen» for a closed Einsatz with no row yet.
+         */
+        post: operations["archive_retry_api_admin_incident_archive_retry_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/manifest.webmanifest": {
         parameters: {
             query?: never;
@@ -5075,6 +5115,7 @@ export interface components {
             setup?: components["schemas"]["SetupConfig"];
             objectVisits?: components["schemas"]["ObjectVisitsConfig"];
             access?: components["schemas"]["AccessConfig"];
+            incidentArchive?: components["schemas"]["IncidentArchiveConfig"];
         };
         /**
          * DeploymentConfigOut
@@ -5101,6 +5142,7 @@ export interface components {
             setup?: components["schemas"]["SetupConfig"];
             objectVisits?: components["schemas"]["ObjectVisitsConfig"];
             access?: components["schemas"]["AccessConfig"];
+            incidentArchive?: components["schemas"]["IncidentArchiveConfig"];
             integrations?: components["schemas"]["ConfigIntegrations"];
             alarmVocabulary?: components["schemas"]["AlarmVocabularyStatus"];
             /** Categorylabels */
@@ -5563,6 +5605,98 @@ export interface components {
             demoMode?: boolean | null;
             /** Demonote */
             demoNote?: string | null;
+        };
+        /**
+         * IncidentArchiveConfig
+         * @description The optional Einsatz-Ablage (docs/incident-archive.md): a closed Einsatz is copied, one
+         *     way, into the station's SharePoint. Off unless switched on.
+         */
+        IncidentArchiveConfig: {
+            /**
+             * Enabled
+             * @default false
+             */
+            enabled?: boolean;
+            /** Destinations */
+            destinations?: components["schemas"]["IncidentArchiveDestination"][];
+        };
+        /**
+         * IncidentArchiveDestination
+         * @description Where the server files a closed Einsatz (docs/incident-archive.md): the photos into one
+         *     folder pattern, the Rapport-PDF, the Sprachnotizen and the Beilagen into another.
+         *
+         *     ⚠️ NO CREDENTIAL HERE: the writer is the ``sharepoint_export`` registration the Objektbesuche
+         *     use. The section reaches an admin session only (api/config · ``_projection``).
+         */
+        IncidentArchiveDestination: {
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @default sharepoint
+             * @constant
+             */
+            kind?: "sharepoint";
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled?: boolean;
+            /** Siteurl */
+            siteUrl: string;
+            /** Library */
+            library?: string | null;
+            /**
+             * Photofolder
+             * @default Fotoarchiv/{year}/{date} {stichwort}
+             */
+            photoFolder?: string;
+            /**
+             * Reportfolder
+             * @default Einsätze/{year}/{date} {stichwort}
+             */
+            reportFolder?: string;
+        };
+        /** IncidentArchiveRetried */
+        IncidentArchiveRetried: {
+            /** Retried */
+            retried: number;
+        };
+        /**
+         * IncidentArchiveRow
+         * @description One Einsatz at one destination – what the «Ablage» column shows.
+         */
+        IncidentArchiveRow: {
+            /** Incidentid */
+            incidentId: string;
+            /** Destination */
+            destination: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "pending" | "delivered" | "failed" | "paused";
+            /** Attempts */
+            attempts: number;
+            /** Nextattemptat */
+            nextAttemptAt: string | null;
+            /** Lasterror */
+            lastError: string | null;
+            /** Deliveredat */
+            deliveredAt: string | null;
+            /** Folders */
+            folders: string[];
+            /** Reportversions */
+            reportVersions: number;
+            /** Filedmedia */
+            filedMedia: number;
+        };
+        /** IncidentArchiveStatus */
+        IncidentArchiveStatus: {
+            /** Enabled */
+            enabled: boolean;
+            /** Deliveries */
+            deliveries: components["schemas"]["IncidentArchiveRow"][];
         };
         /** IncidentCreate */
         IncidentCreate: {
@@ -7341,6 +7475,11 @@ export interface components {
             url: string;
             /** Note */
             note?: string | null;
+        };
+        /** RetryIn */
+        RetryIn: {
+            /** Incidentid */
+            incidentId?: string | null;
         };
         /** RosterConfig */
         RosterConfig: {
@@ -15925,6 +16064,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    archive_status_api_admin_incident_archive_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                admin_session?: string | null;
+            };
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IncidentArchiveStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    archive_retry_api_admin_incident_archive_retry_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: {
+                admin_session?: string | null;
+            };
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RetryIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IncidentArchiveRetried"];
                 };
             };
             /** @description Validation Error */

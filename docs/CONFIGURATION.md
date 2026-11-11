@@ -26,6 +26,7 @@ config JSON: [§1](#1-deployment-config-the-json-the-deployment-owner-edits).
   - [1c. `report.attendanceMergeGapMin` – two ticks that are one arrival](#1c-reportattendancemergegapmin--two-ticks-that-are-one-arrival)
   - [1d. `report.links` – the station's own forms, on the Rapport](#1d-reportlinks--the-stations-own-forms-on-the-rapport)
   - [1e. `objectVisits` – the optional Objektbesuche module](#1e-objectvisits--the-optional-objektbesuche-module)
+  - [1g. `incidentArchive` – the optional Einsatz-Ablage](#1g-incidentarchive--the-optional-einsatz-ablage)
   - [`doctrine.alarmBarRueckzug` – the quieter line on Rückzug](#doctrinealarmbarrueckzug--the-quieter-line-for-a-trupp-on-rückzug)
   - [`doctrine.entryPressureMin` – the one question about a low Eingangsdruck](#doctrineentrypressuremin--the-one-question-about-a-low-eingangsdruck)
   - [`doctrine.nearbyObjectWarnM` – when the nearest object is «nicht die Einsatzadresse»](#doctrinenearbyobjectwarnm--when-the-nearest-object-is-nicht-die-einsatzadresse)
@@ -171,6 +172,7 @@ for this?"; the German names are the pages in the left-hand `/admin` nav.
 | `roster.ranks` | ✅ | the CSV import's «Grade zuordnen» → `adopt` (§4b) – **and** the Arbeitsmappe (§9h). There is no rank *form* |
 | `mittel.units` | ❌ | **file only** – the Arbeitsmappe does not carry it |
 | `alarmKeywords` | ❌ | **file only** – it is a paste-a-document, not a fill-a-form (§1a) |
+| `incidentArchive` | ❌ | **file only** – where closed Einsätze are filed ([`incident-archive.md`](incident-archive.md)); the status is the «Ablage» column of Einsätze |
 | `sharepoint.intervalMinutes`, `.sources` | ❌ | **file only** – which folders the station pulls from is set up once and then wants to be reviewable and reproducible (§6c). The four Azure **credentials** are in the browser, at `/admin` → Anbindungen › SharePoint; System › SharePoint-Anbindung is the read-out |
 
 Two things that are **not** part of this document and are managed on their own pages: the
@@ -693,8 +695,8 @@ UI does a full-document `PUT`, so a section the admin never received is a sectio
 unrelated edit would silently delete.
 
 Three more are withheld (RBAC audit, 22.10.2026), emptied rather than removed so the answer looks
-like a station that configured none: **`alarms.webhooks` and `sharepoint.sources` reach an admin
-session only** – addresses the server talks to, and a webhook URL is often a capability (a
+like a station that configured none: **`alarms.webhooks`, `sharepoint.sources` and
+`incidentArchive.destinations` reach an admin session only** – addresses the server talks to, and a webhook URL is often a capability (a
 `sig=`, a `?secret=`); no client but `/admin` reads them. **`objectVisits.destinations` reaches
 every PIN session** (the Objektbesuch's «Ablage» line reads it) but no anonymous caller and no
 link, like `report.links`.
@@ -894,6 +896,18 @@ the running Einsätze and those last closed within this many days; older ones an
 `0` = only the running ones. Server-enforced on every route; `editor` and `el` always read the
 whole record. Config-as-code only – no field in `/admin`; set it with `admin_config` (show → patch
 → load). Rules and rationale: [`roles-and-access.md`](roles-and-access.md#the-viewers-window-since-2026-10-21).
+
+### 1g. `incidentArchive` – the optional Einsatz-Ablage
+
+Off unless `incidentArchive.enabled` is `true`. `destinations[]` name a SharePoint site, a library
+and two folder patterns – `photoFolder` for the photos, `reportFolder` for the Rapport-PDF, the
+Sprachnotizen and the Beilagen – with the placeholders `{date}` (alarm date, `yyyy.mm.dd`), `{year}`,
+`{stichwort}` (the title without the address), `{kategorie}` and `{short}`. When an Einsatz that is
+not an Übung closes, the server copies its material there, one way, retrying until it worked. The
+contract – placeholders, file names, versions, the outbox, the admin column – is
+[`incident-archive.md`](incident-archive.md). No credential lives in the section: the writer is the
+`sharepoint_export` group the Objektbesuche use. `GET /api/config` serves `destinations` to an admin
+session only.
 
 ---
 
@@ -1508,7 +1522,7 @@ and locks the field – see the rule above).
 | 🔐 `HEALTHCHECK_PING_URL` | dead-man's switch: **the job GETs this URL every 60 s** (healthchecks.io or any cron monitor), so the monitor alerts when the pings *stop*. Catches the class an HTTP probe of `/ready` cannot: a container stopped with nothing replacing it, or a wedged event loop. Point it at a check with a **1 min period and ~3 min grace** – matching the 60 s cadence, so two missed pings raise it. Nothing set anywhere = the heartbeat job still runs but returns on its first line, so nothing is pinged; a failed ping is logged and swallowed, so a monitoring outage never disturbs the deployment. The «Einrichtung» card on the admin landing page links straight to this field |
 | 🔐 `SHAREPOINT_TENANT_ID`, `SHAREPOINT_CLIENT_ID`, `SHAREPOINT_CLIENT_SECRET`, `SHAREPOINT_SECRET_EXPIRES` | the Azure app registration behind the SharePoint pull ([§6c](#6c-sharepoint-pull-the-stations-own-folders-imported-on-a-schedule)), read-only, client-credentials flow. ⚠️ These four – like every 🔐 credential from here down to `ENTRA_LOGIN_*`, sixteen in all – have **no `Settings` field**: they were introduced after the credential table existed, so the environment half is read straight off the process environment and the normal path is the browser. The two ids are readable (an operator compares them against the Azure portal); the secret is write-only. `SHAREPOINT_SECRET_EXPIRES` is not a credential but the ISO date (`JJJJ-MM-TT`) the secret lapses on – Azure caps it at 24 months and says nothing when it does, so this is what the System card counts down. Nothing set = no pull, fail-closed |
 | 🔐 `OBJECT_VISITS_INTEGRATION_KEY` | the Objektbesuche organizer's bearer key for `/api/integrations` ([`object-visits.md`](object-visits.md)); ≥ 24 characters, write-only, no `Settings` field (read off the environment, normally set in the browser). Unset = the organizer API answers 403 |
-| 🔐 `SHAREPOINT_EXPORT_TENANT_ID`, `SHAREPOINT_EXPORT_CLIENT_ID`, `SHAREPOINT_EXPORT_CLIENT_SECRET` | a SECOND Azure app registration, the only one KP Front writes with: the Objektbesuche delivery files visit reports into a destination folder ([`object-visits-sharepoint.md`](object-visits-sharepoint.md)), `Sites.Selected` **write** on one site. Separate from the pull's read-only registration on purpose. No `Settings` fields; ids readable, secret write-only. Incomplete = no delivery, fail-closed |
+| 🔐 `SHAREPOINT_EXPORT_TENANT_ID`, `SHAREPOINT_EXPORT_CLIENT_ID`, `SHAREPOINT_EXPORT_CLIENT_SECRET` | a SECOND Azure app registration, the only one KP Front writes with: the Objektbesuche delivery files visit reports into a destination folder ([`object-visits-sharepoint.md`](object-visits-sharepoint.md)) and the Einsatz-Ablage files closed Einsätze ([`incident-archive.md`](incident-archive.md)), `Sites.Selected` **write** on one site. Separate from the pull's read-only registration on purpose. No `Settings` fields; ids readable, secret write-only. Incomplete = no delivery, fail-closed |
 | 🔐 `STATION_INDEX_SOURCE`, `STATION_INDEX_TOKEN` | the station index ([§4d](#4d-the-station-index--one-address-for-all-station-data)): the address or absolute path of the station's `index.json`, plus an optional bearer token sent only over https (to the index and its same-host siblings). When the index lists a roster it replaces the direct roster source below. No `Settings` fields; the source is readable, the token write-only. Unset = nothing fetched |
 | 🔐 `ROSTER_SNAPSHOT_SOURCE`, `ROSTER_SNAPSHOT_TOKEN` | the station's published roster file ([§4c](#4c-snapshot--a-roster-file-somebody-else-publishes)): an `https://` address (plain `http://` only on the station's own network) or an absolute path on the server, plus an optional bearer token sent only over https. No `Settings` fields (read off the environment, normally set in the browser); the source is readable, the token write-only. Unset = nothing fetched |
 | 🔐 `ENTRA_LOGIN_TENANT_ID`, `ENTRA_LOGIN_CLIENT_ID`, `ENTRA_LOGIN_CLIENT_SECRET`, `ENTRA_LOGIN_ACCOUNTS` | optional «Mit Microsoft anmelden» ([`microsoft-login.md`](microsoft-login.md)): a THIRD Azure app registration, sign-in only (delegated `openid profile`), redirect URI `<PUBLIC_URL>/api/auth/microsoft/callback`. `ENTRA_LOGIN_ACCOUNTS` is the allow-list, `objectid=username, …` (Entra object id → existing KP Front username; a sign-in name is refused since 22.10.2026). No `Settings` field, settable from `/admin › Anbindungen`; the secret is write-only, the rest readable. Any one unset = no button, routes 404 |

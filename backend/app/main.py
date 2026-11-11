@@ -742,6 +742,7 @@ def _register_optional_routers() -> None:
         ("app.api.object_visits", "router"),
         ("app.api.integrations", "router"),
         ("app.api.object_visits_admin", "router"),
+        ("app.api.incident_archive_admin", "router"),
     ]:
         try:
             mod = __import__(module_name, fromlist=[attr])

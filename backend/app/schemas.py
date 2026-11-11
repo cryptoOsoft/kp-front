@@ -2383,6 +2383,77 @@ class ObjectVisitsConfig(BaseModel):
         return self
 
 
+#: The placeholders an ``incidentArchive`` folder pattern may use (docs/incident-archive.md).
+INCIDENT_ARCHIVE_PLACEHOLDERS = ("date", "year", "stichwort", "kategorie", "short")
+_PLACEHOLDER_RE = re.compile(r"\{([^{}]*)\}")
+
+
+class IncidentArchiveDestination(BaseModel):
+    """Where the server files a closed Einsatz (docs/incident-archive.md): the photos into one
+    folder pattern, the Rapport-PDF, the Sprachnotizen and the Beilagen into another.
+
+    ⚠️ NO CREDENTIAL HERE: the writer is the ``sharepoint_export`` registration the Objektbesuche
+    use. The section reaches an admin session only (api/config · ``_projection``).
+    """
+
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(min_length=1, max_length=64)
+    kind: Literal["sharepoint"] = "sharepoint"
+    enabled: bool = True
+    siteUrl: str = Field(min_length=1, max_length=_SHAREPOINT_URL_MAX)
+    #: Display name of the document library, when it is not the site's default one.
+    library: str | None = Field(default=None, max_length=200)
+    #: Below the library. The segments before the first placeholder must already exist.
+    photoFolder: str = Field(default="Fotoarchiv/{year}/{date} {stichwort}", min_length=1, max_length=300)
+    reportFolder: str = Field(default="Einsätze/{year}/{date} {stichwort}", min_length=1, max_length=300)
+
+    @model_validator(mode="after")
+    def _addressable(self) -> "IncidentArchiveDestination":
+        where = f"incidentArchive destination {self.id!r}"
+        if not _OV_DEST_ID_RE.match(self.id):
+            raise ValueError(f"{where}: 'id' must be lower-case letters, digits, '-' or '_'")
+        site = self.siteUrl.strip()
+        if not site.startswith("https://"):
+            raise ValueError(f"{where}: 'siteUrl' must start with https://")
+        self.siteUrl = site
+        self.library = (self.library or "").strip() or None
+        for name in ("photoFolder", "reportFolder"):
+            value = getattr(self, name).replace("\\", "/").strip().strip("/")
+            parts = value.split("/")
+            if not value or any(part.strip() in ("", "..", ".") for part in parts):
+                raise ValueError(f"{where}: '{name}' must be a plain folder pattern")
+            used = _PLACEHOLDER_RE.findall(value)
+            unknown = sorted(set(used) - set(INCIDENT_ARCHIVE_PLACEHOLDERS))
+            if unknown:
+                raise ValueError(
+                    f"{where}: '{name}' uses unknown placeholder(s) {unknown} "
+                    f"(known: {list(INCIDENT_ARCHIVE_PLACEHOLDERS)})"
+                )
+            # one folder per Einsatz: a pattern without a placeholder in its LAST level would
+            # file every Einsatz into the same folder
+            if not _PLACEHOLDER_RE.search(parts[-1]):
+                raise ValueError(f"{where}: the last level of '{name}' needs a placeholder, e.g. {{date}}")
+            setattr(self, name, value)
+        return self
+
+
+class IncidentArchiveConfig(BaseModel):
+    """The optional Einsatz-Ablage (docs/incident-archive.md): a closed Einsatz is copied, one
+    way, into the station's SharePoint. Off unless switched on."""
+
+    model_config = ConfigDict(extra="ignore")
+    enabled: bool = False
+    destinations: list[IncidentArchiveDestination] = Field(default_factory=list, max_length=5)
+
+    @model_validator(mode="after")
+    def _unique_ids(self) -> "IncidentArchiveConfig":
+        ids = [d.id for d in self.destinations]
+        dupes = sorted({i for i in ids if ids.count(i) > 1})
+        if dupes:
+            raise ValueError(f"incidentArchive: destination id(s) {dupes} used twice")
+        return self
+
+
 class AccessConfig(BaseModel):
     """How much of the record each account reads (docs/roles-and-access.md)."""
 
@@ -2445,6 +2516,8 @@ class DeploymentConfigIn(BaseModel):
     objectVisits: ObjectVisitsConfig = Field(default_factory=ObjectVisitsConfig)
     # The viewer's window onto past Einsätze — declared here for the same reason as the above.
     access: AccessConfig = Field(default_factory=AccessConfig)
+    # The optional Einsatz-Ablage – declared here for the same reason as the above.
+    incidentArchive: IncidentArchiveConfig = Field(default_factory=IncidentArchiveConfig)
     # Accepted on input but not authoritative (kept loose; not echoed from the document).
     # Future asset-upload slice: validate that identity.assets.* reference existing entries in
     # asset storage. Skipped while assets are still provisioned outside this document.

@@ -564,6 +564,17 @@ export const adminCopy: Localizable<Pick<Copy, 'admin'>> = {
       deleteNote: 'Non può essere annullato.',
       deleteOpenHint: 'Prima chiudere',
       deleteFailed: 'Eliminazione non riuscita',
+      archive: {
+        column: 'Archiviazione',
+        states: { delivered: 'archiviato', pending: 'in sospeso', failed: 'Errore', paused: 'in pausa' },
+        exercise: 'Esercitazione – non archiviata',
+        onClose: 'alla chiusura',
+        none: 'non archiviato',
+        noReport: 'senza PDF del rapporto',
+        file: 'Archivia',
+        retry: 'Riprova',
+        retryFailed: 'Impossibile riavviare l’archiviazione',
+      },
       actions: 'Azioni',
     },
     autosave: {
