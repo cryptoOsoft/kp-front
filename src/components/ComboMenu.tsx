@@ -50,6 +50,23 @@ function frameBottom(el: HTMLElement): number | null {
   return null
 }
 
+/** The phone's full-width bars at the screen's foot: the nav bar and a page's docked tab strip
+ *  (15-mobile · `--float-bars`). */
+const BOTTOM_BARS = '.navrail, .rp-tabs'
+
+/** The top of those bars, or null where none lies across the foot (lib/comboPlacement ·
+ *  `barsTop`). The tablet's nav rail matches the selector too, but it stands upright beside the
+ *  content, so only a box wider than tall that ends in the screen's lower quarter counts. */
+function barsTop(): number | null {
+  let top: number | null = null
+  for (const el of document.querySelectorAll(BOTTOM_BARS)) {
+    const r = el.getBoundingClientRect()
+    if (r.width <= r.height || r.bottom < window.innerHeight * 0.75) continue
+    top = Math.min(top ?? Infinity, r.top)
+  }
+  return top
+}
+
 export interface ComboMenuState {
   open: boolean
   search: string
@@ -130,6 +147,7 @@ export function useComboMenu(openTick?: number): [ComboMenuState, ComboMenuRefs]
         visBottom: visibleViewportBottom(),
         viewH: fullViewHeight(),
         frameBottom: frameBottom(el),
+        barsTop: barsTop(),
         viewW: document.documentElement.clientWidth,
       }))
     }

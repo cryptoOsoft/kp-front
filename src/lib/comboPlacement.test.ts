@@ -4,7 +4,7 @@ import { MAX_MENU_H, MIN_MENU_H, placeComboMenu, type MenuRoom } from './comboPl
 /** A 1024×768 tablet, no keyboard, no modal frame; the trigger 200×40 at `top`. */
 const room = (top: number, over: Partial<MenuRoom> = {}): MenuRoom => ({
   trigger: { left: 700, top, bottom: top + 40, width: 200 },
-  visTop: 0, visBottom: 768, viewH: 768, frameBottom: null, viewW: 1024,
+  visTop: 0, visBottom: 768, viewH: 768, frameBottom: null, barsTop: null, viewW: 1024,
   ...over,
 })
 
@@ -41,6 +41,18 @@ describe('placeComboMenu', () => {
     expect(placeComboMenu(room(100, { frameBottom: 400 }))).toMatchObject({ up: false, maxH: 248, footInset: false })
     // a short bottom sheet's first field: 176 below in the sheet, 528 above over the backdrop
     expect(placeComboMenu(room(540, { frameBottom: 768 }))).toMatchObject({ up: true, maxH: MAX_MENU_H })
+  })
+
+  it('stops at the phone\'s bottom bars – and opens UP over the form when they leave no list', () => {
+    // the Rapport's Einsatzleiter on a 390×844 phone, the tab strip + nav bar from y=690:
+    // 690 − 600 − 12 = 78 below the field, 548 above it
+    const phone = { trigger: { left: 16, top: 560, bottom: 600, width: 358 }, visBottom: 844, viewH: 844, viewW: 390, barsTop: 690 }
+    expect(placeComboMenu(room(0, phone))).toMatchObject({ up: true, maxH: MAX_MENU_H })
+    // higher up, a down menu ends at the bars and owes the home indicator nothing
+    expect(placeComboMenu(room(0, { ...phone, trigger: { ...phone.trigger, top: 200, bottom: 240 } })))
+      .toMatchObject({ up: false, maxH: 438, footInset: false })
+    // a modal sheet stands over the bars: its own frame is the floor
+    expect(placeComboMenu(room(0, { ...phone, frameBottom: 844 })).up).toBe(false)
   })
 
   it('grows to its minimum width from the trigger\'s left and steps left to stay on screen', () => {

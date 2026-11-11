@@ -3,6 +3,11 @@ html, body, #root { margin: 0; height: 100%; }
 /* paint the themed backdrop on html too: iOS over-scroll and the safe-area bands around
    standalone/browser chrome show html's background — without this they render white */
 html { background: var(--app-bg); }
+/* ⚠️ iOS Safari's text autosizing is OFF: our type scale is the size. Left on `auto`, iOS
+   «inflates» text in blocks it judges too small for their width – labels and buttons, never an
+   input or a textarea – and the Rapport's field labels jumped to ≈1.4× mid-Einsatz while the
+   values in the fields beside them kept their size (owner's iPhone, 11.11.2026). */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 /* ⚠️ ON HTML, not only on `body` (which also sets it, further down, where it is INERT).
    `overscroll-behavior` reaches the viewport through the root element: from <html>, or from
    <body> only while body is the element that propagates to the viewport. Our body is
