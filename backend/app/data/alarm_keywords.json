@@ -66,8 +66,13 @@
       "street names carry keywords: «Bahnhofstrasse» holds BAHN, «Kaibmattweg» holds BMA.",
       "",
       "The last six rows are the Ausrückordnung's Einsatzarten that matched nothing until",
-      "2026-11-11, routed as the station books them in WinFAP. MED USTÜ routes to the fallback",
-      "on purpose: listed so the decision is written down, not left to the fall-through."
+      "2026-11-11, routed by the canton's FKS statistics rules. MED USTÜ routes to the fallback",
+      "on purpose: listed so the decision is written down, not left to the fall-through.",
+      "",
+      "TIER routes to technische_hilfeleistung: under the FKS rules a Tierrettung is a",
+      "Technische Hilfeleistung, and «gerettete Tiere» is a count of rescued animals, not an",
+      "Einsatz category. No keyword routes to gerettete_tiere since 2026-11-11; the key stays",
+      "valid for stored incidents, the manual picker and a deployment's own vocabulary."
     ],
     "pairs": [
       ["FEUER", "brandbekaempfung"],
@@ -88,7 +93,7 @@
       ["BMA", "bma_unechte_alarme"],
       ["FEHLALARM", "bma_unechte_alarme"],
       ["DIENST", "dienstleistungen"],
-      ["TIER", "gerettete_tiere"],
+      ["TIER", "technische_hilfeleistung"],
       ["VERUNREINIGUNG", "oelwehr"],
       ["WASSERSCHADEN", "technische_hilfeleistung"],
       ["TÜRÖFFNUNG", "technische_hilfeleistung"],

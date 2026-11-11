@@ -110,7 +110,7 @@ def test_keywords_are_uppercase_and_unique():
         ("VU Strasse", "Strassenrettung"),
         ("BMA Schulhaus", "BMA / unechte Alarme"),
         ("Ölspur Hauptstrasse", "Ölwehr"),
-        ("Tierrettung Katze", "Gerettete Tiere"),
+        ("Tierrettung Katze", "Technische Hilfeleistung"),
         ("Katzenwäsche", "Diverse Einsätze"),
     ],
 )
@@ -131,6 +131,8 @@ def test_classification_end_to_end(title: str, expected: str):
         ("Elementarereignis, Hauptstrasse 1", "Elementarereignis"),
         ("Med Ustü dringlich, Hauptstrasse 1", "Diverse Einsätze"),
         ("Med Ustü nicht dringlich, Kaibmattweg 3", "Diverse Einsätze"),
+        # FKS: a Tierrettung is a Technische Hilfeleistung; «gerettete Tiere» is only a count.
+        ("Grosstierrettung, Hauptstrasse 1", "Technische Hilfeleistung"),
     ],
 )
 def test_classification_reads_the_einsatzart_not_the_street(title: str, expected: str):
