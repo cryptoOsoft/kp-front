@@ -71,6 +71,23 @@ describe('useScrollFocusIntoView', () => {
     expect(scrolled).toHaveBeenCalledWith({ block: 'nearest' })
   })
 
+  // occlusion sweep O4: under `overlays-content` Android shrinks no viewport – only the
+  // VirtualKeyboard API knows where the keys are
+  it('scrolls a field under an Android keyboard the visual viewport knows nothing about', async () => {
+    stubViewport() // full height: nothing shrinks
+    const vk = Object.assign(new EventTarget(), { boundingRect: { height: 340 }, overlaysContent: true })
+    Object.defineProperty(navigator, 'virtualKeyboard', { configurable: true, value: vk })
+    try {
+      renderHook(() => useScrollFocusIntoView())
+      await frames()
+      const { el, scrolled } = field(620) // 800 − 340 = 460 is the keys' top
+      await focus(el)
+      expect(scrolled).toHaveBeenCalledWith({ block: 'nearest' })
+    } finally {
+      Object.defineProperty(navigator, 'virtualKeyboard', { configurable: true, value: undefined })
+    }
+  })
+
   it('looks again once the keyboard has actually opened', async () => {
     // the race this hook exists for: at focus time the viewport is still full height, so nothing
     // looks covered — the field only ends up under the keys a moment later
