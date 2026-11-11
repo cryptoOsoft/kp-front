@@ -15202,6 +15202,116 @@
         }
       }
     },
+    "/api/admin/incident-archive": {
+      "get": {
+        "tags": [
+          "admin-incident-archive"
+        ],
+        "summary": "Archive Status",
+        "description": "``{enabled, deliveries: [{incidentId, destination, state, …}]}`` – newest change first.",
+        "operationId": "archive_status_api_admin_incident_archive_get",
+        "parameters": [
+          {
+            "name": "admin_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Admin Session"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncidentArchiveStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/incident-archive/retry": {
+      "post": {
+        "tags": [
+          "admin-incident-archive"
+        ],
+        "summary": "Archive Retry",
+        "description": "«Erneut versuchen» (failed → pending) – and «Ablegen» for a closed Einsatz with no row yet.",
+        "operationId": "archive_retry_api_admin_incident_archive_retry_post",
+        "parameters": [
+          {
+            "name": "admin_session",
+            "in": "cookie",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Admin Session"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RetryIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncidentArchiveRetried"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/manifest.webmanifest": {
       "get": {
         "tags": [
@@ -17166,6 +17276,9 @@
           },
           "access": {
             "$ref": "#/components/schemas/AccessConfig"
+          },
+          "incidentArchive": {
+            "$ref": "#/components/schemas/IncidentArchiveConfig"
           }
         },
         "type": "object",
@@ -17236,6 +17349,9 @@
           },
           "access": {
             "$ref": "#/components/schemas/AccessConfig"
+          },
+          "incidentArchive": {
+            "$ref": "#/components/schemas/IncidentArchiveConfig"
           },
           "integrations": {
             "$ref": "#/components/schemas/ConfigIntegrations"
@@ -18763,6 +18879,209 @@
         },
         "type": "object",
         "title": "IdentityConfig"
+      },
+      "IncidentArchiveConfig": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": false
+          },
+          "destinations": {
+            "items": {
+              "$ref": "#/components/schemas/IncidentArchiveDestination"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "title": "Destinations"
+          }
+        },
+        "type": "object",
+        "title": "IncidentArchiveConfig",
+        "description": "The optional Einsatz-Ablage (docs/incident-archive.md): a closed Einsatz is copied, one\nway, into the station's SharePoint. Off unless switched on."
+      },
+      "IncidentArchiveDestination": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "const": "sharepoint",
+            "title": "Kind",
+            "default": "sharepoint"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          },
+          "siteUrl": {
+            "type": "string",
+            "maxLength": 400,
+            "minLength": 1,
+            "title": "Siteurl"
+          },
+          "library": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Library"
+          },
+          "photoFolder": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Photofolder",
+            "default": "Fotoarchiv/{year}/{date} {stichwort}"
+          },
+          "reportFolder": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Reportfolder",
+            "default": "Einsätze/{year}/{date} {stichwort}"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "siteUrl"
+        ],
+        "title": "IncidentArchiveDestination",
+        "description": "Where the server files a closed Einsatz (docs/incident-archive.md): the photos into one\nfolder pattern, the Rapport-PDF, the Sprachnotizen and the Beilagen into another.\n\n⚠️ NO CREDENTIAL HERE: the writer is the ``sharepoint_export`` registration the Objektbesuche\nuse. The section reaches an admin session only (api/config · ``_projection``)."
+      },
+      "IncidentArchiveRetried": {
+        "properties": {
+          "retried": {
+            "type": "integer",
+            "title": "Retried"
+          }
+        },
+        "type": "object",
+        "required": [
+          "retried"
+        ],
+        "title": "IncidentArchiveRetried"
+      },
+      "IncidentArchiveRow": {
+        "properties": {
+          "incidentId": {
+            "type": "string",
+            "title": "Incidentid"
+          },
+          "destination": {
+            "type": "string",
+            "title": "Destination"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "delivered",
+              "failed",
+              "paused"
+            ],
+            "title": "State"
+          },
+          "attempts": {
+            "type": "integer",
+            "title": "Attempts"
+          },
+          "nextAttemptAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextattemptat"
+          },
+          "lastError": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lasterror"
+          },
+          "deliveredAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deliveredat"
+          },
+          "folders": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Folders"
+          },
+          "reportVersions": {
+            "type": "integer",
+            "title": "Reportversions"
+          },
+          "filedMedia": {
+            "type": "integer",
+            "title": "Filedmedia"
+          }
+        },
+        "type": "object",
+        "required": [
+          "incidentId",
+          "destination",
+          "state",
+          "attempts",
+          "nextAttemptAt",
+          "lastError",
+          "deliveredAt",
+          "folders",
+          "reportVersions",
+          "filedMedia"
+        ],
+        "title": "IncidentArchiveRow",
+        "description": "One Einsatz at one destination – what the «Ablage» column shows."
+      },
+      "IncidentArchiveStatus": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "deliveries": {
+            "items": {
+              "$ref": "#/components/schemas/IncidentArchiveRow"
+            },
+            "type": "array",
+            "title": "Deliveries"
+          }
+        },
+        "type": "object",
+        "required": [
+          "enabled",
+          "deliveries"
+        ],
+        "title": "IncidentArchiveStatus"
       },
       "IncidentCreate": {
         "properties": {
@@ -23810,6 +24129,24 @@
         ],
         "title": "ReportLinkConfig",
         "description": "One row of ``ReportConfig.links``.\n\n``url`` may carry ``{platzhalter}`` tokens (``{stichwort}``, ``{ort}``, ``{datum}``,\n``{alarmzeit}``, ``{einsatzende}``, ``{einsatzleiter}``, ``{kontaktperson}``,\n``{kurzbericht}``, ``{wehr}``), which the app substitutes URL-encoded when the link is\nopened. That is how a Google Form arrives with Anlass and Datum already in it — see\n\"Link zum Vorausfüllen abrufen\" in Google Forms, which yields ``?usp=pp_url&entry.<id>=…``.\n\nThe backend does not resolve or fetch these; it stores them.\n\n⚠️ ``url`` is constrained to http(s) HERE as well, not only in the app. The frontend gate\n(``deploymentConfig · reportLinks``) protects the one consumer that exists today; a\n``javascript:`` URL accepted into the stored document would be waiting for the next one."
+      },
+      "RetryIn": {
+        "properties": {
+          "incidentId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Incidentid"
+          }
+        },
+        "type": "object",
+        "title": "RetryIn"
       },
       "RosterConfig": {
         "properties": {

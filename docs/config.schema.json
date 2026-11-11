@@ -886,6 +886,87 @@
       "title": "IdentityConfig",
       "type": "object"
     },
+    "IncidentArchiveConfig": {
+      "description": "The optional Einsatz-Ablage (docs/incident-archive.md): a closed Einsatz is copied, one\nway, into the station's SharePoint. Off unless switched on.",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "destinations": {
+          "items": {
+            "$ref": "#/$defs/IncidentArchiveDestination"
+          },
+          "maxItems": 5,
+          "title": "Destinations",
+          "type": "array"
+        }
+      },
+      "title": "IncidentArchiveConfig",
+      "type": "object"
+    },
+    "IncidentArchiveDestination": {
+      "description": "Where the server files a closed Einsatz (docs/incident-archive.md): the photos into one\nfolder pattern, the Rapport-PDF, the Sprachnotizen and the Beilagen into another.\n\n⚠️ NO CREDENTIAL HERE: the writer is the ``sharepoint_export`` registration the Objektbesuche\nuse. The section reaches an admin session only (api/config · ``_projection``).",
+      "properties": {
+        "id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "sharepoint",
+          "default": "sharepoint",
+          "title": "Kind",
+          "type": "string"
+        },
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "siteUrl": {
+          "maxLength": 400,
+          "minLength": 1,
+          "title": "Siteurl",
+          "type": "string"
+        },
+        "library": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Library"
+        },
+        "photoFolder": {
+          "default": "Fotoarchiv/{year}/{date} {stichwort}",
+          "maxLength": 300,
+          "minLength": 1,
+          "title": "Photofolder",
+          "type": "string"
+        },
+        "reportFolder": {
+          "default": "Einsätze/{year}/{date} {stichwort}",
+          "maxLength": 300,
+          "minLength": 1,
+          "title": "Reportfolder",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "siteUrl"
+      ],
+      "title": "IncidentArchiveDestination",
+      "type": "object"
+    },
     "JournalConfig": {
       "description": "Journal composer configuration: the station's Textbausteine (quick phrases) —\ntappable chips that pre-fill the entry text. Empty = the app's national defaults.",
       "properties": {
@@ -2202,6 +2283,9 @@
     },
     "access": {
       "$ref": "#/$defs/AccessConfig"
+    },
+    "incidentArchive": {
+      "$ref": "#/$defs/IncidentArchiveConfig"
     }
   },
   "title": "DeploymentConfigIn",

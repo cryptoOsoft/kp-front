@@ -92,7 +92,9 @@ the three mockup rounds: `docs/planning/signature-2026-10-15/` (local, gitignore
   «Ort, Datum» is filled in (`map.geocoder.defaultLocality` without its postcode), and a small line
   says «Am Bildschirm unterschrieben … · Prüfsumme …». A signature that no longer holds is not
   sent; its line prints empty. **Decision E stands**: the printed paper is the record – the
-  strokes are only how its signature got onto it. No PDF is stored, no PDF seal.
+  strokes are only how its signature got onto it. No PDF is stored, no PDF seal. (One exception,
+  off by default: while the Einsatz-Ablage is on, the server keeps the newest composed Rapport-PDF
+  of each Einsatz to file it – [`incident-archive.md`](incident-archive.md).)
 - **Legal standing (19.10.2026)**: a *simple* electronic signature – not an advanced or qualified
   one under ZertES (SR 943.03), so it does not satisfy a statutory written form (OR Art. 14). Of
   the advanced signature's four criteria it misses «sole control» and «uniquely linked to the

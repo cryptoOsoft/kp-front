@@ -640,6 +640,18 @@ export const adminCopy = {
       deleteNote: 'Das lässt sich nicht rückgängig machen.',
       deleteOpenHint: 'Erst abschliessen',
       deleteFailed: 'Löschen fehlgeschlagen',
+      // Die Einsatz-Ablage (docs/incident-archive.md): eine Spalte, nur solange sie eingeschaltet ist
+      archive: {
+        column: 'Ablage',
+        states: { delivered: 'abgelegt', pending: 'ausstehend', failed: 'Fehler', paused: 'pausiert' },
+        exercise: 'Übung – wird nicht abgelegt',
+        onClose: 'beim Abschluss',
+        none: 'nicht abgelegt',
+        noReport: 'ohne Rapport-PDF',
+        file: 'Ablegen',
+        retry: 'Erneut versuchen',
+        retryFailed: 'Ablage konnte nicht neu gestartet werden',
+      },
       actions: 'Aktionen',
     },
     autosave: {

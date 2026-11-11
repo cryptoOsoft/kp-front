@@ -6,8 +6,9 @@ SharePoint folder, next to the object's plans. KP Front keeps the record; the fo
 receives copies, one way. **Nothing remote is ever deleted**: a photo removed later is moved to
 `Entfernt/`, a discarded draft gets a last report stamped VERWORFEN.
 
-This is the one place KP Front **writes** to SharePoint, so it has its own app registration and
-its own credentials. The station-data importer ([`sharepoint-connector.md`](sharepoint-connector.md))
+Filing is the one thing KP Front **writes** to SharePoint, so it has its own app registration and
+its own credentials – shared by this delivery and the Einsatz-Ablage
+([`incident-archive.md`](incident-archive.md)), which files closed Einsätze with the same writer. The station-data importer ([`sharepoint-connector.md`](sharepoint-connector.md))
 stays read-only and its registration is never used here.
 
 ## 1 – a second app registration, with write on one site

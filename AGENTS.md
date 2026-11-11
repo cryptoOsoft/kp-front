@@ -115,7 +115,8 @@ rules that break silently.
   phone sheets and keyboard on iOS) → [`docs/karte-objekte.md`](docs/karte-objekte.md).
 - **Atemschutz** → [`docs/atemschutz-board.md`](docs/atemschutz-board.md) · **Rapport** → [`docs/rapport.md`](docs/rapport.md)
   · **Tafel pages** → [`docs/board-templates.md`](docs/board-templates.md) · **Objektbesuche** →
-  [`docs/object-visits.md`](docs/object-visits.md) · **Trupp names** → [`docs/trupp-naming.md`](docs/trupp-naming.md).
+  [`docs/object-visits.md`](docs/object-visits.md) · **Einsatz-Ablage** (closed Einsätze into SharePoint) →
+  [`docs/incident-archive.md`](docs/incident-archive.md) · **Trupp names** → [`docs/trupp-naming.md`](docs/trupp-naming.md).
 - **Large incidents, performance** → [`docs/testing/fat-incident.md`](docs/testing/fat-incident.md),
   [`docs/testing/perf-journeys.md`](docs/testing/perf-journeys.md) · **field crash reports** →
   [`docs/SOURCEMAPS.md`](docs/SOURCEMAPS.md).
