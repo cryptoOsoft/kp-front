@@ -3,7 +3,6 @@ import { fillTemplate, formatTime } from './format'
 import type { AbschlussStep } from './abschluss'
 import type { ConfirmItem, ConfirmLine } from './overlays/ConfirmCard'
 import type { Trupp } from '../types'
-import type { ReportMeta } from './workspace'
 import { truppLogName } from './atemschutz'
 
 /**
@@ -16,7 +15,7 @@ import { truppLogName } from './atemschutz'
  * screen before the Akte closes.
  *
  * So the list lives here, once, and both callers ask it for rows — through ONE builder since
- * 31.10.2026 (`abschlussSheet`): same order, same in-place answers on both. The Abschluss knows
+ * 31.10.2026 (`abschlussSheet`): same order, same rows on both. The Abschluss knows
  * about two open points the Rapport's own «noch offen» chips do not — a Trupp nobody reported back
  * in, and captures still sitting on this device — and those get targets too.
  */
@@ -49,7 +48,7 @@ export function abschlussOpenPoints(
   ]
 }
 
-/** The targets a list needs: `step` always (a step's own button may leave for its field), `trupps`
+/** The targets a list needs: `step` always, `trupps`
  *  and `media` only where such a point can be on it — the print's list carries Mindestangaben only,
  *  so it is not asked for a Tafel it never points at. */
 export type OpenTargetsFor<P extends AbschlussOpenPoint> = Pick<AbschlussOpenTargets, P['kind'] | 'step'>
@@ -73,102 +72,56 @@ export function abschlussOpenLabel(p: AbschlussOpenPoint): string {
  */
 export const countsAsOpen = (p: AbschlussOpenPoint): boolean => p.kind !== 'media'
 
-/**
- * Settle a Mindestangabe IN the sheet (3am sweep, 23.10.2026, owner's point 4): the row's button
- * writes the answer to the Rapport and the sheet stays open. `(step, over, answer)` — the caller
- * writes `over` the way the Rapport's own «Entfällt» would and keeps the step as answered with
- * that word (the row stays, done).
- */
-export type AbschlussFix = (step: AbschlussStep, over: Partial<ReportMeta>, answer: string) => void
-
-/**
- * What a step's BUTTON does. Four answer in place («Jetzt setzen», «Nichts verwendet»,
- * «Entfällt» ×2 — the same writes the Rapport's own buttons make, so `normalizeReportMeta`
- * reads them the same way); two need the operator's words or a name and go to the field,
- * focused («Wählen», «Schreiben» — `leaves`). Anwesenheit and Abweichungen have no one-tap
- * answer: a head count is counted and a divergence is decided, both on their own surfaces.
- */
-export function abschlussStepAction(step: AbschlussStep, go: Pick<AbschlussOpenTargets, 'step'>, fix: AbschlussFix, now: () => string): ConfirmItem['action'] {
-  const F = appConfig.copy.abschluss.fix
-  switch (step) {
-    case 'zeiten': return { label: F.zeiten, onClick: () => fix(step, { endedAt: now() }, F.zeiten) }
-    case 'mittel': return { label: F.mittel, onClick: () => fix(step, { mittelConfirmedNone: true }, F.mittel) }
-    case 'kontaktperson': return { label: F.kontaktperson, onClick: () => fix(step, { kontaktperson: undefined, kontaktpersonTelefon: undefined, kontaktpersonNone: true }, F.kontaktperson) }
-    case 'rueckmeldung': return { label: F.rueckmeldung, onClick: () => fix(step, { rueckmeldungElz: undefined, rueckmeldungNone: true }, F.rueckmeldung) }
-    case 'einsatzleiter': return { label: F.einsatzleiter, onClick: () => go.step(step), leaves: true }
-    case 'kurzbericht': return { label: F.kurzbericht, onClick: () => go.step(step), leaves: true }
-    case 'anwesenheit':
-    case 'abweichungen': return undefined
-  }
-}
-
 /** The rows the confirm renders. Tapping one resolves the ask `false` (going there is not going
- *  ahead) and then navigates — see overlays/ConfirmCard · ConfirmItem. With a `fix`, each step
- *  row also carries its button (abschlussStepAction); `settled` rows (answered in this sheet)
- *  stay in place as the record of it — a check and the answer's word, still a link. */
-export function abschlussOpenItems<P extends AbschlussOpenPoint>(
-  points: P[], go: OpenTargetsFor<P>,
-  opts?: { fix: AbschlussFix; now: () => string; settled?: ReadonlyMap<AbschlussStep, string> },
-): ConfirmItem[] {
+ *  ahead) and then navigates — see overlays/ConfirmCard · ConfirmItem.
+ *  ⚠️ A row only OPENS its field – no in-place answers (owner, 11.11.2026: «drop the quick action
+ *  buttons. just open the position»). They stood here from the 3am sweep (23.10.2026) to then:
+ *  «Jetzt setzen», «Nichts verwendet», «Entfällt» ×2, «Wählen», «Schreiben» – and the fast tap was
+ *  often the wrong answer (sweep R3: «Entfällt» for a Rückmeldung ELZ that was given). */
+export function abschlussOpenItems<P extends AbschlussOpenPoint>(points: P[], go: OpenTargetsFor<P>): ConfirmItem[] {
   // the signature guarantees a target for every kind in `points`; read as optional only because a
   // generic Pick does not narrow per point
   const to: Partial<AbschlussOpenTargets> = go
-  return points.map((p) => {
-    const onClick = () => {
+  return points.map((p) => ({
+    label: abschlussOpenLabel(p),
+    onClick: () => {
       if (p.kind === 'step') go.step(p.step)
       else if (p.kind === 'trupps') to.trupps?.()
       else to.media?.()
-    }
-    const answer = p.kind === 'step' ? opts?.settled?.get(p.step) : undefined
-    if (answer) return { label: abschlussOpenLabel(p), end: answer, done: true, onClick }
-    const action = p.kind === 'step' && opts ? abschlussStepAction(p.step, go, opts.fix, opts.now) : undefined
-    return { label: abschlussOpenLabel(p), onClick, ...(action ? { action } : {}) }
-  })
+    },
+  }))
 }
 
 /** One reading of a confirm's open points (`abschlussSheet`). */
 export interface AbschlussSheetState {
   items: ConfirmItem[]
-  /** something is still open that makes going ahead a «trotzdem» (`countsAsOpen`, minus the
-   *  points answered in this sheet or pre-filled) – the caller words its lead, note and button by it */
+  /** something is still open that makes going ahead a «trotzdem» (`countsAsOpen`, minus a
+   *  pre-filled step) – the caller words its lead, note and button by it */
   anyOpen: boolean
 }
 
 /**
  * The ONE list of open points, for BOTH confirms that show it (31.10.2026): «Einsatz
  * abschliessen» (useAbschluss) and «Angaben fehlen noch» in front of a PDF or a print
- * (ReportPreflight). The print built its own plain links, so the Material row said «Nichts
- * verwendet» on one and nothing on the other. Rows, order and in-place answers come from here;
- * the words around the list (title, lead, note, buttons) stay each confirm's own.
- *
- * Returns a READER: call it for the first spec and pass it again as the ask's `refresh`
- * (ConfirmSpec). A row answered in the sheet (`write` ran) stays in place as a done one, its
- * answer at the end — the reader remembers it, because `points` is the caller's render and does
- * not move while the ask stands. Without `write` (a session that may not edit the Rapport) the
- * rows are links only. `prefilled` puts the caller's own row in a step's place and counts that
- * step as answered: the Abschluss's Einsatzende «jetzt 23:41», which the close itself writes.
+ * (ReportPreflight) – and the Kontrolle chip's list reads the same rows (`abschlussOpenItems`).
+ * Rows and order come from here; the words around the list (title, lead, note, buttons) stay each
+ * confirm's own. `prefilled` puts the caller's own row in a step's place and counts that step as
+ * answered: the Abschluss's Einsatzende «jetzt 23:41», which the close itself writes.
  */
 export function abschlussSheet<P extends AbschlussOpenPoint>(
-  points: P[], go: OpenTargetsFor<P>,
-  opts: { write?: (over: Partial<ReportMeta>) => void; now: () => string; prefilled?: Partial<Record<AbschlussStep, ConfirmItem>> },
-): () => AbschlussSheetState {
-  const { write, now, prefilled = {} } = opts
-  const settled = new Map<AbschlussStep, string>()
-  const fix: AbschlussFix | undefined = write && ((step, over, answer) => {
-    write(over)
-    settled.set(step, answer)
-  })
+  points: P[], go: OpenTargetsFor<P>, prefilled: Partial<Record<AbschlussStep, ConfirmItem>> = {},
+): AbschlussSheetState {
   const ownRow = (p: AbschlussOpenPoint) => (p.kind === 'step' ? prefilled[p.step] : undefined)
-  return () => ({
-    items: abschlussOpenItems(points, go, fix && { fix, now, settled }).map((row, i) => ownRow(points[i]) ?? row),
-    anyOpen: points.some((p) => countsAsOpen(p) && !(p.kind === 'step' && (settled.has(p.step) || ownRow(p)))),
-  })
+  return {
+    items: abschlussOpenItems(points, go).map((row, i) => ownRow(points[i]) ?? row),
+    anyOpen: points.some((p) => countsAsOpen(p) && !ownRow(p)),
+  }
 }
 
 /**
  * The pre-filled Einsatzende (owner's pick, 23.10.2026): «Einsatzende · jetzt 23:41», shown as
- * already set, with «Ändern». The close writes it (useAbschluss); «Ändern» writes it too and goes
- * to the Rapport's field — so the field shows the value being changed, not an empty one.
+ * already set. The close writes it (useAbschluss); a tap on the row writes it too and goes to the
+ * Rapport's field — so the field shows the value being changed, not an empty one.
  */
 export function abschlussEndeItem(iso: string, change: () => void): ConfirmItem {
   const A = appConfig.copy.abschluss
@@ -177,7 +130,6 @@ export function abschlussEndeItem(iso: string, change: () => void): ConfirmItem 
     end: fillTemplate(A.endeNow, { t: formatTime(new Date(iso)) }),
     done: true,
     onClick: change,
-    action: { label: A.endeChange, onClick: change, leaves: true },
   }
 }
 

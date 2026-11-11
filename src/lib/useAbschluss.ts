@@ -11,6 +11,7 @@ import { truppInNotfall, truppLogName, truppStillDeployed, truppStillRegistered 
 import { fillTemplate } from './format'
 import { mittelLineCount } from './mittel'
 import { confirmDialog } from './ui'
+import type { ConfirmSpec } from './overlays/ConfirmCard'
 
 interface Args {
   reportMeta: ReportMeta
@@ -53,8 +54,8 @@ interface Args {
    *  the Abschluss's own (`TimelineEvent.atClose`, staging r6 F3) */
   markClosing?: (on: boolean) => void
   /** Write Rapport fields from the sheet (IncidentWorkspace · saveReportMeta over the live blob):
-   *  the rows' buttons («Nichts verwendet», «Entfällt») and the pre-filled Einsatzende. Absent
-   *  (a caller that may not edit the Rapport) ⇒ rows are links only and nothing is pre-filled. */
+   *  the pre-filled Einsatzende. Absent (a caller that may not edit the Rapport) ⇒ nothing is
+   *  pre-filled. */
   patchReportMeta?: (over: Partial<ReportMeta>) => void
 }
 
@@ -127,29 +128,30 @@ export function useAbschluss({
        the Einsatz freezes the Tafel and silences every alarm, the Notfall's included. «Zur Tafel»
        is the filled, focused answer; closing anyway is the quiet one, and the record then says
        the Notfall was never ended (noteNotfallAtClose) — it is not ended for anybody. */
+    /* ⚠️ «Zur Tafel» only for a closer who can WRITE the Tafel (sweep R2, 11.11.2026): the `el`
+       role closes too, and for it the filled, focused answer led to a board where nothing could be
+       reported out. It gets «Trotzdem abschliessen» / «Abbrechen» – «Abbrechen» focused – and a
+       line saying who reports the crews out. */
+    const askCrew = (spec: Pick<ConfirmSpec, 'title' | 'message' | 'items' | 'confirmLabel'>) => standDownTrupps
+      ? confirmDialog({ ...spec, altLabel: A.registeredToBoard, cancelLabel: appConfig.copy.cancel, safeAnswer: 'alt' })
+      : confirmDialog({ ...spec, note: A.boardNotYours, cancelLabel: appConfig.copy.cancel, safeAnswer: 'cancel' })
     const notfall = truppsRef.current.filter(truppInNotfall)
     if (notfall.length > 0) {
       const nf = appConfig.copy.atemschutz.notfall
-      const answer = await confirmDialog({
+      const answer = await askCrew({
         title: nf.abschlussTitle,
         message: fillTemplate(nf.abschlussMsg, { list: notfall.map((t) => fillTemplate(nf.who, { name: truppLogName(t) })).join(', ') }),
         confirmLabel: nf.abschlussClose,
-        altLabel: A.registeredToBoard,
-        cancelLabel: appConfig.copy.cancel,
-        safeAnswer: 'alt',
       })
       if (answer === 'alt') { setMode('atemschutz'); setPanel(null); return false }
       if (answer !== true) return false
     }
     const inside = truppsRef.current.filter(truppStillDeployed)
     if (inside.length > 0) {
-      const answer = await confirmDialog({
+      const answer = await askCrew({
         title: A.insideTitle,
         ...insideAbschlussSpec(inside),
         confirmLabel: A.insideClose,
-        altLabel: A.registeredToBoard,
-        cancelLabel: appConfig.copy.cancel,
-        safeAnswer: 'alt',
       })
       if (answer === 'alt') { setMode('atemschutz'); setPanel(null); return false }
       if (answer !== true) return false
@@ -172,14 +174,11 @@ export function useAbschluss({
     const registered = truppsStillOut === 0 ? truppsRef.current.filter(truppStillRegistered) : []
     let standDown: string[] = []
     if (registered.length > 0) {
-      const answer = await confirmDialog({
+      const answer = await askCrew({
         // every question of the chain carries a title (owner review 26.09.2026)
         title: A.registeredTitle,
         message: registeredAbschlussMessage(registered),
         confirmLabel: standDownTrupps ? A.registeredStandDown : A.insideClose,
-        altLabel: A.registeredToBoard,
-        cancelLabel: appConfig.copy.cancel,
-        safeAnswer: 'alt',
       })
       if (answer === 'alt') { setMode('atemschutz'); setPanel(null); return false }
       if (answer !== true) return false
@@ -194,6 +193,9 @@ export function useAbschluss({
        Einsatzende, so this is the last moment anybody is asked. The Abschluss still goes through
        («Trotzdem abschliessen»), and it writes nothing by itself: closing an Einsatz must never
        put an Austritt on the record that nobody reported.
+       ⚠️ …but only when the first question did not already ask it (sweep R2, 11.11.2026): an
+       operator who just answered «Trupps noch drin» with «Trotzdem abschliessen» was asked the
+       same thing again on the next sheet.
        ⚠️ Pending media belongs here too. The Abschluss closes the incident, and a Foto or a
        Sprachnotiz that never got a connection is still sitting on THIS device — the operator is
        about to walk away, so that is part of what they are confirming. */
@@ -204,44 +206,36 @@ export function useAbschluss({
     }
     /* ⚠️ The Einsatzende is PRE-FILLED with «jetzt» (owner's pick): «Zeiten» stood open on
        almost every close because nothing ever set it, and the answer is nearly always «now».
-       Shown as already set, with «Ändern», in the step's own place on the list; written with the
+       Shown as already set in the step's own place on the list (a tap changes it); written with the
        close (below), on the server clock. Only for a caller that may write the Rapport.
        ⚠️ Closing-only: the print's «Angaben fehlen noch» does not pre-fill (printing sets no
-       Einsatzende), its row offers the step's own «Jetzt setzen» (ReportPreflight · startOutput). */
+       Einsatzende), its row is open like the others (ReportPreflight · startOutput). */
     const pendingEnde = patchReportMeta && !reportMeta.endedAt ? serverNowIso() : null
-    /* The rows, their order and their own answers («Nichts verwendet», «Entfällt» … 3am sweep,
-       23.10.2026, owner's point 4) are the ONE list both confirms read (lib/abschlussOpen ·
-       abschlussSheet): an answer is written to the Rapport at once, its row stays as a done one,
-       and the ask re-reads itself (ConfirmSpec · refresh) so the lead sentence and the button
-       follow. ⚠️ Every row is a LINK: naming a gap on the last screen before the Akte closes and
-       leaving the operator to hunt for it is the failure the «noch offen» chips fixed on the sheet
-       itself. Tapping one resolves the ask false — going there is not going ahead. */
-    const sheet = abschlussSheet(abschlussOpenPoints(abschlussMissing, truppsStillOut, media.pendingCount), go, {
-      write: patchReportMeta,
-      now: serverNowIso,
-      prefilled: pendingEnde ? { zeiten: abschlussEndeItem(pendingEnde, () => { patchReportMeta!({ endedAt: pendingEnde }); go.step('zeiten') }) } : undefined,
+    /* The rows and their order are the ONE list both confirms read (lib/abschlussOpen ·
+       abschlussSheet). ⚠️ Every row is a LINK, and only that (owner, 11.11.2026: no one-tap
+       answers): naming a gap on the last screen before the Akte closes and leaving the operator
+       to hunt for it is the failure the «noch offen» chips fixed on the sheet itself. Tapping one
+       resolves the ask false — going there is not going ahead. */
+    // a Trupp still out counts as open for the WORDING, the way a missing Angabe does: the
+    // message and the button both have to say that something is being closed over
+    const { items, anyOpen } = abschlussSheet(abschlussOpenPoints(abschlussMissing, inside.length > 0 ? 0 : truppsStillOut, media.pendingCount), go,
+      pendingEnde ? { zeiten: abschlussEndeItem(pendingEnde, () => { patchReportMeta!({ endedAt: pendingEnde }); go.step('zeiten') }) } : undefined)
+    const ok = await confirmDialog({
+      title: A.confirmTitle,
+      message: anyOpen ? P.exportIncompleteLead : A.confirmMsg,
+      items,
+      note: anyOpen ? A.confirmMsg : undefined,
+      // the button names what is actually about to happen — closing an Einsatz with open points
+      // is allowed, and the label is where that is said out loud
+      confirmLabel: anyOpen ? A.confirmAnyway : A.confirmBtn,
+      /* ⚠️ …and with open points the SAFE answer is the focused, filled one (staging r2, N6,
+         25.09.2026): after the crews question, an Enter on this list closed the Einsatz with
+         people still missing. «Zurück» is the default, «Trotzdem abschliessen» the quiet
+         choice. With nothing open, «Abschliessen» stays the primary — that is what the operator
+         came here to do. (The Suche's own first question sits above this one, in its PR.) */
+      cancelLabel: anyOpen ? A.confirmBack : appConfig.copy.confirm.cancel,
+      safeAnswer: anyOpen ? ('cancel' as const) : undefined,
     })
-    const spec = () => {
-      // a Trupp still out counts as open for the WORDING, the way a missing Angabe does: the
-      // message and the button both have to say that something is being closed over
-      const { items, anyOpen } = sheet()
-      return {
-        message: anyOpen ? P.exportIncompleteLead : A.confirmMsg,
-        items,
-        note: anyOpen ? A.confirmMsg : undefined,
-        // the button names what is actually about to happen — closing an Einsatz with open points
-        // is allowed, and the label is where that is said out loud
-        confirmLabel: anyOpen ? A.confirmAnyway : A.confirmBtn,
-        /* ⚠️ …and with open points the SAFE answer is the focused, filled one (staging r2, N6,
-           25.09.2026): after the crews question, an Enter on this list closed the Einsatz with
-           people still missing. «Zurück» is the default, «Trotzdem abschliessen» the quiet
-           choice. With nothing open, «Abschliessen» stays the primary — that is what the operator
-           came here to do. (The Suche's own first question sits above this one, in its PR.) */
-        cancelLabel: anyOpen ? A.confirmBack : appConfig.copy.confirm.cancel,
-        safeAnswer: anyOpen ? ('cancel' as const) : undefined,
-      }
-    }
-    const ok = await confirmDialog({ title: A.confirmTitle, ...spec(), refresh: spec })
     if (!ok) return false
     // the pre-filled Einsatzende becomes the record's with the close — one task for React to
     // commit it, so the handover's flush carries it (useIncidentLifecycle · completeRapport flushes the sync)

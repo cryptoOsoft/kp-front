@@ -464,15 +464,12 @@
   font: var(--fw-bold) var(--fs-2)/1.3 var(--body); color: var(--ink); text-align: left; cursor: pointer; }
 .confirm-list-btn:active { background: var(--ink-8); }
 .confirm-list-chev { font-size: var(--fs-4); line-height: 1; color: var(--ink-faint); }
-/* the row's own answer as a BUTTON at its end (3am sweep, 23.10.2026): «Nichts verwendet»,
-   «Entfällt», «Ändern» – the link row and the button share the line, the button never grows
-   into the row's width. A done row (the pre-filled Einsatzende) wears a check and its read-out. */
-.confirm-list-go { display: flex; align-items: stretch; gap: 8px; }
+/* a done row (the pre-filled Einsatzende) wears a check and its read-out */
+.confirm-list-go { display: flex; align-items: stretch; }
 .confirm-list-go .confirm-list-btn { flex: 1 1 auto; min-width: 0; }
 .confirm-list-btn > span:first-child { flex: 1 1 auto; min-width: 0; }
 .confirm-list-end { font: var(--fw-medium) var(--fs-1)/1.3 var(--body); color: var(--ink-faint); white-space: nowrap; }
 .confirm-list-done { width: 18px; height: 18px; flex: 0 0 auto; color: var(--green); }
-.confirm-list-action { flex: 0 0 auto; white-space: nowrap; }
 /* …and the consequence AFTER them, where it reads as the answer to the list rather than as
    more of the same sentence */
 .confirm-note { margin: 0 0 var(--sp-4); font: var(--fw-medium) var(--fs-1)/1.45 var(--body); color: var(--ink-faint); }

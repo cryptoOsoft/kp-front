@@ -1816,7 +1816,7 @@ select.cv-input { appearance: none; -webkit-appearance: none;
 .rp-head:not([data-fit-wrap]) > .rp-head-titles:has(> h2:not(:last-child)) { margin-bottom: calc(var(--sp-1) - var(--head-pad-y)); }
 /* The second row (the ladder's last step — a phone with something open, since the Kontrolle chip
    keeps its words, council round 3): the TITLE and the chip share the first row (what this is,
-   what is wrong), the actions take the second, splitting its width — «Abschliessen» and «PDF ▾»,
+   what is wrong), the actions take the second, splitting its width — «Ausdrucken» and «PDF ▾»,
    each a full tap tall, 8px under the first row. The actions box dissolves (`display: contents`)
    so its tiles can sit on different rows; `order` + a zero-height break (`::after`) sort them,
    and the 8px is the second row's margin, not a row-gap the break would charge twice. */
@@ -1828,8 +1828,14 @@ select.cv-input { appearance: none; -webkit-appearance: none;
 .rp-head[data-fit-wrap] .rp-state { flex: 0 1 auto; }
 .rp-head[data-fit-wrap] .rp-head-actions > :not(.rp-state) { order: 2; flex: 1 1 0; margin-top: var(--sp-2); }
 .rp-head[data-fit-wrap] .rp-split-main { flex: 1 1 auto; justify-content: center; }
-/* …and on that row of their own the worded tiles have the room for their glyph again: «Abschliessen»
-   with its archive box, «PDF» with its document, 16px at the tiles' 8px gap like the tablet's (hill
+/* THE close (ReportPreflight · `closeReady`, owner pick H2 C, 11.11.2026): green, in the place the
+   «n offen» chip stood – first row, beside the title (the chip is gone once nothing is open) –
+   and «Ausdrucken · PDF ▾» keep their halves on the second row, nothing shrinks («keep the other
+   buttons clearly visible»). In the one-row head it simply leads the tiles. */
+.rp-head[data-fit-wrap] .rp-head-actions > .rp-head-close { order: 0; flex: 0 1 auto; margin-top: 0; }
+@media (hover: hover) { .head-tile.go:hover:not(:disabled) { background: var(--green-solid-hover); } }
+/* …and on that row of their own the worded tiles have the room for their glyph again: «PDF» with its
+   document, «Abschliessen» with its archive box («Drucken» never loses its printer), 16px at the tiles' 8px gap like the tablet's (hill
    climb r23, Opus 8: they were text-only on the phone only). Measured to fit at 360 and 390. */
 .rp-head[data-fit-wrap] .head-tile[data-folded]:has(.fold-short) > svg.fold-long { display: block; }
 /* it truncates, exactly as the line under it always did — an <h2> that does not is an <h2> that
@@ -2040,11 +2046,6 @@ select.cv-input { appearance: none; -webkit-appearance: none;
 .rp-control-step { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: var(--tap);
   padding: 0 12px; border: none; background: none; border-radius: var(--r-ctl); cursor: pointer; text-align: left;
   font: var(--fw-medium) var(--fs-2) var(--body); color: var(--ink); }
-/* …and the row's own answer beside it («Entfällt», «Jetzt setzen» – EL phone sweep C6): the door
-   takes the room, the button keeps its words on one line */
-.rp-control-row { display: flex; align-items: center; gap: 8px; padding-right: 12px; }
-.rp-control-row .rp-control-step { flex: 1 1 auto; min-width: 0; width: auto; }
-.rp-control-answer { flex: none; white-space: nowrap; }
 .rp-control-step .i { width: 15px; height: 15px; flex: none; color: var(--ink-faint); }
 @media (hover: hover) { .rp-control-step:hover { background: var(--blue-8); } }
 .rp-control-step:active:not(:disabled) { background-image: linear-gradient(var(--press), var(--press)); }
@@ -2104,12 +2105,6 @@ select.cv-input { appearance: none; -webkit-appearance: none;
 .rp-strip-n { font-weight: var(--fw-bold); color: var(--amber-strong); }
 .rp-strip-t { font: var(--fw-bold) var(--fs-2)/1.25 var(--body); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rp-strip-chev { flex: none; width: 16px; height: 16px; color: var(--ink-faint); }
-/* the band's one line after the Abschluss: «Danach für die Ablage: Beilagen herunterladen (ZIP)» */
-.rp-strip-more { flex: 1 1 100%; margin: 0; display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--sp-2);
-  font-size: var(--fs-1); color: var(--ink-dim); }
-.rp-strip-more .i { width: 15px; height: 15px; flex: none; }
-.rp-strip-link { min-height: var(--tap); padding: 0; border: none; background: none; color: var(--ink); cursor: pointer;
-  font: var(--fw-bold) var(--fs-1) var(--body); text-decoration: underline; text-underline-offset: 3px; }
 /* Content padding is the page grid's (Surface.module.css · THE PAGE GRID, hill climb r21): the
    head's inset, 16 – the Trupps page's – so the first card's left edge is the title's and the last
    card's right edge the last tile's (`.ip-body`'s own 6px/20px is a dialog's). `--content-pad-x`
@@ -2186,12 +2181,12 @@ select.cv-input { appearance: none; -webkit-appearance: none;
 /* A FOLDED tile is a square (lib/pageHeadFit): the word it gave up survives as aria-label/title,
    what is dropped is a word the surface's own title already says. Measured since 28.09.2026 — it
    was «icons below 1080px», which dropped every word on an 820 tablet that had room for two. The
-   PDF half and «Abschliessen» keep a WORD when folded (`.fold-short`: «PDF», mockup 2 — a bare
-   doc glyph beside a ▾ was a control «whose meaning you have to know»; «Abschliessen» since the
-   council round of 04.11.2026, a bare archive box was the row's least legible tile for its most
-   consequential action), so they are as wide as that word. */
+   PDF half, the printer and the green close keep a WORD when folded (`.fold-short`: «PDF», mockup
+   2 — a bare doc glyph beside a ▾ was a control «whose meaning you have to know»; «Drucken» since
+   11.11.2026, owner pick H1 A – a lone glyph in a tile as wide as its neighbour «looks a bit
+   ugly»; «Abschliessen» since the council of 04.11.2026), so they are as wide as that word. */
 .rp-head-actions .ip-btn[data-folded]:not(:has(.fold-short)) { width: var(--tap); padding: 0; justify-content: center; }
-/* folded, the chip («⚠ 4») and the worded tiles («PDF», «Abschliessen») sit 8px in: on a 390 phone
+/* folded, the chip («⚠ 4») and the worded tiles («PDF», «Drucken») sit 8px in: on a 390 phone
    that is what lets them share the one row (it came to 2px short at 12; 10 until 08.10.2026) */
 .rp-head-actions .ip-btn[data-folded]:has(.fold-short), .rp-head-actions .rp-state[data-folded] { padding: 0 8px; }
 /* the ladder's «close up» step: 4px apart (6 until 08.10.2026), 8px inside */
@@ -2200,12 +2195,10 @@ select.cv-input { appearance: none; -webkit-appearance: none;
 /* ⚠️ «Ausdrucken» is ONE line in every state (owner, staging 26.09.2026). It used to keep its
    offline reason as a second line and grow to fit it: «Stationsdrucker offline» took two thirds of
    a phone's row and stood twice as tall as the squares. The relay's dot says it (amber = offline) —
-   beside the glyph while the word stands, as a badge on the printer's corner once the tile is a
-   square — and the reason is said where it matters: a press asks «Stationsdrucker offline» before
+   beside the glyph, folded or not (the folded tile keeps the word «Drucken» since 11.11.2026) — and the reason is said where it matters: a press asks «Stationsdrucker offline» before
    it queues anything (ReportPreflight · startOutput), and it is the button's name. */
 .rp-head-actions .ip-btn.print-send.offline { flex-direction: row; align-items: center; padding-block: 0; }
 .rp-head-actions .print-send-main { position: relative; }
-.rp-head-actions .print-send[data-folded] .print-relay-dot { position: absolute; top: -3px; right: -6px; box-shadow: 0 0 0 2px var(--surface); }
 /* ⚠️ Rendered on every width, hidden everywhere but the phone — so the tab STATE is always
    there (a resize cannot land on a surface with no tab chosen) while the layout above 600px
    never sees it. Declared BEFORE the media query below, which turns it back on.

@@ -250,8 +250,8 @@ export const reportCopy = {
     // Nach dem Export: das Papier existiert, alle Mindestangaben sind drin – offen ist nur noch
     // die Buchhaltung. Ein Einsatz wird nur archiviert, wenn jemand weiss, dass er das tun muss;
     // sonst bleibt er für immer offen stehen. Deshalb sagt es die Oberfläche an genau dieser
-    // Stelle einmal selbst – als Band unter dem Kopf (`bandDone`), nicht als Dialog und nicht
-    // als Toast daneben (#31, 30.10.2026): es blockiert nichts.
+    // Stelle einmal selbst – als grüne Kachel «Einsatz abschliessen» im Kopf (H2 C, 11.11.2026),
+    // nicht als Dialog und nicht als Toast daneben (#31, 30.10.2026): es blockiert nichts.
     // the guide strip under the head after a jump from «n offen» (#14, 28.10.2026), and the
     // Abschluss band that now stands as soon as everything is recorded (#15)
     guideNext: 'Nächster offener Punkt',
@@ -260,14 +260,10 @@ export const reportCopy = {
     guideHide: 'Hinweis ausblenden',
     bandReady: 'Alles erfasst · Nächster Schritt',
     bandPdf: 'Einsatzrapport (PDF) erstellen',
-    bandDone: 'Rapport erstellt · Nächster Schritt',
-    bandZipLead: 'Danach für die Ablage:',
     // …and on a closed Einsatz nobody has signed yet: the strip opens «Rapport unterschreiben»
     bandClosed: 'Abgeschlossen · Nächster Schritt',
     bandLater: 'Später',
     exportIncompleteTitle: 'Angaben fehlen noch',
-    // …once the last open point is answered IN that confirm (lib/abschlussOpen · abschlussSheet)
-    exportCompleteTitle: 'Alle Angaben erfasst',
     exportIncompleteLead: 'Noch offen:',
     exportIncompleteMsg: 'Der Rapport lässt sich trotzdem erstellen – die offenen Felder bleiben leer und können von Hand ergänzt werden.',
     remarksLabel: 'Bemerkungen',
@@ -587,6 +583,8 @@ export const reportCopy = {
   // Station print relay — «Ausdrucken» (preflight + capture)
   printRelay: {
     send: 'Ausdrucken',
+    // the folded head tile's word (beside «PDF»)
+    sendShort: 'Drucken',
     sending: 'Wird gesendet …',
     // ⚠️ «In der Warteschlange», nicht «gesendet». Eingereiht ist nicht gedruckt: was die App
     // weiss, ist dass der Auftrag in einer Warteschlange liegt. «Gesendet» klang nach erledigt –

@@ -101,33 +101,7 @@ describe('ReportPreflight · the PDF with missing Mindestangaben', () => {
     expect(downloadDirectReportPdf).not.toHaveBeenCalled()
   })
 
-  // 31.10.2026: the rows are the Abschluss confirm's (lib/abschlussOpen · abschlussSheet)
-  it('answers a row in place, re-words itself, and the answer is ON the PDF made from that tap', async () => {
-    const onSaveMeta = vi.fn()
-    // everything recorded but the Material; the prop never catches up – the draft must not need it to
-    const meta = { endedAt: '2026-09-14T10:00:00.000Z', einsatzleiter: 'Muster', kontaktpersonNone: true, summary: 'ok', rueckmeldungNone: true }
-    render(
-      <>
-        <Overlays />
-        <ReportPreflight
-          incident={incident} reportMeta={meta} events={[]}
-          annotatedPlanCount={0} truppCount={0} attendanceCount={1} mittelCount={0}
-          onSaveMeta={onSaveMeta}
-        />
-      </>,
-    )
-    await act(async () => {})
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: P.pdfFull })) })
-    const dialog = screen.getByRole('alertdialog')
-    await act(async () => { fireEvent.click(within(dialog).getByRole('button', { name: A.fix.mittel })) })
 
-    expect(onSaveMeta).toHaveBeenLastCalledWith(expect.objectContaining({ mittelConfirmedNone: true }))
-    // still open, the row done, and the title no longer says anything is missing
-    expect(dialog.textContent).toContain(P.exportCompleteTitle)
-    expect(dialog.textContent).not.toContain(P.exportIncompleteMsg)
-    await act(async () => { fireEvent.click(within(dialog).getByRole('button', { name: P.pdfFull })) })
-    expect(vi.mocked(downloadDirectReportPdf).mock.calls[0][0].draft.meta).toMatchObject({ mittelConfirmedNone: true })
-  })
 })
 
 // owner, 31.10.2026: the pencil went – the card is the pointer's target, its heading the keyboard's
