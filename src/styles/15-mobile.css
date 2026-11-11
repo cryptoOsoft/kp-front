@@ -301,8 +301,12 @@
      ShapeEditor) become a drag-expandable bottom sheet: half-height default so the map and
      the selection stay visible, grip-drag or tap toggles full, drag well down dismisses.
      Also shown in the VIEW state (read-only details on tap — parity with the EL view). */
-  .ctx { position: fixed; display: flex; left: 0; right: 0; bottom: 0; top: auto; width: auto;
-    height: var(--sheet-h, 46dvh); max-height: 92dvh; border-radius: var(--r-hero) var(--r-hero) 0 0;
+  /* ⚠️ It stands ON the keyboard (occlusion sweep O3, 11.11.2026): `bottom` is the visible band's
+     foot (`--vv-foot`, lib/useViewportPan – the keyboard LESS iOS's pan, so the two never add up)
+     and the cap leaves the keys out (`--kb-inset`, CtxShell). Fixed at bottom 0 it was the one
+     sheet that never moved – «Herkunft» and the Notizen ended 130–225px under the keys. */
+  .ctx { position: fixed; display: flex; left: 0; right: 0; bottom: var(--vv-foot, 0px); top: auto; width: auto;
+    height: var(--sheet-h, 46dvh); max-height: calc(92dvh - var(--kb-inset, 0px)); border-radius: var(--r-hero) var(--r-hero) 0 0;
     z-index: var(--z-drawer-menu); padding-bottom: env(safe-area-inset-bottom);
     /* bottom sheet enters from below (ctxIn slides sideways — desktop side-panel chrome),
        and the half↔full snap eases instead of jumping; live grip-drags disable the
@@ -1095,6 +1099,12 @@
   /* the row is OCCUPIED while any of its pieces is on screen: a FAB, the plan's chip row, the
      strip, the way back to the Rapport. It publishes no height because it has only one: --float-h. */
   :root:has(:is(.fab-entry, .wb-botleft, .rp-return)) { --float-row: calc(var(--float-h) + var(--float-gap)); }
+  /* …and while «Zurück zum Rapport» stands (Anwesenheit / Material opened from the Rapport), the
+     page's scroller ENDS above that row (Surface.module.css · .shell): the pill and the FAB lay on
+     the row resting at the list foot – its name under the pill, its 🕐 under the FAB, and a tap
+     there left the page or opened «Neuer Eintrag» (occlusion sweep O1, owner pick A, 11.11.2026).
+     Not for the FAB alone: every page has one, and the last row already clears it (--fab-safe). */
+  :root:has(.rp-return) { --float-clear: var(--float-row); }
   /* …but a tool's option dock hides the FAB (below) and the host drops the strip, so there only
      the chips — and a RECORDING FAB, which never yields (sweep 27.10.2026 #10) — stand in it */
   :root:has(.phone-tools :is(.wb-dock, .armed-pill-row)):not(:has(:is(.wb-botleft, .fab-entry.rec))) { --float-row: 0px; }

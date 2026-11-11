@@ -187,7 +187,8 @@
      (below). Its fill stays `--app-bg`, the same as the opaque backdrop every page stands on
      (Mittel · .backdrop, .rp-backdrop, the Checkliste/Trupps wash), so nothing outlines it. The
      content keeps its own `--head-pad-x` inset. The top and bottom stay exactly where the card's
-     were: the scroller still ends one channel above the bars and starts under the top bar.
+     were: the scroller still ends one channel above the bars and starts under the top bar – and one
+     floating row higher while «Zurück zum Rapport» stands (`--float-clear`, 15-mobile).
      The item cards ON the page stay cards in ONE quiet style – their fill, no outline, no shadow,
      8px apart – so they never read as a card in a card: each item rule reads `--item-edge` (its
      outline colour) and `--item-lift` (its drop shadow) with its own value as the fallback, and
@@ -198,7 +199,7 @@
   :root[data-tut-pill] { --tut-push: calc(var(--float-h) + var(--float-gap)); }
   :where(.shell) {
     inset: calc(78px + env(safe-area-inset-top) + var(--ml-push, 0px) + var(--tut-push, 0px)) env(safe-area-inset-right)
-      max(calc(var(--rail-h) + 14px + var(--rp-tabs-safe, 0px) + env(safe-area-inset-bottom) - var(--vv-pan, 0px)),
+      max(calc(var(--rail-h) + 14px + var(--rp-tabs-safe, 0px) + var(--float-clear, 0px) + env(safe-area-inset-bottom) - var(--vv-pan, 0px)),
         calc(var(--vv-foot, 0px) + var(--float-gap)))
       env(safe-area-inset-left);
     border-radius: 0; box-shadow: none;

@@ -1807,6 +1807,12 @@ select.cv-input { appearance: none; -webkit-appearance: none;
 /* …and on a phone, like the shared head, it is no band: the page has no card there to band
    (Surface.module.css · the phone block, sweep 30.10.2026 #12) */
 @media (--phone) { .rp-head { background: none; box-shadow: none; } }
+/* …and while the keys are up the head gives up «Drucken · PDF ▾» (occlusion sweep O5, owner pick A,
+   11.11.2026): on a 375×667 phone after a jump from «n offen» the title, that row and the guide
+   strip kept 189px and the form got 138 – the label the jump had just named stood half under the
+   strip. Nobody prints mid-sentence; the row is back the moment the keys go. Title, «n offen» and
+   the green close stay. */
+@media (--phone) { :root[data-kb] .rp-head-actions > :is(.print-send, .rp-split) { display: none; } }
 .rp-head-titles { flex: 1 1 auto; min-width: 0; }
 /* ROW 1 · the title and the tiles on ONE centre line, the verdict hangs under the title when it
    stands, the head closes up when it does not (Surface.module.css · ROW 1, hill climb r23): the
