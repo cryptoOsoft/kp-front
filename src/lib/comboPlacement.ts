@@ -6,7 +6,8 @@
 // the SCREEN's, in both directions. It used to measure the room below against the nearest
 // clipping ancestor, and the detail panel's `.ctx-body` sizes to its content — so a short
 // Fahrzeug panel left ~150px «below» with the whole map free under it, and «Bezeichnung» opened
-// upward or as a 140px sliver (owner, 05.11.2026). The one deliberate exception is `frameBottom`.
+// upward or as a 140px sliver (owner, 05.11.2026). The two deliberate exceptions are `frameBottom`
+// and the phone's bottom bars (`barsTop`).
 
 /** Where the portalled menu goes. Recomputed on scroll/resize while it is open. */
 export interface MenuPos {
@@ -37,6 +38,11 @@ export interface MenuRoom {
    *  centred sheet's bottom edge into the backdrop read as broken chrome (05.09.2026). Above is
    *  never bounded by it: over the backdrop is where a menu from a sheet's first field belongs. */
   frameBottom: number | null
+  /** the top of the phone's fixed bottom bars (the nav bar, a page's docked tab strip), or null
+   *  where none lies across the screen's foot. A down menu may not pass it: over the bars it hid
+   *  half its own names behind them, with the whole Rapport free above (owner's iPhone,
+   *  Einsatzleiter, 11.11.2026). Unread inside a modal frame, which stands over the bars. */
+  barsTop: number | null
   /** the layout viewport's width */
   viewW: number
 }
@@ -69,8 +75,8 @@ const MIN_MENU_W = 300
  * uncovered: an up menu ends 4px above `trigger.top`, a down one starts 4px below
  * `trigger.bottom` — so a picker whose trigger is itself a field stays reachable.
  */
-export function placeComboMenu({ trigger: r, visTop, visBottom, viewH, frameBottom, viewW }: MenuRoom): MenuPos {
-  const foot = Math.min(frameBottom ?? Infinity, visBottom)
+export function placeComboMenu({ trigger: r, visTop, visBottom, viewH, frameBottom, barsTop, viewW }: MenuRoom): MenuPos {
+  const foot = Math.min(frameBottom ?? barsTop ?? Infinity, visBottom)
   const below = foot - r.bottom - EDGE
   const above = r.top - Math.max(0, visTop) - EDGE
   const up = below < ROOMY_BELOW && above > below && above >= MIN_MENU_H
@@ -78,7 +84,7 @@ export function placeComboMenu({ trigger: r, visTop, visBottom, viewH, frameBott
   // ⚠️ The MIN floor is for the DOWN case only — an up menu capped above its room would run its
   // top (where the search row sits) off the top of the screen.
   const maxH = up ? Math.min(MAX_MENU_H, above) : Math.min(MAX_MENU_H, Math.max(MIN_MENU_H, below))
-  const footInset = !up && maxH < MAX_MENU_H && frameBottom === null && visBottom >= viewH - 1
+  const footInset = !up && maxH < MAX_MENU_H && frameBottom === null && barsTop === null && visBottom >= viewH - 1
   // never narrower than MIN_MENU_W (or the screen), never off its right edge
   const width = Math.max(r.width, Math.min(MIN_MENU_W, viewW - 2 * EDGE))
   const left = width > r.width ? Math.max(0, Math.min(r.left, viewW - EDGE - width)) : r.left

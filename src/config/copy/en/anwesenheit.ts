@@ -115,8 +115,6 @@ export const anwesenheitCopy: Localizable<Pick<Copy, Keys>> = {
     coming: (n: number) => (n === 1 ? '1 coming' : `${n} coming`),
     notComing: (n: number) => (n === 1 ? '1 not coming' : `${n} not coming`),
     here: (n: number) => `${n} here`,
-    notComingGroup: (n: number) => `Not coming (${n})`,
-    notComingWord: 'not coming',
     checkIn: 'here',
     checkInLabel: '{name} is here – record as present',
     allHere: 'Everybody who said they would come is recorded.',

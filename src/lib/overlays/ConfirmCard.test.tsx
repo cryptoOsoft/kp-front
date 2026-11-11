@@ -70,27 +70,7 @@ describe('ConfirmCard · safeAnswer on the alternative', () => {
   })
 })
 
-/* A row's own BUTTON (3am sweep, 23.10.2026): settles the point in the sheet, which stays open
-   and re-reads itself — or (`leaves`) goes to the field like the row does. */
-describe('ConfirmCard · row actions', () => {
-  it('an in-place action runs, asks for a refresh, and does NOT resolve the ask', () => {
-    const onResolve = vi.fn(); const onRefresh = vi.fn(); const fix = vi.fn()
-    render(<ConfirmCard open {...ask} items={[{ label: 'Material', onClick: vi.fn(), action: { label: 'Nichts verwendet', onClick: fix } }]}
-      onResolve={onResolve} onRefresh={onRefresh} />)
-    screen.getByRole('button', { name: 'Nichts verwendet' }).click()
-    expect(fix).toHaveBeenCalledTimes(1)
-    expect(onRefresh).toHaveBeenCalledTimes(1)
-    expect(onResolve).not.toHaveBeenCalled()
-  })
-
-  it('a leaving action resolves false first, like the row itself', () => {
-    const onResolve = vi.fn(); const go = vi.fn()
-    render(<ConfirmCard open {...ask} items={[{ label: 'Kurzbericht', onClick: vi.fn(), action: { label: 'Schreiben', onClick: go, leaves: true } }]} onResolve={onResolve} />)
-    screen.getByRole('button', { name: 'Schreiben' }).click()
-    expect(onResolve).toHaveBeenCalledWith(false)
-    expect(go).toHaveBeenCalledTimes(1)
-  })
-
+describe('ConfirmCard · open-point rows', () => {
   it('a done row shows its read-out and a check, no chevron', () => {
     render(<ConfirmCard open {...ask} items={[{ label: 'Einsatzende', end: 'jetzt 23:41', done: true, onClick: vi.fn() }]} onResolve={vi.fn()} />)
     expect(screen.getByText('jetzt 23:41')).toBeTruthy()

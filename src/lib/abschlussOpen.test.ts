@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
-import { abschlussEndeItem, abschlussOpenItems, abschlussOpenLabel, abschlussOpenPoints, abschlussSheet, abschlussStepAction, controlChipLabel, countsAsOpen, insideAbschlussSpec, registeredAbschlussMessage } from './abschlussOpen'
+import { abschlussEndeItem, abschlussOpenItems, abschlussOpenLabel, abschlussOpenPoints, abschlussSheet, controlChipLabel, countsAsOpen, insideAbschlussSpec, registeredAbschlussMessage } from './abschlussOpen'
 import type { Trupp } from '../types'
-import { ABSCHLUSS_STEPS, type AbschlussStep } from './abschluss'
+import { ABSCHLUSS_STEPS } from './abschluss'
 import { appConfig } from '../config/appConfig'
 
 /**
@@ -107,112 +107,27 @@ describe('insideAbschlussSpec — the crews still inside, one line each', () => 
   })
 })
 
-/* The rows' own BUTTONS (3am sweep, 23.10.2026, owner's point 4): «tappable buttons where you can
-   clearly just tap on them … and don't have to infer that the whole line is clickable». */
-describe('abschlussStepAction — each row answers itself', () => {
-  const go = { step: vi.fn(), trupps: vi.fn(), media: vi.fn() }
-  const F = appConfig.copy.abschluss.fix
-  const now = () => '2026-10-23T21:41:00.000Z'
-
-  it('the four in-place answers write what the Rapport\'s own buttons write, and say so', () => {
-    const fix = vi.fn()
-    const expected: Partial<Record<AbschlussStep, object>> = {
-      zeiten: { endedAt: now() },
-      mittel: { mittelConfirmedNone: true },
-      kontaktperson: { kontaktperson: undefined, kontaktpersonTelefon: undefined, kontaktpersonNone: true },
-      rueckmeldung: { rueckmeldungElz: undefined, rueckmeldungNone: true },
-    }
-    for (const [step, over] of Object.entries(expected) as [AbschlussStep, object][]) {
-      const a = abschlussStepAction(step, go, fix, now)!
-      expect(a.label).toBe(F[step as keyof typeof F])
-      expect(a.leaves).toBeUndefined()
-      a.onClick()
-      expect(fix).toHaveBeenLastCalledWith(step, over, F[step as keyof typeof F])
-    }
-    expect(go.step).not.toHaveBeenCalled()
-  })
-
-  it('«Wählen» and «Schreiben» LEAVE for the field — the answer needs a name or words', () => {
-    for (const step of ['einsatzleiter', 'kurzbericht'] as const) {
-      const a = abschlussStepAction(step, go, vi.fn(), now)!
-      expect(a.leaves).toBe(true)
-      a.onClick()
-      expect(go.step).toHaveBeenLastCalledWith(step)
-    }
-  })
-
-  it('a head count and a divergence have no one-tap answer', () => {
-    expect(abschlussStepAction('anwesenheit', go, vi.fn(), now)).toBeUndefined()
-    expect(abschlussStepAction('abweichungen', go, vi.fn(), now)).toBeUndefined()
-  })
-
-  it('a settled row stays in place as a done one — its answer at the end, still a link', () => {
-    const settled = new Map<AbschlussStep, string>([['mittel', F.mittel]])
-    const items = abschlussOpenItems(abschlussOpenPoints(['mittel', 'kurzbericht'], 0, 0), go, { fix: vi.fn(), now, settled })
-    expect(items[0]).toMatchObject({ done: true, end: F.mittel })
-    expect(items[0].action).toBeUndefined()
-    expect(items[1]).toMatchObject({ action: { label: F.kurzbericht, leaves: true } })
-    // …and without a fix (a caller that may not edit the Rapport) the rows are links only
-    expect(abschlussOpenItems(abschlussOpenPoints(['mittel'], 0, 0), go)[0].action).toBeUndefined()
-  })
-})
-
 describe('abschlussEndeItem — the Einsatzende pre-filled with «jetzt»', () => {
-  it('shows the clock as already set, and «Ändern» leaves for the field', () => {
+  it('shows the clock as already set; a tap on the row changes it', () => {
     const change = vi.fn()
     const d = new Date(2026, 9, 23, 23, 41)
-    const it_ = abschlussEndeItem(d.toISOString(), change)
-    expect(it_).toMatchObject({ label: appConfig.copy.abschluss.ende, done: true, end: 'jetzt 23:41' })
-    expect(it_.action).toMatchObject({ label: appConfig.copy.abschluss.endeChange, leaves: true })
-    it_.action!.onClick()
+    const row = abschlussEndeItem(d.toISOString(), change)
+    expect(row).toMatchObject({ label: appConfig.copy.abschluss.ende, done: true, end: 'jetzt 23:41' })
+    row.onClick()
     expect(change).toHaveBeenCalledTimes(1)
   })
 })
 
-/* ONE list for both confirms (31.10.2026): the print's «Angaben fehlen noch» built plain links of
-   its own, so the same Material row said «Nichts verwendet» in the Abschluss and nothing before a
-   print. Both read `abschlussSheet` now; the words around the list stay each confirm's own. */
+/* ONE list for both confirms (31.10.2026); since 11.11.2026 a row only opens its field. */
 describe('abschlussSheet — the open points both confirms show', () => {
-  const F = appConfig.copy.abschluss.fix
-  const now = () => '2026-10-31T21:41:00.000Z'
-  const steps = (...s: AbschlussStep[]) => s.map((step) => ({ kind: 'step' as const, step }))
-
-  it('an answer is written at once, and the next reading keeps the row as done and is no longer open', () => {
-    const write = vi.fn()
-    const read = abschlussSheet(steps('zeiten', 'mittel'), { step: vi.fn() }, { write, now })
-    const first = read()
-    expect(first.anyOpen).toBe(true)
-    // the print's Einsatzende is an open row with the step's own answer (nothing pre-filled)
-    expect(first.items.map((i) => i.action?.label)).toEqual([F.zeiten, F.mittel])
-    first.items[0].action!.onClick()
-    first.items[1].action!.onClick()
-    expect(write.mock.calls).toEqual([[{ endedAt: now() }], [{ mittelConfirmedNone: true }]])
-    const next = read()
-    expect(next.anyOpen).toBe(false)
-    expect(next.items).toMatchObject([{ done: true, end: F.zeiten }, { done: true, end: F.mittel }])
-  })
-
   it('a pre-filled row stands in its step\'s place and counts as answered; a Trupp out stays open', () => {
     const go = { step: vi.fn(), trupps: vi.fn(), media: vi.fn() }
-    const ende = abschlussEndeItem(now(), vi.fn())
-    const points = abschlussOpenPoints(['kontaktperson', 'zeiten'], 0, 2)
-    const read = abschlussSheet(points, go, { write: vi.fn(), now, prefilled: { zeiten: ende } })
-    expect(read().items.map((i) => i.label)).toEqual([
-      appConfig.copy.abschluss.steps.kontaktperson, appConfig.copy.abschluss.ende, abschlussOpenLabel({ kind: 'media', n: 2 }),
-    ])
-    expect(read().items[1]).toBe(ende)
-    read().items[0].action!.onClick()
-    // only the queue is left, and a queue is not a «trotzdem» …
-    expect(read().anyOpen).toBe(false)
-    // … a crew nobody reported out is
-    expect(abschlussSheet(abschlussOpenPoints([], 1, 0), go, { now })().anyOpen).toBe(true)
-  })
-
-  it('without a write (a session that may not edit the Rapport) the rows are links only', () => {
-    const go = { step: vi.fn() }
-    const { items } = abschlussSheet(steps('mittel', 'kurzbericht'), go, { now })()
-    expect(items.every((i) => !i.action)).toBe(true)
-    items[1].onClick()
-    expect(go.step).toHaveBeenCalledWith('kurzbericht')
+    const ende = abschlussEndeItem('2026-10-31T21:41:00.000Z', vi.fn())
+    const sheet = abschlussSheet(abschlussOpenPoints(['zeiten'], 0, 2), go, { zeiten: ende })
+    expect(sheet.items.map((i) => i.label)).toEqual([appConfig.copy.abschluss.ende, abschlussOpenLabel({ kind: 'media', n: 2 })])
+    expect(sheet.items[0]).toBe(ende)
+    // only the queue is left, and a queue is not a «trotzdem» … a crew nobody reported out is
+    expect(sheet.anyOpen).toBe(false)
+    expect(abschlussSheet(abschlussOpenPoints([], 1, 0), go).anyOpen).toBe(true)
   })
 })

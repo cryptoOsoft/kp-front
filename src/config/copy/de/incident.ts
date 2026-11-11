@@ -224,23 +224,13 @@ export const incidentCopy = {
     insideTrupp: 'Trupp {no}',
     insideClose: 'Trotzdem abschliessen',
     insideTitle: 'Trupps noch drin',
+    // …für wen die Tafel nicht schreibbar ist (Rolle el): kein «Zur Tafel», dafür wer austrägt
+    boardNotYours: 'Austragen kann nur, wer die Atemschutz-Tafel führt.',
     // die sichere, fokussierte Antwort auf der Liste der offenen Punkte
     confirmBack: 'Zurück',
-    // The rows' own answers, as buttons (3am sweep, 23.10.2026; lib/abschlussOpen · fixes), on the
-    // Abschluss and – since 31.10.2026 – the print's «Angaben fehlen noch». «Jetzt setzen» stands
-    // mostly on the print's list: the Abschluss pre-fills an empty Einsatzende with «jetzt».
-    fix: {
-      zeiten: 'Jetzt setzen',
-      mittel: 'Nichts verwendet',
-      einsatzleiter: 'Wählen',
-      kontaktperson: 'Entfällt',
-      kurzbericht: 'Schreiben',
-      rueckmeldung: 'Entfällt',
-    },
     // the pre-filled Einsatzende row: «Einsatzende · jetzt 23:41», written with the close
     endeNow: 'jetzt {t}',
-    endeChange: 'Ändern',
-    done: 'Rapport abgeschlossen',
+    done: 'Einsatz abgeschlossen',
     // «Wieder öffnen» on the success toast, 10 s (3am sweep, 23.10.2026): the same reopen as
     // «Alle Einsätze», without its confirm – the toast IS the confirm-with-undo
     reopen: 'Wieder öffnen',

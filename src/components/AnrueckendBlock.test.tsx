@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { AnrueckendBlock } from './AnrueckendBlock'
 import { appConfig } from '../config/appConfig'
 import { fillTemplate } from '../lib/format'
@@ -32,24 +32,18 @@ describe('«Anrückend» — the Divera answers above the crew list', () => {
     expect(row.textContent).not.toMatch(/\d\d:\d\d|ca\.|Komme|min/)
   })
 
-  it('marks «kommt nicht» with the word on every row, in a group of its own — never colour alone', () => {
+  it('counts «kommt nicht» in the head line and lists none of them', () => {
     mount()
-    const R = appConfig.copy.anrueckend
-    const group = screen.getByRole('heading', { name: R.notComingGroup(2) })
-    const list = group.nextElementSibling as HTMLElement
-    const rows = within(list).getAllByRole('listitem')
-    expect(rows).toHaveLength(2)
-    for (const r of rows) expect(r.textContent).toContain(R.notComingWord)
-    // …and the coming ones never carry it
-    expect(screen.getByText('Keller Peter').closest('li')!.textContent).not.toContain(R.notComingWord)
+    expect(screen.queryByText('Huber Lea')).toBeNull()
+    expect(screen.getAllByRole('listitem')).toHaveLength(3)
   })
 
-  it('checks somebody in only on the explicit «da» tap — also somebody who said they would not come', () => {
+  it('checks somebody in only on the explicit «da» tap', () => {
     const { props } = mount()
     expect(props.onMarkPresent).not.toHaveBeenCalled()
     const R = appConfig.copy.anrueckend
-    fireEvent.click(screen.getByRole('button', { name: fillTemplate(R.checkInLabel, { name: 'Huber Lea' }) }))
-    expect(props.onMarkPresent).toHaveBeenCalledWith(expect.objectContaining({ id: 'p104' }))
+    fireEvent.click(screen.getByRole('button', { name: fillTemplate(R.checkInLabel, { name: 'Keller Peter' }) }))
+    expect(props.onMarkPresent).toHaveBeenCalledWith(expect.objectContaining({ displayName: 'Keller Peter' }))
   })
 
   it('offers no «da» to a session that may not write', () => {
