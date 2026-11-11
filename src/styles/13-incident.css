@@ -1161,9 +1161,12 @@ button.list-row:disabled { opacity: var(--disabled); cursor: default; }
    (owner pick A7). The list pulls up and clips its first 8px: each column starts at the box's
    top edge, so what is cut is the empty padding of every column's first entry (the left AND the
    right one – CSS cannot select the second) and the first name sits where it did. Clipped, that
-   strip also lets taps through to the step row it overlaps (its 44px hit area). */
+   strip also lets taps through to the step row it overlaps (its 44px hit area).
+   ⚠️ `pointer-events: none`, because the clip-path makes the list a stacking context, painted ABOVE
+   the card-wide `::after` of `.rp-check-main` – so a tap on a NAME hit the list, pressed the card
+   and opened nothing (owner's iPhone, 11.11.2026). The lists are plain text; the card is the button. */
 .rp-people { columns: 2 200px; column-gap: var(--sp-6); column-rule: 1px solid var(--border); width: 100%;
-  margin-top: calc(-1 * var(--sp-2)); clip-path: inset(var(--sp-2) 0 0 0); }
+  margin-top: calc(-1 * var(--sp-2)); clip-path: inset(var(--sp-2) 0 0 0); pointer-events: none; }
 @media (hover: hover) and (pointer: fine) { .rp-people { column-gap: var(--sp-7); } }
 /* The Anwesenheit's names-only list (owner pick A, 05.11.2026 – ReportPreflight): one line per
    person, so 4px above and below instead of 8 – a 28px pitch that keeps a whole Einsatz (40+ names)

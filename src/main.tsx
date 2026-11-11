@@ -61,6 +61,17 @@ initServiceWorker()
 // fire early and is lost if nothing listens) — the InstallGuide then offers one-tap install.
 initInstallPrompt()
 
+// The home-screen badge a «Neuer Einsatz» push sets (public/sw-notify.js) goes whenever the app
+// is in front – opened from its icon, switched back to, on the login screen too – not only on a
+// tap on the notification: open, the app shows the alarm itself (landing card / banner). It
+// stayed as a red «1» on the icon long after the Einsatz was closed (owner, 11.11.2026). Inline
+// rather than lib/push · clearAppBadge, which would pull the API client into the boot chunk.
+const clearBadgeInFront = () => {
+  if (document.visibilityState === 'visible') navigator.clearAppBadge?.().catch(() => { /* not supported */ })
+}
+clearBadgeInFront()
+document.addEventListener('visibilitychange', clearBadgeInFront)
+
 // The field app itself (App → IncidentWorkspace → MapView → maplibre, ~2 MB of script) is a
 // lazy chunk too, so the capture poster (/e/) and /admin no longer download and parse it — the
 // entry used to import it statically, which also made index.html modulepreload maplibre on
