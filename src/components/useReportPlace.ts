@@ -121,7 +121,12 @@ export function useReportPlace(
     setPhoneTab(STEP_TAB[step])
     requestAnimationFrame(() => requestAnimationFrame(() => flashStep(step)))
   }
+  /** Stops the focus a jump still owes (see flashStep) – a newer jump, the operator's own tap or
+   *  drag, or the unmount. Null when nothing is pending. */
+  const pendingFocus = useRef<(() => void) | null>(null)
+  useEffect(() => () => pendingFocus.current?.(), [])
   const flashStep = (step: AbschlussStep) => {
+    pendingFocus.current?.()
     const body = bodyRef.current
     const el = body?.querySelector<HTMLElement>(`[data-step="${step}"]`)
     if (!body || !el) return
@@ -130,7 +135,10 @@ export function useReportPlace(
     // heading the chip just named off the top of the screen, so the jump lands somewhere
     // plausible and unrecognisable. Putting the target's top just under the sheet's top edge is
     // the same thing a reader would do with their thumb.
-    const top = Math.max(0, el.getBoundingClientRect().top - body.getBoundingClientRect().top + body.scrollTop - 12)
+    // clamped to the scroll range, so a target the sheet cannot bring up that far (near the
+    // foot of the page) does not count as a scroll that is still to come
+    const want = el.getBoundingClientRect().top - body.getBoundingClientRect().top + body.scrollTop - 12
+    const top = Math.max(0, Math.min(want, body.scrollHeight - body.clientHeight))
     const moves = Math.abs(top - body.scrollTop) > 1
     // jsdom has no element scrollTo – and the jump is driven from a timer, so a throw there is an
     // unhandled error that fails the whole run rather than one test
@@ -149,20 +157,32 @@ export function useReportPlace(
     // on focus, `preventScroll` or not: focused mid-scroll, it cut the smooth scroll short and put
     // the textarea 16px under the head (`scroll-margin-block`) – with the label the chip had just
     // named hidden above it (owner's iPhone, 11.11.2026). Settled, the field is already in view
-    // and that pass has nothing to move. The timer stands in where `scrollend` never comes (no
-    // scroll needed, a browser without the event).
+    // and that pass has nothing to move. Where `scrollend` never comes (a browser without the
+    // event), the sheet is sampled until it stands still. A tap or drag of the operator's own in
+    // the meantime cancels it: they have moved on, and a late focus would put their typing into
+    // the field they left.
     const field = el.querySelector<HTMLElement>('textarea, input, button')
     if (!field) return
-    let done = false
-    const focusField = () => {
-      if (done) return
-      done = true
-      body.removeEventListener('scrollend', focusField)
-      field.focus({ preventScroll: true })
+    if (!moves) { field.focus({ preventScroll: true }); return }
+    let timer = 0
+    let last = Number.NaN
+    const stop = () => {
+      window.clearTimeout(timer)
+      body.removeEventListener('scrollend', settled)
+      document.removeEventListener('pointerdown', stop, true)
+      body.removeEventListener('wheel', stop)
+      if (pendingFocus.current === stop) pendingFocus.current = null
     }
-    if (!moves) { focusField(); return }
-    body.addEventListener('scrollend', focusField, { once: true })
-    window.setTimeout(focusField, 800)
+    const settled = () => { stop(); field.focus({ preventScroll: true }) }
+    const sample = () => {
+      if (body.scrollTop === last) settled()
+      else { last = body.scrollTop; timer = window.setTimeout(sample, 150) }
+    }
+    body.addEventListener('scrollend', settled)
+    document.addEventListener('pointerdown', stop, true)
+    body.addEventListener('wheel', stop, { passive: true })
+    timer = window.setTimeout(sample, 600)
+    pendingFocus.current = stop
   }
 
   // …and the outside ask (see requestReportStep). Through a ref because `jumpToStep` is rebuilt

@@ -13,8 +13,8 @@ self.addEventListener('push', (event) => {
   // A killed-app «Neuer Einsatz» looked like any tray item (3am sweep §1.6, 23.10.2026): the
   // options mirror the in-app notify() (src/lib/alarm.ts) — icon, badge, the same vibration —
   // and the dispatch stays on the lock screen until somebody acts (requireInteraction). The
-  // home-screen badge marks a fresh alarm until the app is next in front (src/App.tsx clears it
-  // on every visibilitychange; the tap below clears it too) – and is not set at all while a
+  // home-screen badge marks a fresh alarm until the app is next in front (src/main.tsx clears
+  // it on every visibilitychange; the tap below clears it too) – and is not set at all while a
   // window is already on screen, which shows the alarm itself.
   const alarm = tag.indexOf('divera') === 0
   event.waitUntil((async () => {

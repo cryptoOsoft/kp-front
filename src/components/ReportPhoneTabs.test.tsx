@@ -128,18 +128,33 @@ describe('Einsatzrapport · phone tabs', () => {
   // ⚠️ iOS Safari reveals a focused field itself, `preventScroll` or not: focused while the sheet
   // was still scrolling, the Kurzbericht landed with its label hidden under the head (11.11.2026).
   // So the field takes focus only once the sheet's scroll has settled.
-  it('focuses the named field only after the jump has finished scrolling', async () => {
+  /** the Kurzbericht 600px down a sheet that can scroll 1400px; `scrollTo` recorded, not run */
+  const jumpSetup = () => {
     const { body } = setup()
     const step = document.querySelector('[data-step="kurzbericht"]') as HTMLElement
     vi.spyOn(step, 'getBoundingClientRect').mockReturnValue({ top: 600 } as DOMRect)
+    Object.defineProperty(body(), 'scrollHeight', { value: 2000 })
+    Object.defineProperty(body(), 'clientHeight', { value: 600 })
     const scrollTo = vi.fn()
     body().scrollTo = scrollTo as unknown as HTMLElement['scrollTo']
+    return { body: body(), scrollTo, field: step.querySelector('textarea') as HTMLTextAreaElement }
+  }
+  it('focuses the named field only after the jump has finished scrolling', async () => {
+    const { body, scrollTo, field } = jumpSetup()
     act(() => requestReportStep('kurzbericht'))
     await waitFor(() => expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ top: 588 })))
-    const field = step.querySelector('textarea') as HTMLTextAreaElement
     expect(document.activeElement).not.toBe(field)
-    act(() => { body().dispatchEvent(new Event('scrollend')) })
+    act(() => { body.dispatchEvent(new Event('scrollend')) })
     expect(document.activeElement).toBe(field)
+  })
+  // …and a tap of the operator's own while it scrolls wins: a late focus would take their typing
+  it('drops the pending focus when the operator taps something else first', async () => {
+    const { body, scrollTo, field } = jumpSetup()
+    act(() => requestReportStep('kurzbericht'))
+    await waitFor(() => expect(scrollTo).toHaveBeenCalled())
+    act(() => { document.body.dispatchEvent(new Event('pointerdown', { bubbles: true })) })
+    act(() => { body.dispatchEvent(new Event('scrollend')) })
+    expect(document.activeElement).not.toBe(field)
   })
 
   // ⚠️ The same box carries WHAT WILL PRINT. The surface unmounts on every hop to

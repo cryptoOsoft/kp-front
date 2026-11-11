@@ -305,18 +305,9 @@ export default function App() {
   // postMessage while the app is running, and the ?kpn= boot param when the tap
   // cold-started a killed app. Editor only — viewers can't take alarms; per-incident
   // targets (atemschutz/journal) are claimed by IncidentWorkspace once mounted.
-  // The home-screen badge a «Neuer Einsatz» push sets (sw-notify.js) goes whenever the app is in
-  // front – opened from its icon, switched back to – not only on a tap on the notification: open,
-  // the app shows the alarm itself (landing card / banner). It stayed as a red «1» on the icon
-  // long after the Einsatz was closed (owner, 11.11.2026).
-  useEffect(() => {
-    const onVisible = () => { if (document.visibilityState === 'visible') clearAppBadge() }
-    onVisible()
-    document.addEventListener('visibilitychange', onVisible)
-    return () => document.removeEventListener('visibilitychange', onVisible)
-  }, [])
   useEffect(() => {
     if (!isEditor) return
+    // the home-screen badge the push set (sw-notify.js) is cleared now that the alarm is on screen
     const openPool = () => { clearAppBadge(); void refreshPool() }
     if (claimBootNotifyTarget(['divera'])) openPool()
     const sw = typeof navigator !== 'undefined' ? navigator.serviceWorker : undefined
