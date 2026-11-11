@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { isTypingTarget } from './hotkeys'
-import { useKeyboardInset } from './useKeyboardInset'
+import { useKeyboardInset, visibleViewportBottom } from './useKeyboardInset'
+import { inScrollPort } from './pointAtField'
 
 /**
  * Keeps the FOCUSED text field above the on-screen keyboard, app-wide. Mounted once, at the
@@ -20,7 +21,8 @@ import { useKeyboardInset } from './useKeyboardInset'
  *     keyboard has actually settled and any React re-render it caused has landed.
  *
  * ⚠️ Both triggers go through the same OVERFLOW GUARD, and it is load-bearing: scroll only when
- * the field's box actually falls outside the visual viewport, and then only by `block: 'nearest'`.
+ * the field's box actually falls outside the visible band – or outside the box that scrolls it –
+ * and then only by `block: 'nearest'`.
  * An unconditional `block: 'center'` re-enters the pan/re-aim feedback loop documented in
  * useKeyboardInset — we move the field, iOS pans to keep the caret visible, which moves the field
  * again. «Nearest» moves the minimum and stops; a field already on screen is left alone entirely.
@@ -38,14 +40,17 @@ export function useScrollFocusIntoView(): void {
       // that caps its height against `--kb-inset` re-renders in the same tick)
       frame = requestAnimationFrame(() => {
         frame = 0
-        const vv = window.visualViewport
         // getBoundingClientRect is in LAYOUT-viewport coordinates; `offsetTop` is how far the
-        // visual viewport has been panned inside it, so the visible band is [top, top + height].
-        // Read only — writing offsetTop into layout is the loop useViewportPan warns about.
-        const top = vv ? vv.offsetTop : 0
-        const bottom = vv ? vv.offsetTop + vv.height : window.innerHeight
+        // visual viewport has been panned inside it, so the visible band starts there. Read only —
+        // writing offsetTop into layout is the loop useViewportPan warns about.
+        // ⚠️ The band's BOTTOM comes off `visibleViewportBottom` (occlusion sweep O4, 11.11.2026):
+        // under Android's `overlays-content` the visual viewport never shrinks, only the
+        // VirtualKeyboard API knows the keys, so every field «was visible» and stayed 55–190px
+        // under them. And «inside the band» is not enough: the page shell ends on the keys
+        // (`--vv-foot`), so a field can be cut by its own scroller while the band still has it.
+        const top = window.visualViewport?.offsetTop ?? 0
         const box = el.getBoundingClientRect()
-        if (box.bottom <= bottom && box.top >= top) return
+        if (box.bottom <= visibleViewportBottom() && box.top >= top && inScrollPort(el)) return
         el.scrollIntoView({ block: 'nearest' })
       })
     }

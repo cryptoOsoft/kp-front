@@ -867,7 +867,7 @@ export function TruppForm({
           registers as «Auftrag offen». `role="status"`, not alert: it is there from the first
           render of a fresh form and must not be shouted over the field the operator is filling. */}
       {!blocked && auftragMissing && (
-        <p className={cx('form-warn form-warn-amber', s.formBlocked, teamSearchFocused && s.formHintWaiting)} role="status"
+        <p className={cx('form-warn form-warn-amber', s.formBlocked, s.formHintAmber, teamSearchFocused && s.formHintWaiting)} role="status"
           aria-hidden={teamSearchFocused || undefined}>
           <Icon id="warn" /><span>{az.auftragMissingHint}</span>
         </p>

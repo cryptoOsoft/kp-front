@@ -1114,6 +1114,11 @@ button.stepVal:active:not(:disabled) { background-image: linear-gradient(var(--p
   .modalStack:global(.is-kb):has(.teamSearch input:focus) .stack > *:not(:first-child),
   .modalStack:global(.is-kb):has(.teamSearch input:focus) .modalFoot,
   .modalStack:global(.is-kb) .formHintWaiting { display: none; }
+  /* …and the amber «Auftrag fehlt» line goes with the keys in EVERY field (occlusion sweep O2,
+     11.11.2026): on a 375×667 phone with two alarm cards above the sheet it left the form 50px and
+     cut «Ziel» – the very field that answers it. It is a note for the «Anmelden» press, and it is
+     back the moment the keys go. A BLOCKED save (role=alert) stays: that one is the answer to a tap. */
+  .modalStack:global(.is-kb) .formHintAmber { display: none; }
 
   /* ── …AND THEY COME BACK GENTLY (09.09.) ───────────────────────────────────────────────────
      What the field saw as «hässliches Aufblitzen» when the search closes is two snaps, not one,

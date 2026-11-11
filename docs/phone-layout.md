@@ -71,6 +71,12 @@ unchanged.
   strip's height — `--tap` + the `.useg` track's 3px + `--bar-pad` + 1px edge, top and bottom —
   plus its 6px channel. A literal 60px outlived a 4px shell padding and stood the FAB, the
   message lane, «Zurück zum Rapport» and the page's foot 10px low.
+- *«Zurück zum Rapport» ends the page above it* (11.11.2026, occlusion sweep O1): while the pill
+  stands (Anwesenheit / Material opened from the Rapport) `--float-clear` lifts the page shell's
+  foot by one floating row, so neither the pill nor the FAB lies on the row resting at the list
+  foot. The FAB alone does not lift it – the last row clears it (`--fab-safe`). With the keys up
+  the Rapport head drops «Drucken · PDF ▾» (O5), and every `.ctx` detail sheet stands on the keys
+  (`--vv-foot`, O3).
 - *ONE page-title size*: `--head-title` is `var(--fs-3)` = 16px on a phone (17px until
   08.10.2026 – the type scale has no 17), set as the TOKEN in `15-mobile.css`
   — never a per-surface `font-size` on the `<h2>`, which is how «Einsatzrapport» came to stand
