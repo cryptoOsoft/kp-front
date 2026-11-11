@@ -95,7 +95,7 @@ class Claim:
     destination: str
     incident_id: uuid.UUID
     wanted: int
-    token: str
+    lease: str
     attempts: int
     remote_items: dict[str, Any] = field(default_factory=dict)
 
@@ -337,12 +337,12 @@ async def claim(db: AsyncSession, enabled: set[str], now: datetime) -> Claim | N
     candidate = (
         select(T.id).where(due).order_by(T.next_attempt_at, T.created_at).limit(1).with_for_update(skip_locked=True)
     ).scalar_subquery()
-    token = uuid.uuid4().hex
+    lease = uuid.uuid4().hex
     row = (
         await db.execute(
             update(T)
             .where(T.id == candidate, due)
-            .values(lease_owner=token, lease_until=now + LEASE, attempts=T.attempts + 1)
+            .values(lease_owner=lease, lease_until=now + LEASE, attempts=T.attempts + 1)
             .returning(T.id, T.destination, T.incident_id, T.wanted, T.attempts, T.remote_items)
         )
     ).one_or_none()
@@ -353,7 +353,7 @@ async def claim(db: AsyncSession, enabled: set[str], now: datetime) -> Claim | N
         destination=row.destination,
         incident_id=row.incident_id,
         wanted=row.wanted,
-        token=token,
+        lease=lease,
         attempts=row.attempts,
         remote_items=dict(row.remote_items or {}),
     )
@@ -518,7 +518,7 @@ async def finish_ok(db: AsyncSession, c: Claim, now: datetime, *, more: bool) ->
     again = or_(T.wanted != c.wanted, literal(more))
     result = await db.execute(
         update(T)
-        .where(T.id == c.id, T.lease_owner == c.token)
+        .where(T.id == c.id, T.lease_owner == c.lease)
         .values(
             state=case((again, "pending"), else_="delivered"),
             next_attempt_at=case((again, now), else_=None),
@@ -550,7 +550,7 @@ async def finish_error(
         values.update(state="failed", failed_fingerprint=fingerprint(dest), next_attempt_at=None)
     else:
         values.update(next_attempt_at=now + backoff(c.attempts))
-    await db.execute(update(T).where(T.id == c.id, T.lease_owner == c.token).values(**values))
+    await db.execute(update(T).where(T.id == c.id, T.lease_owner == c.lease).values(**values))
 
 
 async def deliver(
