@@ -17,7 +17,7 @@ from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import defer
 
-from .. import audit, live_wait, storage
+from .. import audit, incident_archive, live_wait, storage
 from ..alarm_validation import validate_trupp
 from ..alarms import is_demo_deployment
 from ..auth.dependencies import (
@@ -814,6 +814,11 @@ async def patch_incident(
     # that end it. Reopening a closed Einsatz does NOT resurrect them: the phones start
     # reporting again on their own, and inventing positions nobody currently vouches for
     # would be worse than an empty layer.
+    # The Einsatz-Ablage (docs/incident-archive.md): a close – or an Übung marked real once it is
+    # closed – owes the station's SharePoint a copy. One outbox row in THIS transaction, never a
+    # Graph call: the close is as fast as before and works the same with SharePoint down.
+    if incident_archive.is_filed(inc) and (not archived_before or exercise_before):
+        await incident_archive.enqueue(db, inc.id)
     if not inc.is_open:
         from ..models import PersonPosition
 
@@ -906,12 +911,25 @@ async def delete_incident(
             inc.started_at,
             inc.is_archived,
         )
-    from ..models import Media, WorkspaceSnapshot
+    from ..models import IncidentArchiveReport, Media, WorkspaceSnapshot
 
-    keys = list((await db.execute(select(Media.storage_key).where(Media.incident_id == incident_id))).scalars()) + list(
-        (
-            await db.execute(select(WorkspaceSnapshot.storage_key).where(WorkspaceSnapshot.incident_id == incident_id))
-        ).scalars()
+    keys = (
+        list((await db.execute(select(Media.storage_key).where(Media.incident_id == incident_id))).scalars())
+        + list(
+            (
+                await db.execute(
+                    select(WorkspaceSnapshot.storage_key).where(WorkspaceSnapshot.incident_id == incident_id)
+                )
+            ).scalars()
+        )
+        # the Einsatz-Ablage's kept Rapport-PDF (its SharePoint copy stays: nothing remote is deleted)
+        + list(
+            (
+                await db.execute(
+                    select(IncidentArchiveReport.storage_key).where(IncidentArchiveReport.incident_id == incident_id)
+                )
+            ).scalars()
+        )
     )
     for key in keys:
         storage.delete_after_commit(db, key)

@@ -1,4 +1,5 @@
-"""A WRITABLE SharePoint drive on an `httpx.MockTransport` — for the Objektbesuche delivery.
+"""A WRITABLE SharePoint drive on an `httpx.MockTransport` – for the Objektbesuche delivery and
+the Einsatz-Ablage.
 
 The importer's fake (`sharepoint_fake.py`) is a read-only folder tree; the delivery needs the
 four write shapes `app/object_visit_sharepoint.GraphWriter` sends, so this is a second fixture
@@ -6,8 +7,10 @@ rather than a mode of the first. It answers:
 
 * the token endpoint, the site → drive resolution;
 * `GET /drives/{d}/root` and `GET /drives/{d}/root:/{path}` (item by path, 404 when absent);
+* `GET /drives/{d}/items/{id}` (item by id, wherever it was moved);
 * `POST /drives/{d}/items/{id}/children` (folder create, `conflictBehavior: fail` → 409);
-* `PUT /drives/{d}/root:/{path}:/content` (create/replace, `If-Match` → 412 on a stale eTag);
+* `PUT /drives/{d}/root:/{path}:/content` (create/replace, `If-Match` → 412 on a stale eTag) and
+  `PUT /drives/{d}/items/{folder}:/{name}:/content` (the same, into a folder known by id);
 * `PATCH /drives/{d}/items/{id}` (move via `parentReference`, 409 when the name is taken);
 * `GET https://storage.example/dl/{id}` (the pre-authenticated download URL).
 
@@ -81,6 +84,14 @@ class FakeDrive:
                 self.items[current] = Item(id=self._next_id(), path=current, folder=True)
             item = self.items[current]
         return item
+
+    def relocate(self, old: str, new: str) -> None:
+        """A person moves a folder (and what is in it) – its items keep their ids."""
+        self.mkdirs(new.rsplit("/", 1)[0] if "/" in new else "")
+        for path in sorted(p for p in self.items if p == old or p.startswith(f"{old}/")):
+            item = self.items.pop(path)
+            item.path = new + path[len(old) :]
+            self.items[item.path] = item
 
     def fail(self, method: str, fragment: str, status: int) -> None:
         self.failures.append((method, fragment, status))
@@ -178,6 +189,15 @@ class FakeDrive:
                 return self._item_json(item) if item else httpx.Response(404, json={"error": {"code": "itemNotFound"}})
         if rest.startswith("items/"):
             tail = rest[len("items/") :]
+            if method == "PUT" and tail.endswith(":/content") and ":/" in tail[: -len(":/content")]:
+                folder_id, name = tail[: -len(":/content")].split(":/", 1)
+                folder = self.by_id(folder_id)
+                if folder is None or not folder.folder:
+                    return httpx.Response(404, json={"error": {"code": "itemNotFound"}})
+                return self._put(f"{folder.path}/{name}" if folder.path else name, request)
+            if method == "GET" and "/" not in tail:
+                item = self.by_id(tail)
+                return self._item_json(item) if item else httpx.Response(404, json={"error": {"code": "itemNotFound"}})
             if method == "POST" and tail.endswith("/children"):
                 return self._create_folder(tail[: -len("/children")], json.loads(request.content))
             if method == "PATCH":

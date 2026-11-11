@@ -250,6 +250,7 @@ the registrations).
 | `heartbeat` | 60 s | the dead-man's-switch ping to `HEALTHCHECK_PING_URL`, only if `/ready`'s data-layer check passes |
 | `sharepoint_pull` | 60 s tick | station data from SharePoint into the existing importers ([`sharepoint-connector.md`](sharepoint-connector.md)) |
 | `object_visit_delivery` | 30 s | files Objektbesuche into SharePoint ([`object-visits-sharepoint.md`](object-visits-sharepoint.md)) |
+| `incident_archive` | 30 s | files closed Einsätze – photos, Rapport-PDF, Sprachnotizen, Beilagen – into SharePoint ([`incident-archive.md`](incident-archive.md)) |
 | `roster_snapshot` | `roster.snapshotIntervalMin` | a published roster file into `personnel` |
 | `personnel_autosync` | nightly, ~04:17 | the Divera roster, where `roster.autoSync` asks for it |
 | `plan_pull` | hourly | an S3 plan library – boot-gated on `PLANS_S3_*`, the only job that is |

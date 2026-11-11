@@ -725,6 +725,57 @@ class ObjectVisitDeliveryLog(Base):
     detail: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
+class IncidentArchiveDelivery(Base):
+    """The Einsatz-Ablage outbox row for one Einsatz at one destination (docs/incident-archive.md).
+
+    ``wanted`` is bumped by every reason to look again (a close, a late upload, a new Rapport
+    version); a pass that claimed an older value finishes ``pending``, so nothing raised during
+    a pass is lost. ``remote_items`` is what is already filed – the folders by pattern, each
+    medium by id, each Rapport version – and is all a re-run needs to upload nothing twice.
+    """
+
+    __tablename__ = "incident_archive_deliveries"
+    __table_args__ = (
+        UniqueConstraint("destination", "incident_id", name="uq_incident_archive_deliveries_dest_incident"),
+        Index("ix_incident_archive_deliveries_due", "state", "next_attempt_at"),
+    )
+
+    id: Mapped[uuid.UUID] = _uuid_pk()
+    destination: Mapped[str] = mapped_column(String(64), nullable=False)
+    incident_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("incidents.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    wanted: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    #: pending | delivered | failed | paused
+    state: Mapped[str] = mapped_column(String(16), nullable=False, default="pending")
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    next_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    lease_owner: Mapped[str | None] = mapped_column(Text, nullable=True)
+    lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    #: the destination config + credentials at failure – a change puts the row back to pending
+    failed_fingerprint: Mapped[str | None] = mapped_column(Text, nullable=True)
+    remote_items: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    delivered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class IncidentArchiveReport(Base):
+    """The newest Rapport-PDF KP Front composed for an Einsatz – the copy the Einsatz-Ablage
+    files (docs/incident-archive.md). Kept only while the Ablage is switched on; one row per
+    Einsatz, replaced when a PDF of different content is composed. ``content_sha`` hashes the
+    payload without its print time, so printing the same Rapport twice is one version."""
+
+    __tablename__ = "incident_archive_reports"
+
+    incident_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("incidents.id", ondelete="CASCADE"), primary_key=True)
+    content_sha: Mapped[str] = mapped_column(String(64), nullable=False)
+    storage_key: Mapped[str] = mapped_column(Text, nullable=False)
+    size: Mapped[int] = mapped_column(Integer, nullable=False)
+    composed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
 class ReferenceDataset(Base):
     __tablename__ = "reference_datasets"
 

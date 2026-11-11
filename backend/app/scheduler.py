@@ -373,6 +373,20 @@ async def _object_visit_delivery_tick() -> None:
         logger.exception("Objektbesuche delivery tick failed")
 
 
+#: The Einsatz-Ablage outbox (app/incident_archive, docs/incident-archive.md). Registered
+#: unconditionally like the Objektbesuche one, idle while it is off or the credentials are incomplete.
+INCIDENT_ARCHIVE_TICK_SECONDS = 30
+
+
+async def _incident_archive_tick() -> None:
+    from .incident_archive import tick
+
+    try:
+        await tick()
+    except Exception:
+        logger.exception("Einsatz-Ablage tick failed")
+
+
 PRINT_JOB_RETENTION_DAYS = 7  # the paper is the artefact — the queue is transient
 PRINT_JOB_SWEEP_SECONDS = 3600
 
@@ -878,6 +892,15 @@ def _start_scheduler_jobs() -> None:
     jobs.append(
         f"Objektbesuche-Ablage ({OBJECT_VISIT_DELIVERY_TICK_SECONDS}s tick, idle without an enabled destination)"
     )
+    _scheduler.add_job(
+        _incident_archive_tick,
+        "interval",
+        seconds=INCIDENT_ARCHIVE_TICK_SECONDS,
+        id="incident_archive",
+        max_instances=1,
+        coalesce=True,
+    )
+    jobs.append(f"Einsatz-Ablage ({INCIDENT_ARCHIVE_TICK_SECONDS}s tick, idle without an enabled destination)")
     # Nightly, and idle on a station that has not asked for it (`roster.autoSync: "off"`) or has
     # no Divera key — the same unconditional registration as the jobs above, for the same reason.
     _scheduler.add_job(

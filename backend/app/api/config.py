@@ -178,8 +178,8 @@ def _projection(
     source is active, never the words — because "is my override live?" must be answerable
     without a session.
 
-    ``include_internal=False`` empties ``alarms.webhooks`` and ``sharepoint.sources`` (RBAC audit
-    S3, 22.10.2026). Both are addresses the SERVER talks to, and a webhook URL is often a
+    ``include_internal=False`` empties ``alarms.webhooks``, ``sharepoint.sources`` (RBAC audit
+    S3, 22.10.2026) and ``incidentArchive.destinations`` (no client but /admin reads them). Both are addresses the SERVER talks to, and a webhook URL is often a
     capability (a Power Automate ``sig=``, a Teams hook, a ``?secret=``): whoever has it can post
     as the alarm. No client but /admin reads either, so only an admin session gets them.
 
@@ -212,6 +212,7 @@ def _projection(
     if not include_internal:
         payload["alarms"] = {**(payload.get("alarms") or {}), "webhooks": []}
         payload["sharepoint"] = {**(payload.get("sharepoint") or {}), "sources": []}
+        payload["incidentArchive"] = {**(payload.get("incidentArchive") or {}), "destinations": []}
     if not include_filing:
         payload["objectVisits"] = {**(payload.get("objectVisits") or {}), "destinations": []}
     ints = integrations()

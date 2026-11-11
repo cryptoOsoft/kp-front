@@ -1,15 +1,53 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { deleteIncident, listIncidents, type IncidentMeta } from '../lib/incidents'
 import { appConfig } from '../config/appConfig'
 import { ConfirmCard } from '../lib/overlays/ConfirmCard'
-import { Card, EmptyState, StatusBadge, Table, fmtDateTime } from './ui'
+import { Card, CopyChip, EmptyState, StatusBadge, Table, fmtDateTime } from './ui'
 import { fillTemplate } from '../lib/format'
+import { apiGet, apiPost } from '../lib/api'
+import type { Out } from '../lib/api/wire'
 
 /** Herkunft in words – the backend stores a slug (`Incident.source`: 'manual', 'divera', an intake
  *  slug …) and printed it raw («MANUAL»). An unknown slug still shows as itself. */
 const sourceLabel = (source: string) => appConfig.copy.admin.incidentHistory.sources[source] ?? source
 
 type State = { kind: 'loading' } | { kind: 'error' } | { kind: 'ok'; data: IncidentMeta[] }
+
+type ArchiveStatus = Out<'IncidentArchiveStatus'>
+type ArchiveRow = ArchiveStatus['deliveries'][number]
+
+const archiveTone = (state: ArchiveRow['state']) =>
+  state === 'delivered' ? 'on' : state === 'failed' ? 'err' : state === 'paused' ? 'off' : 'warn'
+
+/** «Ablage» (docs/incident-archive.md): where the Einsatz-Ablage stands for one Einsatz – per
+ *  destination the state, the folder (copyable), the error while it fails and «Erneut
+ *  versuchen»; «Ablegen» for a closed Einsatz the Ablage has not seen (closed before it was on). */
+function ArchiveCell({ incident, rows, onRetry }: { incident: IncidentMeta; rows: ArchiveRow[]; onRetry: () => void }) {
+  const A = appConfig.copy.admin.incidentHistory.archive
+  if (incident.is_exercise) return <span className="adm-ref-note">{A.exercise}</span>
+  if (!rows.length) {
+    if (!incident.is_archived) return <span className="adm-ref-note">{A.onClose}</span>
+    return (
+      <span className="adm-archive">
+        <span className="adm-ref-note">{A.none}</span>
+        <button type="button" className="btn adm-int-btn" onClick={onRetry}>{A.file}</button>
+      </span>
+    )
+  }
+  return (
+    <span className="adm-archive">
+      {rows.map((r) => (
+        <span key={r.destination} className="adm-archive-row">
+          <StatusBadge label="" state={A.states[r.state]} tone={archiveTone(r.state)} />
+          {r.folders.map((f) => <CopyChip key={f} value={f} display={f.split('/').pop() ?? f} />)}
+          {r.state === 'delivered' && r.reportVersions === 0 && <span className="adm-ref-note">{A.noReport}</span>}
+          {r.state !== 'delivered' && r.lastError && <span className="adm-archive-err">{r.lastError}</span>}
+          {r.state === 'failed' && <button type="button" className="btn adm-int-btn" onClick={onRetry}>{A.retry}</button>}
+        </span>
+      ))}
+    </span>
+  )
+}
 
 export function IncidentHistoryView() {
   const [state, setState] = useState<State>({ kind: 'loading' })
@@ -18,6 +56,25 @@ export function IncidentHistoryView() {
   // the Einsatz whose delete is being asked about – a modal, because this one cannot be re-created
   const [asking, setAsking] = useState<IncidentMeta | null>(null)
   const C = appConfig.copy.admin.incidentHistory
+  // the Einsatz-Ablage's state per Einsatz; null = not switched on (or not readable), no column
+  const [archive, setArchive] = useState<ArchiveStatus | null>(null)
+  const loadArchive = useCallback(() => {
+    apiGet<ArchiveStatus>('/api/admin/incident-archive').then(setArchive, () => setArchive(null))
+  }, [])
+  useEffect(loadArchive, [loadArchive])
+  const archiveRows = useMemo(() => {
+    const by = new Map<string, ArchiveRow[]>()
+    for (const r of archive?.deliveries ?? []) by.set(r.incidentId, [...(by.get(r.incidentId) ?? []), r])
+    return by
+  }, [archive])
+  const retryArchive = async (incidentId: string) => {
+    try {
+      await apiPost('/api/admin/incident-archive/retry', { incidentId })
+    } catch {
+      setErr(C.archive.retryFailed)
+    }
+    loadArchive()
+  }
 
   useEffect(() => {
     let alive = true
@@ -59,7 +116,9 @@ export function IncidentHistoryView() {
             <Table columns={[
               { key: 'date', label: C.started }, { key: 'incident', label: C.incident },
               { key: 'status', label: C.status }, { key: 'source', label: C.source },
-              { key: 'report', label: C.report }, { key: 'updated', label: C.updated },
+              { key: 'report', label: C.report },
+              ...(archive?.enabled ? [{ key: 'archive', label: C.archive.column }] : []),
+              { key: 'updated', label: C.updated },
               { key: 'actions', label: C.actions },
             ]} className="adm-history-table">
               {rows.map((incident) => {
@@ -76,6 +135,9 @@ export function IncidentHistoryView() {
                   <td className="adm-c-side"><StatusBadge tone={closed ? 'off' : 'on'} label="" state={closed ? C.closed : C.open} /></td>
                   <td><span className="adm-view-badge adm-view-badge-muted">{sourceLabel(incident.source)}</span></td>
                   <td>{incident.report_done_at ? C.complete : C.incomplete}</td>
+                  {archive?.enabled && <td>
+                    <ArchiveCell incident={incident} rows={archiveRows.get(incident.id) ?? []} onRetry={() => void retryArchive(incident.id)} />
+                  </td>}
                   <td className="adm-time">{fmtDateTime(incident.updated_at)}</td>
                   {/* The backend's two doors, mirrored: an Übung (created as one, never marked
                       real) is disposable and goes in any state, a real Einsatz only once it is

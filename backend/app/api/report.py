@@ -25,6 +25,7 @@ from .. import storage
 from ..auth.dependencies import CurrentUser
 from ..auth.viewer_scope import is_viewer
 from ..database import get_db
+from ..incident_archive import keep_report_safely
 from ..incident_service import get_incident_or_404
 from ..models import DeploymentConfig as DeploymentConfigRow
 from ..models import DiveraEmergency, Media, PlanRevision, ReferenceDataset
@@ -33,6 +34,9 @@ from ..schichtplan_pdf import compose_schichtplan_pdf
 from ..zeitplan_pdf import ZeitplanPayload, compose_zeitplan_pdf
 
 router = APIRouter(tags=["report"])
+
+#: Whose composed Rapport the Einsatz-Ablage keeps – the roles that write the record.
+ARCHIVE_ROLES = frozenset({"editor", "el"})
 
 _MAX_FIGURES = 40
 _MAX_FIGURE_BYTES = 12 * 1024 * 1024  # 12 MB per captured page — generous for a full-res map PNG
@@ -401,7 +405,11 @@ async def report_pdf(
         if is_viewer(user)
         else None
     )
-    pdf, _ = await compose_report_from_payload(db, payload, figs, scope)
+    pdf, data = await compose_report_from_payload(db, payload, figs, scope)
+    # The Einsatz-Ablage keeps the newest Rapport an editor or EL composed (docs/incident-archive.md);
+    # a viewer's narrowed print is not the station's Rapport. Never fails the download.
+    if user.role in ARCHIVE_ROLES:
+        await keep_report_safely(db, inc, data, pdf)
     return Response(
         content=pdf,
         media_type="application/pdf",

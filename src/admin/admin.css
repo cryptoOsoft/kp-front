@@ -1845,6 +1845,12 @@ p.adm-sys-path { margin: 3px 0 0; }
 .adm-history-table { min-width: 920px; }
 .adm-history-table .adm-ref-note { display: block; margin-top: 3px; }
 .adm-history-exercise { margin-left: 8px; vertical-align: 2px; }
+/* «Ablage» (IncidentHistoryView · ArchiveCell): one line per destination – state, folder, error.
+   The Objektbesuche' filing cell (objectVisits.css · .adm-ov-filing) is the same shape; that one
+   belongs to its module's stylesheet, so this list keeps its own three rules. */
+.adm-archive { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.adm-archive-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; }
+.adm-archive-err { font: var(--fw-medium) var(--fs-1) var(--body); color: var(--red-strong); }
 /* A row's own action is row-sized – the same compact pair the people tables use. A full-height
    button in a 12.5px table row reads as the page's main action, which deleting one line of
    history is not. */
