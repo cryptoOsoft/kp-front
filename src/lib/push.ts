@@ -142,7 +142,8 @@ export async function sendTestPush(): Promise<TestPushOutcome> {
 }
 
 /** The home-screen badge the service worker sets on a «Neuer Einsatz» push (sw-notify.js) —
- *  cleared once the app has the alarm in front of the operator. Unsupported browsers: no-op. */
+ *  cleared whenever the app is in front (App · visibilitychange), because then the app shows the
+ *  alarm itself. Unsupported browsers: no-op. */
 export function clearAppBadge(): void {
   try { void navigator.clearAppBadge?.() } catch { /* not supported */ }
 }

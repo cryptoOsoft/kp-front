@@ -4,6 +4,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react'
 import { incidentSlot } from '../lib/draftKeep'
+import { scrollBehavior } from '../lib/reducedMotion'
 import type { AbschlussStep } from '../lib/abschluss'
 import type { ReportOptions } from '../lib/report'
 
@@ -129,11 +130,12 @@ export function useReportPlace(
     // heading the chip just named off the top of the screen, so the jump lands somewhere
     // plausible and unrecognisable. Putting the target's top just under the sheet's top edge is
     // the same thing a reader would do with their thumb.
-    const top = el.getBoundingClientRect().top - body.getBoundingClientRect().top + body.scrollTop - 12
+    const top = Math.max(0, el.getBoundingClientRect().top - body.getBoundingClientRect().top + body.scrollTop - 12)
+    const moves = Math.abs(top - body.scrollTop) > 1
     // jsdom has no element scrollTo – and the jump is driven from a timer, so a throw there is an
     // unhandled error that fails the whole run rather than one test
-    if (typeof body.scrollTo === 'function') body.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
-    else body.scrollTop = Math.max(0, top)
+    if (typeof body.scrollTo === 'function') body.scrollTo({ top, behavior: scrollBehavior() })
+    else body.scrollTop = top
     // …and the same two-beat ink ring the Atemschutz board uses when a locked Anwesenheits-Zeile
     // sends you to a card (Atemschutz.module.css · truppFlash). One surface, one way of saying
     // «this one» — a soft 1.2 s background wash read as a rendering artefact rather than a point.
@@ -142,8 +144,25 @@ export function useReportPlace(
     el.classList.add('rp-flash')
     window.setTimeout(() => el.classList.remove('rp-flash'), 2000)
     // the field the step is ABOUT, focused where there is one — a chip that scrolls to a text
-    // box the operator then has to tap is one tap short of finishing the job
-    el.querySelector<HTMLElement>('textarea, input, button')?.focus({ preventScroll: true })
+    // box the operator then has to tap is one tap short of finishing the job.
+    // ⚠️ Only once the scroll has SETTLED. iOS Safari runs its own «keep the caret visible» pass
+    // on focus, `preventScroll` or not: focused mid-scroll, it cut the smooth scroll short and put
+    // the textarea 16px under the head (`scroll-margin-block`) – with the label the chip had just
+    // named hidden above it (owner's iPhone, 11.11.2026). Settled, the field is already in view
+    // and that pass has nothing to move. The timer stands in where `scrollend` never comes (no
+    // scroll needed, a browser without the event).
+    const field = el.querySelector<HTMLElement>('textarea, input, button')
+    if (!field) return
+    let done = false
+    const focusField = () => {
+      if (done) return
+      done = true
+      body.removeEventListener('scrollend', focusField)
+      field.focus({ preventScroll: true })
+    }
+    if (!moves) { focusField(); return }
+    body.addEventListener('scrollend', focusField, { once: true })
+    window.setTimeout(focusField, 800)
   }
 
   // …and the outside ask (see requestReportStep). Through a ref because `jumpToStep` is rebuilt
