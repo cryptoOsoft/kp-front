@@ -156,14 +156,26 @@ def alarm_time(ts_create: int | None) -> datetime | None:
         return None
 
 
+def _einsatzart(title: str | None) -> str:
+    """The part of an alarm title the keywords are matched against: up to the first comma.
+
+    fwo-divera titles an alarm «Verunreinigung, Allschwilerstrasse» – Einsatzart, then the
+    street (the Gemeinde for Nachbarhilfe) – and street names carry keywords: «Bahnhofstrasse»
+    holds BAHN, «Kaibmattweg» holds BMA, every «…gasse» holds GAS. A title without a comma is
+    matched whole. There is deliberately no whole-title retry when the Einsatzart matches
+    nothing: that retry would hand exactly those alarms back to the street names.
+    """
+    return (title or "").partition(",")[0]
+
+
 def detect_type(title: str, *, vocab: Vocabulary) -> str:
-    """German display label for an alarm title. First keyword found in the title wins.
+    """German display label for an alarm title. First keyword found in its Einsatzart wins.
 
     `vocab` is required rather than defaulted: a call site that forgot to resolve it would
     classify against the shipped words while the station runs its own, and nothing would say
     so. `await active_vocabulary()` is the one way to get it.
     """
-    up = (title or "").upper()
+    up = _einsatzart(title).upper()
     for keyword, category in vocab.keyword_to_category:
         if keyword in up:
             return category_label(category)
@@ -171,7 +183,8 @@ def detect_type(title: str, *, vocab: Vocabulary) -> str:
 
 
 def infer_priority(title: str, text: str | None = None, *, vocab: Vocabulary) -> str:
-    combined = f"{title} {text or ''}".upper()
+    """HIGH when a high-priority keyword is in the title's Einsatzart or the text, else LOW."""
+    combined = f"{_einsatzart(title)} {text or ''}".upper()
     for keyword in vocab.high_priority_keywords:
         if keyword in combined:
             return "HIGH"

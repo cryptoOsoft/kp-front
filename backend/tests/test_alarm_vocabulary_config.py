@@ -23,7 +23,9 @@ from app import alarm_keywords, divera
 from app.schemas import DeploymentConfigIn
 
 # What a deployment with NO override classifies with — the literal values as of the rename,
-# and as they were before it. Order included: the matcher takes the first hit.
+# and as they were before it, plus the six Ausrückordnung Einsatzarten that matched nothing until
+# 2026-11-11 and TIER moved to Technische Hilfeleistung (FKS). Order included: the matcher takes
+# the first hit.
 SHIPPED_TITLE_MAP = [
     ("FEUER", "Brandbekämpfung"),
     ("BRAND", "Brandbekämpfung"),
@@ -43,7 +45,13 @@ SHIPPED_TITLE_MAP = [
     ("BMA", "BMA / unechte Alarme"),
     ("FEHLALARM", "BMA / unechte Alarme"),
     ("DIENST", "Dienstleistungen"),
-    ("TIER", "Gerettete Tiere"),
+    ("TIER", "Technische Hilfeleistung"),
+    ("VERUNREINIGUNG", "Ölwehr"),
+    ("WASSERSCHADEN", "Technische Hilfeleistung"),
+    ("TÜRÖFFNUNG", "Technische Hilfeleistung"),
+    ("HILFELEISTUNG", "Technische Hilfeleistung"),
+    ("ELEMENTAR", "Elementarereignis"),
+    ("MED USTÜ", "Diverse Einsätze"),
 ]
 
 SHIPPED_HIGH_PRIORITY = [
